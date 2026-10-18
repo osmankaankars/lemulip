@@ -1,0 +1,94 @@
+name: Website and interactive demo
+
+on:
+  push:
+    branches: [main]
+    paths: ['site/**', 'docs/assets/demo-preview.png', '.github/workflows/pages.yml', 'script/privacy_check.py']
+  pull_request:
+    paths: ['site/**', 'docs/assets/demo-preview.png', '.github/workflows/pages.yml', 'script/privacy_check.py']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Prepare static site
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      pages: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Check public source contents
+        run: |
+          python3 script/privacy_check.py --staged
+          test -s site/index.html
+          test -z "$(find site -type l -print -quit)"
+      - name: Read Pages configuration
+        id: pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - name: Prepare deployment and share image
+        env:
+          PAGES_URL: ${{ steps.pages.outputs.base_url }}
+          SITE_REPOSITORY: ${{ github.repository }}
+        run: |
+          python3 - <<'PY'
+          import html, os, pathlib, re, shutil
+          from urllib.parse import urlsplit
+          destination = pathlib.Path(os.environ['RUNNER_TEMP']) / 'freewheel-pages'
+          shutil.copytree('site', destination)
+          (destination / 'assets').mkdir(exist_ok=True)
+          shutil.copyfile('docs/assets/demo-preview.png', destination / 'assets/demo-preview.png')
+          repo = os.environ['SITE_REPOSITORY']
+          if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9-]*/[A-Za-z0-9_.-]+', repo):
+              raise SystemExit('Invalid Pages repository')
+          index = destination / 'index.html'
+          page = index.read_text()
+          page = page.replace('data-repository=""', 'data-repository="' + html.escape('https://github.com/' + repo, quote=True) + '"', 1)
+          base = os.environ.get('PAGES_URL', '').rstrip('/')
+          if base:
+              url = urlsplit(base)
+              if url.scheme != 'https' or not url.netloc or url.username or url.password:
+                  raise SystemExit('Invalid Pages URL')
+              image = html.escape(base + '/assets/demo-preview.png', quote=True)
+              canonical = html.escape(base + '/', quote=True)
+              metadata = (
+                  f'  <link rel="canonical" href="{canonical}">\n'
+                  f'  <meta property="og:url" content="{canonical}">\n'
+                  f'  <meta property="og:image" content="{image}">\n'
+                  '  <meta property="og:image:alt" content="Freewheel browser walkthrough with sample files. This is a simulation of the workflow.">\n'
+                  '  <meta name="twitter:card" content="summary_large_image">\n'
+                  f'  <meta name="twitter:image" content="{image}">\n'
+              )
+              page = page.replace('</head>', metadata + '</head>', 1)
+          index.write_text(page)
+          PY
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ${{ runner.temp }}/freewheel-pages
+
+  deploy:
+    name: Deploy website
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

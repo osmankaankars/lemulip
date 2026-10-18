@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR"
+if [[ "$(uname -s)" != Darwin ]]; then
+  echo "Building the Freewheel desktop app requires macOS 13 or later and Xcode Command Line Tools." >&2
+  exit 1
+fi
+CONFIGURATION="${CONFIGURATION:-release}"
+APP_NAME=Freewheel
+APP_BUNDLE="$ROOT_DIR/dist/$APP_NAME.app"
+UNIVERSAL=false
+if [[ $# -gt 1 || ( $# -eq 1 && "$1" != --universal ) ]]; then echo "Usage: $0 [--universal]" >&2; exit 2; fi
+if [[ "${1:-}" == --universal ]]; then UNIVERSAL=true; fi
+case "$CONFIGURATION" in debug|release) ;; *) echo "CONFIGURATION must be debug or release." >&2; exit 2 ;; esac
+/usr/bin/xcrun --sdk macosx --find swift >/dev/null
+
+# Respect DEVELOPER_DIR, including an Xcode installation on an external drive.
+# Resolve Swift through the selected SDK instead of an unrelated PATH entry.
+swift_build() { /usr/bin/xcrun --sdk macosx swift build "$@"; }
+
+if [[ "$UNIVERSAL" == true ]]; then
+  for architecture in arm64 x86_64; do
+    swift_build --configuration "$CONFIGURATION" --arch "$architecture" --scratch-path ".build/$architecture"
+  done
+  ARM_BIN="$(swift_build --configuration "$CONFIGURATION" --arch arm64 --scratch-path .build/arm64 --show-bin-path)"
+  INTEL_BIN="$(swift_build --configuration "$CONFIGURATION" --arch x86_64 --scratch-path .build/x86_64 --show-bin-path)"
+else
+  swift_build --configuration "$CONFIGURATION"
+  NATIVE_BIN="$(swift_build --configuration "$CONFIGURATION" --show-bin-path)"
+fi
+
+STAGING="$(mktemp -d "$ROOT_DIR/.build/FreewheelBundle.XXXXXX")"
+trap 'rm -rf "$STAGING"' EXIT
+CONTENTS="$STAGING/$APP_NAME.app/Contents"
+mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources" "$ROOT_DIR/dist"
+if [[ "$UNIVERSAL" == true ]]; then
+  lipo -create "$ARM_BIN/$APP_NAME" "$INTEL_BIN/$APP_NAME" -output "$CONTENTS/MacOS/$APP_NAME"
+  lipo -create "$ARM_BIN/freewheel" "$INTEL_BIN/freewheel" -output "$STAGING/freewheel"
+else
+  cp "$NATIVE_BIN/$APP_NAME" "$CONTENTS/MacOS/$APP_NAME"
+  cp "$NATIVE_BIN/freewheel" "$STAGING/freewheel"
+fi
+cp Resources/Info.plist "$CONTENTS/Info.plist"
+cp LICENSE "$CONTENTS/Resources/LICENSE"
+cp THIRD_PARTY_NOTICES.md "$CONTENTS/Resources/THIRD_PARTY_NOTICES.md"
+/usr/bin/xcrun --sdk macosx swift script/make_icon.swift "$STAGING/AppIcon.iconset"
+iconutil --convert icns "$STAGING/AppIcon.iconset" --output "$CONTENTS/Resources/AppIcon.icns"
+chmod +x "$CONTENTS/MacOS/$APP_NAME" "$STAGING/freewheel"
+plutil -lint "$CONTENTS/Info.plist"
+
+# An ad-hoc signature makes a local build self-contained. No signing keys are used.
+codesign --force --sign - "$STAGING/$APP_NAME.app"
+codesign --force --sign - "$STAGING/freewheel"
+codesign --verify --all-architectures --strict --verbose=2 "$STAGING/$APP_NAME.app"
+codesign --verify --all-architectures --strict --verbose=2 "$STAGING/freewheel"
+if [[ "$UNIVERSAL" == true ]]; then
+  /usr/bin/lipo -verify_arch arm64 x86_64 "$CONTENTS/MacOS/$APP_NAME"
+  /usr/bin/lipo -verify_arch arm64 x86_64 "$STAGING/freewheel"
+fi
+if [[ -e "$APP_BUNDLE" ]]; then
+  BACKUP="$(mktemp -d "$ROOT_DIR/.build/FreewheelPrevious.XXXXXX")"
+  mv "$APP_BUNDLE" "$BACKUP/$APP_NAME.app"
+fi
+mv "$STAGING/$APP_NAME.app" "$APP_BUNDLE"
+cp "$STAGING/freewheel" "$ROOT_DIR/dist/freewheel"
+echo "Built: $APP_BUNDLE"
+echo "CLI:   $ROOT_DIR/dist/freewheel"

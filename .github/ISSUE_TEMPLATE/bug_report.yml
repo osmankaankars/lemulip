@@ -1,0 +1,42 @@
+name: Bug report
+description: Report a reproducible problem in Freewheel.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: >-
+        Please use a generated or non-sensitive sample. Remove personal file
+        paths and document content from logs and screenshots. For a security
+        vulnerability, read SECURITY.md before posting publicly.
+  - type: input
+    id: version
+    attributes:
+      label: Freewheel version
+      placeholder: 0.1.2, built from source
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: macOS and Mac architecture
+      placeholder: macOS version, Apple silicon or Intel
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include the input format, action, options, and optional engine if relevant.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and actual result
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Small sample or sanitized output
+      description: Optional. Review every attachment for private information first.
