@@ -68,7 +68,24 @@ final class NativeConverterTests: XCTestCase {
     }
 
     private func color(_ image: CGImage, x: Int, y: Int) throws -> NSColor {
-        try XCTUnwrap(NSBitmapImageRep(cgImage: image).colorAt(x: x, y: y)?.usingColorSpace(.sRGB))
+        // Sample in the fixture's explicit sRGB space, without an AppKit color-space round trip.
+        // A one-pixel image also keeps CGContext's drawing axes out of pixel-coordinate checks.
+        let pixel = try XCTUnwrap(image.cropping(to: CGRect(x: x, y: y, width: 1, height: 1)))
+        let space = try XCTUnwrap(CGColorSpace(name: CGColorSpace.sRGB))
+        let context = try XCTUnwrap(CGContext(data: nil, width: 1, height: 1, bitsPerComponent: 8,
+            bytesPerRow: 4, space: space,
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue))
+        context.setBlendMode(.copy)
+        context.interpolationQuality = .none
+        context.draw(pixel, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+        return try withExtendedLifetime(context) {
+            let bytes = try XCTUnwrap(context.data).assumingMemoryBound(to: UInt8.self)
+            let alpha = CGFloat(bytes[3]) / 255
+            // The context stores premultiplied RGB; NSColor expects unassociated components.
+            let divisor = CGFloat(max(1, bytes[3]))
+            return NSColor(srgbRed: CGFloat(bytes[0]) / divisor, green: CGFloat(bytes[1]) / divisor,
+                           blue: CGFloat(bytes[2]) / divisor, alpha: alpha)
+        }
     }
 
     /// Explicit top-to-bottom rows avoid relying on CGContext's drawing axes.
@@ -214,6 +231,12 @@ final class NativeConverterTests: XCTestCase {
         let source = try pixelFile(work.inputs.appendingPathComponent("selection.png"), width: 4, height: 3,
                                    rgba: rows.flatMap { $0 })
         let original = try Data(contentsOf: source)
+        // Verify the sampler against untouched fixture pixels before exercising the converter.
+        let fixture = try decodedImage(source)
+        try assertPixel(fixture, x: 1, y: 0, rgba: clear)
+        try assertPixel(fixture, x: 2, y: 0, rgba: red)
+        try assertPixel(fixture, x: 1, y: 1, rgba: green)
+        try assertPixel(fixture, x: 2, y: 1, rgba: blue)
         var options = ConversionOptions()
         options.imageCrop = ImageCropRegion(x: 1, y: 0, width: 2, height: 2, sourceWidth: 4, sourceHeight: 3)
         let result = try await NativeConverter.convert(inputs: [source], operation: operation("image.crop"),
@@ -247,6 +270,12 @@ final class NativeConverterTests: XCTestCase {
             let raw = try XCTUnwrap(CGImageSourceCreateWithURL(source as CFURL, nil))
             let metadata = try XCTUnwrap(CGImageSourceCopyPropertiesAtIndex(raw, 0, nil) as? [String: Any])
             XCTAssertEqual((metadata[kCGImagePropertyOrientation as String] as? NSNumber)?.intValue, orientation)
+            if orientation == 1 {
+                let fixture = try decodedImage(source)
+                for index in palette.indices {
+                    try assertPixel(fixture, x: index % 2, y: index / 2, rgba: palette[index])
+                }
+            }
             let preview = try NativeConverter.imageCropPreview(for: source)
             let width = orientation >= 5 ? 3 : 2, height = orientation >= 5 ? 2 : 3
             XCTAssertEqual(preview.sourceWidth, width); XCTAssertEqual(preview.sourceHeight, height)
