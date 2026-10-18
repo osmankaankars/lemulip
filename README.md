@@ -1,10 +1,10 @@
-<p align="center"><img src="Resources/AppIcon.png" width="132" height="132" alt="Freewheel’s green folded-ribbon app icon"></p>
+<p align="center"><img src="Resources/AppIcon.png" width="132" height="132" alt="Lemulip’s green folded-ribbon app icon"></p>
 
-# Freewheel
+# Lemulip
 
 **File Tools, Right Where You Drag.**
 
-Freewheel is a free, open-source file converter for macOS. Start dragging a file, tap a key, and drop it onto a format or tool. Convert a photo, merge PDFs, trim a clip, or make a ZIP without opening a different app for each job.
+Lemulip is a free, open-source file converter for macOS. Start dragging a file, tap a key, and drop it onto a format or tool. Convert a photo, merge PDFs, trim a clip, or make a ZIP without opening a different app for each job.
 
 Files are processed on your Mac. No account, subscription, uploads, or analytics.
 
@@ -12,17 +12,17 @@ Files are processed on your Mac. No account, subscription, uploads, or analytics
 
 ## Get Started
 
-**Freewheel is an early source preview.** A downloadable Mac release is not available yet. Check [Build and Verify](https://github.com/osmankaankars/freewheel/actions/workflows/build.yml) for the current build result. Finder drag compatibility and the full desktop workflow still need hands-on testing. Preview packages use ad-hoc signing, without Apple Developer ID signing or notarization.
+**Lemulip is an early source preview.** A downloadable Mac release is not available yet. Check [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml) for the current build result. Finder drag compatibility and the full desktop workflow still need hands-on testing. Preview packages use ad-hoc signing, without Apple Developer ID signing or notarization.
 
 You need **macOS 13 or later** and **Swift 5.9 or later** from Xcode or Command Line Tools.
 
-Download the source, extract it, and run this in the Freewheel folder:
+Download the source, extract it, and run this in the Lemulip folder:
 
 ```bash
 ./Build-and-Install.command
 ```
 
-The script builds Freewheel and installs it in your account's `Applications` folder. If an app is already there, it keeps that installation and puts the new build in `dist/Freewheel.app`.
+The script builds Lemulip and installs it in your account's `Applications` folder. If an app is already there, it keeps that installation and puts the new build in `dist/Lemulip.app`.
 
 Missing developer tools? Run `xcode-select --install` first. For full Xcode selection, release packages, and first-launch help, see [Installation](docs/INSTALL.md).
 
@@ -36,11 +36,11 @@ You can release the modifier key while you keep dragging. The center cancels; a 
 
 ![Interactive browser preview with a sample file and conversion wheel.](docs/assets/demo-preview.png)
 
-<!-- FREEWHEEL_DEMO_LINK_START -->
-[Open the Browser Walkthrough](https://osmankaankars.github.io/freewheel/) · This is an interactive simulation with sample files; the Mac app performs conversions.
-<!-- FREEWHEEL_DEMO_LINK_END -->
+<!-- LEMULIP_DEMO_LINK_START -->
+[Open the Browser Walkthrough](https://osmankaankars.github.io/lemulip/) · This is an interactive simulation with sample files; the Mac app performs conversions.
+<!-- LEMULIP_DEMO_LINK_END -->
 
-Prefer a window? Add files with **⌘O**, drop them into the workspace, or choose **Open With → Freewheel**. Reorder a selection before merging PDFs or combining images into a PDF. The same tools are available there, alongside a job queue, Activity, and a floating file shelf.
+Prefer a window? Add files with **⌘O**, drop them into the workspace, or choose **Open With → Lemulip**. Reorder a selection before merging PDFs or combining images into a PDF. The same tools are available there, alongside a job queue, Activity, and a floating file shelf.
 
 ## What Can It Do?
 
@@ -68,9 +68,9 @@ brew install ffmpeg imagemagick
 brew install --cask libreoffice
 ```
 
-These commands require [Homebrew](https://brew.sh). For Pandoc, use its [official macOS installer](https://pandoc.org/installing.html), which includes the templates needed by Freewheel's restricted document conversion.
+These commands require [Homebrew](https://brew.sh). For Pandoc, use its [official macOS installer](https://pandoc.org/installing.html), which includes the templates needed by Lemulip's restricted document conversion.
 
-Open **Settings → Local Engines → Refresh** afterward. Freewheel does not download helpers automatically. Installing engines needs internet access; conversion runs locally.
+Open **Settings → Local Engines → Refresh** afterward. Lemulip does not download helpers automatically. Installing engines needs internet access; conversion runs locally.
 
 DOCX, XLSX, and PPTX are Microsoft Office file formats. LibreOffice handles some of these conversions in the background; you can open the results in Word, Excel, or PowerPoint. Microsoft Office does not need to be installed for those routes. See [Office Formats](docs/FORMATS.md#documents-slides-and-spreadsheets) for the supported input and output combinations.
 
@@ -85,13 +85,13 @@ Activity lasts for the current session. Only preferences are saved. AirDrop shar
 ## Use the Same Engine in Terminal
 
 ```bash
-swift run freewheel convert png photo.heic
-swift run freewheel run pdf.merge first.pdf second.pdf
-swift run freewheel run media.trim clip.mp4 --start 5 --end 25
-swift run freewheel engines
+swift run lemulip convert png photo.heic
+swift run lemulip run pdf.merge first.pdf second.pdf
+swift run lemulip run media.trim clip.mp4 --start 5 --end 25
+swift run lemulip engines
 ```
 
-Use `swift run freewheel --help` for options, or see the [CLI Guide](docs/USER_GUIDE.md#command-line-use).
+Use `swift run lemulip --help` for options, or see the [CLI Guide](docs/USER_GUIDE.md#command-line-use).
 
 ## Help Shape the Next Release
 
@@ -105,6 +105,6 @@ Created and maintained by **[Kaan Kars](https://github.com/osmankaankars)**.
 
 Contributions are welcome. See [Contributing](CONTRIBUTING.md) for bug reports, improvements, and development guidance.
 
-Freewheel is MIT licensed. Its drag-wheel workflow was inspired by [Tangerine](https://tangerineformac.com).
+Lemulip is MIT licensed. Its drag-wheel workflow was inspired by [Tangerine](https://tangerineformac.com).
 
 [License](LICENSE) · [Third-Party Notices](THIRD_PARTY_NOTICES.md) · [Security](SECURITY.md) · [Release Notes](docs/RELEASE_NOTES.md)

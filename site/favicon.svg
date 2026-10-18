@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
-  <title id="title">Freewheel</title>
+  <title id="title">Lemulip</title>
   <defs>
     <linearGradient id="tile" x2="0.8" y2="1"><stop stop-color="#33752D"/><stop offset="1" stop-color="#0D3D25"/></linearGradient>
     <linearGradient id="ribbon" x2="0.7" y2="1"><stop stop-color="#EDFF7C"/><stop offset=".5" stop-color="#BDF620"/><stop offset="1" stop-color="#73BC1B"/></linearGradient>

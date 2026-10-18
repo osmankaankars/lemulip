@@ -1,8 +1,11 @@
-# Publish and Maintain a Freewheel Repository
+# Publish and Maintain a Lemulip Repository
 
-The included publisher creates a new public repository named `freewheel` under the GitHub account already authenticated in your terminal. It publishes the reviewed source and preview tag, configures the project, and lets GitHub Actions build the downloads.
+The included publisher creates a new public repository named `lemulip` under the GitHub account already authenticated in your terminal. It publishes the reviewed source and preview tag, configures the project, and lets GitHub Actions build the downloads.
 
 Use this helper for a fresh source package. It is not an updater for an existing project with development history.
+
+For the existing project, preserve its repository and history during the
+[Freewheel-to-Lemulip transition](#renaming-an-existing-freewheel-repository).
 
 Publishing the source does not build or reinstall the Mac app. You do not need to rerun `Build-and-Install.command` before using the publisher; GitHub Actions handles the release build after publication.
 
@@ -49,7 +52,7 @@ private email out of public history. See GitHub's [commit email reference](https
 If you use more than one GitHub account, bind this run to the expected login. Replace the example value with your GitHub username:
 
 ```bash
-FREEWHEEL_GITHUB_OWNER="your-github-login" ./Publish-to-GitHub.command
+LEMULIP_GITHUB_OWNER="your-github-login" ./Publish-to-GitHub.command
 ```
 
 A mismatch stops before editing the source or creating a repository.
@@ -60,7 +63,7 @@ On the first run, it checks the working source, fills the marked README demo-lin
 
 | Item | Result |
 | --- | --- |
-| Repository | A new public `freewheel` repository |
+| Repository | A new public `lemulip` repository |
 | Source | One initial commit containing the exact privacy-checked file list |
 | Tag | An annotated `v0.1.2` preview tag, derived from `Info.plist` |
 | About | Description, relevant topics, Issues and Discussions enabled, Wiki disabled |
@@ -102,7 +105,7 @@ If repository creation returned an uncertain result and a repository now exists,
 
 | Message | Next Step |
 | --- | --- |
-| `freewheel` already exists | Review the existing repository; this helper will not replace it |
+| `lemulip` already exists | Review the existing repository; this helper will not replace it |
 | Public source check failed | Remove the reported private or unexpected content from the intended public set, then inspect the staged diff |
 | Existing history or remotes | Use a fresh extracted source package, or manage the existing repository manually |
 | Push failed | Check connectivity and the authenticated account's permission to push code and workflow files; GitHub may require explicit workflow permission for the existing credential |
@@ -130,6 +133,28 @@ These scripts preserve existing release downloads. They require a clean reviewed
 Before announcing a release, check the actual download links, the Pages deployment, a fresh Mac launch, and the main drag workflow. Add a native screen recording once it has been captured and reviewed for private content. The current illustrations and browser walkthrough should remain labeled as such.
 
 If your source package did not include the marked demo-link paragraph, replace its local walkthrough link with the verified Pages address after deployment.
+
+## Renaming an Existing Freewheel Repository
+
+Rename the existing repository to `lemulip` instead of creating a second
+repository or rerunning the fresh-source publisher. Keep its repository ID,
+commit history, contributors, issues, stars, and historical tags. Publish the
+reviewed naming update with a normal fast-forward push.
+
+GitHub redirects repository and Git URLs after a rename, but project Pages URLs
+do not redirect automatically. Update the homepage and documentation links to
+the new Pages path, then deploy **Website and Interactive Demo** again. See
+[GitHub's repository rename guide](https://docs.github.com/en/repositories/creating-and-managing-repositories/renaming-a-repository).
+
+Update local checkouts to the new remote:
+
+```bash
+git remote set-url origin https://github.com/osmankaankars/lemulip.git
+```
+
+Do not create a new repository at the old name; that would replace GitHub's
+redirect. Existing tags keep their original contents. Use a new version and tag
+for the first verified Lemulip release.
 
 ## GitHub References
 

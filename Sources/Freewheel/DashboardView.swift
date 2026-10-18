@@ -31,7 +31,7 @@ struct DashboardView: View {
         .sheet(item: $model.pendingOperation, onDismiss: { model.cancelPending() }) { operation in
             OperationOptionsView(model: model, operation: operation)
         }
-        .alert(model.text("Freewheel", "Freewheel"), isPresented: Binding(get: { model.alertMessage != nil }, set: { if !$0 { model.alertMessage = nil } })) {
+        .alert(model.text("Lemulip", "Lemulip"), isPresented: Binding(get: { model.alertMessage != nil }, set: { if !$0 { model.alertMessage = nil } })) {
             Button(model.text("OK", "Tamam"), role: .cancel) { model.alertMessage = nil }
         } message: { Text(model.alertMessage ?? "") }
     }
@@ -40,7 +40,7 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 11) {
                 AppMark(size: 42)
-                Text("Freewheel").font(.system(size: 20, weight: .semibold, design: .rounded)).tracking(-0.6)
+                Text("Lemulip").font(.system(size: 20, weight: .semibold, design: .rounded)).tracking(-0.6)
             }.padding(.top, 40).padding(.bottom, 32)
             VStack(spacing: 7) {
                 nav("workspace", "square.stack.3d.up", model.text("Workspace", "Çalışma alanı"))

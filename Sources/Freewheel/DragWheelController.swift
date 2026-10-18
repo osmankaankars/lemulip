@@ -184,7 +184,7 @@ private final class DragWheelView: NSView {
         super.init(frame: frame)
         registerForDraggedTypes([.fileURL])
         setAccessibilityElement(true)
-        setAccessibilityLabel("Freewheel file operations. Use arrow keys and Return, or drop onto an operation.")
+        setAccessibilityLabel("Lemulip file operations. Use arrow keys and Return, or drop onto an operation.")
     }
     required init?(coder: NSCoder) { nil }
     override var acceptsFirstResponder: Bool { true }

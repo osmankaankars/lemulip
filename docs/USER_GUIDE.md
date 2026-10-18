@@ -1,12 +1,12 @@
-# Using Freewheel
+# Using Lemulip
 
-Freewheel has three ways to work: a wheel beside your drag, a regular workspace, and a command-line tool. They share the same conversion engine.
+Lemulip has three ways to work: a wheel beside your drag, a regular workspace, and a command-line tool. They share the same conversion engine.
 
-New here? [Install Freewheel](INSTALL.md) first. For specific input and output combinations, use the [format guide](FORMATS.md).
+New here? [Install Lemulip](INSTALL.md) first. For specific input and output combinations, use the [format guide](FORMATS.md).
 
 ## Your First Conversion
 
-Open Freewheel and add a small image with **⌘O**. Choose **Convert**, then a different format, such as PNG for a JPEG input. When the job finishes, open **Activity** and click its output to reveal it in Finder.
+Open Lemulip and add a small image with **⌘O**. Choose **Convert**, then a different format, such as PNG for a JPEG input. When the job finishes, open **Activity** and click its output to reveal it in Finder.
 
 The original stays in place. The new file is saved in the first selected file's folder unless you change the output preference.
 
@@ -14,7 +14,7 @@ The original stays in place. The new file is saved in the first selected file's 
 
 ![Illustrated workflow: drag a file, tap Shift, and drop onto a format.](assets/workflow.svg)
 
-With Freewheel running, begin dragging a local file in Finder. Press a modifier after the drag starts:
+With Lemulip running, begin dragging a local file in Finder. Press a modifier after the drag starts:
 
 | Key | Menu | Typical Use |
 | --- | --- | --- |
@@ -32,7 +32,7 @@ Finder drag behavior is still being tested across Mac setups and source applicat
 
 ## The Workspace
 
-Use **Add Files**, **⌘O**, or drag files into the main window. You can also use Finder's **Open With → Freewheel**.
+Use **Add Files**, **⌘O**, or drag files into the main window. You can also use Finder's **Open With → Lemulip**.
 
 Choose **Convert**, **Tools**, or **Actions** above the operation cards. Removing a file from this selection does not delete it from disk. **Clear** empties the selection.
 
@@ -83,7 +83,7 @@ Use the cancel button for a queued or running conversion. A failed or cancelled 
 
 In **Settings**, leave **Save in the First File's Folder** on to save all outputs of each job beside its first input. This also applies when inputs come from different folders.
 
-Turn it off to choose a destination for each job. Existing files are not replaced; Freewheel chooses a new name. **Reveal Finished Files** controls whether Finder opens automatically after success.
+Turn it off to choose a destination for each job. Existing files are not replaced; Lemulip chooses a new name. **Reveal Finished Files** controls whether Finder opens automatically after success.
 
 ### File Actions
 
@@ -93,7 +93,7 @@ Turn it off to choose a destination for each job. Existing files are not replace
 
 ## Optional Engines
 
-**Settings → Local Engines** shows which helpers Freewheel can find. Install the engines you need, then click **Refresh**. Installation instructions are in [Installation](INSTALL.md#optional-engines).
+**Settings → Local Engines** shows which helpers Lemulip can find. Install the engines you need, then click **Refresh**. Installation instructions are in [Installation](INSTALL.md#optional-engines).
 
 A dimmed operation or a dependency message means its helper is missing. It is not a paid feature. Available input codecs also depend on macOS and the installed helper's build.
 
@@ -101,39 +101,39 @@ The interface language can be changed between English and Turkish in **Settings 
 
 ## Command-Line Use
 
-From a source checkout, prefix commands with `swift run`. A local app build also produces `dist/freewheel`, which runs directly:
+From a source checkout, prefix commands with `swift run`. A local app build also produces `dist/lemulip`, which runs directly:
 
 ```bash
-./dist/freewheel --help
-./dist/freewheel list photo.heic
-./dist/freewheel list report.pdf --mode tools
-./dist/freewheel engines
+./dist/lemulip --help
+./dist/lemulip list photo.heic
+./dist/lemulip list report.pdf --mode tools
+./dist/lemulip engines
 ```
 
 ### Convert and Combine
 
 ```bash
-./dist/freewheel convert png photo.heic
-./dist/freewheel convert vtt subtitles.srt
-./dist/freewheel run pdf.merge first.pdf second.pdf
-./dist/freewheel run archive.createZip image.png notes.txt
-./dist/freewheel run archive.extract example.zip
+./dist/lemulip convert png photo.heic
+./dist/lemulip convert vtt subtitles.srt
+./dist/lemulip run pdf.merge first.pdf second.pdf
+./dist/lemulip run archive.createZip image.png notes.txt
+./dist/lemulip run archive.extract example.zip
 ```
 
 ### Use Operation Settings
 
 ```bash
-./dist/freewheel run image.resize photo.jpg --size 1600
-./dist/freewheel run image.crop photo.jpg --width 1000 --height 1000
-./dist/freewheel run pdf.extract report.pdf --pages 1,3-5
-./dist/freewheel run media.trim clip.mp4 --start 5 --end 25
-./dist/freewheel run media.speed clip.mp4 --speed 1.5
+./dist/lemulip run image.resize photo.jpg --size 1600
+./dist/lemulip run image.crop photo.jpg --width 1000 --height 1000
+./dist/lemulip run pdf.extract report.pdf --pages 1,3-5
+./dist/lemulip run media.trim clip.mp4 --start 5 --end 25
+./dist/lemulip run media.speed clip.mp4 --speed 1.5
 ```
 
 Use `--output` with an existing destination folder. Quote paths containing spaces:
 
 ```bash
-./dist/freewheel convert png "Sample photo.heic" --output "./Converted files"
+./dist/lemulip convert png "Sample photo.heic" --output "./Converted files"
 ```
 
 The command prints output paths. Errors and conversion notes go to standard error. Finder, shelf, and AirDrop actions are available only in the desktop app.
@@ -144,4 +144,4 @@ The desktop interface and Apple framework converters require macOS. Portable tex
 
 Read the message in Activity before retrying. It may identify a missing engine, unsupported codec, locked PDF, invalid setting, or file limit. [FAQ](FAQ.md) covers common cases.
 
-For a bug report, include the Freewheel version, macOS version, input format, operation, and error text. Use a synthetic example when possible. Remove private paths and file contents before posting a log.
+For a bug report, include the Lemulip version, macOS version, input format, operation, and error text. Use a synthetic example when possible. Remove private paths and file contents before posting a log.

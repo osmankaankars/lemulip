@@ -1,6 +1,6 @@
 # Design
 
-Freewheel should feel lively, useful, and at home on a Mac. **Orchard Night** is
+Lemulip should feel lively, useful, and at home on a Mac. **Orchard Night** is
 the selected default: deep orchard-green surfaces, vivid pistachio and lime
 accents, warm white text, and a dimensional folded-ribbon icon. Photos, pages,
 and waveforms keep their own colors.
@@ -86,10 +86,18 @@ Measure the compiled app's download size, installed size, idle memory, CPU, and
 launch time before publishing performance claims. Targets and the editor work
 are tracked in the [Roadmap](ROADMAP.md#keep-it-lightweight).
 
-## Naming
+## Product Name
 
-Freewheel remains the repository and product identity while naming is explored.
-A future name should be short, pronounceable, and checked against existing
-products, projects, and registrations. A search without a match is not proof
-that a name has never been used. Renaming will include a migration plan for
-bundle identity, preferences, links, and existing installations.
+**Lemulip** is the product name. Use this spelling for the app, website,
+documentation, and release titles. Use lowercase `lemulip` for the command-line
+executable and repository name. **Orchard Night** names the default appearance;
+it is not a second product name.
+
+Use the approved folded-ribbon icon consistently. Credit **Kaan Kars** as the
+creator and maintainer. Keep headings clear and let the name, color, and icon
+carry the identity without repeating a slogan on every screen.
+
+The rename preserves the existing preferences domain and repository history.
+See [Installation](INSTALL.md#upgrading-from-freewheel) for existing app copies
+and [Development](DEVELOPMENT.md#product-and-internal-names) for compatibility
+identifiers.

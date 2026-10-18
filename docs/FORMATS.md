@@ -1,6 +1,6 @@
 # Formats and Conversion Limits
 
-Freewheel selects operations from the file extensions in your selection. A listed format is a supported route, not a promise that every codec or document feature will survive conversion.
+Lemulip selects operations from the file extensions in your selection. A listed format is a supported route, not a promise that every codec or document feature will survive conversion.
 
 The tables below describe the current implementation. Some features still need broader hands-on macOS testing. See [Installation](INSTALL.md) for optional engines and [User Guide](USER_GUIDE.md) for controls.
 
@@ -52,7 +52,7 @@ Recognized inputs include common MP3, AAC, M4A, WAV, AIFF, FLAC, OGG, Opus, WMA,
 
 The desktop media tools use FFmpeg for compression, trimming, resizing, speed and volume changes, audio removal, and audio extraction. Video compression produces H.264 MP4; audio compression produces M4A.
 
-Freewheel uses the first video stream and first audio stream for its FFmpeg routes. It is not an editor for multiple tracks, subtitles embedded in video, or professional media metadata. Conversions can be lossy, and a compressed output is not guaranteed to be smaller.
+Lemulip uses the first video stream and first audio stream for its FFmpeg routes. It is not an editor for multiple tracks, subtitles embedded in video, or professional media metadata. Conversions can be lossy, and a compressed output is not guaranteed to be smaller.
 
 ## Documents, Slides, and Spreadsheets
 
@@ -73,7 +73,7 @@ You do not need Microsoft Office installed to run these conversions.
 | CSV ↔ TSV | Built in | Preserves quoted delimiters and multiline fields |
 | Word count | Built in for basic text; Pandoc or LibreOffice for other documents | Reports a count in Activity |
 
-The engine runs in the background. You choose a file format in Freewheel and
+The engine runs in the background. You choose a file format in Lemulip and
 receive that file, which can be opened in its compatible application.
 LibreOffice documents its [Microsoft Office format support](https://help.libreoffice.org/latest/en-US/text/shared/guide/ms_user.html)
 and [background conversion options](https://help.libreoffice.org/latest/en-US/text/shared/guide/start_parameters.html).
@@ -86,7 +86,7 @@ CSV and TSV output from a workbook contains the active sheet and loses formulas 
 
 Pages, Keynote, and Numbers export is not implemented. Apple document-package and legacy import support depends on the local engine and is not guaranteed. RTFD packages and text clippings are recognized but do not have guaranteed conversion routes.
 
-Use the [official Pandoc installer](https://pandoc.org/installing.html). Freewheel enables Pandoc's [sandbox](https://pandoc.org/MANUAL.html#option--sandbox); EPUB, DOCX, and ODT routes need an installed build with embedded templates.
+Use the [official Pandoc installer](https://pandoc.org/installing.html). Lemulip enables Pandoc's [sandbox](https://pandoc.org/MANUAL.html#option--sandbox); EPUB, DOCX, and ODT routes need an installed build with embedded templates.
 
 ## Subtitles
 
@@ -115,4 +115,4 @@ There are no paid tiers or daily conversion quotas. The implementation does enfo
 - Native text processing is limited to 32 MiB.
 - Archive and optional-engine operations have their own size, time, and resource limits.
 
-Files that exceed a limit fail with an error. Freewheel does not silently omit pages to fit a limit. Try a smaller selection or lower image dimensions when appropriate.
+Files that exceed a limit fail with an error. Lemulip does not silently omit pages to fit a limit. Try a smaller selection or lower image dimensions when appropriate.

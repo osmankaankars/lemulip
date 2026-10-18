@@ -616,7 +616,7 @@ public enum NativeConverter {
     private static func pdfContext(_ output: URL) throws -> CGContext {
         guard !FileManager.default.fileExists(atPath: output.path),
               let context = CGContext(output as CFURL, mediaBox: nil,
-                                      [kCGPDFContextCreator as String: "Freewheel"] as CFDictionary) else {
+                                      [kCGPDFContextCreator as String: "Lemulip"] as CFDictionary) else {
             throw FreewheelError.operationFailed("A PDF output could not be created.")
         }
         return context

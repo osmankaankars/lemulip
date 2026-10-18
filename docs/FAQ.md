@@ -1,12 +1,12 @@
 # Frequently Asked Questions
 
-## Is Freewheel Free?
+## Is Lemulip Free?
 
 Yes. The source is released under the [MIT license](../LICENSE). There is no subscription, account requirement, or paid conversion tier. Optional engines are separate open-source tools with their own licenses.
 
 ## Does It Upload My Files?
 
-Conversions run locally. Freewheel has no file-upload service, analytics SDK, or automatic update service. It saves preferences, while Activity is held only for the current session.
+Conversions run locally. Lemulip has no file-upload service, analytics SDK, or automatic update service. It saves preferences, while Activity is held only for the current session.
 
 AirDrop is a separate action that shares files when you choose it. Installing optional engines requires internet access.
 
@@ -26,13 +26,13 @@ If a release has no binary assets, [build from source](INSTALL.md#build-from-sou
 
 The current distribution does not have Developer ID signing and notarization. macOS may block a downloaded app on first launch.
 
-Review the source and release origin before opening it. Apple's [guide to safely opening apps](https://support.apple.com/en-us/102445) explains the available controls. Freewheel does not disable Gatekeeper or change the Mac's security settings.
+Review the source and release origin before opening it. Apple's [guide to safely opening apps](https://support.apple.com/en-us/102445) explains the available controls. Lemulip does not disable Gatekeeper or change the Mac's security settings.
 
 ## Why Does an Operation Ask for FFmpeg or Another Engine?
 
 Some formats need an optional local converter. Install FFmpeg for broader media support, ImageMagick for additional image codecs, LibreOffice for Office files, or Pandoc for EPUB and structured document routes.
 
-See [Optional engines](INSTALL.md#optional-engines), then click **Refresh** under **Settings → Local Engines**. Freewheel does not install a helper automatically.
+See [Optional engines](INSTALL.md#optional-engines), then click **Refresh** under **Settings → Local Engines**. Lemulip does not install a helper automatically.
 
 ## Can I Create Word, Excel, and PowerPoint Files?
 
@@ -41,11 +41,11 @@ Yes. Supported routes can create **DOCX** documents, **XLSX** workbooks, and
 can be opened in Word, Excel, and PowerPoint.
 
 LibreOffice is the optional local conversion engine for many of these routes.
-Freewheel calls it in the background without opening its editor. Microsoft Office
+Lemulip calls it in the background without opening its editor. Microsoft Office
 does not need to be installed. Markdown-to-DOCX uses Pandoc instead.
 
 Installing LibreOffice adds a separate application to your Mac. It is optional
-and is not bundled into Freewheel. Common image, PDF, archive, subtitle, and
+and is not bundled into Lemulip. Common image, PDF, archive, subtitle, and
 basic text tools work without it.
 
 Complex formatting can change between formats. PDF-to-editable-Office conversion
@@ -54,13 +54,13 @@ for the exact routes.
 
 ## Why Is Pandoc Reporting a Missing Template?
 
-Freewheel runs Pandoc with `--sandbox`. The installed binary needs embedded data files for some formats, including EPUB, DOCX, and ODT. Install the [official Pandoc package](https://pandoc.org/installing.html), then refresh engine detection.
+Lemulip runs Pandoc with `--sandbox`. The installed binary needs embedded data files for some formats, including EPUB, DOCX, and ODT. Install the [official Pandoc package](https://pandoc.org/installing.html), then refresh engine detection.
 
 Pandoc documents the requirement in its [sandbox option](https://pandoc.org/MANUAL.html#option--sandbox).
 
 ## Why Does the Wheel Not Appear?
 
-Keep Freewheel running and make sure **Drag Wheel Enabled** is checked in the menu bar. Start dragging before tapping Shift, Command, or Control. The wheel recognizes local file drags, not copied text or web links.
+Keep Lemulip running and make sure **Drag Wheel Enabled** is checked in the menu bar. Start dragging before tapping Shift, Command, or Control. The wheel recognizes local file drags, not copied text or web links.
 
 If the source application does not work with the wheel, add the files to the workspace and choose an operation there. You can also use **Open Wheel** for the clickable version.
 

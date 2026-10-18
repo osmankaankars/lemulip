@@ -9,11 +9,11 @@ if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then echo "Invalid release ve
 if [[ -n "${RELEASE_TAG:-}" && "$RELEASE_TAG" != "v$VERSION" ]]; then
   echo "The release tag must match the version in Resources/Info.plist." >&2; exit 1
 fi
-PACKAGE_NAME="Freewheel-$VERSION-macOS-universal"
-SOURCE_NAME="Freewheel-$VERSION-Source.zip"
+PACKAGE_NAME="Lemulip-$VERSION-macOS-universal"
+SOURCE_NAME="Lemulip-$VERSION-Source.zip"
 
 verify_binary() {
-  /usr/bin/lipo -verify_arch arm64 x86_64 "$1"
+  /usr/bin/lipo "$1" -verify_arch arm64 x86_64
   /usr/bin/codesign --verify --all-architectures --strict --verbose=2 "$1"
   # Release binaries must not depend on a CI machine's optional engine installs.
   local linked_libraries
@@ -27,7 +27,7 @@ verify_bundle() {
   /usr/bin/plutil -lint "$1/Contents/Info.plist"
   [[ "$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' "$1/Contents/Info.plist")" == "$VERSION" ]]
   /usr/bin/codesign --verify --all-architectures --strict --verbose=2 "$1"
-  verify_binary "$1/Contents/MacOS/Freewheel"
+  verify_binary "$1/Contents/MacOS/Lemulip"
   cmp LICENSE "$1/Contents/Resources/LICENSE"
   cmp THIRD_PARTY_NOTICES.md "$1/Contents/Resources/THIRD_PARTY_NOTICES.md"
 }
@@ -41,11 +41,11 @@ copy_public_guides() {
     cp "docs/$guide" "$destination/docs/"
   done
   cat > "$destination/README.md" <<'README'
-# Freewheel
+# Lemulip
 
 Start with the [installation guide](docs/INSTALL.md), then see the
 [user guide](docs/USER_GUIDE.md), [formats](docs/FORMATS.md), and [FAQ](docs/FAQ.md).
-The ZIP download also includes the `freewheel` command-line tool.
+The ZIP download also includes the `lemulip` command-line tool.
 
 This public preview is ad hoc signed, without Apple Developer ID signing or
 notarization. See [release notes](docs/RELEASE_NOTES.md) for its status and limits.
@@ -86,7 +86,7 @@ for line in (directory / 'SHA256SUMS.txt').read_text().splitlines():
     if digest.hexdigest() != match[1]: raise SystemExit('Release checksum mismatch')
     seen.add(match[2])
 if seen != expected: raise SystemExit('Missing release checksum')
-for filename, prefix in [(package + '.zip', package), (source, 'Freewheel')]:
+for filename, prefix in [(package + '.zip', package), (source, 'Lemulip')]:
     with zipfile.ZipFile(directory / filename) as archive:
         if archive.testzip(): raise SystemExit('Corrupt release ZIP')
         names = set()
@@ -99,7 +99,7 @@ for filename, prefix in [(package + '.zip', package), (source, 'Freewheel')]:
             names.add(entry.filename)
 print('All three release archives match SHA256SUMS.txt; ZIP paths and CRCs are valid.')
 PY
-  VERIFY_STAGE="$(mktemp -d "${TMPDIR:-/tmp}/freewheel-release-check.XXXXXX")"
+  VERIFY_STAGE="$(mktemp -d "${TMPDIR:-/tmp}/lemulip-release-check.XXXXXX")"
   MOUNTED=false
   cleanup_verify() {
     if [[ "$MOUNTED" == true ]]; then
@@ -113,23 +113,23 @@ PY
   trap cleanup_verify EXIT
   /usr/bin/ditto -x -k "$RELEASE_DIRECTORY/$PACKAGE_NAME.zip" "$VERIFY_STAGE/unpacked"
   PACKAGE_DIRECTORY="$VERIFY_STAGE/unpacked/$PACKAGE_NAME"
-  verify_bundle "$PACKAGE_DIRECTORY/Freewheel.app"
-  verify_binary "$PACKAGE_DIRECTORY/freewheel"
+  verify_bundle "$PACKAGE_DIRECTORY/Lemulip.app"
+  verify_binary "$PACKAGE_DIRECTORY/lemulip"
   verify_public_guides "$PACKAGE_DIRECTORY"
-  "$PACKAGE_DIRECTORY/freewheel" --help
+  "$PACKAGE_DIRECTORY/lemulip" --help
   mkdir "$VERIFY_STAGE/output" "$VERIFY_STAGE/volume"
   printf '1\n00:00:00,000 --> 00:00:01,000\nRelease smoke check\n' > "$VERIFY_STAGE/sample.srt"
-  "$PACKAGE_DIRECTORY/freewheel" convert vtt "$VERIFY_STAGE/sample.srt" --output "$VERIFY_STAGE/output"
+  "$PACKAGE_DIRECTORY/lemulip" convert vtt "$VERIFY_STAGE/sample.srt" --output "$VERIFY_STAGE/output"
   /usr/bin/grep -q '^WEBVTT' "$VERIFY_STAGE/output/"*.vtt
   /usr/bin/grep -q 'Release smoke check' "$VERIFY_STAGE/output/"*.vtt
   /usr/bin/hdiutil verify "$RELEASE_DIRECTORY/$PACKAGE_NAME.dmg"
   /usr/bin/hdiutil attach -readonly -nobrowse -mountpoint "$VERIFY_STAGE/volume" "$RELEASE_DIRECTORY/$PACKAGE_NAME.dmg" >/dev/null
   MOUNTED=true
-  verify_bundle "$VERIFY_STAGE/volume/Freewheel.app"
+  verify_bundle "$VERIFY_STAGE/volume/Lemulip.app"
   verify_public_guides "$VERIFY_STAGE/volume"
-  diff -qr "$PACKAGE_DIRECTORY/Freewheel.app" "$VERIFY_STAGE/volume/Freewheel.app"
+  diff -qr "$PACKAGE_DIRECTORY/Lemulip.app" "$VERIFY_STAGE/volume/Lemulip.app"
   [[ "$(readlink "$VERIFY_STAGE/volume/Applications")" == /Applications ]]
-  ./script/build_and_run.sh --verify-bundle "$PACKAGE_DIRECTORY/Freewheel.app"
+  ./script/build_and_run.sh --verify-bundle "$PACKAGE_DIRECTORY/Lemulip.app"
   echo "Verified release archives, both architectures, signatures, licenses, CLI conversion, and native launch."
   exit 0
 fi
@@ -152,19 +152,19 @@ else
   python3 script/privacy_check.py
 fi
 CONFIGURATION=release ./script/build_app.sh --universal
-verify_bundle dist/Freewheel.app
-verify_binary dist/freewheel
-STAGING="$(mktemp -d "$ROOT_DIR/.build/FreewheelRelease.XXXXXX")"
+verify_bundle dist/Lemulip.app
+verify_binary dist/lemulip
+STAGING="$(mktemp -d "$ROOT_DIR/.build/LemulipRelease.XXXXXX")"
 trap 'rm -rf "$STAGING"' EXIT
 mkdir -p "$STAGING/$PACKAGE_NAME" "$STAGING/dmg"
-cp -R dist/Freewheel.app "$STAGING/$PACKAGE_NAME/"
-cp dist/freewheel "$STAGING/$PACKAGE_NAME/"
+cp -R dist/Lemulip.app "$STAGING/$PACKAGE_NAME/"
+cp dist/lemulip "$STAGING/$PACKAGE_NAME/"
 copy_public_guides "$STAGING/$PACKAGE_NAME"
 /usr/bin/ditto -c -k --norsrc --noextattr --keepParent "$STAGING/$PACKAGE_NAME" "$STAGING/$PACKAGE_NAME.zip"
-cp -R dist/Freewheel.app "$STAGING/dmg/"
+cp -R dist/Lemulip.app "$STAGING/dmg/"
 copy_public_guides "$STAGING/dmg"
 ln -s /Applications "$STAGING/dmg/Applications"
-/usr/bin/hdiutil create -volname Freewheel -srcfolder "$STAGING/dmg" -format UDZO "$STAGING/$PACKAGE_NAME.dmg"
+/usr/bin/hdiutil create -volname Lemulip -srcfolder "$STAGING/dmg" -format UDZO "$STAGING/$PACKAGE_NAME.dmg"
 python3 script/package_source.py
 mv "$STAGING/$PACKAGE_NAME.zip" "$STAGING/$PACKAGE_NAME.dmg" dist/
 cp docs/RELEASE_NOTES.md dist/RELEASE_NOTES.md

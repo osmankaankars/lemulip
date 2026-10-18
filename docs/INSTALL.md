@@ -1,6 +1,6 @@
-# Install Freewheel
+# Install Lemulip
 
-Freewheel is an early source preview for **macOS 13 or later**. A downloadable Mac release is not available yet. The full desktop workflow and compatibility across supported Macs are still being tested.
+Lemulip is an early source preview for **macOS 13 or later**. A downloadable Mac release is not available yet. The full desktop workflow and compatibility across supported Macs are still being tested.
 
 ## Build From Source
 
@@ -16,9 +16,20 @@ You need **Swift 5.9 or later** from compatible Xcode Command Line Tools or full
 
 You can also double-click the command file in Finder.
 
-The script builds the app, checks its bundle, applies an ad-hoc signature, and installs it in your account's `Applications` folder. It opens the app after a new installation.
+The script builds the app, checks its bundle, applies an ad-hoc signature, and installs it in your account's `Applications` folder. It opens a new installation when no Lemulip or previous Freewheel instance is running.
 
-If Freewheel is already installed there, the script preserves it. The new app is at `dist/Freewheel.app`. Quit the current app before replacing it with the new build. Your preferences are stored separately from the app bundle.
+If Lemulip is already installed there, the script preserves it. The new app is at `dist/Lemulip.app`. Quit the current app before replacing it with the new build. Your preferences are stored separately from the app bundle.
+
+### Upgrading From Freewheel
+
+Lemulip is the new product name. Let any running jobs finish, then quit the
+previous Freewheel app before opening Lemulip. The bundle identifier and existing
+preference keys are unchanged, so the new app uses the same saved settings.
+
+The installer creates `Lemulip.app` and leaves an older `Freewheel.app` in place.
+After verifying the new app, you can remove the old app copy yourself. Converted
+files remain where you saved them. The CLI is now `lemulip`; update any commands
+or shortcuts that invoke `freewheel`.
 
 ### Developer Tools
 
@@ -39,7 +50,7 @@ Replace the path if Xcode is installed elsewhere. This command selects tools for
 
 The `DEVELOPER_DIR` setting applies only to that command. A plain `./Build-and-Install.command`, or a double-click in Finder, uses the currently selected developer tools.
 
-Freewheel supplies the archive declarations and links to the macOS libarchive library. A separate Homebrew libarchive installation is not required.
+Lemulip supplies the archive declarations and links to the macOS libarchive library. A separate Homebrew libarchive installation is not required.
 
 ### Build Without Installing
 
@@ -47,7 +58,7 @@ Freewheel supplies the archive declarations and links to the macOS libarchive li
 ./script/build_app.sh
 ```
 
-The outputs are `dist/Freewheel.app` and `dist/freewheel`. For Apple silicon and Intel binaries in one app:
+The outputs are `dist/Lemulip.app` and `dist/lemulip`. For Apple silicon and Intel binaries in one app:
 
 ```bash
 ./script/build_app.sh --universal
@@ -57,9 +68,9 @@ The outputs are `dist/Freewheel.app` and `dist/freewheel`. For Apple silicon and
 
 When a release contains binary assets, choose the **macOS universal DMG** for the app, or the **ZIP** for the app plus command-line executable.
 
-Open the DMG and drag Freewheel into Applications. For the ZIP, extract it and move the app into Applications. Keep the CLI somewhere convenient if you plan to use it.
+Open the DMG and drag Lemulip into Applications. For the ZIP, extract it and move the app into Applications. Keep the CLI somewhere convenient if you plan to use it.
 
-The **Build and Verify** workflow is configured to produce a `Freewheel-macOS-universal` artifact after its checks succeed. Download only from a successful run. A workflow file in the source is not evidence of a completed build.
+The **Build and Verify** workflow is configured to produce a `Lemulip-macOS-universal` artifact after its checks succeed. Download only from a successful run. A workflow file in the source is not evidence of a completed build.
 
 Release assets include `SHA256SUMS.txt`. With the listed packages and checksum file in the same folder, check them using:
 
@@ -73,7 +84,7 @@ The checksum detects a mismatch with the published package. It does not provide 
 
 Current packages are **ad-hoc signed**, without Apple Developer ID signing or notarization. macOS may block a downloaded app on first launch. Review its source and origin before opening it.
 
-Apple's [guide to safely opening apps](https://support.apple.com/en-us/102445) explains first-launch controls. Freewheel does not disable Gatekeeper, remove quarantine attributes, or change system security settings.
+Apple's [guide to safely opening apps](https://support.apple.com/en-us/102445) explains first-launch controls. Lemulip does not disable Gatekeeper, remove quarantine attributes, or change system security settings.
 
 After launch, start with a small image in the workspace. Add it with **⌘O**, select a different format, and check the result in Activity. Then try the drag wheel using the [User Guide](USER_GUIDE.md#the-drag-wheel).
 
@@ -88,9 +99,9 @@ Many image, PDF, OCR, archive, subtitle, and basic text tools are built in. Inst
 | LibreOffice | Office documents, slides, and spreadsheets | `brew install --cask libreoffice` |
 | Pandoc | EPUB and structured document routes | [Official macOS installer](https://pandoc.org/installing.html) |
 
-The `brew` commands require [Homebrew](https://brew.sh). Each engine has its own OS requirements. Installers need internet access; Freewheel's conversions run locally.
+The `brew` commands require [Homebrew](https://brew.sh). Each engine has its own OS requirements. Installers need internet access; Lemulip's conversions run locally.
 
-For Pandoc, use a build with embedded data files, such as its official installer. Freewheel keeps [Pandoc's sandbox](https://pandoc.org/MANUAL.html#option--sandbox) enabled. A missing EPUB, DOCX, or ODT template usually means the installed binary lacks the needed embedded files.
+For Pandoc, use a build with embedded data files, such as its official installer. Lemulip keeps [Pandoc's sandbox](https://pandoc.org/MANUAL.html#option--sandbox) enabled. A missing EPUB, DOCX, or ODT template usually means the installed binary lacks the needed embedded files.
 
 Open **Settings → Local Engines** and click **Refresh** after installation. The app checks standard Homebrew and system locations, its process PATH, and LibreOffice's application bundle. It does not install helpers automatically.
 
@@ -135,4 +146,4 @@ Check Activity for the error, then follow the [FAQ](FAQ.md). Install a named eng
 
 ## Uninstall
 
-Quit Freewheel and remove `Freewheel.app`. Converted files remain in their output folders. Optional engines are separate installations and should be managed with their own uninstall methods.
+Quit Lemulip and remove `Lemulip.app`. Converted files remain in their output folders. Optional engines are separate installations and should be managed with their own uninstall methods.

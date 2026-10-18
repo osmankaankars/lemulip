@@ -2,14 +2,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "Freewheel",
+    name: "Lemulip",
     platforms: [.macOS(.v13)],
     products: [
         .library(name: "FreewheelCore", targets: ["FreewheelCore"]),
         // Distinct product names also keep SwiftPM's intermediate link files
         // separate on the default case-insensitive macOS filesystem.
-        .executable(name: "FreewheelApp", targets: ["Freewheel"]),
-        .executable(name: "freewheel", targets: ["FreewheelCLI"])
+        .executable(name: "LemulipApp", targets: ["Freewheel"]),
+        .executable(name: "lemulip", targets: ["FreewheelCLI"])
     ],
     targets: [
         .target(

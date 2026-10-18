@@ -2,13 +2,13 @@ import Foundation
 import FreewheelCore
 
 let usage = """
-Freewheel — free, local file conversion
+Lemulip — free, local file conversion
 
 Usage:
-  freewheel list <file> [--mode convert|tools|actions]
-  freewheel convert <format> <file>... [--output <directory>]
-  freewheel run <operation-id> <file>... [options]
-  freewheel engines
+  lemulip list <file> [--mode convert|tools|actions]
+  lemulip convert <format> <file>... [--output <directory>]
+  lemulip run <operation-id> <file>... [options]
+  lemulip engines
 
 Options:
   --output PATH       Existing destination directory (default: beside original)
@@ -24,10 +24,10 @@ Options:
   --volume 1.5        Audio volume multiplier
 
 Examples:
-  freewheel convert png photo.heic
-  freewheel run pdf.merge first.pdf second.pdf
-  freewheel run media.trim video.mp4 --start 5 --end 25
-  freewheel run archive.extract example.zip
+  lemulip convert png photo.heic
+  lemulip run pdf.merge first.pdf second.pdf
+  lemulip run media.trim video.mp4 --start 5 --end 25
+  lemulip run archive.extract example.zip
 
 Conversions never replace the original. No files are uploaded.
 Image/PDF/native media operations require macOS; portable text/archive and
@@ -35,7 +35,7 @@ installed external engines can also be used on Linux.
 """
 
 func fail(_ message: String) -> Never {
-    FileHandle.standardError.write(Data(("Freewheel: " + message + "\n").utf8))
+    FileHandle.standardError.write(Data(("Lemulip: " + message + "\n").utf8))
     exit(1)
 }
 
@@ -90,7 +90,7 @@ let urls = positional.map { URL(fileURLWithPath: $0) }
 let operationID = command == "convert" ? "convert.\(Catalog.normalizedExtension(requested))" : requested
 if operationID.hasPrefix("action.") { fail("Finder, AirDrop, and shelf actions are available in the desktop app.") }
 let known = (Catalog.operations(for: urls, mode: .convert) + Catalog.operations(for: urls, mode: .tools)).first { $0.id == operationID }
-guard let operation = known else { fail("This operation is not available for the selected files. Run freewheel list first.") }
+guard let operation = known else { fail("This operation is not available for the selected files. Run lemulip list first.") }
 if operationID == "pdf.compress" { FileHandle.standardError.write(Data("Notice: PDF compression flattens pages to images; links, forms, text selection, and signatures are not retained in the new copy. Originals are preserved.\n".utf8)) }
 if operationID == "media.trim" && options.endSeconds <= options.startSeconds { fail("End time must be after start time") }
 let runner = ConversionEngine()

@@ -305,7 +305,7 @@ enum ExternalConverters {
             do {
                 _ = try await ProcessRunner.checked(executable: pandoc, arguments: ["--sandbox", "--standalone", "--wrap=none", "--from=\(reader)", "--to=\(writer)", "--output=\(output.path)", input.path], currentDirectory: directory, timeout: 120)
             } catch FreewheelError.operationFailed(let message) where message.contains("Could not find data file") {
-                throw FreewheelError.operationFailed("This Pandoc build cannot load the templates required for an offline conversion. Install the official Pandoc package with embedded data files from pandoc.org/installing.html, then reopen Freewheel. The file sandbox remains enabled.")
+                throw FreewheelError.operationFailed("This Pandoc build cannot load the templates required for an offline conversion. Install the official Pandoc package with embedded data files from pandoc.org/installing.html, then reopen Lemulip. The file sandbox remains enabled.")
             }
             try requireFile(output, allowEmpty: ["txt", "md", "markdown"].contains(target)); outputs.append(output)
         }

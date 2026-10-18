@@ -12,7 +12,7 @@ public final class ConversionEngine: Sendable {
             try validateOptions(options, operation: operation)
             var seen = Set<String>()
             let validated = try inputs.map { input -> URL in
-                guard input.isFileURL, !input.path.contains("\0") else { throw FreewheelError.invalidInput("Freewheel only converts files on this Mac. Download remote files first.") }
+                guard input.isFileURL, !input.path.contains("\0") else { throw FreewheelError.invalidInput("Lemulip only converts files on this Mac. Download remote files first.") }
                 let resolved = input.standardizedFileURL.resolvingSymlinksInPath()
                 let values = try resolved.resourceValues(forKeys: [.isRegularFileKey, .isDirectoryKey, .isReadableKey])
                 guard values.isRegularFile == true || values.isDirectory == true, values.isReadable != false else {

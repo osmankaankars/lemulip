@@ -1,13 +1,13 @@
 # Roadmap
 
-Freewheel should make everyday file work feel easy: see what will change, make
+Lemulip should make everyday file work feel easy: see what will change, make
 one clear decision, and save a new copy. The next milestones focus on visual
 editing, a warmer native interface, and a small resource footprint.
 
 This is a working plan. Items below are planned unless explicitly marked as
 implemented. They are not promises of a release date or evidence that a feature
-already ships. The app and repository keep the Freewheel name while the next
-visual identity is explored.
+already ships. **Lemulip** is the selected product name and **Orchard Night** is
+the default appearance.
 
 ## Current Product
 
@@ -16,7 +16,7 @@ and native conversion tools with optional external engines. Its current image
 crop asks for centered dimensions. Media trimming asks for start and end times.
 Neither dialog provides an image selection canvas or an audio waveform.
 
-The [browser walkthrough](https://osmankaankars.github.io/freewheel/) demonstrates
+The [browser walkthrough](https://osmankaankars.github.io/lemulip/) demonstrates
 the wheel with sample files. It is a simulation and does not convert files.
 Read [Formats](FORMATS.md) for the actual conversion routes and their limits.
 
@@ -25,7 +25,7 @@ Read [Formats](FORMATS.md) for the actual conversion routes and their limits.
 Make the first downloadable preview dependable before expanding the feature
 list.
 
-- Resolve the case-insensitive collision between the GUI and CLI build products.
+- Keep the GUI and CLI build product names distinct on case-insensitive disks.
 - Correct PDF raster dimensions and rendering of annotations on rotated crops.
 - Keep strict native regression checks, including all four quarter-turn rotations.
 - Pass macOS tests on Apple silicon and Intel, then verify the exact universal
@@ -38,7 +38,7 @@ list.
 **Ready when:** both Mac jobs and downloaded-package checks pass for the exact
 release commit, and a clean Mac can install and launch the downloaded app using
 the documented steps. Local source inspection and a working website do not
-satisfy this gate. The current result is visible in [Build and Verify](https://github.com/osmankaankars/freewheel/actions/workflows/build.yml).
+satisfy this gate. The current result is visible in [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml).
 
 ## 1. Visual Image Crop
 
@@ -96,7 +96,8 @@ the preview data needed for the visible editor.
 
 ## 4. Warm Visual Identity
 
-The first visual foundation is implemented in source: **Orchard Night** as the
+The first visual foundation is implemented in source: **Lemulip** branding,
+**Orchard Night** as the
 default, vivid pistachio and lime accents, a dimensional folded-ribbon icon,
 and navigation materials with an older-system fallback. The wheel stands on its
 own without an enclosing rectangular panel or repeated footer instruction. See the shared
@@ -107,10 +108,8 @@ Use deep green surfaces, warm readable text, and concentrated color for selectio
 focus, and the primary action. Let users' photos, pages, and waveforms remain the
 main content.
 
-- Refine the original icon at Finder and Dock sizes; add a wordmark and a
-  layered Icon Composer variant after the naming decision.
-- Choose a short, pronounceable name after checking existing apps, projects,
-  domains, and relevant trademarks. Candidate names are not approved identities.
+- Refine the approved icon at Finder and Dock sizes; add a Lemulip wordmark and
+  a layered Icon Composer variant.
 - Share color, spacing, typography, focus, and control states across the wheel,
   workspace, editors, website, and documentation.
 - Keep Orchard Night consistent across windows and editors. Add an appearance
@@ -121,8 +120,8 @@ main content.
 
 **Ready when:** the identity works at icon size, text and controls meet their
 contrast requirements, and the same editing task feels consistent across the
-app and its product pages. A rename needs its own migration plan for preferences,
-bundle identity, repository links, and existing downloads.
+app and its product pages. Verify the name transition on an existing installation
+and keep historical tags and downloads intact.
 
 ## 5. Easier Office Conversion
 

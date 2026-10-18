@@ -1,19 +1,19 @@
 # Third-Party Components
 
-Freewheel's original source code is distributed under the MIT license in `LICENSE`.
+Lemulip's original source code is distributed under the MIT license in `LICENSE`.
 
 ## Components Provided by the Operating System
 
 The macOS application links to Apple's AppKit, SwiftUI, Foundation, CoreGraphics,
 ImageIO, PDFKit, Vision, AVFoundation, and related system frameworks. These are
-provided by macOS and are not redistributed in Freewheel's source package.
+provided by macOS and are not redistributed in Lemulip's source package.
 
 The archive bridge links to the operating system's **libarchive** library. It
 does not bundle a separate runtime implementation.
 
 ## Bundled Libarchive Declaration Headers
 
-Some macOS SDKs omit libarchive's public declaration headers. Freewheel includes
+Some macOS SDKs omit libarchive's public declaration headers. Lemulip includes
 the following two unmodified headers from **libarchive 3.5.3** in the private
 `Sources/CFreewheelArchive/LibarchiveHeaders/` directory. They provide compile-time
 declarations only; the application continues to use the system library.
@@ -65,7 +65,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## Optional, Independently Installed Engines
 
-Freewheel detects these tools if they are already installed. It neither downloads
+Lemulip detects these tools if they are already installed. It neither downloads
 nor bundles them. Their own licenses and notices apply to those installations:
 
 | Engine | Project and licensing information |
@@ -80,5 +80,5 @@ and satisfy the licenses of the exact binaries and codecs you distribute.
 
 ## Independent Implementation
 
-Freewheel's application code, icon, and product artwork are original to this
+Lemulip's application code, icon, and product artwork are original to this
 project. Third-party components and optional engines are documented above.

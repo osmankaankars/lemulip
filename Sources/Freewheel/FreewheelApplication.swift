@@ -17,7 +17,7 @@ enum FreewheelApplication {
             application.run()
         }
         #else
-        print("Freewheel's desktop interface requires macOS 13 or later. Use the freewheel CLI for portable operations.")
+        print("Lemulip's desktop interface requires macOS 13 or later. Use the lemulip CLI for portable operations.")
         #endif
     }
 }

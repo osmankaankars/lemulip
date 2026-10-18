@@ -1,35 +1,35 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="620" viewBox="0 0 1280 620" role="img" aria-labelledby="title desc">
-<title id="title">Freewheel: drag a file, tap Shift, drop onto PNG.</title>
+<title id="title">Lemulip: drag a file, tap Shift, drop onto PNG.</title>
 <desc id="desc">An original workflow illustration using a fictional morning-light.heic file. The native Mac app opens a conversion wheel when Shift is pressed during a file drag. Dropping onto PNG creates a new PNG and keeps the original. This is an illustration, not an app screenshot.</desc>
-<rect width="1280" height="620" rx="20" fill="#111516"/>
+<rect width="1280" height="620" rx="20" fill="#14251D"/>
 <g font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">
-<text x="60" y="76" fill="#eff3ed" font-size="40" font-weight="600" letter-spacing="-1.1">File Tools, Right Where You Drag.</text>
-<text x="61" y="112" fill="#a6b4b2" font-size="16">A small wheel for everyday file work on your Mac.</text>
-<path d="M60 148h1160" stroke="#30393a"/>
-<g fill="#91ebc7" font-size="12"><text x="61" y="184">1</text><text x="493" y="184">2</text><text x="932" y="184">3</text></g>
-<g fill="#eff3ed" font-size="20" font-weight="550"><text x="83" y="186">Drag a File</text><text x="515" y="186">Tap Shift</text><text x="954" y="186">Drop Onto PNG</text></g>
+<text x="60" y="76" fill="#F2F7E9" font-size="40" font-weight="600" letter-spacing="-1.1">File Tools, Right Where You Drag.</text>
+<text x="61" y="112" fill="#B5C7A5" font-size="16">A small wheel for everyday file work on your Mac.</text>
+<path d="M60 148h1160" stroke="#42583D"/>
+<g fill="#BDF620" font-size="12"><text x="61" y="184">1</text><text x="493" y="184">2</text><text x="932" y="184">3</text></g>
+<g fill="#F2F7E9" font-size="20" font-weight="550"><text x="83" y="186">Drag A File</text><text x="515" y="186">Tap Shift</text><text x="954" y="186">Drop Onto PNG</text></g>
 <g transform="translate(98,241)">
-<rect width="236" height="178" rx="9" fill="#eee5d3"/>
+<rect width="236" height="178" rx="9" fill="#FFF9EB"/>
 <clipPath id="art-clip"><rect width="236" height="178" rx="9"/></clipPath>
-<g clip-path="url(#art-clip)"><circle cx="161" cy="48" r="31" fill="#e2a56f"/><path d="M0 99c37-45 63-45 99-7s78 8 137-43v129H0Z" fill="#759488"/><path d="M0 131c56-39 99-32 145 0s69 23 91 2v45H0Z" fill="#345c54"/><path d="M95 178c-11-27 6-37 28-44s48-28 43-47" fill="none" stroke="#eee5d3" stroke-width="4"/></g>
-<text x="118" y="210" text-anchor="middle" fill="#eff3ed" font-size="17">morning-light.heic</text>
-<text x="118" y="236" text-anchor="middle" fill="#a6b4b2" font-size="12">Sample image</text>
+<g clip-path="url(#art-clip)"><circle cx="161" cy="48" r="31" fill="#FF9C45"/><path d="M0 99c37-45 63-45 99-7s78 8 137-43v129H0Z" fill="#95C936"/><path d="M0 131c56-39 99-32 145 0s69 23 91 2v45H0Z" fill="#27591F"/><path d="M95 178c-11-27 6-37 28-44s48-28 43-47" fill="none" stroke="#FFF9EB" stroke-width="4"/></g>
+<text x="118" y="210" text-anchor="middle" fill="#F2F7E9" font-size="17">morning-light.heic</text>
+<text x="118" y="236" text-anchor="middle" fill="#B5C7A5" font-size="12">Sample Image</text>
 </g>
-<g stroke="#69837a" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M379 347h44m-8-8 8 8-8 8"/><path d="M848 347h44m-8-8 8 8-8 8"/></g>
-<path d="M618.920,301.560 L582.960,222.340 A138,138 0 0 1 697.040,222.340 L661.080,301.560 A51,51 0 0 0 618.920,301.560 Z" fill="#29463b" stroke="#91ebc7"/><path d="M634.00,231.00h8l4 4v14h-12z M642.00,231.00v4h4" fill="none" stroke="#91ebc7" stroke-width="1.6" stroke-linejoin="round"/><text x="640.00" y="267.00" text-anchor="middle" fill="#edf3ee" font-size="12">PNG</text><path d="M663.165,302.564 L702.681,225.057 A138,138 0 0 1 773.809,314.248 L689.451,335.526 A51,51 0 0 0 663.165,302.564 Z" fill="#1c2324" stroke="none"/><path d="M709.06,267.14h8l4 4v14h-12z M717.06,267.14v4h4" fill="none" stroke="#91ebc7" stroke-width="1.6" stroke-linejoin="round"/><text x="715.06" y="303.14" text-anchor="middle" fill="#edf3ee" font-size="12">JPG</text><path d="M689.966,337.782 L775.202,320.352 A138,138 0 0 1 749.817,431.572 L680.585,378.885 A51,51 0 0 0 689.966,337.782 Z" fill="#1c2324" stroke="none"/><path d="M727.59,348.36h8l4 4v14h-12z M735.59,348.36v4h4" fill="none" stroke="#91ebc7" stroke-width="1.6" stroke-linejoin="round"/><text x="733.59" y="384.36" text-anchor="middle" fill="#edf3ee" font-size="12">TIFF</text><path d="M679.142,380.694 L745.913,436.467 A138,138 0 0 1 643.131,485.964 L641.157,398.987 A51,51 0 0 0 679.142,380.694 Z" fill="#1c2324" stroke="none"/><path d="M675.65,413.49h8l4 4v14h-12z M683.65,413.49v4h4" fill="none" stroke="#91ebc7" stroke-width="1.6" stroke-linejoin="round"/><text x="681.65" y="449.49" text-anchor="middle" fill="#edf3ee" font-size="12">WEBP</text><path d="M638.843,398.987 L636.869,485.964 A138,138 0 0 1 534.087,436.467 L600.858,380.694 A51,51 0 0 0 638.843,398.987 Z" fill="#1c2324" stroke="none"/><path d="M592.35,413.49h8l4 4v14h-12z M600.35,413.49v4h4" fill="none" stroke="#91ebc7" stroke-width="1.6" stroke-linejoin="round"/><text x="598.35" y="449.49" text-anchor="middle" fill="#edf3ee" font-size="12">AVIF</text><path d="M599.415,378.885 L530.183,431.572 A138,138 0 0 1 504.798,320.352 L590.034,337.782 A51,51 0 0 0 599.415,378.885 Z" fill="#1c2324" stroke="none"/><path d="M540.41,348.36h8l4 4v14h-12z M548.41,348.36v4h4" fill="none" stroke="#91ebc7" stroke-width="1.6" stroke-linejoin="round"/><text x="546.41" y="384.36" text-anchor="middle" fill="#edf3ee" font-size="12">BMP</text><path d="M590.549,335.526 L506.191,314.248 A138,138 0 0 1 577.319,225.057 L616.835,302.564 A51,51 0 0 0 590.549,335.526 Z" fill="#1c2324" stroke="none"/><path d="M558.94,267.14h8l4 4v14h-12z M566.94,267.14v4h4" fill="none" stroke="#91ebc7" stroke-width="1.6" stroke-linejoin="round"/><text x="564.94" y="303.14" text-anchor="middle" fill="#edf3ee" font-size="12">PDF</text>
-<circle cx="640" cy="348" r="44" fill="#1b2223"/>
-<path d="m634 333 12 12m0-12-12 12" stroke="#a6b4b2" stroke-width="1.6"/>
-<text x="640" y="366" text-anchor="middle" fill="#a6b4b2" font-size="11">Cancel</text>
-<text x="640" y="522" text-anchor="middle" fill="#a6b4b2" font-size="12">Convert · Tools · Actions</text>
+<g stroke="#95AC84" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M379 347h44m-8-8 8 8-8 8"/><path d="M848 347h44m-8-8 8 8-8 8"/></g>
+<path d="M618.920,301.560 L582.960,222.340 A138,138 0 0 1 697.040,222.340 L661.080,301.560 A51,51 0 0 0 618.920,301.560 Z" fill="#34512D" stroke="#BDF620"/><path d="M634.00,231.00h8l4 4v14h-12z M642.00,231.00v4h4" fill="none" stroke="#BDF620" stroke-width="1.6" stroke-linejoin="round"/><text x="640.00" y="267.00" text-anchor="middle" fill="#F2F7E9" font-size="12">PNG</text><path d="M663.165,302.564 L702.681,225.057 A138,138 0 0 1 773.809,314.248 L689.451,335.526 A51,51 0 0 0 663.165,302.564 Z" fill="#1C3024" stroke="none"/><path d="M709.06,267.14h8l4 4v14h-12z M717.06,267.14v4h4" fill="none" stroke="#BDF620" stroke-width="1.6" stroke-linejoin="round"/><text x="715.06" y="303.14" text-anchor="middle" fill="#F2F7E9" font-size="12">JPG</text><path d="M689.966,337.782 L775.202,320.352 A138,138 0 0 1 749.817,431.572 L680.585,378.885 A51,51 0 0 0 689.966,337.782 Z" fill="#1C3024" stroke="none"/><path d="M727.59,348.36h8l4 4v14h-12z M735.59,348.36v4h4" fill="none" stroke="#BDF620" stroke-width="1.6" stroke-linejoin="round"/><text x="733.59" y="384.36" text-anchor="middle" fill="#F2F7E9" font-size="12">TIFF</text><path d="M679.142,380.694 L745.913,436.467 A138,138 0 0 1 643.131,485.964 L641.157,398.987 A51,51 0 0 0 679.142,380.694 Z" fill="#1C3024" stroke="none"/><path d="M675.65,413.49h8l4 4v14h-12z M683.65,413.49v4h4" fill="none" stroke="#BDF620" stroke-width="1.6" stroke-linejoin="round"/><text x="681.65" y="449.49" text-anchor="middle" fill="#F2F7E9" font-size="12">WEBP</text><path d="M638.843,398.987 L636.869,485.964 A138,138 0 0 1 534.087,436.467 L600.858,380.694 A51,51 0 0 0 638.843,398.987 Z" fill="#1C3024" stroke="none"/><path d="M592.35,413.49h8l4 4v14h-12z M600.35,413.49v4h4" fill="none" stroke="#BDF620" stroke-width="1.6" stroke-linejoin="round"/><text x="598.35" y="449.49" text-anchor="middle" fill="#F2F7E9" font-size="12">AVIF</text><path d="M599.415,378.885 L530.183,431.572 A138,138 0 0 1 504.798,320.352 L590.034,337.782 A51,51 0 0 0 599.415,378.885 Z" fill="#1C3024" stroke="none"/><path d="M540.41,348.36h8l4 4v14h-12z M548.41,348.36v4h4" fill="none" stroke="#BDF620" stroke-width="1.6" stroke-linejoin="round"/><text x="546.41" y="384.36" text-anchor="middle" fill="#F2F7E9" font-size="12">BMP</text><path d="M590.549,335.526 L506.191,314.248 A138,138 0 0 1 577.319,225.057 L616.835,302.564 A51,51 0 0 0 590.549,335.526 Z" fill="#1C3024" stroke="none"/><path d="M558.94,267.14h8l4 4v14h-12z M566.94,267.14v4h4" fill="none" stroke="#BDF620" stroke-width="1.6" stroke-linejoin="round"/><text x="564.94" y="303.14" text-anchor="middle" fill="#F2F7E9" font-size="12">PDF</text>
+<circle cx="640" cy="348" r="44" fill="#1C3024"/>
+<path d="m634 333 12 12m0-12-12 12" stroke="#B5C7A5" stroke-width="1.6"/>
+<text x="640" y="366" text-anchor="middle" fill="#B5C7A5" font-size="11">Cancel</text>
+<text x="640" y="522" text-anchor="middle" fill="#B5C7A5" font-size="12">Convert · Tools · Actions</text>
 <g transform="translate(959,279)">
-<rect x="49" y="-18" width="140" height="147" rx="12" fill="#1c2925"/>
-<path d="M95 8h37l15 15v68H95Z M132 8v15h15" fill="none" stroke="#91ebc7" stroke-width="2.5" stroke-linejoin="round"/>
-<text x="121" y="66" text-anchor="middle" fill="#91ebc7" font-size="15" font-weight="600">PNG</text>
-<text x="119" y="174" text-anchor="middle" fill="#eff3ed" font-size="20">morning-light.png</text>
-<text x="119" y="201" text-anchor="middle" fill="#a6b4b2" font-size="12">New format. Original kept.</text>
+<rect x="49" y="-18" width="140" height="147" rx="12" fill="#1C3024"/>
+<path d="M95 8h37l15 15v68H95Z M132 8v15h15" fill="none" stroke="#BDF620" stroke-width="2.5" stroke-linejoin="round"/>
+<text x="121" y="66" text-anchor="middle" fill="#BDF620" font-size="15" font-weight="600">PNG</text>
+<text x="119" y="174" text-anchor="middle" fill="#F2F7E9" font-size="20">morning-light.png</text>
+<text x="119" y="201" text-anchor="middle" fill="#B5C7A5" font-size="12">New format. Original kept.</text>
 </g>
-<path d="M60 552h1160" stroke="#30393a"/>
-<text x="60" y="588" fill="#a6b4b2" font-size="12">Original workflow illustration · Sample content · Not an app screenshot</text>
-<text x="1220" y="588" text-anchor="end" fill="#91ebc7" font-size="14" font-weight="600">Freewheel</text>
+<path d="M60 552h1160" stroke="#42583D"/>
+<text x="60" y="588" fill="#B5C7A5" font-size="12">Original workflow illustration · Sample content · Not an app screenshot</text>
+<text x="1220" y="588" text-anchor="end" fill="#BDF620" font-size="14" font-weight="600">Lemulip</text>
 </g>
 </svg>

@@ -90,7 +90,7 @@ struct SettingsContent: View {
                 Label(model.text("Privacy by Design", "Gizlilik uygulamanın temelinde"), systemImage: "lock.shield").font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.accent)
                 Text(model.text("No analytics, file uploads, update pings, or persistent file history. Only your settings are saved. AirDrop shares files only when you explicitly choose it.", "Analitik, dosya yükleme, güncelleme sorgusu veya kalıcı dosya geçmişi yok. Yalnızca ayarların kaydedilir. AirDrop, sen seçtiğinde dosya paylaşır."))
                     .font(.system(size: 11)).foregroundStyle(Palette.muted).lineSpacing(4)
-                Text("Freewheel 0.1.2 · MIT License").font(.system(size: 10, design: .monospaced)).foregroundStyle(Palette.muted).padding(.top, 4)
+                Text("Lemulip 0.1.2 · MIT License").font(.system(size: 10, design: .monospaced)).foregroundStyle(Palette.muted).padding(.top, 4)
             }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.accent.opacity(0.04), in: RoundedRectangle(cornerRadius: 13))
         }
     }

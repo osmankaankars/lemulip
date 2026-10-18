@@ -1,6 +1,6 @@
 # Development
 
-Freewheel is a Swift package with a native macOS app and a CLI. It requires
+Lemulip is a Swift package with a native macOS app and a CLI. It requires
 macOS 13 or later and Swift 5.9 or later. A recent full Xcode installation is the
 most straightforward build environment; see [Installation](INSTALL.md).
 
@@ -36,9 +36,23 @@ frameworks and the runtime libarchive library. The declaration headers under
 `LibarchiveHeaders` are unchanged upstream files with the pins and notices in
 [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
 
+## Product and Internal Names
+
+The installed app is `Lemulip.app`, with an executable named `Lemulip`. SwiftPM
+builds it as the **`LemulipApp`** product. The CLI product is **`lemulip`**. Keep
+these product names distinct even on a case-insensitive filesystem.
+
+The existing `FreewheelCore`, `CFreewheelArchive`, GUI and CLI target names, and
+source folders remain internal implementation identifiers. The bundle identifier
+`app.freewheel.Freewheel`, preference keys, and saved-window key are retained so
+existing installations use the same settings. These compatibility identifiers
+are not public product names and should not be changed as a cosmetic cleanup.
+Apple documents this relationship in
+[The Application Domain](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/UserDefaults/AboutPreferenceDomains/AboutPreferenceDomains.html).
+
 ## Verification in CI
 
-The current commit's [Build and Verify run](https://github.com/osmankaankars/freewheel/actions/workflows/build.yml)
+The current commit's [Build and Verify run](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
 is the source of truth for build and package status. A configured check is not
 evidence that it has passed.
 

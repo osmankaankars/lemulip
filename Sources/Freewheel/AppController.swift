@@ -58,8 +58,8 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         NSApp.appearance = NSAppearance(named: Palette.appearanceName)
         buildWindow()
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        statusItem?.button?.image = NSImage(systemSymbolName: "circle.hexagongrid", accessibilityDescription: "Freewheel")
-        statusItem?.button?.toolTip = "Freewheel"
+        statusItem?.button?.image = NSImage(systemSymbolName: "circle.hexagongrid", accessibilityDescription: "Lemulip")
+        statusItem?.button?.toolTip = "Lemulip"
         rebuildStatusMenu()
         wheel.enabled = wheelEnabled
         wheel.onDrop = { [weak self] urls, operation in self?.begin(operation, inputs: urls) }
@@ -76,7 +76,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         if activity.contains(where: { $0.state == .running && ["action.copy", "action.move"].contains($0.operation.id) }) {
             let alert = NSAlert()
             alert.messageText = text("A File Transfer Is Still Running", "Dosya aktarımı devam ediyor")
-            alert.informativeText = text("Wait for the copy or move to finish before quitting Freewheel.", "Freewheel'den çıkmadan önce kopyalama veya taşıma işleminin bitmesini bekle.")
+            alert.informativeText = text("Wait for the copy or move to finish before quitting Lemulip.", "Lemulip'ten çıkmadan önce kopyalama veya taşıma işleminin bitmesini bekle.")
             alert.addButton(withTitle: text("Keep Working", "Devam et"))
             alert.runModal()
             return .terminateCancel
@@ -104,25 +104,26 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
 
     private func buildWindow() {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1050, height: 720), styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
-        window.title = "Freewheel"
+        window.title = "Lemulip"
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.isMovableByWindowBackground = true
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 850, height: 620)
         window.contentView = NSHostingView(rootView: DashboardView(model: self))
+        // Preserve the saved window position from the original application name.
         window.setFrameAutosaveName("FreewheelMainWindow")
         window.center()
         mainWindow = window
         let menu = NSMenu()
         let applicationItem = NSMenuItem()
         let applicationMenu = NSMenu()
-        applicationMenu.addItem(withTitle: "About Freewheel", action: #selector(showAbout), keyEquivalent: "")
+        applicationMenu.addItem(withTitle: "About Lemulip", action: #selector(showAbout), keyEquivalent: "")
         applicationMenu.addItem(.separator())
         applicationMenu.addItem(withTitle: "Settings…", action: #selector(showSettings), keyEquivalent: ",")
         applicationMenu.addItem(.separator())
-        applicationMenu.addItem(withTitle: "Hide Freewheel", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
-        applicationMenu.addItem(withTitle: "Quit Freewheel", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        applicationMenu.addItem(withTitle: "Hide Lemulip", action: #selector(NSApplication.hide(_:)), keyEquivalent: "h")
+        applicationMenu.addItem(withTitle: "Quit Lemulip", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         applicationItem.submenu = applicationMenu
         menu.addItem(applicationItem)
         let fileItem = NSMenuItem()
@@ -144,7 +145,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
     private func rebuildStatusMenu() {
         guard let statusItem else { return }
         let menu = NSMenu()
-        let open = NSMenuItem(title: text("Open Freewheel", "Freewheel'i aç"), action: #selector(showMainWindow), keyEquivalent: "")
+        let open = NSMenuItem(title: text("Open Lemulip", "Lemulip'i aç"), action: #selector(showMainWindow), keyEquivalent: "")
         open.target = self; menu.addItem(open)
         let add = NSMenuItem(title: text("Choose Files…", "Dosya seç…"), action: #selector(chooseFiles), keyEquivalent: "")
         add.target = self; menu.addItem(add)
@@ -154,7 +155,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         let settings = NSMenuItem(title: text("Settings…", "Ayarlar…"), action: #selector(showSettings), keyEquivalent: "")
         settings.target = self; menu.addItem(settings)
         menu.addItem(.separator())
-        menu.addItem(withTitle: text("Quit Freewheel", "Freewheel'den çık"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        menu.addItem(withTitle: text("Quit Lemulip", "Lemulip'ten çık"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         statusItem.menu = menu
     }
 
@@ -162,7 +163,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
     @objc func showSettings() { section = "settings"; engineRefresh += 1; showMainWindow() }
     @objc private func toggleWheel() { wheelEnabled.toggle() }
     @objc private func showAbout() {
-        NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Freewheel", .applicationVersion: "0.1.2", .credits: NSAttributedString(string: "Free, open-source file conversion.\nCreated by Kaan Kars · MIT licensed\nAll processing happens on this Mac.")])
+        NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Lemulip", .applicationVersion: "0.1.2", .credits: NSAttributedString(string: "Free, open-source file conversion.\nCreated by Kaan Kars · MIT licensed\nAll processing happens on this Mac.")])
     }
 
     @objc func chooseFiles() {

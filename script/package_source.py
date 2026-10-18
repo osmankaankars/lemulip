@@ -53,7 +53,7 @@ def main() -> int:
         mode = 0o755 if information.st_mode & 0o111 else 0o644
         entries.append((name, data, mode))
 
-    output = options.output if options.output else ROOT / "dist" / f"Freewheel-{version}-Source.zip"
+    output = options.output if options.output else ROOT / "dist" / f"Lemulip-{version}-Source.zip"
     if not output.is_absolute():
         output = ROOT / output
     if output.suffix != ".zip":
@@ -65,7 +65,7 @@ def main() -> int:
     # Exclusive creation preserves any earlier source package.
     with zipfile.ZipFile(output, "x", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         for name, data, mode in entries:
-            entry = zipfile.ZipInfo("Freewheel/" + name, date_time=(2026, 1, 1, 0, 0, 0))
+            entry = zipfile.ZipInfo("Lemulip/" + name, date_time=(2026, 1, 1, 0, 0, 0))
             entry.create_system = 3
             entry.external_attr = (stat.S_IFREG | mode) << 16
             entry.compress_type = zipfile.ZIP_DEFLATED

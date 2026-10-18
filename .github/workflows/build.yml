@@ -15,7 +15,7 @@ env:
   DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
 
 concurrency:
-  group: freewheel-${{ github.workflow }}-${{ github.ref }}
+  group: lemulip-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
@@ -67,7 +67,7 @@ jobs:
         if: matrix.arch == 'arm64'
         run: |
           command -v ffprobe
-          ENGINES=$(xcrun --sdk macosx swift run --skip-build freewheel engines)
+          ENGINES=$(xcrun --sdk macosx swift run --skip-build lemulip engines)
           printf '%s\n' "$ENGINES"
           if [[ "$ENGINES" == *"not installed"* ]]; then exit 1; fi
       - name: Test External Engine Integrations
@@ -98,11 +98,11 @@ jobs:
         run: ./script/package_release.sh
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: Freewheel-macOS-universal
+          name: Lemulip-macOS-universal
           path: |
-            dist/Freewheel-*-macOS-universal.zip
-            dist/Freewheel-*-macOS-universal.dmg
-            dist/Freewheel-*-Source.zip
+            dist/Lemulip-*-macOS-universal.zip
+            dist/Lemulip-*-macOS-universal.dmg
+            dist/Lemulip-*-Source.zip
             dist/SHA256SUMS.txt
             dist/RELEASE_NOTES.md
           if-no-files-found: error
@@ -128,7 +128,7 @@ jobs:
           persist-credentials: false
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: Freewheel-macOS-universal
+          name: Lemulip-macOS-universal
           path: dist
           digest-mismatch: error
       - name: Verify the Exact Archives That Will Be Published
@@ -150,7 +150,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: Freewheel-macOS-universal
+          name: Lemulip-macOS-universal
           path: dist
           digest-mismatch: error
       - name: Publish Verified Preview Downloads
@@ -184,9 +184,9 @@ jobs:
           pathlib.Path('PUBLIC_RELEASE_NOTES.md').write_text(notes)
           PY
           gh release create "$RELEASE_TAG" \
-            "Freewheel-$RELEASE_VERSION-macOS-universal.zip" \
-            "Freewheel-$RELEASE_VERSION-macOS-universal.dmg" \
-            "Freewheel-$RELEASE_VERSION-Source.zip" SHA256SUMS.txt \
+            "Lemulip-$RELEASE_VERSION-macOS-universal.zip" \
+            "Lemulip-$RELEASE_VERSION-macOS-universal.dmg" \
+            "Lemulip-$RELEASE_VERSION-Source.zip" SHA256SUMS.txt \
             --verify-tag --repo "$RELEASE_REPO" \
-            --title "Freewheel $RELEASE_TAG · Public Preview" \
+            --title "Lemulip $RELEASE_TAG · Public Preview" \
             --prerelease --latest=false --notes-file PUBLIC_RELEASE_NOTES.md

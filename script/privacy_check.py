@@ -45,14 +45,14 @@ RULES = {
     "credential-in-url": rb"https?://[^\s/:]+:[^\s/@]+@",
     "embedded-email": rb"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+\b",
 }
-ALLOWED_EMAILS = {b"contributors@freewheel.invalid"}
+ALLOWED_EMAILS = {b"contributors@lemulip.invalid"}
 
 # Only these visually reviewed illustrations may be binary. Generated artwork
 # retains its provenance; no image may carry private metadata.
 # Update a digest only after reviewing the new image and its metadata.
 PUBLIC_IMAGES = {
     "Resources/AppIcon.png": "141333d6fbca0f0e3bc27bc4b3afbff1d2e46e74c15f9e972da87ef263a1478a",
-    "docs/assets/demo-preview.png": "e779bce8bd888977674e96ce14cd445b59cf89b744fde043e7185cef87d9df18",
+    "docs/assets/demo-preview.png": "9220fe812177c52c901ff30e8ae23c12df210e48189ee4677a0610e3a479c57a",
 }
 TEXT_SIZE_LIMIT = 2_000_000
 IMAGE_SIZE_LIMIT = 8_000_000

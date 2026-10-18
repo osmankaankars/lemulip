@@ -23,7 +23,7 @@ esac
 # Digests are from https://api.github.com/repos/jgm/pandoc/releases/tags/3.12.1.
 # Keep the official embedded-data build: package-manager variants may not work
 # with the file sandbox used for EPUB/DOCX/ODT conversions.
-PANDOC_STAGE="$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/freewheel-pandoc.XXXXXX")"
+PANDOC_STAGE="$(mktemp -d "${RUNNER_TEMP:-${TMPDIR:-/tmp}}/lemulip-pandoc.XXXXXX")"
 ARCHIVE="$PANDOC_STAGE/pandoc.zip"
 curl --proto '=https' --tlsv1.2 --fail --location --retry 3 \
   "https://github.com/jgm/pandoc/releases/download/$VERSION/pandoc-$VERSION-$ARCH-macOS.zip" \

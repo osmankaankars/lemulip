@@ -9,7 +9,7 @@ if ! command -v python3 >/dev/null; then
   echo "Python 3 is required. Install it before running this helper." >&2
   exit 1
 fi
-exec python3 - "$PROJECT_DIR" <<'FREEWHEEL_PUBLISH'
+exec python3 - "$PROJECT_DIR" <<'LEMULIP_PUBLISH'
 import json
 import os
 from pathlib import Path
@@ -24,10 +24,10 @@ import time
 import uuid
 
 ROOT = Path(sys.argv[1]).resolve()
-REPO_NAME = "freewheel"
+REPO_NAME = "lemulip"
 BRANCH = "main"
-STATE_KEY = "freewheel.publishState"
-COMMIT_MESSAGE = "Add Freewheel local macOS file converter"
+STATE_KEY = "lemulip.publishState"
+COMMIT_MESSAGE = "Add Lemulip local macOS file converter"
 DESCRIPTION = "File tools, right where you drag. Free, local file conversion for macOS."
 TOPICS = ["macos", "swift", "swiftui", "file-converter", "drag-and-drop",
           "productivity", "offline", "privacy", "open-source", "pdf-tools",
@@ -145,8 +145,8 @@ def update_demo_link(owner):
         if len(raw) > 2_000_000:
             stop("README changed beyond the source size limit.")
         readme = raw.decode("utf-8")
-        start = "<!-- FREEWHEEL_DEMO_LINK_START -->"
-        end = "<!-- FREEWHEEL_DEMO_LINK_END -->"
+        start = "<!-- LEMULIP_DEMO_LINK_START -->"
+        end = "<!-- LEMULIP_DEMO_LINK_END -->"
         if start not in readme and end not in readme:
             return
         if readme.count(start) != 1 or readme.count(end) != 1 or readme.index(start) >= readme.index(end):
@@ -158,7 +158,7 @@ def update_demo_link(owner):
                    readme[readme.index(end) + len(end):]).encode("utf-8")
         if updated == raw:
             return
-        temporary = ".freewheel-readme-" + uuid.uuid4().hex
+        temporary = ".lemulip-readme-" + uuid.uuid4().hex
         descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW,
                              0o600, dir_fd=directory)
         with os.fdopen(descriptor, "wb") as handle:
@@ -216,10 +216,10 @@ def main():
                 "Sources/Freewheel/FreewheelApplication.swift",
                 ".github/workflows/build.yml", ".github/workflows/pages.yml", "site/index.html"]
     if any(not (ROOT / name).is_file() or (ROOT / name).is_symlink() for name in required):
-        stop("Run this helper from a complete, reviewed Freewheel source package.")
+        stop("Run this helper from a complete, reviewed Lemulip source package.")
     top = git("rev-parse", "--show-toplevel", allow_failure=True)
     if top.returncode == 0 and Path(top.stdout.decode().strip()).resolve() != ROOT:
-        stop("This folder is inside another repository. Extract Freewheel into its own folder.")
+        stop("This folder is inside another repository. Extract Lemulip into its own folder.")
     git_dir = ROOT / ".git"
     if git_dir.exists() and (git_dir.is_symlink() or not git_dir.is_dir()):
         stop("Linked worktrees and external Git directories are not supported. Use a fresh source package.")
@@ -264,12 +264,12 @@ def main():
     owner, owner_id = user.get("login"), user.get("id")
     if not isinstance(owner, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9-]{0,38}", owner) or not isinstance(owner_id, int) or owner_id <= 0:
         stop("Could not establish the authenticated GitHub account.")
-    expected_owner = ENV.get("FREEWHEEL_GITHUB_OWNER")
+    expected_owner = ENV.get("LEMULIP_GITHUB_OWNER")
     if expected_owner is not None and (
         not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9-]{0,38}", expected_owner)
         or expected_owner.lower() != owner.lower()
     ):
-        stop("The authenticated GitHub account does not match FREEWHEEL_GITHUB_OWNER. No source edit or repository creation was made. Check the active account separately.")
+        stop("The authenticated GitHub account does not match LEMULIP_GITHUB_OWNER. No source edit or repository creation was made. Check the active account separately.")
     # Attribute the work to this verified account without reading or publishing
     # its private email address or personal Git configuration.
     author = owner
@@ -311,7 +311,7 @@ def main():
     repository = api("GET", repo_endpoint, missing_ok=True)
     if state is None:
         if repository is not None:
-            stop("A repository named freewheel already exists for this account. It was not modified. Use a different fresh project or review the existing repository manually.")
+            stop("A repository named lemulip already exists for this account. It was not modified. Use a different fresh project or review the existing repository manually.")
         state = {"schema": 2, "owner": owner, "owner_id": owner_id, "origin": origin,
                  "branch": BRANCH, "version": version, "tree": tree, "date": str(int(time.time())) + " +0000",
                  "commit": None, "repo_id": None, "creation_started": False,
@@ -354,7 +354,7 @@ def main():
     if any(ref not in permitted for ref in refs):
         stop("Additional local branches or tags were found. They will not be published by this helper.")
     tag_ref = "refs/tags/" + tag
-    tag_message = "Freewheel " + version + " public preview"
+    tag_message = "Lemulip " + version + " public preview"
     if git("show-ref", "--verify", "--quiet", tag_ref, allow_failure=True).returncode:
         git("-c", "user.name=" + author, "-c", "user.email=" + email,
             "tag", "-a", tag, commit, "-m", tag_message, label="Create annotated preview tag")
@@ -464,6 +464,6 @@ try:
     main()
 except (PublishError, OSError, ValueError, plistlib.InvalidFileException) as error:
     message = str(error) if isinstance(error, PublishError) else "A local file or tool could not be read safely. Review the source folder and rerun."
-    print("Freewheel: " + message, file=sys.stderr)
+    print("Lemulip: " + message, file=sys.stderr)
     sys.exit(1)
-FREEWHEEL_PUBLISH
+LEMULIP_PUBLISH

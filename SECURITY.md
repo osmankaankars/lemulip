@@ -1,6 +1,6 @@
 # Security and Privacy
 
-Freewheel processes user-selected local files. It does not include an upload API,
+Lemulip processes user-selected local files. It does not include an upload API,
 analytics, crash-reporting service, automatic update check, cloud account, or API
 key requirement. Activity is not persisted. Preferences contain UI settings only.
 
