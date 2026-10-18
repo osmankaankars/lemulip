@@ -24,6 +24,8 @@ Source **0.1.11** adds representative rich Office conversion checks and repairs
 the Mac workbook-package verifier that blocked the 0.1.10 release build.
 Source **0.1.12** adds basic RTF → DOCX with native font and paragraph formatting,
 and repairs the rich Office checks' relationship lookup.
+Source **0.1.13** prepares six generated Office review cases, with an explicit
+Word page-break check and a guide for inspecting the files in Microsoft Office.
 Each version's own
 [Mac checks](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
 and [release assets](https://github.com/osmankaankars/lemulip/releases) determine
@@ -228,13 +230,13 @@ and keep historical tags and downloads intact.
 
 ## 5. Easier Office Conversion
 
-**Partially implemented through source 0.1.12.** The first slice adds basic Office
+**Partially implemented through source 0.1.13.** The first slice adds basic Office
 exports without an extra engine: TXT → DOCX through macOS and CSV/TSV → XLSX
 through a small built-in writer. The second slice checks representative rich
 documents, workbooks, and presentations through the existing optional engine.
 The third slice adds basic RTF → DOCX through macOS, preserving supported font
 and paragraph formatting.
-The whole milestone remains open. Source 0.1.12 needs its own Mac build, package,
+The whole milestone remains open. Source 0.1.13 needs its own Mac build, package,
 and security checks; acceptance in Word, Excel, and PowerPoint remains separate
 from automated checks.
 
@@ -260,11 +262,19 @@ identical rendering, font availability,
 general formula recalculation, or support for macros, charts, pivot tables, and
 animations. See [Rich Office Conversion](FORMATS.md#rich-office-conversion).
 
+**Review Preparation Implemented in Source 0.1.13:** the existing integration cases can retain
+six generated source/output comparisons as a separate Actions artifact. The
+[Office Review](OFFICE_REVIEW.md) guide covers Word fonts and two-page layout,
+literal Excel cells, an edit-and-recalculate check, and PowerPoint appearance.
+The artifact records its source commit; it adds no app dependency or release
+asset. Preparing it does not complete manual acceptance.
+
 **Next Work, in Order:**
 
-1. Inspect representative outputs in Word, Excel, and PowerPoint. Check actual
-   font rendering, pagination, recalculation, and slide appearance before
-   broadening the formatting claims.
+1. Complete the six-case [Office Review](OFFICE_REVIEW.md) in Word, Excel, and
+   PowerPoint, recording the actual app versions and observations. All manual
+   results remain **Not Reviewed** until inspected. Check font rendering,
+   pagination, recalculation, and slide appearance before broadening the claims.
 2. Assess HTML and Markdown fidelity separately before extending their native
    routes. Keep their current optional engines and documented limits until
    those routes have suitable conversion checks.

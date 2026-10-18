@@ -37,7 +37,7 @@ copy_public_guides() {
   mkdir -p "$destination/docs/assets"
   cp LICENSE THIRD_PARTY_NOTICES.md CONTRIBUTING.md SECURITY.md "$destination/"
   cp docs/assets/workflow.svg "$destination/docs/assets/"
-  for guide in INSTALL.md USER_GUIDE.md FAQ.md FORMATS.md DEVELOPMENT.md RELEASE_NOTES.md PUBLISHING.md; do
+  for guide in INSTALL.md USER_GUIDE.md FAQ.md FORMATS.md DEVELOPMENT.md OFFICE_REVIEW.md RELEASE_NOTES.md PUBLISHING.md; do
     cp "docs/$guide" "$destination/docs/"
   done
   cat > "$destination/README.md" <<'README'
@@ -57,7 +57,7 @@ README
 verify_public_guides() {
   local destination="$1"
   cmp docs/assets/workflow.svg "$destination/docs/assets/workflow.svg"
-  for guide in INSTALL.md USER_GUIDE.md FAQ.md FORMATS.md DEVELOPMENT.md RELEASE_NOTES.md PUBLISHING.md; do
+  for guide in INSTALL.md USER_GUIDE.md FAQ.md FORMATS.md DEVELOPMENT.md OFFICE_REVIEW.md RELEASE_NOTES.md PUBLISHING.md; do
     cmp "docs/$guide" "$destination/docs/$guide"
   done
   for notice in LICENSE THIRD_PARTY_NOTICES.md CONTRIBUTING.md SECURITY.md; do

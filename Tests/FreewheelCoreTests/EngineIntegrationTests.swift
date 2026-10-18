@@ -1,6 +1,9 @@
 import XCTest
 #if os(macOS)
 import AppKit
+import Darwin
+#else
+import Glibc
 #endif
 #if canImport(FoundationXML)
 import FoundationXML
@@ -131,13 +134,16 @@ final class EngineIntegrationTests: XCTestCase {
             ["note", "_x0041_", "12/03/2026", "  Keep  "]
         ])
         XCTAssertEqual(try String(contentsOf: source, encoding: .utf8), original)
+        try captureOfficeReview("excel-text", files: [
+            ("source.csv", source), ("converted.xlsx", try XCTUnwrap(workbook.outputs.first))
+        ])
     }
 
     func testLibreOfficeRichWordRoundTripKeepsTableAndRunFormatting() async throws {
         try require("libreoffice")
         let source = try await officeFixture("rich-notes.docx", parts: wordFixtureParts())
         let original = try Data(contentsOf: source)
-        let result = try await officeRoundTrip(source, through: "odt")
+        let result = try await officeRoundTrip(source, through: "odt", reviewCase: "word-layout")
         let document = try officeXML(result, "word/document.xml")
         let tables = try document.nodes(forXPath: "//*[local-name()='tbl']")
         XCTAssertEqual(tables.count, 1)
@@ -155,6 +161,20 @@ final class EngineIntegrationTests: XCTestCase {
         XCTAssertTrue(try heading.nodes(forXPath: ".//*[local-name()='rFonts']/@*[local-name()='ascii']").contains { $0.stringValue == "Arial" })
         XCTAssertEqual(try heading.nodes(forXPath: ".//*[local-name()='sz']/@*[local-name()='val']").first?.stringValue, "28")
         XCTAssertTrue(try document.nodes(forXPath: "//*[local-name()='t']").contains { $0.stringValue == "A second paragraph with Unicode: İstanbul." })
+        let secondPage = try XCTUnwrap(document.nodes(forXPath: "//*[local-name()='p'][.//*[local-name()='t']='A Fresh Page']").first)
+        let pageBreak = try secondPage.nodes(forXPath: "./*[local-name()='pPr']/*[local-name()='pageBreakBefore']").first
+        let pageBreakValue = try pageBreak?.nodes(forXPath: "./@*[local-name()='val']").first?.stringValue ?? "1"
+        let paragraphStartsPage = pageBreak != nil && ["1", "true", "on"].contains(pageBreakValue)
+        // LibreOffice can write the equivalent page break as the first inline
+        // item. A break after heading text, or an ordinary line break, is not enough.
+        let firstInline = try secondPage.nodes(forXPath: ".//*[local-name()='r']/*[not(local-name()='rPr')]").first
+        let inlineBreakType = try firstInline?.nodes(forXPath: "./@*[local-name()='type']").first?.stringValue
+        let startsWithPageBreak = firstInline?.localName == "br" && inlineBreakType == "page"
+        XCTAssertTrue(paragraphStartsPage || startsWithPageBreak, "The second-page heading must follow an explicit page boundary.")
+        XCTAssertEqual(try secondPage.nodes(forXPath: "preceding::*[local-name()='tbl']").count, 1)
+        XCTAssertTrue(try document.nodes(forXPath: "//*[local-name()='t']").contains {
+            $0.stringValue == "This paragraph follows an explicit page break. The table stays on the first page."
+        })
         XCTAssertEqual(try Data(contentsOf: source), original)
         // These are stored table and font properties. Font availability and
         // exact Word pagination require a separate native visual review.
@@ -186,6 +206,9 @@ final class EngineIntegrationTests: XCTestCase {
         XCTAssertEqual((attributes[.paragraphStyle] as? NSParagraphStyle)?.alignment, .center)
         XCTAssertTrue(document.string.contains("Second Paragraph"))
         XCTAssertEqual(try Data(contentsOf: source), original)
+        try captureOfficeReview("word-rtf", files: [
+            ("source.rtf", source), ("converted.docx", try XCTUnwrap(word.outputs.first))
+        ])
     }
     #endif
 
@@ -214,7 +237,7 @@ final class EngineIntegrationTests: XCTestCase {
         try require("libreoffice")
         let source = try await officeFixture("budget.xlsx", parts: spreadsheetFixtureParts())
         let original = try Data(contentsOf: source)
-        let result = try await officeRoundTrip(source, through: "ods")
+        let result = try await officeRoundTrip(source, through: "ods", reviewCase: "excel-formulas")
         let workbook = try officeXML(result, "xl/workbook.xml")
         let sheets = try workbook.nodes(forXPath: "//*[local-name()='sheet']")
         XCTAssertEqual(try sheets.map { try $0.nodes(forXPath: "./@name").first?.stringValue }, ["Budget", "Summary"])
@@ -269,7 +292,7 @@ final class EngineIntegrationTests: XCTestCase {
         try require("libreoffice")
         let source = try await officeFixture("two-slides.pptx", parts: presentationFixtureParts())
         let original = try Data(contentsOf: source)
-        let result = try await officeRoundTrip(source, through: "odp")
+        let result = try await officeRoundTrip(source, through: "odp", reviewCase: "powerpoint-layout")
         let presentation = try officeXML(result, "ppt/presentation.xml")
         let slides = try presentation.nodes(forXPath: "//*[local-name()='sldId']")
         XCTAssertEqual(slides.count, 2)
@@ -331,12 +354,72 @@ final class EngineIntegrationTests: XCTestCase {
         XCTAssertEqual(parts, ["xl/worksheets/first.xml", "xl/worksheets/second.xml"])
     }
 
-    private func officeRoundTrip(_ source: URL, through intermediate: String) async throws -> URL {
+    private func officeRoundTrip(_ source: URL, through intermediate: String, reviewCase: String? = nil) async throws -> URL {
         let middle = try await engine.run(inputs: [source], operation: FileOperation(id: "convert.\(intermediate)", title: intermediate.uppercased()))
         let result = try await engine.run(inputs: middle.outputs, operation: FileOperation(id: "convert.\(source.pathExtension)", title: source.pathExtension.uppercased()))
         XCTAssertEqual(middle.outputs.count, 1); XCTAssertEqual(result.outputs.count, 1)
+        if let reviewCase {
+            // These pending copies are packaged only after the complete selected
+            // test run succeeds, including the assertions on the extracted result.
+            try captureOfficeReview(reviewCase, files: [
+                ("source.\(source.pathExtension)", source),
+                ("intermediate.\(intermediate)", try XCTUnwrap(middle.outputs.first)),
+                ("converted.\(source.pathExtension)", try XCTUnwrap(result.outputs.first))
+            ])
+        }
         let extracted = try await ExternalConverters.archives(result.outputs, operation: FileOperation(id: "archive.extract", title: "Extract"), directory: root)
         return try XCTUnwrap(extracted.outputs.first)
+    }
+
+    private func captureOfficeReview(_ caseName: String, files: [(String, URL)]) throws {
+        guard let path = ProcessInfo.processInfo.environment["LEMULIP_OFFICE_REVIEW_DIR"] else { return }
+        guard path.hasPrefix("/") else {
+            throw FreewheelError.operationFailed("The Office review destination must be an absolute path.")
+        }
+        let destination = URL(fileURLWithPath: path, isDirectory: true)
+        var directoryInfo = stat()
+        guard lstat(destination.path, &directoryInfo) == 0,
+              directoryInfo.st_mode & mode_t(S_IFMT) == mode_t(S_IFDIR),
+              directoryInfo.st_mode & 0o077 == 0, directoryInfo.st_uid == geteuid() else {
+            throw FreewheelError.operationFailed("The Office review destination must be an existing private directory owned by the current user.")
+        }
+        let folder = destination.appendingPathComponent(caseName, isDirectory: true)
+        guard mkdir(folder.path, 0o700) == 0 else {
+            throw FreewheelError.operationFailed("An Office review case could not be created. Use a new empty review destination.")
+        }
+        var complete = false
+        defer { if !complete { try? FileManager.default.removeItem(at: folder) } }
+        let sourcePrefix = root.resolvingSymlinksInPath().path + "/"
+        let limit = 8 * 1_024 * 1_024
+        for (name, source) in files {
+            guard source.resolvingSymlinksInPath().path.hasPrefix(sourcePrefix) else {
+                throw FreewheelError.operationFailed("Office review files must come from the generated test documents.")
+            }
+            let descriptor = open(source.path, O_RDONLY | O_NOFOLLOW | O_NONBLOCK | O_CLOEXEC)
+            guard descriptor >= 0 else {
+                throw FreewheelError.operationFailed("An Office review source could not be opened as a regular file.")
+            }
+            let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
+            defer { try? handle.close() }
+            var information = stat()
+            guard fstat(descriptor, &information) == 0,
+                  information.st_mode & mode_t(S_IFMT) == mode_t(S_IFREG),
+                  information.st_size > 0, information.st_size <= off_t(limit) else {
+                throw FreewheelError.operationFailed("Office review files must be nonempty regular files no larger than 8 MiB.")
+            }
+            var bytes = Data()
+            while let chunk = try handle.read(upToCount: min(65_536, limit - bytes.count + 1)), !chunk.isEmpty {
+                bytes.append(chunk)
+                guard bytes.count <= limit else {
+                    throw FreewheelError.operationFailed("An Office review file exceeded the 8 MiB limit while being copied.")
+                }
+            }
+            guard bytes.count == Int(information.st_size) else {
+                throw FreewheelError.operationFailed("An Office review file changed while being copied.")
+            }
+            try bytes.write(to: folder.appendingPathComponent(name), options: .withoutOverwriting)
+        }
+        complete = true
     }
 
     private func officeXML(_ package: URL, _ part: String) throws -> XMLDocument {
@@ -401,6 +484,8 @@ final class EngineIntegrationTests: XCTestCase {
             <w:p><w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:b/><w:i/><w:sz w:val="28"/></w:rPr><w:t>Orchard Notes</w:t></w:r></w:p>
             <w:p><w:r><w:t>A second paragraph with Unicode: İstanbul.</w:t></w:r></w:p>
             <w:tbl><w:tblPr><w:tblW w:w="7200" w:type="dxa"/></w:tblPr><w:tblGrid><w:gridCol w:w="3600"/><w:gridCol w:w="3600"/></w:tblGrid>\(tableRows)</w:tbl>
+            <w:p><w:pPr><w:pageBreakBefore/></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:b/><w:sz w:val="28"/></w:rPr><w:t>A Fresh Page</w:t></w:r></w:p>
+            <w:p><w:r><w:t>This paragraph follows an explicit page break. The table stays on the first page.</w:t></w:r></w:p>
             <w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>
             </w:body></w:document>
             """
@@ -476,6 +561,9 @@ final class EngineIntegrationTests: XCTestCase {
         }
         XCTAssertEqual(paragraphs(try TextCodec.read(imported.outputs[0])), paragraphs(original))
         XCTAssertEqual(try String(contentsOf: source, encoding: .utf8), original)
+        try captureOfficeReview("word-text", files: [
+            ("source.txt", source), ("converted.docx", try XCTUnwrap(word.outputs.first))
+        ])
     }
     #endif
 

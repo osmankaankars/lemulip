@@ -6,6 +6,30 @@ Lemulip is a free, open-source file converter for macOS. Drag local files,
 tap a modifier key, and choose a format or tool from the wheel. Use the workspace
 when you need a queue, conversion options, or a closer look at the result.
 
+## 0.1.13 · Ready for an Office Review
+
+- Prepare six small sets of actual conversion outputs for inspection in
+  Microsoft Word, Excel, and PowerPoint. Include their generated sources,
+  intermediate Office files, and a concise review guide.
+- Check a deliberate page break in the rich Word example, alongside its table
+  and font formatting. Explain how to inspect pagination and how to edit an
+  Excel value to check real formula recalculation.
+- Record the source commit, platform, file sizes, and checksums. Review sample
+  contents and metadata before packaging, and start every manual result as
+  **Not Reviewed**.
+- Upload the review ZIP as a separate GitHub Actions artifact after the Apple
+  silicon integration checks pass. Keep binary examples outside the source
+  repository and installed app; add no test file or runtime dependency.
+
+Version **0.1.13**, build **16**, includes the native RTF export and Office
+verification repair from 0.1.12. Its conversion scope is unchanged. This step
+makes [Office Review](OFFICE_REVIEW.md) ready to perform; it does not establish
+that Microsoft Office has rendered or recalculated these files correctly.
+Mac, security, and downloaded-package checks remain required before release
+publication. See [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
+for the review artifact and [Releases](https://github.com/osmankaankars/lemulip/releases)
+for installable downloads.
+
 ## 0.1.12 · Keep the Formatting
 
 - Convert basic **RTF → DOCX** with native macOS tools. Keep supported font

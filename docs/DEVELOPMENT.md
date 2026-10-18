@@ -409,9 +409,12 @@ bytes; do not commit binary fixtures or bundle another engine.
 
 | Round Trip | Required Assertions |
 | --- | --- |
-| DOCX → ODT → DOCX | Two-by-two table and text, Unicode paragraph, inline bold and italic, stored Arial name and 14-point size |
+| DOCX → ODT → DOCX | Two-by-two table and text, Unicode paragraph, inline bold and italic, stored Arial name and 14-point size, explicit page break with second-page content |
 | XLSX → ODS → XLSX | Budget and Summary sheets in order; text identifiers including leading zeros and 20 digits; numeric and boolean types; a two-decimal format; SUM and cross-sheet expressions with expected cached values |
 | PPTX → ODP → PPTX | Two ordered slides, titles and panel text, stored Arial name and 24-point size, widescreen dimensions, and two shape bounds per slide within 0.01 inch |
+
+The review preparation extends the Word example with an explicit page break
+and second-page content. Its actual pagination still needs inspection in Word.
 
 These three tests passed with **LibreOfficeDev 26.8.0.0.alpha0 on Linux**. The
 source 0.1.11 [Apple silicon job](https://github.com/osmankaankars/lemulip/actions/runs/39170976554/job/117803763548)
@@ -437,6 +440,42 @@ two expressions and their cached results; they are not a general calculation
 suite. Macros, charts, pivot tables, embedded objects, and animations are not
 covered. Keep native RTF formatting checks separate from these richer
 LibreOffice round trips and from hands-on target-application acceptance.
+
+### Prepare the Office Review
+
+The existing integration cases can retain six small generated input/output
+comparisons for the [Office Review](OFFICE_REVIEW.md). Capture is opt-in through
+`LEMULIP_OFFICE_REVIEW_DIR`; ordinary test runs keep their temporary-file cleanup.
+The review files are not bundled with the app or committed as binary fixtures.
+
+On a Mac, start in the repository with a working Xcode selection and the
+optional integration engines installed. Use a clean checkout of the commit
+you intend to review. This block stops if any check fails:
+
+```bash
+(
+  set -e
+  LEMULIP_REVIEW_WORK="$(mktemp -d "${TMPDIR:-/tmp}/lemulip-office-review.XXXXXX")"
+  mkdir -m 700 "$LEMULIP_REVIEW_WORK/captured"
+  git rev-parse HEAD > "$LEMULIP_REVIEW_WORK/captured/source-commit.txt"
+  env LEMULIP_OFFICE_REVIEW_DIR="$LEMULIP_REVIEW_WORK/captured" /usr/bin/xcrun --sdk macosx swift test --jobs 2 --filter EngineIntegrationTests
+  python3 script/prepare_office_review.py "$LEMULIP_REVIEW_WORK/captured" --output "$LEMULIP_REVIEW_WORK/Lemulip-Office-Review.zip"
+  printf 'Office Review: %s\n' "$LEMULIP_REVIEW_WORK/Lemulip-Office-Review.zip"
+)
+```
+
+The packager checks the capture's commit against the clean source checkout,
+requires the expected cases, and writes a new ZIP; it does not
+overwrite an existing archive. It includes the source version and commit,
+checksums, this review's guide, and an unfilled results template. Capture and
+packaging do not run Microsoft Office, update the installed app, or send local
+files anywhere. The full archive requires macOS for its two native Word cases.
+
+The Apple silicon CI job uploads **Lemulip-Office-Review-arm64** separately from
+the four release assets. Inspect its run and manifest before reviewing the
+files. A prepared artifact or successful XML check is not a manual pass; record
+the target app versions and results using the guide. Keep the Office milestone
+open until those observations are available.
 
 ## Prepare a Release
 
