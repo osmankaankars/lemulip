@@ -4,7 +4,8 @@ Lemulip has three ways to work: a wheel beside your drag, a regular workspace, a
 
 New here? [Install Lemulip](INSTALL.md) first. For specific input and output combinations, use the [format guide](FORMATS.md).
 
-This guide follows source **0.1.10**, which adds basic Word and Excel export. Visual image
+This guide follows source **0.1.11**, with basic Office exports and clarified
+rich-document conversion limits. Visual image
 crop and audio waveform trim start with 0.1.4, native video trim with 0.1.5,
 visual video crop with 0.1.6, Organize PDF with 0.1.7, and Merge PDF preview with 0.1.8.
 Check [Releases](https://github.com/osmankaankars/lemulip/releases) for available
@@ -507,6 +508,26 @@ text. See [Basic Excel Export](FORMATS.md#basic-excel-export) for the full scope
 
 Both exports use the normal output-folder preference and choose an unused name.
 Your source files stay in place.
+
+## Convert Existing Office Files
+
+1. Install optional **LibreOffice**, then choose **Settings → Local Engines →
+   Refresh**. Microsoft Office is not required for conversion.
+2. Add an existing document, workbook, or presentation. Choose **Convert** and
+   a format offered for that input, such as DOCX → ODT, XLSX → ODS, or PPTX → ODP.
+3. Open the new copy from **Activity** in a compatible application. Check the
+   parts that matter to your file before sharing it.
+
+For documents, inspect tables, fonts, line breaks, and page layout. For
+workbooks, keep XLSX or ODS when you need multiple sheets, typed cells, and
+formulas. CSV or TSV output contains the active sheet and loses formulas and
+formatting. For presentations, inspect slide order, text, and shape placement.
+
+The initial rich Office checks cover small examples of those structures. They
+do not guarantee identical rendering or general formula recalculation. Complex
+charts, pivot tables, macros, embedded objects, and animations need separate
+review. See [Rich Office Conversion](FORMATS.md#rich-office-conversion) for
+exact coverage. Each conversion creates a new copy and keeps its source file.
 
 ## Optional Engines
 

@@ -10,6 +10,10 @@ Open [Releases](https://github.com/osmankaankars/lemulip/releases) and expand th
 preview's **Assets**. Downloads appear after that version passes its Mac build
 and package checks. If no app download is listed yet, use [Build From Source](#build-from-source).
 
+A successful **Preview Release** workflow may only mean its prerequisite check
+finished. Downloads are ready when that version's release lists its DMG or app
+ZIP under **Assets**. A failed **Build and Verify** run blocks package publication.
+
 | Download | Includes | Install |
 | --- | --- | --- |
 | `Lemulip-<version>-macOS-universal.dmg` | Mac app and guides | Open the DMG and drag **Lemulip** into **Applications** |

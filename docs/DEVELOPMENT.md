@@ -359,8 +359,14 @@ route should not accidentally replace external-engine coverage.
 
 The existing optional-engine integration tests are configured to read generated
 DOCX and XLSX exports through LibreOffice, alongside explicit LibreOffice
-conversion cases. Their 0.1.10 result must be verified in that commit's Mac CI
-after publication; the presence of these checks does not mean they have passed.
+conversion cases. In the 0.1.10
+[Mac build](https://github.com/osmankaankars/lemulip/actions/runs/39167326568),
+both architectures compiled and passed all 53 native tests, including the new
+DOCX cases. One package-name assertion failed in the workbook test, so that
+run did not reach external integrations or packaging. Source 0.1.11 repairs
+the verifier using directory-relative enumeration and checks a symbolic-link
+alias. Keep the exact five-part assertion; never slice an absolute child path
+using a potentially different spelling of its parent.
 
 Opening generated files with an independent reader helps catch packaging and
 text interpretation errors. Release acceptance also needs real Word and Excel
@@ -368,6 +374,32 @@ checks: inspect paragraphs, tabs, Unicode, cell values, and text typing without
 repair prompts. Distinguish portable tests, Mac CI, external-reader checks, and
 hands-on target-application acceptance in reports. A passing parser or native
 writer round trip does not establish all four.
+
+## Rich Office Conversion Checks
+
+Source 0.1.11 extends the existing
+[integration tests](../Tests/FreewheelCoreTests/EngineIntegrationTests.swift)
+with three small OOXML packages created during the test run. Each uses the
+normal conversion engine to export an OpenDocument copy and then return to the
+original Office format. Inspect the returned package and preserve the source
+bytes; do not commit binary fixtures or bundle another engine.
+
+| Round Trip | Required Assertions |
+| --- | --- |
+| DOCX → ODT → DOCX | Two-by-two table and text, Unicode paragraph, inline bold and italic, stored Arial name and 14-point size |
+| XLSX → ODS → XLSX | Budget and Summary sheets in order; text identifiers including leading zeros and 20 digits; numeric and boolean types; a two-decimal format; SUM and cross-sheet expressions with expected cached values |
+| PPTX → ODP → PPTX | Two ordered slides, titles and panel text, stored Arial name and 24-point size, widescreen dimensions, and two shape bounds per slide within 0.01 inch |
+
+These three tests passed with **LibreOfficeDev 26.8.0.0.alpha0 on Linux**. This
+is local engine evidence; source 0.1.11's Mac integration, universal package,
+downloaded-archive, and security checks remain pending.
+
+Do not infer font availability, Word pagination, Excel recalculation, or
+PowerPoint rendering from stored attributes alone. The formula cases check
+two expressions and their cached results; they are not a general calculation
+suite. Macros, charts, pivot tables, embedded objects, and animations are not
+covered. Native RTF → DOCX remains separate implementation work and must earn
+its own formatting checks before the built-in route expands.
 
 ## Prepare a Release
 

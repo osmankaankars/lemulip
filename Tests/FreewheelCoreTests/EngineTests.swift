@@ -29,12 +29,20 @@ final class EngineTests: XCTestCase {
         XCTAssertEqual(result.outputs.count, 1)
         XCTAssertTrue(result.note?.contains("stored as text") == true)
         let package = try await unpackWorkbook(result.outputs[0])
-        let enumerator = try XCTUnwrap(FileManager.default.enumerator(at: package, includingPropertiesForKeys: [.isRegularFileKey]))
-        let filenames = try enumerator.compactMap { item -> String? in
-            guard let file = item as? URL, try file.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true else { return nil }
-            return String(file.path.dropFirst(package.path.count + 1))
+        let alias = root.appendingPathComponent("Workbook Alias", isDirectory: true)
+        try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: package)
+        for location in [package, alias] {
+            // File enumerator URLs can use a different absolute spelling on
+            // macOS. Resolve the directory alias, then request relative paths.
+            let directory = location.resolvingSymlinksInPath()
+            let enumerator = try XCTUnwrap(FileManager.default.enumerator(atPath: directory.path))
+            let filenames = try enumerator.compactMap { item -> String? in
+                guard let name = item as? String,
+                      try directory.appendingPathComponent(name).resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true else { return nil }
+                return name
+            }
+            XCTAssertEqual(Set(filenames), ["[Content_Types].xml", "_rels/.rels", "xl/workbook.xml", "xl/_rels/workbook.xml.rels", "xl/worksheets/sheet1.xml"])
         }
-        XCTAssertEqual(Set(filenames), ["[Content_Types].xml", "_rels/.rels", "xl/workbook.xml", "xl/_rels/workbook.xml.rels", "xl/worksheets/sheet1.xml"])
         let types = try workbookXML(package.appendingPathComponent("[Content_Types].xml"))
         XCTAssertEqual(types.rootName, "Types")
         XCTAssertEqual(types.rootNamespace, "http://schemas.openxmlformats.org/package/2006/content-types")

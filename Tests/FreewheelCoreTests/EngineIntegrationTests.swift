@@ -1,4 +1,7 @@
 import XCTest
+#if canImport(FoundationXML)
+import FoundationXML
+#endif
 @testable import FreewheelCore
 
 /// Real optional engines, using only generated fixtures. Missing engines are reported as skips.
@@ -125,6 +128,244 @@ final class EngineIntegrationTests: XCTestCase {
             ["note", "_x0041_", "12/03/2026", "  Keep  "]
         ])
         XCTAssertEqual(try String(contentsOf: source, encoding: .utf8), original)
+    }
+
+    func testLibreOfficeRichWordRoundTripKeepsTableAndRunFormatting() async throws {
+        try require("libreoffice")
+        let source = try await officeFixture("rich-notes.docx", parts: wordFixtureParts())
+        let original = try Data(contentsOf: source)
+        let result = try await officeRoundTrip(source, through: "odt")
+        let document = try officeXML(result, "word/document.xml")
+        let tables = try document.nodes(forXPath: "//*[local-name()='tbl']")
+        XCTAssertEqual(tables.count, 1)
+        let table = try XCTUnwrap(tables.first)
+        let rows = try table.nodes(forXPath: "./*[local-name()='tr']")
+        XCTAssertEqual(rows.count, 2)
+        XCTAssertEqual(try rows.map { try $0.nodes(forXPath: "./*[local-name()='tc']").count }, [2, 2])
+        XCTAssertEqual(try table.nodes(forXPath: ".//*[local-name()='t']").compactMap(\.stringValue),
+                       ["Item", "Amount", "İstanbul", "12.50"])
+        let heading = try XCTUnwrap(document.nodes(forXPath: "//*[local-name()='r'][*[local-name()='t']='Orchard Notes']").first)
+        for property in ["b", "i"] {
+            let value = try XCTUnwrap(heading.nodes(forXPath: "./*[local-name()='rPr']/*[local-name()='\(property)']").first)
+            XCTAssertFalse(["0", "false", "off"].contains(try value.nodes(forXPath: "./@*[local-name()='val']").first?.stringValue ?? "1"))
+        }
+        XCTAssertTrue(try heading.nodes(forXPath: ".//*[local-name()='rFonts']/@*[local-name()='ascii']").contains { $0.stringValue == "Arial" })
+        XCTAssertEqual(try heading.nodes(forXPath: ".//*[local-name()='sz']/@*[local-name()='val']").first?.stringValue, "28")
+        XCTAssertTrue(try document.nodes(forXPath: "//*[local-name()='t']").contains { $0.stringValue == "A second paragraph with Unicode: İstanbul." })
+        XCTAssertEqual(try Data(contentsOf: source), original)
+        // These are stored table and font properties. Font availability and
+        // exact Word pagination require a separate native visual review.
+    }
+
+    func testLibreOfficeWorkbookRoundTripKeepsSheetsFormulasAndCellTypes() async throws {
+        try require("libreoffice")
+        let source = try await officeFixture("budget.xlsx", parts: spreadsheetFixtureParts())
+        let original = try Data(contentsOf: source)
+        let result = try await officeRoundTrip(source, through: "ods")
+        let workbook = try officeXML(result, "xl/workbook.xml")
+        let sheets = try workbook.nodes(forXPath: "//*[local-name()='sheet']")
+        XCTAssertEqual(try sheets.map { try $0.nodes(forXPath: "./@name").first?.stringValue }, ["Budget", "Summary"])
+        let sheetParts = try relatedOfficeParts(result, mainPart: "xl/workbook.xml", elements: sheets)
+        XCTAssertEqual(sheetParts.count, 2)
+        guard sheetParts.count == 2 else { throw FreewheelError.operationFailed("The converted workbook did not keep both sheets.") }
+        let budget = try officeXML(result, sheetParts[0]), summary = try officeXML(result, sheetParts[1])
+        let shared = FileManager.default.fileExists(atPath: result.appendingPathComponent("xl/sharedStrings.xml").path)
+            ? try officeXML(result, "xl/sharedStrings.xml").nodes(forXPath: "//*[local-name()='si']") : []
+        func cell(_ sheet: XMLDocument, _ address: String) throws -> XMLNode {
+            try XCTUnwrap(sheet.nodes(forXPath: "//*[local-name()='c' and @r='\(address)']").first)
+        }
+        func text(_ node: XMLNode) throws -> String {
+            let kind = try node.nodes(forXPath: "./@t").first?.stringValue
+            if kind == "s" {
+                let index = try XCTUnwrap(Int(try XCTUnwrap(node.nodes(forXPath: "./*[local-name()='v']").first?.stringValue)))
+                guard shared.indices.contains(index) else { throw FreewheelError.operationFailed("Invalid shared-string index in the converted workbook.") }
+                return try shared[index].nodes(forXPath: ".//*[local-name()='t']").compactMap(\.stringValue).joined()
+            }
+            XCTAssertEqual(kind, "inlineStr")
+            return try node.nodes(forXPath: ".//*[local-name()='t']").compactMap(\.stringValue).joined()
+        }
+        XCTAssertEqual(try text(cell(budget, "A2")), "00123")
+        XCTAssertEqual(try text(cell(budget, "A3")), "İstanbul")
+        XCTAssertEqual(try text(cell(budget, "D2")), "12345678901234567890")
+        let number = try cell(budget, "B2")
+        XCTAssertTrue([nil, "n"].contains(try number.nodes(forXPath: "./@t").first?.stringValue))
+        XCTAssertEqual(try number.nodes(forXPath: "./*[local-name()='v']").first?.stringValue, "12.5")
+        XCTAssertEqual(try cell(budget, "C2").nodes(forXPath: "./@t").first?.stringValue, "b")
+        XCTAssertEqual(try cell(budget, "C2").nodes(forXPath: "./*[local-name()='v']").first?.stringValue, "1")
+        for (sheet, address, expression, value) in [(budget, "B4", "SUM(B2:B3)", 20.0), (summary, "A1", "Budget!B4*2", 40.0)] {
+            let formula = try cell(sheet, address)
+            let expressionAfter = try XCTUnwrap(formula.nodes(forXPath: "./*[local-name()='f']").first?.stringValue)
+            XCTAssertEqual(expressionAfter.replacingOccurrences(of: "'", with: ""), expression)
+            XCTAssertEqual(try XCTUnwrap(Double(try XCTUnwrap(formula.nodes(forXPath: "./*[local-name()='v']").first?.stringValue))), value, accuracy: 0.000001)
+        }
+        let styles = try officeXML(result, "xl/styles.xml")
+        let styleIndex = try XCTUnwrap(Int(try XCTUnwrap(number.nodes(forXPath: "./@s").first?.stringValue)))
+        let formats = try styles.nodes(forXPath: "//*[local-name()='cellXfs']/*[local-name()='xf']")
+        XCTAssertTrue(formats.indices.contains(styleIndex))
+        if formats.indices.contains(styleIndex) {
+            let formatID = try XCTUnwrap(formats[styleIndex].nodes(forXPath: "./@numFmtId").first?.stringValue)
+            let custom = try styles.nodes(forXPath: "//*[local-name()='numFmt' and @numFmtId='\(formatID)']/@formatCode").first?.stringValue
+            XCTAssertTrue(formatID == "2" || custom == "0.00", "The two-decimal number format must survive.")
+        }
+        XCTAssertEqual(try Data(contentsOf: source), original)
+    }
+
+    func testLibreOfficePresentationRoundTripKeepsSlideOrderAndGeometry() async throws {
+        try require("libreoffice")
+        let source = try await officeFixture("two-slides.pptx", parts: presentationFixtureParts())
+        let original = try Data(contentsOf: source)
+        let result = try await officeRoundTrip(source, through: "odp")
+        let presentation = try officeXML(result, "ppt/presentation.xml")
+        let slides = try presentation.nodes(forXPath: "//*[local-name()='sldId']")
+        XCTAssertEqual(slides.count, 2)
+        for (attribute, expected) in [("cx", 12_192_000.0), ("cy", 6_858_000.0)] {
+            let actual = try XCTUnwrap(Double(try XCTUnwrap(presentation.nodes(forXPath: "//*[local-name()='sldSz']/@\(attribute)").first?.stringValue)))
+            XCTAssertEqual(actual, expected, accuracy: 9_144)
+        }
+        let slideParts = try relatedOfficeParts(result, mainPart: "ppt/presentation.xml", elements: slides)
+        guard slideParts.count == 2 else { throw FreewheelError.operationFailed("The converted presentation did not keep both slides.") }
+        for (index, title) in ["Orchard Overview", "Lemon Details"].enumerated() {
+            let slide = try officeXML(result, slideParts[index])
+            let shapes = try slide.nodes(forXPath: "//*[local-name()='sp']")
+            let heading = try XCTUnwrap(shapes.first { (try? $0.nodes(forXPath: ".//*[local-name()='t']").compactMap(\.stringValue).joined()) == title })
+            XCTAssertTrue(try heading.nodes(forXPath: ".//*[local-name()='latin']/@typeface").contains { $0.stringValue == "Arial" })
+            XCTAssertTrue(try heading.nodes(forXPath: ".//*[local-name()='rPr']/@sz").contains { $0.stringValue == "2400" })
+            let marker = try XCTUnwrap(shapes.first { (try? $0.nodes(forXPath: ".//*[local-name()='t']").compactMap(\.stringValue).joined()) == "Panel \(index + 1)" })
+            for (shape, x, y, width, height) in [(heading, 914_400.0, 914_400.0, 9_144_000.0, 685_800.0),
+                                               (marker, Double(914_400 + index * 4_572_000), 2_286_000.0, 3_048_000.0, 1_524_000.0)] {
+                for (element, attribute, expected) in [("off", "x", x), ("off", "y", y), ("ext", "cx", width), ("ext", "cy", height)] {
+                    let path = "./*[local-name()='spPr']/*[local-name()='xfrm']/*[local-name()='\(element)']/@\(attribute)"
+                    let actual = try XCTUnwrap(Double(try XCTUnwrap(shape.nodes(forXPath: path).first?.stringValue)))
+                    // 0.01 inch allows Office's coordinate rounding, without
+                    // accepting a visibly moved or resized shape.
+                    XCTAssertEqual(actual, expected, accuracy: 9_144)
+                }
+            }
+        }
+        XCTAssertEqual(try Data(contentsOf: source), original)
+        // Stored geometry is checked, not PowerPoint's renderer or animations.
+    }
+
+    private func officeRoundTrip(_ source: URL, through intermediate: String) async throws -> URL {
+        let middle = try await engine.run(inputs: [source], operation: FileOperation(id: "convert.\(intermediate)", title: intermediate.uppercased()))
+        let result = try await engine.run(inputs: middle.outputs, operation: FileOperation(id: "convert.\(source.pathExtension)", title: source.pathExtension.uppercased()))
+        XCTAssertEqual(middle.outputs.count, 1); XCTAssertEqual(result.outputs.count, 1)
+        let extracted = try await ExternalConverters.archives(result.outputs, operation: FileOperation(id: "archive.extract", title: "Extract"), directory: root)
+        return try XCTUnwrap(extracted.outputs.first)
+    }
+
+    private func officeXML(_ package: URL, _ part: String) throws -> XMLDocument {
+        try XMLDocument(contentsOf: package.appendingPathComponent(part), options: .nodeLoadExternalEntitiesNever)
+    }
+
+    private func relatedOfficeParts(_ package: URL, mainPart: String, elements: [XMLNode]) throws -> [String] {
+        let main = URL(fileURLWithPath: mainPart)
+        let base = main.deletingLastPathComponent().lastPathComponent
+        let relationships = try officeXML(package, "\(base)/_rels/\(main.lastPathComponent).rels")
+        return try elements.map { element in
+            let identifier = try XCTUnwrap(element.nodes(forXPath: "./@*[local-name()='id' and namespace-uri()='http://schemas.openxmlformats.org/officeDocument/2006/relationships']").first?.stringValue)
+            let relation = try XCTUnwrap(relationships.nodes(forXPath: "/*[local-name()='Relationships']/*[local-name()='Relationship' and @Id='\(identifier)']").first)
+            XCTAssertNotEqual(try relation.nodes(forXPath: "./@TargetMode").first?.stringValue, "External")
+            let target = try XCTUnwrap(relation.nodes(forXPath: "./@Target").first?.stringValue)
+            return target.hasPrefix("/") ? String(target.dropFirst()) : "\(base)/\(target)"
+        }
+    }
+
+    private func officeFixture(_ name: String, parts: [String: String]) async throws -> URL {
+        let folder = root.appendingPathComponent("fixture-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        for (path, xml) in parts {
+            let file = folder.appendingPathComponent(path)
+            try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try xml.write(to: file, atomically: false, encoding: .utf8)
+        }
+        let entries = try FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)
+        let archive = try await ExternalConverters.archives(entries, operation: FileOperation(id: "archive.createZip", title: "Create ZIP"), directory: root)
+        let file = root.appendingPathComponent(name)
+        try FileManager.default.moveItem(at: XCTUnwrap(archive.outputs.first), to: file)
+        return file
+    }
+
+    private func officeRelationships(_ entries: [(String, String, String)]) -> String {
+        "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" + entries.map {
+            "<Relationship Id=\"\($0.0)\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/\($0.1)\" Target=\"\($0.2)\"/>"
+        }.joined() + "</Relationships>"
+    }
+
+    private func officeContentTypes(_ entries: [(String, String)]) -> String {
+        "<Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"rels\" ContentType=\"application/vnd.openxmlformats-package.relationships+xml\"/><Default Extension=\"xml\" ContentType=\"application/xml\"/>" + entries.map {
+            "<Override PartName=\"/\($0.0)\" ContentType=\"application/vnd.openxmlformats-officedocument.\($0.1)+xml\"/>"
+        }.joined() + "</Types>"
+    }
+
+    private func wordFixtureParts() -> [String: String] {
+        let tableRows = [["Item", "Amount"], ["İstanbul", "12.50"]].map { cells in
+            "<w:tr>" + cells.map { "<w:tc><w:tcPr><w:tcW w:w=\"3600\" w:type=\"dxa\"/></w:tcPr><w:p><w:r><w:t>\($0)</w:t></w:r></w:p></w:tc>" }.joined() + "</w:tr>"
+        }.joined()
+        return [
+            "[Content_Types].xml": officeContentTypes([("word/document.xml", "wordprocessingml.document.main")]),
+            "_rels/.rels": officeRelationships([("rId1", "officeDocument", "word/document.xml")]),
+            "word/document.xml": """
+            <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>
+            <w:p><w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:b/><w:i/><w:sz w:val="28"/></w:rPr><w:t>Orchard Notes</w:t></w:r></w:p>
+            <w:p><w:r><w:t>A second paragraph with Unicode: İstanbul.</w:t></w:r></w:p>
+            <w:tbl><w:tblPr><w:tblW w:w="7200" w:type="dxa"/></w:tblPr><w:tblGrid><w:gridCol w:w="3600"/><w:gridCol w:w="3600"/></w:tblGrid>\(tableRows)</w:tbl>
+            <w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440"/></w:sectPr>
+            </w:body></w:document>
+            """
+        ]
+    }
+
+    private func spreadsheetFixtureParts() -> [String: String] {
+        let namespace = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+        return [
+            "[Content_Types].xml": officeContentTypes([("xl/workbook.xml", "spreadsheetml.sheet.main"), ("xl/styles.xml", "spreadsheetml.styles"), ("xl/worksheets/sheet1.xml", "spreadsheetml.worksheet"), ("xl/worksheets/sheet2.xml", "spreadsheetml.worksheet")]),
+            "_rels/.rels": officeRelationships([("rId1", "officeDocument", "xl/workbook.xml")]),
+            "xl/_rels/workbook.xml.rels": officeRelationships([("rId1", "worksheet", "worksheets/sheet1.xml"), ("rId2", "worksheet", "worksheets/sheet2.xml"), ("rId3", "styles", "styles.xml")]),
+            "xl/workbook.xml": "<workbook xmlns=\"\(namespace)\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\"><sheets><sheet name=\"Budget\" sheetId=\"1\" r:id=\"rId1\"/><sheet name=\"Summary\" sheetId=\"2\" r:id=\"rId2\"/></sheets><calcPr fullCalcOnLoad=\"1\"/></workbook>",
+            "xl/styles.xml": "<styleSheet xmlns=\"\(namespace)\"><fonts count=\"1\"><font><sz val=\"11\"/><name val=\"Arial\"/></font></fonts><fills count=\"2\"><fill><patternFill patternType=\"none\"/></fill><fill><patternFill patternType=\"gray125\"/></fill></fills><borders count=\"1\"><border/></borders><cellStyleXfs count=\"1\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellStyleXfs><cellXfs count=\"2\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\"/><xf numFmtId=\"2\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\" applyNumberFormat=\"1\"/></cellXfs><cellStyles count=\"1\"><cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\"/></cellStyles></styleSheet>",
+            "xl/worksheets/sheet1.xml": """
+            <worksheet xmlns="\(namespace)"><sheetData>
+            <row r="1"><c r="A1" t="inlineStr"><is><t>Identifier</t></is></c><c r="B1" t="inlineStr"><is><t>Amount</t></is></c></row>
+            <row r="2"><c r="A2" t="inlineStr"><is><t>00123</t></is></c><c r="B2" s="1"><v>12.5</v></c><c r="C2" t="b"><v>1</v></c><c r="D2" t="inlineStr"><is><t>12345678901234567890</t></is></c></row>
+            <row r="3"><c r="A3" t="inlineStr"><is><t>İstanbul</t></is></c><c r="B3" s="1"><v>7.5</v></c></row>
+            <row r="4"><c r="B4" s="1"><f>SUM(B2:B3)</f><v>20</v></c></row>
+            </sheetData></worksheet>
+            """,
+            "xl/worksheets/sheet2.xml": "<worksheet xmlns=\"\(namespace)\"><sheetData><row r=\"1\"><c r=\"A1\"><f>Budget!B4*2</f><v>40</v></c></row></sheetData></worksheet>"
+        ]
+    }
+
+    private func presentationFixtureParts() -> [String: String] {
+        let namespaces = "xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" xmlns:r=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships\" xmlns:p=\"http://schemas.openxmlformats.org/presentationml/2006/main\""
+        let group = "<p:nvGrpSpPr><p:cNvPr id=\"1\" name=\"\"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x=\"0\" y=\"0\"/><a:ext cx=\"0\" cy=\"0\"/><a:chOff x=\"0\" y=\"0\"/><a:chExt cx=\"0\" cy=\"0\"/></a:xfrm></p:grpSpPr>"
+        let colors = [("dk1", "000000"), ("lt1", "FFFFFF"), ("dk2", "13261D"), ("lt2", "F8F8F2"), ("accent1", "00A36C"), ("accent2", "FFC928"), ("accent3", "DD6247"), ("accent4", "247BA0"), ("accent5", "8E6C9B"), ("accent6", "52796F"), ("hlink", "0563C1"), ("folHlink", "954F72")]
+        let fills = String(repeating: "<a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill>", count: 3)
+        let lines = String(repeating: "<a:ln w=\"6350\"><a:solidFill><a:schemeClr val=\"phClr\"/></a:solidFill><a:prstDash val=\"solid\"/></a:ln>", count: 3)
+        var parts = [
+            "[Content_Types].xml": officeContentTypes([("ppt/presentation.xml", "presentationml.presentation.main"), ("ppt/presProps.xml", "presentationml.presProps"), ("ppt/slideMasters/slideMaster1.xml", "presentationml.slideMaster"), ("ppt/slideLayouts/slideLayout1.xml", "presentationml.slideLayout"), ("ppt/theme/theme1.xml", "theme"), ("ppt/slides/slide1.xml", "presentationml.slide"), ("ppt/slides/slide2.xml", "presentationml.slide")]),
+            "_rels/.rels": officeRelationships([("rId1", "officeDocument", "ppt/presentation.xml")]),
+            "ppt/presentation.xml": "<p:presentation \(namespaces)><p:sldMasterIdLst><p:sldMasterId id=\"2147483648\" r:id=\"rId1\"/></p:sldMasterIdLst><p:sldIdLst><p:sldId id=\"256\" r:id=\"rId2\"/><p:sldId id=\"257\" r:id=\"rId3\"/></p:sldIdLst><p:sldSz cx=\"12192000\" cy=\"6858000\"/><p:notesSz cx=\"6858000\" cy=\"9144000\"/></p:presentation>",
+            "ppt/_rels/presentation.xml.rels": officeRelationships([("rId1", "slideMaster", "slideMasters/slideMaster1.xml"), ("rId2", "slide", "slides/slide1.xml"), ("rId3", "slide", "slides/slide2.xml"), ("rId4", "presProps", "presProps.xml")]),
+            "ppt/presProps.xml": "<p:presentationPr \(namespaces)/>",
+            "ppt/slideMasters/slideMaster1.xml": "<p:sldMaster \(namespaces)><p:cSld><p:spTree>\(group)</p:spTree></p:cSld><p:clrMap bg1=\"lt1\" tx1=\"dk1\" bg2=\"lt2\" tx2=\"dk2\" accent1=\"accent1\" accent2=\"accent2\" accent3=\"accent3\" accent4=\"accent4\" accent5=\"accent5\" accent6=\"accent6\" hlink=\"hlink\" folHlink=\"folHlink\"/><p:sldLayoutIdLst><p:sldLayoutId id=\"2147483649\" r:id=\"rId1\"/></p:sldLayoutIdLst><p:txStyles><p:titleStyle/><p:bodyStyle/><p:otherStyle/></p:txStyles></p:sldMaster>",
+            "ppt/slideMasters/_rels/slideMaster1.xml.rels": officeRelationships([("rId1", "slideLayout", "../slideLayouts/slideLayout1.xml"), ("rId2", "theme", "../theme/theme1.xml")]),
+            "ppt/slideLayouts/slideLayout1.xml": "<p:sldLayout \(namespaces) type=\"blank\" preserve=\"1\"><p:cSld name=\"Blank\"><p:spTree>\(group)</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>",
+            "ppt/slideLayouts/_rels/slideLayout1.xml.rels": officeRelationships([("rId1", "slideMaster", "../slideMasters/slideMaster1.xml")])
+        ]
+        let colorScheme = colors.map { "<a:\($0.0)><a:srgbClr val=\"\($0.1)\"/></a:\($0.0)>" }.joined()
+        parts["ppt/theme/theme1.xml"] = "<a:theme xmlns:a=\"http://schemas.openxmlformats.org/drawingml/2006/main\" name=\"Fixture\"><a:themeElements><a:clrScheme name=\"Fixture\">\(colorScheme)</a:clrScheme><a:fontScheme name=\"Fixture\"><a:majorFont><a:latin typeface=\"Arial\"/><a:ea typeface=\"\"/><a:cs typeface=\"\"/></a:majorFont><a:minorFont><a:latin typeface=\"Arial\"/><a:ea typeface=\"\"/><a:cs typeface=\"\"/></a:minorFont></a:fontScheme><a:fmtScheme name=\"Fixture\"><a:fillStyleLst>\(fills)</a:fillStyleLst><a:lnStyleLst>\(lines)</a:lnStyleLst><a:effectStyleLst>\(String(repeating: "<a:effectStyle><a:effectLst/></a:effectStyle>", count: 3))</a:effectStyleLst><a:bgFillStyleLst>\(fills)</a:bgFillStyleLst></a:fmtScheme></a:themeElements></a:theme>"
+        func shape(_ id: Int, _ text: String, x: Int, y: Int, width: Int, height: Int, fill: String) -> String {
+            "<p:sp><p:nvSpPr><p:cNvPr id=\"\(id)\" name=\"\(text)\"/><p:cNvSpPr txBox=\"1\"/><p:nvPr/></p:nvSpPr><p:spPr><a:xfrm><a:off x=\"\(x)\" y=\"\(y)\"/><a:ext cx=\"\(width)\" cy=\"\(height)\"/></a:xfrm><a:prstGeom prst=\"rect\"><a:avLst/></a:prstGeom>\(fill)<a:ln><a:noFill/></a:ln></p:spPr><p:txBody><a:bodyPr wrap=\"square\"/><a:lstStyle/><a:p><a:r><a:rPr lang=\"en-US\" sz=\"2400\"><a:solidFill><a:srgbClr val=\"13261D\"/></a:solidFill><a:latin typeface=\"Arial\"/></a:rPr><a:t>\(text)</a:t></a:r><a:endParaRPr lang=\"en-US\"/></a:p></p:txBody></p:sp>"
+        }
+        for (index, title) in ["Orchard Overview", "Lemon Details"].enumerated() {
+            let heading = shape(2, title, x: 914_400, y: 914_400, width: 9_144_000, height: 685_800, fill: "<a:noFill/>")
+            let panel = shape(3, "Panel \(index + 1)", x: 914_400 + index * 4_572_000, y: 2_286_000, width: 3_048_000, height: 1_524_000, fill: "<a:solidFill><a:srgbClr val=\"00A36C\"/></a:solidFill>")
+            parts["ppt/slides/slide\(index + 1).xml"] = "<p:sld \(namespaces)><p:cSld><p:spTree>\(group)\(heading)\(panel)</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>"
+            parts["ppt/slides/_rels/slide\(index + 1).xml.rels"] = officeRelationships([("rId1", "slideLayout", "../slideLayouts/slideLayout1.xml")])
+        }
+        return parts
     }
 
     #if os(macOS)

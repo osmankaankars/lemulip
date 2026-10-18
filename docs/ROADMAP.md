@@ -20,6 +20,8 @@ native video trim; source **0.1.6** adds visual video crop, source **0.1.7**
 adds a PDF page organizer, source **0.1.8** adds PDF merge preview, and source
 **0.1.9** refines the icon and shared visual identity. Source **0.1.10** adds
 basic TXT → DOCX and CSV/TSV → XLSX export without an extra engine on macOS.
+Source **0.1.11** adds representative rich Office conversion checks and repairs
+the Mac workbook-package verifier that blocked the 0.1.10 release build.
 Each version's own
 [Mac checks](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
 and [release assets](https://github.com/osmankaankars/lemulip/releases) determine
@@ -224,11 +226,13 @@ and keep historical tags and downloads intact.
 
 ## 5. Easier Office Conversion
 
-**Partially implemented in source 0.1.10.** The first slice adds basic Office
+**Partially implemented through source 0.1.11.** The first slice adds basic Office
 exports without an extra engine: TXT → DOCX through macOS and CSV/TSV → XLSX
-through a small built-in writer. The whole milestone remains open. This version
-needs its own Mac build, package, and security checks; document acceptance in
-Word and Excel remains separate from automated checks.
+through a small built-in writer. The second slice checks representative rich
+documents, workbooks, and presentations through the existing optional engine.
+The whole milestone remains open. Source 0.1.11 needs its own Mac build, package,
+and security checks; acceptance in Word, Excel, and PowerPoint remains separate
+from automated checks.
 
 **Implemented scope:** TXT export keeps plain text, paragraphs, tabs, and Unicode.
 Spreadsheet export creates one **Sheet1** per input and stores every field as
@@ -237,14 +241,23 @@ row, column, cell, and text limits are explicit in [Formats](FORMATS.md#document
 These routes use the existing queue and safe output handling, with no new
 package dependency or bundled engine.
 
+**Rich Office checks added in 0.1.11:** DOCX → ODT → DOCX checks a table,
+paragraphs, and stored font formatting; XLSX → ODS → XLSX checks two ordered
+sheets, cell types, simple formulas and their cached results; PPTX → ODP → PPTX
+checks slide order, text, stored font attributes, and shape positions. All three
+generated examples passed with LibreOffice on Linux. Their Mac CI result remains
+pending. The checks do not establish identical rendering, font availability,
+general formula recalculation, or support for macros, charts, pivot tables, and
+animations. See [Rich Office Conversion](FORMATS.md#rich-office-conversion).
+
 **Next work, in order:**
 
-1. Verify representative rich documents, workbooks, and presentations through
-   the existing optional engines. Check fonts, tables, formulas, multiple
-   sheets, and slide layout, and document the routes that preserve usable output.
-2. Investigate basic native RTF → DOCX with formatting checks before expanding
+1. Investigate basic native RTF → DOCX with formatting checks before expanding
    the built-in Word route. HTML and Markdown need their own fidelity decisions;
    keep their current engine requirements clear.
+2. Inspect representative outputs in Word, Excel, and PowerPoint. Check actual
+   font rendering, pagination, recalculation, and slide appearance before
+   broadening the formatting claims.
 
 RTF/HTML → DOCX, existing Office documents, workbooks, and presentations retain
 LibreOffice where already supported. Markdown → DOCX retains Pandoc. The format

@@ -2,7 +2,8 @@
 
 Lemulip selects operations from the file extensions in your selection. A listed format is a supported route, not a promise that every codec or document feature will survive conversion.
 
-The tables below describe source **0.1.10**, which adds basic Word and Excel export.
+The tables below describe source **0.1.11**, including basic Word and Excel
+export and the first rich Office conversion checks.
 Check [Releases](https://github.com/osmankaankars/lemulip/releases) for available builds. Some
 features still need broader hands-on macOS testing. See [Installation](INSTALL.md)
 for optional engines and [User Guide](USER_GUIDE.md) for controls.
@@ -221,6 +222,30 @@ See [Basic Office Exports](USER_GUIDE.md#basic-office-exports) for the app and C
 workflow. Opening and inspecting generated documents in Word and Excel remains
 part of release acceptance; package and automated reader checks alone do not
 establish application-level fidelity.
+
+### Rich Office Conversion
+
+Existing Office files retain the optional LibreOffice routes. Source 0.1.11
+adds three generated examples that pass through OpenDocument and back to the
+original Office format, then inspects their output:
+
+| Route | Checked in the Returned Office File |
+| --- | --- |
+| DOCX → ODT → DOCX | A two-by-two table, Unicode paragraphs, bold and italic text, a stored font name, and its size |
+| XLSX → ODS → XLSX | Two named sheets in order; text identifiers, numbers, booleans, a number format, and two simple formulas with their cached values |
+| PPTX → ODP → PPTX | Two slides in order, their text, stored font attributes, widescreen dimensions, and the positions and sizes of two shapes per slide |
+
+All three examples passed with LibreOffice on Linux. Their source 0.1.11 Mac CI
+result remains pending. These are specific regression examples, not coverage
+of every Office feature. See [Development](DEVELOPMENT.md#rich-office-conversion-checks)
+for the verification scope.
+
+A stored font name does not ensure that font is installed or that the target
+application renders identical line breaks or pagination. Formula text and
+cached values in these examples do not establish general recalculation support.
+Charts, pivot tables, macros, embedded objects, and presentation animations are
+outside this coverage. Review the result in its target application before
+relying on complex formatting or calculations. Originals remain unchanged.
 
 ### Other Document Routes
 

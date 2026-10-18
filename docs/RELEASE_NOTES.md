@@ -6,6 +6,33 @@ Lemulip is a free, open-source file converter for macOS. Drag local files,
 tap a modifier key, and choose a format or tool from the wheel. Use the workspace
 when you need a queue, conversion options, or a closer look at the result.
 
+## 0.1.11 · Check the Details
+
+- Repair the Mac workbook-package verifier. It now compares directory-relative
+  filenames, with a symbolic-link case to guard against different spellings of
+  the same temporary folder. The exact package-content checks remain required.
+- Exercise richer Office conversions through the existing local engine:
+  DOCX → ODT → DOCX, XLSX → ODS → XLSX, and PPTX → ODP → PPTX.
+- Check document tables and stored font formatting, ordered worksheets and
+  typed values, simple formulas with cached results, and slide text and geometry.
+- Explain the limits of those examples. Stored formatting is separate from
+  actual font rendering and pagination; complex formulas, charts, pivot tables,
+  macros, and animations are not covered.
+- Keep basic TXT → DOCX and CSV/TSV → XLSX exports, their input limits, and their
+  engine requirements unchanged. Add no runtime dependency or binary fixtures.
+
+Version **0.1.11**, build **14**, continues
+[Easier Office Conversion](ROADMAP.md#5-easier-office-conversion). The three new
+rich Office round trips passed with LibreOffice on Linux. This version's Mac,
+package, and security checks remain required before download publication; see
+[Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
+and [Releases](https://github.com/osmankaankars/lemulip/releases).
+
+Read [Rich Office Conversion](FORMATS.md#rich-office-conversion) and
+[Convert Existing Office Files](USER_GUIDE.md#convert-existing-office-files)
+for supported routes and output checks. Basic native RTF → DOCX is the next
+development slice.
+
 ## 0.1.10 · Simple Files, Ready for Office
 
 - Convert TXT files into basic **Word documents (DOCX)** with native macOS
@@ -27,16 +54,18 @@ when you need a queue, conversion options, or a closer look at the result.
 
 Version **0.1.10**, build **13**, begins the
 [Easier Office Conversion](ROADMAP.md#5-easier-office-conversion) milestone.
-Its own Mac compilation, conversion, package, and security checks are required
-before release assets are published. [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
-records each commit's result; [Releases](https://github.com/osmankaankars/lemulip/releases)
-lists available downloads. Native Word and Excel acceptance remains separate
-from portable and automated reader checks.
+Commit `a87bdae` compiled on both Mac architectures, and all 53 native tests on
+each runner passed, including the new DOCX cases. One workbook-package
+verification test failed because its relative-path calculation depended on
+temporary-folder spelling. That
+[build run](https://github.com/osmankaankars/lemulip/actions/runs/39167326568)
+stopped before external integrations, packaging, and release publication.
+Source 0.1.11 repairs the verifier while retaining its assertions.
 
 Read [Basic Office Exports](USER_GUIDE.md#basic-office-exports) for the workflow
 and [Office Formats](FORMATS.md#documents-slides-and-spreadsheets) for exact limits.
-The next slice checks richer Office routes and investigates basic native RTF
-export before extending the supported formatting.
+The richer Office route checks follow in 0.1.11. Basic native RTF export remains
+planned work before extending the supported formatting.
 
 ## 0.1.9 · A Brighter First Impression
 

@@ -14,7 +14,7 @@ Files are processed on your Mac. No account, subscription, uploads, or analytics
 
 **Lemulip is an early public preview for macOS 13 or later.** Finder drag compatibility and the full desktop workflow still need hands-on testing.
 
-Source **0.1.10** adds basic Word and Excel export without an extra engine: turn a TXT file into DOCX on your Mac, or CSV and TSV files into XLSX workbooks. [Releases](https://github.com/osmankaankars/lemulip/releases) lists available downloads; each version must pass its own Mac checks before its archives are published.
+Source **0.1.11** checks richer Word, Excel, and PowerPoint conversions and repairs the Mac workbook-package verifier. Basic TXT → DOCX and CSV/TSV → XLSX exports remain built in. [Releases](https://github.com/osmankaankars/lemulip/releases) lists available downloads; each version must pass its own Mac checks before its archives are published.
 
 ### Download the App
 
@@ -150,6 +150,11 @@ every field as text: leading zeros stay intact, dates are not guessed, and
 `=SUM(A1:A2)` stays text instead of becoming a formula. Each input creates its
 own file. Read [Basic Office Exports](docs/USER_GUIDE.md#basic-office-exports)
 for steps and limits.
+
+For existing Word documents, Excel workbooks, and PowerPoint presentations,
+optional LibreOffice handles richer conversion routes. Read
+[Rich Office Conversion](docs/FORMATS.md#rich-office-conversion) for the tested
+examples and the limits on formatting, formulas, and slide layout.
 
 ## Make It Yours
 
