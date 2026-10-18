@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
   <title id="title">Lemulip</title>
   <defs>
-    <linearGradient id="tile" x2="0.8" y2="1"><stop stop-color="#33752D"/><stop offset="1" stop-color="#0D3D25"/></linearGradient>
+    <linearGradient id="tile" x2="0.8" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#F1F1EA"/></linearGradient>
     <linearGradient id="ribbon" x2="0.7" y2="1"><stop stop-color="#EDFF7C"/><stop offset=".5" stop-color="#BDF620"/><stop offset="1" stop-color="#73BC1B"/></linearGradient>
   </defs>
-  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#tile)"/>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#tile)" stroke="#D8DDD2" stroke-width=".75"/>
   <path d="M32 11C23 11 17 23 16 32C12 39 15 49 24 52C33 55 45 52 50 44C55 37 48 25 44 19C41 14 38 11 32 11ZM32 24C35 24 39 29 41 33C43 38 39 43 34 43C28 43 24 40 24 35C24 30 28 24 32 24Z" fill="url(#ribbon)" fill-rule="evenodd"/>
-  <path d="M19 24C23 14 26 12 32 12C38 12 42 17 45 23C39 19 32 26 27 26C23 26 21 25 19 24ZM18 35C13 41 20 50 26 51C24 45 28 42 30 42C21 39 23 34 24 31Z" fill="#FFFBE8"/>
+  <path d="M19 24C23 14 26 12 32 12C38 12 42 17 45 23C39 19 32 26 27 26C23 26 21 25 19 24ZM18 35C13 41 20 50 26 51C24 45 28 42 30 42C21 39 23 34 24 31Z" fill="#FFFBE8" stroke="#D4DFC8" stroke-width=".6"/>
   <path d="M30 43C36 45 44 42 47 36C53 42 45 51 36 52C32 51 30 48 30 43Z" fill="#DDF978"/>
 </svg>

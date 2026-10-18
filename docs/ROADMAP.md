@@ -17,7 +17,8 @@ and native conversion tools with optional external engines. The published
 includes three saved appearances, a native visual image crop editor, and an
 audio waveform editor with range selection and playback. Source **0.1.5** adds
 native video trim; source **0.1.6** adds visual video crop, source **0.1.7**
-adds a PDF page organizer, and source **0.1.8** adds PDF merge preview. Each version's own
+adds a PDF page organizer, source **0.1.8** adds PDF merge preview, and source
+**0.1.9** refines the icon and shared visual identity. Each version's own
 [Mac checks](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
 and [release assets](https://github.com/osmankaankars/lemulip/releases) determine
 availability. Hands-on acceptance of editor interactions remains separate from
@@ -131,8 +132,8 @@ Build on the editor behavior established by image crop and audio trim.
 **All four editor implementations are complete in source:** Trim Video in
 0.1.5, Crop Video in 0.1.6, Organize PDF in 0.1.7, and Merge PDF preview in
 0.1.8. Mac verification is reported by each commit's Actions run. Hands-on
-acceptance of these editors remains open. **Warm Visual Identity is the next
-development milestone.**
+acceptance of these editors remains open. The visual identity refresh follows
+in source 0.1.9.
 
 | Editor | Experience and Status |
 | --- | --- |
@@ -177,9 +178,11 @@ the preview data needed for the visible editor.
 
 ## 4. Warm Visual Identity
 
-**Next development milestone.** Refine the established identity across the app
-and its product pages, starting with the icon at everyday sizes and a Lemulip
-wordmark.
+**Implemented in source 0.1.9:** a warm white icon tile, shared rounded branding,
+focused native contrast and layering fixes, and a refreshed product page. The
+three saved themes retain their colors and Orchard Night remains the default.
+A layered Icon Composer design source and an explicit compiler check are
+provided separately; they are not activated in the app bundle.
 
 The first visual foundation is implemented in source: **Lemulip** branding,
 **Orchard Night** as the default, **Vivid Pistachio** and **Lemon Drop** as saved
@@ -190,11 +193,14 @@ own without an enclosing rectangular panel or repeated footer instruction. See t
 build; hands-on appearance and accessibility review remains open.
 
 Use deep green surfaces, warm readable text, and concentrated color for selection,
-focus, and the primary action. Let users' photos, pages, and waveforms remain the
-main content.
+focus, and the primary action. The icon's white tile separates its green ribbon
+from the surrounding interface. Let users' photos, pages, and waveforms remain
+the main content.
 
-- Refine the approved icon at Finder and Dock sizes; add a Lemulip wordmark and
-  a layered Icon Composer variant.
+- Keep one reviewed white-tile icon master for the app, website, and README.
+  Use the shared rounded wordmark in native navigation, Settings, and the site.
+- Keep the source-only Icon Composer variant separate from the released ICNS.
+  Pass its Apple compiler check and inspect it on a Mac before activating it.
 - Share color, spacing, typography, focus, and control states across the wheel,
   workspace, editors, website, and documentation.
 - Keep the three appearances consistent across windows and editors. The saved
@@ -204,12 +210,19 @@ main content.
 - Replace promotional concepts with actual app screenshots as each editor ships.
   Label any interactive simulation clearly.
 
+**Acceptance still open:** actual Finder and Dock appearance, native material
+and assistive-technology checks, and captured screenshots of the running Mac
+editors. Browser previews and color calculations do not establish those results.
+The next development milestone is [Easier Office Conversion](#5-easier-office-conversion).
+
 **Ready when:** the identity works at icon size, text and controls meet their
 contrast requirements, and the same editing task feels consistent across the
 app and its product pages. Verify the name transition on an existing installation
 and keep historical tags and downloads intact.
 
 ## 5. Easier Office Conversion
+
+**Next development milestone.**
 
 The current implementation offers DOCX, XLSX, and PPTX output through optional
 local engines. Make common routes easier to use while preserving a small app.

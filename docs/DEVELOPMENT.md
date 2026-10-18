@@ -78,6 +78,46 @@ The website stores the same three finite values under the local browser key
 values use Orchard Night, and unavailable browser storage leaves theme selection
 working for the current page. Sample files and activity history are not saved.
 
+## Icon and Wordmark Sources
+
+`Resources/AppIcon.png` is the reviewed white-tile icon master. The existing
+AppKit build script generates the standard icon sizes and `AppIcon.icns`; only
+that compiled ICNS is installed in the app. `AppMark` renders its original
+colors. Keep target highlights behind it instead of tinting the artwork.
+
+Native views share `AppWordmark` and the system's rounded font. The website
+shares `site/assets/lemulip-wordmark.svg` across its header, walkthrough, and
+footer, with a forced-colors text fallback. No custom font or runtime image
+library is required. [Design](DESIGN.md) records usage, clear space, and colors.
+
+`Resources/Lemulip.icon` is a separate, source-only Icon Composer composition.
+It contains a transparent ribbon foreground and an opaque warm white background.
+To validate it with a selected full Xcode 26 or later on a Mac, run:
+
+```bash
+./script/compile_layered_icon.sh --verify
+```
+
+The command respects `DEVELOPER_DIR`, compiles into a private temporary directory,
+requires `Assets.car` and a matching icon name in the generated plist, and
+removes its output afterward. It fails if the required compiler or artwork is
+unavailable. It does not change the app's Info.plist, installed icon, selected
+developer tools, or signing configuration. JSON validation on Linux does not
+establish Apple compiler compatibility.
+
+The source-only variant is not part of the default app build or release gate.
+Before activation, pass the compiler check and inspect the result at Finder and
+Dock sizes on a Mac. Retain the existing macOS 13 ICNS route and verify the
+older-system fallback. Current release packages continue to use the static
+white-tile master.
+
+Refresh `docs/assets/demo-preview.png` only from the actual browser walkthrough
+with its public sample files. It must remain labeled as a simulation. Native
+editor screenshots must come from the running Mac app and use non-sensitive
+sample files. Review all image metadata and update only the specific image
+digest in `script/privacy_check.py`; never widen the artwork allowlist to bypass
+that review.
+
 ## Verification in CI
 
 The current commit's [Build and Verify run](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)

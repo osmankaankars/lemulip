@@ -3,8 +3,9 @@
 Lemulip should feel lively, useful, and at home on a Mac. Choose from **Orchard
 Night**, **Vivid Pistachio**, and **Lemon Drop**. Orchard Night is the default:
 deep orchard-green surfaces, vivid lime accents, and warm white text. All three
-themes share the dimensional folded-ribbon icon. Photos, pages, and waveforms
-keep their own colors.
+themes share the dimensional folded-ribbon icon on a warm white tile. The
+neutral tile gives its green and cream folds room to stand out. Photos, pages,
+and waveforms keep their own colors.
 
 ## Color System
 
@@ -58,18 +59,76 @@ claim Apple's native rendering material.
 ## Icon
 
 The green and cream folded-ribbon mark connects a sheet of paper to the motion
-of the wheel. It should remain recognizable at small sizes without text or tiny
-decorative details. The source artwork is original generated artwork; its
-provenance is retained and its exact bytes are checked by the public-source
-privacy guard.
+of the wheel. Its warm white tile is the same in all three themes; do not tint
+the artwork with a theme color or put another badge around it. Use neutral
+depth around the fold so the cream underside remains distinct from the tile.
+Keep text and small decorative details out of the icon.
+
+The source artwork is original generated artwork. Its provenance is retained,
+and each approved PNG's exact bytes are checked by the public-source privacy
+guard. Keep the reviewed sources in version control; a changed image needs a
+fresh visual and metadata review before its allowed digest is updated.
 
 `Resources/AppIcon.png` is the single master. The build script prepares the
 required icon sizes and an ICNS with AppKit. The app ships the ICNS rather than
 the source master. The website reuses the same master at deployment time.
 
-This is a static dimensional icon. A layered Icon Composer asset with system
-lighting and appearance variants remains a separate milestone, guided by
-[Apple's App Icons guidance](https://developer.apple.com/design/human-interface-guidelines/app-icons).
+Use the icon at its supplied proportions and retain the transparent clear
+space. Native views use `AppMark` with original image rendering; drop highlights
+belong behind the artwork and controls. The website favicon is a simplified
+vector companion with the same white tile and green/cream fold.
+
+The released icon is static. `Resources/Lemulip.icon` is a separate Icon Composer
+design source: one transparent ribbon layer over an opaque `#FCFCF8` fill, with
+a neutral shadow and no additional glass tint. It follows
+[Apple's Icon Composer guidance](https://developer.apple.com/documentation/xcode/creating-your-app-icon-using-icon-composer).
+The source is not added to the application bundle. Run the explicit
+[compiler check](DEVELOPMENT.md#icon-and-wordmark-sources) and inspect the result
+on a Mac before enabling a layered runtime icon or claiming system appearance
+effects. Keep the macOS 13 ICNS fallback.
+
+## Wordmark and Spacing
+
+Spell the name **Lemulip** with a capital L. Pair the dimensional icon with
+simple rounded lettering and readable space, rather than adding another color
+block behind the name.
+
+- Native branding uses the shared `AppWordmark`: SF Rounded Semibold, 20 points
+  in the sidebar and 16 points in Settings, with tracking of −0.02 em. It inherits
+  the current text color and adds no font file.
+- The website uses the original path wordmark in
+  `site/assets/lemulip-wordmark.svg`. Its clear space is one stem width around
+  the outlines. Keep its proportions; use the theme's main text color, with a
+  real-text fallback in forced-colors mode.
+- Leave 10–12 points between an icon and its name in compact branding. Keep
+  editor headings, descriptions, and actions in the system UI font.
+- Use a single surface for each content group. The drag wheel has no enclosing
+  card; the workspace drop area has one functional target boundary.
+
+The native and website wordmarks share their rounded character and spacing.
+They use their own platform's rendering instead of adding a web renderer or
+custom-font dependency to the app.
+
+## Contrast and Accessibility
+
+Source 0.1.9 restores full text contrast for the **Choose Files** keyboard hint
+and moves its drop highlight behind the controls. The site keeps visible focus,
+a distinct Appearance control, and a text fallback when forced colors remove
+decorative masks.
+
+The following are sRGB color-pair calculations for the opaque theme surfaces,
+not measurements of every native material or interaction state:
+
+| Theme | Lowest Supporting Text Contrast | Primary Action Label |
+| --- | --- | --- |
+| Orchard Night | 5.98:1 | 9.54:1 |
+| Vivid Pistachio | 5.56:1 | 9.54:1 |
+| Lemon Drop | 5.42:1 | 9.18:1 |
+
+Keep reduced motion, opaque transparency/contrast fallbacks, keyboard operation,
+and nonvisual labels available. Check the finished app with VoiceOver and the
+Mac accessibility settings; a palette calculation or browser preview does not
+replace those checks.
 
 ## Copy and Controls
 

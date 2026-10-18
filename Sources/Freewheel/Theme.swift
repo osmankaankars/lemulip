@@ -128,9 +128,22 @@ struct AppMark: View {
 
     var body: some View {
         Image(nsImage: NSApp.applicationIconImage)
+            .renderingMode(.original)
             .resizable().interpolation(.high).scaledToFit()
             .frame(width: size, height: size)
             .accessibilityHidden(true)
+    }
+}
+
+/// Use the system's rounded face for native branding without bundling a font.
+struct AppWordmark: View {
+    var size: CGFloat = 20
+
+    var body: some View {
+        Text("Lemulip")
+            .font(.system(size: size, weight: .semibold, design: .rounded))
+            .tracking(-size * 0.02)
+            .fixedSize(horizontal: true, vertical: false)
     }
 }
 #endif

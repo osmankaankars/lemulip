@@ -6,6 +6,34 @@ Lemulip is a free, open-source file converter for macOS. Drag local files,
 tap a modifier key, and choose a format or tool from the wheel. Use the workspace
 when you need a queue, conversion options, or a closer look at the result.
 
+## 0.1.9 · A Brighter First Impression
+
+- Place the vivid green and cream ribbon on a warm white icon tile, giving the
+  mark a clear edge against all three appearances.
+- Use shared rounded branding in the workspace, Settings, and website. The app
+  uses native system type; the website uses a small original path wordmark.
+- Remove the idle green wash over the workspace drop area. An active drop
+  highlight sits behind the icon and controls, keeping their colors intact.
+- Improve the **Choose Files** keyboard hint and the website's Appearance
+  control, small-screen layout, and high-contrast wordmark fallback.
+- Refresh the product page and browser walkthrough image. Describe the native
+  image, audio, video, and PDF editors without presenting a simulation as a Mac
+  screenshot.
+- Include a separate Icon Composer design source and an explicit compile check
+  for development. The app continues to ship its static ICNS icon until that
+  composition passes native compilation and appearance review.
+- Keep Orchard Night as the default, preserve saved settings, and add no
+  package, font, or runtime rendering dependency.
+
+Version **0.1.9**, build **12**, uses the required Mac build, package, and
+security checks. [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
+records the exact commit's result; [Releases](https://github.com/osmankaankars/lemulip/releases)
+lists available downloads. Native Finder, Dock, and accessibility appearance
+acceptance remains separate from browser and source checks.
+
+Read [Design](DESIGN.md) for icon, typography, color, and accessibility guidance.
+The next development milestone is [Easier Office Conversion](ROADMAP.md#5-easier-office-conversion).
+
 ## 0.1.8 · Bring Your PDFs Together
 
 - Review several PDFs before merging. Each row shows a first-page preview,
@@ -29,8 +57,8 @@ for each commit's result and [Releases](https://github.com/osmankaankars/lemulip
 for available downloads. Hands-on editor acceptance remains separate from CI.
 
 Read [Merge PDF](USER_GUIDE.md#merge-pdf) for controls and document limits.
-The four planned video and PDF editors are implemented in source. The next
-development milestone is [Warm Visual Identity](ROADMAP.md#4-warm-visual-identity).
+The four planned video and PDF editors are implemented in source. The
+[Warm Visual Identity](ROADMAP.md#4-warm-visual-identity) refresh follows in 0.1.9.
 
 ## 0.1.7 · Put Every Page in Place
 

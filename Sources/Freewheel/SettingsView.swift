@@ -87,8 +87,14 @@ struct SettingsContent: View {
                 Label(model.text("Privacy by Design", "Gizlilik uygulamanın temelinde"), systemImage: "lock.shield").font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.accent)
                 Text(model.text("No analytics, file uploads, update pings, or persistent file history. Only your settings are saved. AirDrop shares files only when you explicitly choose it.", "Analitik, dosya yükleme, güncelleme sorgusu veya kalıcı dosya geçmişi yok. Yalnızca ayarların kaydedilir. AirDrop, sen seçtiğinde dosya paylaşır."))
                     .font(.system(size: 11)).foregroundStyle(Palette.muted).lineSpacing(4)
-                Text("Lemulip \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Source Preview") · MIT License")
-                    .font(.system(size: 10, design: .monospaced)).foregroundStyle(Palette.muted).padding(.top, 4)
+                HStack(spacing: 10) {
+                    AppMark(size: 32)
+                    VStack(alignment: .leading, spacing: 3) {
+                        AppWordmark(size: 16)
+                        Text("\(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Source Preview") · MIT License")
+                            .font(.system(size: 10, design: .monospaced)).foregroundStyle(Palette.muted)
+                    }
+                }.padding(.top, 4).accessibilityElement(children: .combine)
             }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.accent.opacity(0.04), in: RoundedRectangle(cornerRadius: 13))
         }
     }

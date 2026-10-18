@@ -56,8 +56,9 @@ ALLOWED_EMAILS = {
 # retains its provenance; no image may carry private metadata.
 # Update a digest only after reviewing the new image and its metadata.
 PUBLIC_IMAGES = {
-    "Resources/AppIcon.png": "141333d6fbca0f0e3bc27bc4b3afbff1d2e46e74c15f9e972da87ef263a1478a",
-    "docs/assets/demo-preview.png": "9220fe812177c52c901ff30e8ae23c12df210e48189ee4677a0610e3a479c57a",
+    "Resources/AppIcon.png": "f68b17dc79d0e13246fc425218031a3bc35db2d1e27d845ee657f17f423d8a45",
+    "Resources/Lemulip.icon/Assets/01-Ribbon.png": "a2ac8dce0c6728b717b8f060ee7db647f3ec6bb2e218d5f87c86f2244e6e7167",
+    "docs/assets/demo-preview.png": "8872c6e65528bf47bdf95e64b5313cd6ce6c25f8e22c111ac05574f0701f5870",
 }
 TEXT_SIZE_LIMIT = 2_000_000
 IMAGE_SIZE_LIMIT = 8_000_000
@@ -83,7 +84,7 @@ def image_is_public(name: str, data: bytes) -> bool:
         allowed_chunks = {
             b"IHDR", b"PLTE", b"tRNS", b"IDAT", b"IEND", b"sRGB", b"gAMA", b"cHRM",
         }
-        if name == "Resources/AppIcon.png":
+        if name in {"Resources/AppIcon.png", "Resources/Lemulip.icon/Assets/01-Ribbon.png"}:
             allowed_chunks.add(b"caBX")  # Reviewed C2PA origin provenance, covered by the digest.
         if end > len(data) or kind not in allowed_chunks:
             return False

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 90" color="#173C2A" role="img" aria-labelledby="title desc">
+  <title id="title">Lemulip</title>
+  <desc id="desc">Original rounded lettering for Lemulip. Keep at least one stem width of clear space around the visible letters.</desc>
+  <g transform="translate(6 6)" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M8 10V53Q8 61 16 61H39"/>
+    <path d="M89 52C85 58 79 61 71 61C59 61 51 53 51 41C51 29 59 21 71 21C82 21 89 29 89 40H52"/>
+    <path d="M109 61V23M109 38C109 27 115 21 123 21C131 21 137 27 137 38V61M137 38C137 27 143 21 151 21C159 21 165 27 165 38V61"/>
+    <path d="M184 23V44C184 55 190 61 199 61C209 61 215 54 215 43V23M215 43V61"/>
+    <path d="M234 10V51C234 58 237 61 243 61"/>
+    <path d="M259 23V61"/>
+    <path d="M279 74V23M279 41C279 29 287 21 297 21C309 21 317 29 317 41C317 53 309 61 297 61C287 61 279 53 279 41"/>
+  </g>
+  <path d="M270 15A5 5 0 1 1 260 15A5 5 0 1 1 270 15Z" fill="currentColor"/>
+</svg>

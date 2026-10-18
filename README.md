@@ -1,4 +1,4 @@
-<p align="center"><img src="Resources/AppIcon.png" width="132" height="132" alt="Lemulip’s green folded-ribbon app icon"></p>
+<p align="center"><img src="Resources/AppIcon.png" width="132" height="132" alt="Lemulip’s green folded ribbon on a warm white app icon"></p>
 
 # Lemulip
 
@@ -14,7 +14,7 @@ Files are processed on your Mac. No account, subscription, uploads, or analytics
 
 **Lemulip is an early public preview for macOS 13 or later.** Finder drag compatibility and the full desktop workflow still need hands-on testing.
 
-Source **0.1.8** adds a PDF merge preview alongside the page organizer and native image, audio, and video editors. [Releases](https://github.com/osmankaankars/lemulip/releases) lists available downloads; each version must pass its own Mac checks before its archives are published.
+Source **0.1.9** gives Lemulip a warm white icon tile and a shared rounded wordmark, alongside the native image, audio, video, and PDF editors. [Releases](https://github.com/osmankaankars/lemulip/releases) lists available downloads; each version must pass its own Mac checks before its archives are published.
 
 ### Download the App
 
@@ -146,6 +146,11 @@ your choice and applies it across the workspace, wheel, and editors.
 
 Try the same three appearances in the browser walkthrough. The walkthrough
 uses sample files; it does not perform conversions or run the native editors.
+
+The vivid green ribbon sits on a warm white icon tile in every theme. Color
+stays concentrated in the mark, selections, and main actions, leaving room for
+your files. The app uses native system typography and adds no font or rendering
+dependency. See [Design](docs/DESIGN.md) for the shared visual rules.
 
 ## Start With What Is Built In
 

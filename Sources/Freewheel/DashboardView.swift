@@ -56,7 +56,7 @@ struct DashboardView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 11) {
                 AppMark(size: 42)
-                Text("Lemulip").font(.system(size: 20, weight: .semibold, design: .rounded)).tracking(-0.6)
+                AppWordmark()
             }.padding(.top, 40).padding(.bottom, 32)
             VStack(spacing: 7) {
                 nav("workspace", "square.stack.3d.up", model.text("Workspace", "Çalışma alanı"))
@@ -136,17 +136,19 @@ struct DashboardView: View {
                     .font(.system(size: 12)).foregroundStyle(Palette.muted)
             }
             Button { model.chooseFiles() } label: {
-                HStack(spacing: 8) { Image(systemName: "plus"); Text(model.text("Choose Files", "Dosya seç")); Text("⌘O").opacity(0.45) }
+                HStack(spacing: 8) { Image(systemName: "plus"); Text(model.text("Choose Files", "Dosya seç")); Text("⌘O").fontWeight(.medium) }
                     .font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.onLime)
                     .padding(.horizontal, 20).padding(.vertical, 12).background(Palette.lime, in: Capsule())
                     .overlay(Capsule().stroke(Palette.onLime.opacity(0.16), lineWidth: 1))
             }.buttonStyle(.plain).padding(.bottom, 27)
         }
         .frame(maxWidth: .infinity)
-        .background(Palette.panel, in: RoundedRectangle(cornerRadius: 24))
-        .overlay(alignment: .top) {
-            RoundedRectangle(cornerRadius: 24).fill(LinearGradient(colors: [Palette.lime.opacity(isTargeted ? 0.28 : 0.10), .clear], startPoint: .topLeading, endPoint: .bottomTrailing))
-                .allowsHitTesting(false)
+        .background {
+            ZStack {
+                RoundedRectangle(cornerRadius: 24).fill(Palette.panel)
+                // Keep the drop hint behind the white icon and readable controls.
+                RoundedRectangle(cornerRadius: 24).fill(LinearGradient(colors: [Palette.primaryAction.opacity(isTargeted ? 0.12 : 0), .clear], startPoint: .topLeading, endPoint: .bottomTrailing))
+            }
         }
         .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(isTargeted ? Palette.accent : Palette.line, style: StrokeStyle(lineWidth: isTargeted ? 2 : 1, dash: [6, 5])))
         .onDrop(of: [UTType.fileURL.identifier], isTargeted: $isTargeted, perform: loadDrop)
