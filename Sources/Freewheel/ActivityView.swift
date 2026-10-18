@@ -9,25 +9,25 @@ struct ActivityContent: View {
         VStack(alignment: .leading, spacing: 24) {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 10) {
-                    Text(model.text("A little less busywork.", "Biraz daha az uğraş."))
+                    Text(model.text("A Little Less Busywork.", "Biraz daha az uğraş."))
                         .font(.system(size: 30, weight: .semibold)).tracking(-0.9)
                     Text(model.text("Progress and results from this session. History is kept in memory only.", "Bu oturumdaki işlemler ve sonuçları. Geçmiş yalnızca bellekte tutulur."))
                         .font(.system(size: 12)).foregroundStyle(Palette.muted)
                 }
                 Spacer()
-                Button(model.text("Clear finished", "Bitenleri temizle")) { model.clearActivity() }.buttonStyle(.plain).foregroundStyle(Palette.mint).font(.system(size: 12))
+                Button(model.text("Clear Finished", "Bitenleri temizle")) { model.clearActivity() }.buttonStyle(.plain).foregroundStyle(Palette.mint).font(.system(size: 12))
             }
             if model.activity.isEmpty {
                 VStack(spacing: 16) {
                     Image(systemName: "clock.arrow.circlepath").font(.system(size: 36, weight: .light)).foregroundStyle(Palette.mint)
-                    Text(model.text("Your next conversion starts here.", "Bir sonraki dönüşümün burada görünecek.")).font(.system(size: 15, weight: .medium))
-                    Button(model.text("Choose files", "Dosya seç")) { model.chooseFiles() }.buttonStyle(.borderedProminent).tint(Palette.mint).foregroundStyle(Palette.background)
+                    Text(model.text("Your Next Conversion Starts Here.", "Bir sonraki dönüşümün burada görünecek.")).font(.system(size: 15, weight: .medium))
+                    Button(model.text("Choose Files", "Dosya seç")) { model.chooseFiles() }.buttonStyle(.borderedProminent).tint(Palette.mint).foregroundStyle(Palette.background)
                 }.frame(maxWidth: .infinity).padding(.vertical, 65).background(Palette.panel, in: RoundedRectangle(cornerRadius: 16))
             } else {
                 HStack(spacing: 18) {
                     stat("\(model.completedCount)", model.text("Completed", "Tamamlandı"))
-                    stat("\(model.activity.filter { $0.state == .running || $0.state == .waiting }.count)", model.text("In progress", "Devam ediyor"))
-                    stat("0", model.text("Files uploaded", "Yüklenen dosya"))
+                    stat("\(model.activity.filter { $0.state == .running || $0.state == .waiting }.count)", model.text("In Progress", "Devam ediyor"))
+                    stat("0", model.text("Files Uploaded", "Yüklenen dosya"))
                 }
                 LazyVStack(spacing: 10) { ForEach(model.activity) { ActivityRow(item: $0, model: model) } }
             }

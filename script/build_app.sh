@@ -9,6 +9,7 @@ if [[ "$(uname -s)" != Darwin ]]; then
 fi
 CONFIGURATION="${CONFIGURATION:-release}"
 APP_NAME=Freewheel
+GUI_PRODUCT=FreewheelApp
 APP_BUNDLE="$ROOT_DIR/dist/$APP_NAME.app"
 UNIVERSAL=false
 if [[ $# -gt 1 || ( $# -eq 1 && "$1" != --universal ) ]]; then echo "Usage: $0 [--universal]" >&2; exit 2; fi
@@ -16,8 +17,7 @@ if [[ "${1:-}" == --universal ]]; then UNIVERSAL=true; fi
 case "$CONFIGURATION" in debug|release) ;; *) echo "CONFIGURATION must be debug or release." >&2; exit 2 ;; esac
 /usr/bin/xcrun --sdk macosx --find swift >/dev/null
 
-# Respect DEVELOPER_DIR, including an Xcode installation on an external drive.
-# Resolve Swift through the selected SDK instead of an unrelated PATH entry.
+# Resolve Swift through the selected macOS SDK and respect DEVELOPER_DIR.
 swift_build() { /usr/bin/xcrun --sdk macosx swift build "$@"; }
 
 if [[ "$UNIVERSAL" == true ]]; then
@@ -36,10 +36,10 @@ trap 'rm -rf "$STAGING"' EXIT
 CONTENTS="$STAGING/$APP_NAME.app/Contents"
 mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources" "$ROOT_DIR/dist"
 if [[ "$UNIVERSAL" == true ]]; then
-  lipo -create "$ARM_BIN/$APP_NAME" "$INTEL_BIN/$APP_NAME" -output "$CONTENTS/MacOS/$APP_NAME"
+  lipo -create "$ARM_BIN/$GUI_PRODUCT" "$INTEL_BIN/$GUI_PRODUCT" -output "$CONTENTS/MacOS/$APP_NAME"
   lipo -create "$ARM_BIN/freewheel" "$INTEL_BIN/freewheel" -output "$STAGING/freewheel"
 else
-  cp "$NATIVE_BIN/$APP_NAME" "$CONTENTS/MacOS/$APP_NAME"
+  cp "$NATIVE_BIN/$GUI_PRODUCT" "$CONTENTS/MacOS/$APP_NAME"
   cp "$NATIVE_BIN/freewheel" "$STAGING/freewheel"
 fi
 cp Resources/Info.plist "$CONTENTS/Info.plist"

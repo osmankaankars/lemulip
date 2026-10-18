@@ -63,11 +63,11 @@ struct DashboardView: View {
                     Text(model.text(model.wheelEnabled ? "Wheel is ready" : "Wheel is paused", model.wheelEnabled ? "Çark hazır" : "Çark duraklatıldı"))
                         .font(.system(size: 12, weight: .medium))
                 }
-                Text(model.text("Your files.\nYour Mac. Your control.", "Dosyaların.\nMac'in. Kontrol sende."))
+                Text(model.text("Your Files.\nYour Mac. Your Control.", "Dosyaların.\nMac'in. Kontrol sende."))
                     .font(.system(size: 17, weight: .medium)).foregroundStyle(Palette.muted).lineSpacing(3)
                 HStack(spacing: 5) {
                     Image(systemName: "lock.shield").font(.system(size: 10))
-                    Text(model.text("OFFLINE · OPEN SOURCE", "ÇEVRİMDIŞI · AÇIK KAYNAK")).font(.system(size: 9, weight: .medium, design: .monospaced)).tracking(0.4)
+                    Text(model.text("Offline · Open Source", "ÇEVRİMDIŞI · AÇIK KAYNAK")).font(.system(size: 9, weight: .medium, design: .monospaced)).tracking(0.4)
                 }.foregroundStyle(Palette.muted)
             }.padding(.bottom, 28)
         }
@@ -94,10 +94,10 @@ struct DashboardView: View {
 
     private var topBar: some View {
         HStack {
-            Text(model.section == "workspace" ? model.text("THE EVERYDAY FILE TOOL", "GÜNLÜK DOSYA ARACIN") : model.section == "activity" ? model.text("THIS SESSION", "BU OTURUM") : model.text("MAKE IT YOURS", "KENDİNE GÖRE AYARLA"))
+            Text(model.section == "workspace" ? model.text("The Everyday File Tool", "GÜNLÜK DOSYA ARACIN") : model.section == "activity" ? model.text("This Session", "BU OTURUM") : model.text("Make It Yours", "KENDİNE GÖRE AYARLA"))
                 .font(.system(size: 10, weight: .medium, design: .monospaced)).tracking(1.8).foregroundStyle(Palette.muted)
             Spacer()
-            HStack(spacing: 6) { Image(systemName: "infinity"); Text(model.text("Free forever", "Her zaman ücretsiz")) }
+            HStack(spacing: 6) { Image(systemName: "infinity"); Text(model.text("Free Forever", "Her zaman ücretsiz")) }
                 .font(.system(size: 11, weight: .medium)).foregroundStyle(Palette.mint)
                 .padding(.horizontal, 11).padding(.vertical, 6)
                 .overlay(Capsule().stroke(Palette.mint.opacity(0.2), lineWidth: 1))
@@ -107,7 +107,7 @@ struct DashboardView: View {
     private var workspace: some View {
         Group {
             VStack(alignment: .leading, spacing: 11) {
-                Text(model.text("A new spin on your files.", "Dosyalarına yeni bir biçim."))
+                Text(model.text("A New Spin on Your Files.", "Dosyalarına yeni bir biçim."))
                     .font(.system(size: 32, weight: .semibold)).tracking(-1.15)
                 Text(model.text("Convert, refine, and move on. Everything happens on this Mac.", "Dönüştür, düzenle, devam et. Her işlem bu Mac'te gerçekleşir."))
                     .font(.system(size: 13)).foregroundStyle(Palette.muted)
@@ -128,13 +128,13 @@ struct DashboardView: View {
                 Image(systemName: "arrow.triangle.2.circlepath").font(.system(size: 23, weight: .medium)).foregroundStyle(Palette.mint)
             }.padding(.top, 26)
             VStack(spacing: 7) {
-                Text(model.text(isTargeted ? "Drop to get started" : "Drop your files here", isTargeted ? "Başlamak için bırak" : "Dosyalarını buraya bırak"))
+                Text(model.text(isTargeted ? "Drop to Get Started" : "Drop Your Files Here", isTargeted ? "Başlamak için bırak" : "Dosyalarını buraya bırak"))
                     .font(.system(size: 19, weight: .medium))
                 Text(model.text("Images, video, audio, documents, and more", "Görseller, video, ses, belgeler ve daha fazlası"))
                     .font(.system(size: 12)).foregroundStyle(Palette.muted)
             }
             Button { model.chooseFiles() } label: {
-                HStack(spacing: 8) { Image(systemName: "plus"); Text(model.text("Choose files", "Dosya seç")); Text("⌘O").opacity(0.45) }
+                HStack(spacing: 8) { Image(systemName: "plus"); Text(model.text("Choose Files", "Dosya seç")); Text("⌘O").opacity(0.45) }
                     .font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.background)
                     .padding(.horizontal, 18).padding(.vertical, 11).background(Palette.mint, in: Capsule())
             }.buttonStyle(.plain).padding(.bottom, 27)
@@ -151,7 +151,7 @@ struct DashboardView: View {
                 Label(model.text("\(model.files.count) selected", "\(model.files.count) dosya seçildi"), systemImage: "doc.on.doc")
                     .font(.system(size: 12, weight: .medium)).foregroundStyle(Palette.muted)
                 Spacer()
-                Button(model.text("Add files", "Dosya ekle")) { model.chooseFiles() }.buttonStyle(.plain).foregroundStyle(Palette.mint)
+                Button(model.text("Add Files", "Dosya ekle")) { model.chooseFiles() }.buttonStyle(.plain).foregroundStyle(Palette.mint)
                 Button(model.text("Clear", "Temizle")) { model.files = [] }.buttonStyle(.plain).foregroundStyle(Palette.muted).padding(.leading, 10)
             }.padding(16)
             Rectangle().fill(Palette.line).frame(height: 1)
@@ -164,10 +164,10 @@ struct DashboardView: View {
                     }
                     Spacer(minLength: 10)
                     if model.files.count > 1 {
-                        Button { model.moveFile(index, by: -1) } label: { Image(systemName: "chevron.up") }.disabled(index == 0).help(model.text("Move up", "Yukarı taşı"))
-                        Button { model.moveFile(index, by: 1) } label: { Image(systemName: "chevron.down") }.disabled(index == model.files.count - 1).help(model.text("Move down", "Aşağı taşı"))
+                        Button { model.moveFile(index, by: -1) } label: { Image(systemName: "chevron.up") }.disabled(index == 0).help(model.text("Move Up", "Yukarı taşı"))
+                        Button { model.moveFile(index, by: 1) } label: { Image(systemName: "chevron.down") }.disabled(index == model.files.count - 1).help(model.text("Move Down", "Aşağı taşı"))
                     }
-                    Button { model.files.removeAll { $0 == url } } label: { Image(systemName: "xmark") }.help(model.text("Remove from selection", "Seçimden çıkar"))
+                    Button { model.files.removeAll { $0 == url } } label: { Image(systemName: "xmark") }.help(model.text("Remove From Selection", "Seçimden çıkar"))
                 }.buttonStyle(.plain).foregroundStyle(Palette.muted).padding(.horizontal, 16).padding(.vertical, 11)
             }
             if model.files.count > 1 {
@@ -192,7 +192,7 @@ struct DashboardView: View {
                     }
                 }.padding(4).background(Palette.panel, in: RoundedRectangle(cornerRadius: 10))
                 Spacer()
-                Button { model.showWheel() } label: { Label(model.text("Open wheel", "Çarkı aç"), systemImage: "circle.hexagongrid") }
+                Button { model.showWheel() } label: { Label(model.text("Open Wheel", "Çarkı aç"), systemImage: "circle.hexagongrid") }
                     .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(Palette.mint)
             }
             if model.operations.isEmpty {
@@ -232,9 +232,9 @@ struct DashboardView: View {
     private func recentActivity(_ item: ActivityItem) -> some View {
         VStack(alignment: .leading, spacing: 13) {
             HStack {
-                Text(model.text("LATEST ACTIVITY", "SON İŞLEM")).font(.system(size: 10, weight: .medium, design: .monospaced)).tracking(1.2).foregroundStyle(Palette.muted)
+                Text(model.text("Latest Activity", "SON İŞLEM")).font(.system(size: 10, weight: .medium, design: .monospaced)).tracking(1.2).foregroundStyle(Palette.muted)
                 Spacer()
-                Button(model.text("View all", "Tümünü gör")) { model.section = "activity" }.buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(Palette.mint)
+                Button(model.text("View All", "Tümünü gör")) { model.section = "activity" }.buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(Palette.mint)
             }
             ActivityRow(item: item, model: model)
         }

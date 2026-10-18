@@ -45,14 +45,14 @@ RULES = {
     "credential-in-url": rb"https?://[^\s/:]+:[^\s/@]+@",
     "embedded-email": rb"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+\b",
 }
-ALLOWED_EMAILS = {b"freewheel@users.noreply.github.com"}
+ALLOWED_EMAILS = {b"contributors@freewheel.invalid"}
 
 # Only these visually reviewed illustrations may be binary. The cover retains
 # its generated-media provenance; neither image may carry private metadata.
 # Update a digest only after reviewing the new image and its metadata.
 PUBLIC_IMAGES = {
     "docs/assets/cover.png": "0c81481a690d51aee8c83b00fb24bab472e79b93704ae9440e15b971630d9a7e",
-    "docs/assets/demo-preview.png": "ae31fa0c36517115d43e12ad4603782f45b95059a7360f19dbec46fb77f40b25",
+    "docs/assets/demo-preview.png": "00550499ccce4f61bd263f3f088806da127c05aeb8bbd8a2af2b990210294246",
 }
 TEXT_SIZE_LIMIT = 2_000_000
 IMAGE_SIZE_LIMIT = 8_000_000

@@ -22,14 +22,14 @@
       { title: "Crop", detail: "The Mac app asks for a width and height for a centered crop." },
       { title: "Rotate", detail: "The Mac app lets you rotate in 90-degree steps." },
       { title: "Flip", detail: "The Mac app creates a horizontally mirrored copy." },
-      { title: "Remove metadata", detail: "The Mac app creates a copy with metadata removed." }
+      { title: "Remove Metadata", detail: "The Mac app creates a copy with metadata removed." }
     ],
     actions: [
       { title: "AirDrop", detail: "The Mac app opens sharing options for nearby devices." },
       { title: "Float", detail: "The Mac app keeps selected files on a floating shelf for another drag." },
-      { title: "Copy to…", detail: "The Mac app asks you to choose a destination folder." },
-      { title: "Move to…", detail: "The Mac app asks you to choose a destination folder, then moves the files." },
-      { title: "Copy path", detail: "The Mac app copies the selected file paths to your clipboard." },
+      { title: "Copy To…", detail: "The Mac app asks you to choose a destination folder." },
+      { title: "Move To…", detail: "The Mac app asks you to choose a destination folder, then moves the files." },
+      { title: "Copy Path", detail: "The Mac app copies the selected file paths to your clipboard." },
       { title: "Terminal", detail: "The Mac app opens Terminal in the containing folder." }
     ]
   };
@@ -86,9 +86,9 @@
       const icon = svgElement("path", { class: "sector-icon", d: `M${x - 6},${y - 22}h8l4,4v14h-12zM${x + 2},${y - 22}v4h4M${x - 3},${y - 11}h6` });
       group.append(icon);
       const text = svgElement("text", { x, y: y + 14 });
-      if (operation.title === "Remove metadata") {
+      if (operation.title === "Remove Metadata") {
         const line1 = svgElement("tspan", { x, dy: "0" }); line1.textContent = "Remove";
-        const line2 = svgElement("tspan", { x, dy: "14" }); line2.textContent = "metadata";
+        const line2 = svgElement("tspan", { x, dy: "14" }); line2.textContent = "Metadata";
         text.append(line1, line2);
       } else { text.textContent = operation.title; }
       group.append(text);
@@ -116,11 +116,11 @@
     $("result").hidden = phase !== "queued" && phase !== "done";
     $("next-step").disabled = phase === "queued";
     const steps = {
-      idle: [1, "Pick up the sample.", "Drag the image, or use the button.", "Pick up sample"],
-      picked: [2, "Bring the tools to you.", "Tap Shift, or open the wheel below.", "Open wheel"],
-      wheel: [3, "Choose what comes next.", "Drop onto a format, or choose it with a click.", mode === "convert" ? "Try PNG" : `Try ${operations[mode][0].title}`],
-      queued: [3, "Queued in the preview.", "This is an example, not a real conversion.", "Previewing…"],
-      done: [3, "That's the idea.", "Try another mode, or get the Mac app.", "Try another spin"]
+      idle: [1, "Pick Up the Sample.", "Drag the image, or use the button.", "Pick Up Sample"],
+      picked: [2, "Bring the Tools to You.", "Tap Shift, or open the wheel below.", "Open Wheel"],
+      wheel: [3, "Choose What Comes Next.", "Drop onto a format, or choose it with a click.", mode === "convert" ? "Try PNG" : `Try ${operations[mode][0].title}`],
+      queued: [3, "Queued in the Preview.", "This is an example, not a real conversion.", "Previewing…"],
+      done: [3, "That's the Idea.", "Try another mode, or get the Mac app.", "Try Another Spin"]
     };
     const [number, title, detail, button] = steps[phase];
     $("step-counter").replaceChildren(document.createTextNode(String(number)));
@@ -128,7 +128,7 @@
     $("step-title").textContent = title; $("step-detail").textContent = detail;
     $("next-step").firstChild.textContent = button;
     const center = $("wheel-center");
-    center.querySelector("span").textContent = phase === "wheel" ? "Cancel" : "Open wheel";
+    center.querySelector("span").textContent = phase === "wheel" ? "Cancel" : "Open Wheel";
     center.querySelector("use").setAttribute("href", phase === "wheel" ? "#icon-close" : "#icon-arrow");
     center.setAttribute("aria-label", phase === "wheel" ? "Close the wheel" : "Pick up the sample and open the wheel");
     $("wheel-help").textContent = phase === "wheel" ? "Choose an operation · Arrow keys + Enter · Esc to close" : "Pick up the sample. Then tap Shift.";
@@ -145,12 +145,12 @@
       tab.classList.toggle("active", active); tab.setAttribute("aria-selected", String(active));
       tab.tabIndex = active ? 0 : -1; $(`${name}-panel`).hidden = !active;
     }
-    $("view-label").textContent = view.toUpperCase();
+    $("view-label").textContent = view === "workspace" ? "Workspace" : "Activity";
     if (focus) $(`${view}-tab`).focus();
   }
   function pickUp() {
     clearTimeout(timer); showView("workspace"); setPhase("picked");
-    announce("Sample selected. Press Shift or choose Open wheel.");
+    announce("Sample selected. Press Shift or choose Open Wheel.");
   }
   function openWheel(nextMode = mode, focus = false) {
     clearTimeout(timer); mode = nextMode; selectedIndex = 0; showView("workspace");
@@ -171,14 +171,14 @@
     const operation = operations[mode][index], chosenMode = mode;
     const filename = operation.extension ? `morning-light.${operation.extension}` : operation.title;
     const detail = operation.extension ? (operation.engine ? `The Mac app creates this output with the optional ${operation.engine} engine.` : "The Mac app creates a new file and keeps the original.") : operation.detail;
-    setPhase("queued"); $("result-label").textContent = "QUEUED IN PREVIEW";
+    setPhase("queued"); $("result-label").textContent = "Queued in Preview";
     $("result-filename").textContent = filename; $("result-detail").textContent = "Showing the next step in the example…";
     $("result-symbol").setAttribute("href", "#icon-history");
     $("result").querySelector(".result-original").hidden = chosenMode === "actions";
     if (focusResult) $("result").focus({ preventScroll: true });
     announce(`${operation.title} queued in the preview. No real files are being changed.`);
     timer = setTimeout(() => {
-      setPhase("done"); $("result-label").textContent = operation.extension ? "EXAMPLE RESULT" : "IN THE MAC APP";
+      setPhase("done"); $("result-label").textContent = operation.extension ? "Example Result" : "In the Mac App";
       $("result-detail").textContent = detail; $("result-symbol").setAttribute("href", "#icon-check");
       history.unshift({ filename, title: operation.title, mode: chosenMode });
       history = history.slice(0, 12); renderActivity();
@@ -193,7 +193,7 @@
       const icon = svgElement("svg", { class: "icon", "aria-hidden": "true" }); icon.append(svgElement("use", { href: "#icon-check" }));
       const body = document.createElement("div"), title = document.createElement("strong"), detail = document.createElement("p"), badge = document.createElement("span");
       title.textContent = entry.filename; detail.textContent = `${sample} · ${entry.mode === "convert" ? `Convert to ${entry.title}` : entry.title}`;
-      badge.className = "activity-badge"; badge.textContent = "Preview only";
+      badge.className = "activity-badge"; badge.textContent = "Preview Only";
       body.append(title, detail); item.append(icon, body, badge); list.append(item);
     });
   }

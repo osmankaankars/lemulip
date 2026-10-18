@@ -74,16 +74,16 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         guard isBusy else { return .terminateNow }
         if activity.contains(where: { $0.state == .running && ["action.copy", "action.move"].contains($0.operation.id) }) {
             let alert = NSAlert()
-            alert.messageText = text("A file transfer is still running", "Dosya aktarımı devam ediyor")
+            alert.messageText = text("A File Transfer Is Still Running", "Dosya aktarımı devam ediyor")
             alert.informativeText = text("Wait for the copy or move to finish before quitting Freewheel.", "Freewheel'den çıkmadan önce kopyalama veya taşıma işleminin bitmesini bekle.")
-            alert.addButton(withTitle: text("Keep working", "Devam et"))
+            alert.addButton(withTitle: text("Keep Working", "Devam et"))
             alert.runModal()
             return .terminateCancel
         }
         let alert = NSAlert()
-        alert.messageText = text("Conversions are still running", "Dönüşümler devam ediyor")
+        alert.messageText = text("Conversions Are Still Running", "Dönüşümler devam ediyor")
         alert.informativeText = text("Quit and cancel unfinished jobs? Your original files will be kept.", "Çıkıp tamamlanmamış işlemler iptal edilsin mi? Orijinal dosyaların korunur.")
-        alert.addButton(withTitle: text("Keep working", "Devam et"))
+        alert.addButton(withTitle: text("Keep Working", "Devam et"))
         alert.addButton(withTitle: text("Quit", "Çık"))
         guard alert.runModal() == .alertSecondButtonReturn else { return .terminateCancel }
         quittingAfterCancellation = true
@@ -148,7 +148,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         let add = NSMenuItem(title: text("Choose Files…", "Dosya seç…"), action: #selector(chooseFiles), keyEquivalent: "")
         add.target = self; menu.addItem(add)
         menu.addItem(.separator())
-        let pause = NSMenuItem(title: text("Drag wheel enabled", "Sürükleme çarkı etkin"), action: #selector(toggleWheel), keyEquivalent: "")
+        let pause = NSMenuItem(title: text("Drag Wheel Enabled", "Sürükleme çarkı etkin"), action: #selector(toggleWheel), keyEquivalent: "")
         pause.target = self; pause.state = wheelEnabled ? .on : .off; menu.addItem(pause)
         let settings = NSMenuItem(title: text("Settings…", "Ayarlar…"), action: #selector(showSettings), keyEquivalent: "")
         settings.target = self; menu.addItem(settings)
@@ -168,7 +168,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         showMainWindow()
         let panel = NSOpenPanel()
         panel.canChooseFiles = true; panel.canChooseDirectories = true; panel.allowsMultipleSelection = true
-        panel.prompt = text("Add files", "Dosya ekle")
+        panel.prompt = text("Add Files", "Dosya ekle")
         if panel.runModal() == .OK { addFiles(panel.urls) }
     }
 
@@ -214,7 +214,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         var chosenOptions = options
         if !outputAlongsideOriginal && chosenOptions.destinationDirectory == nil {
             let panel = NSOpenPanel(); panel.canChooseFiles = false; panel.canChooseDirectories = true; panel.canCreateDirectories = true
-            panel.prompt = text("Save here", "Buraya kaydet")
+            panel.prompt = text("Save Here", "Buraya kaydet")
             guard panel.runModal() == .OK, let directory = panel.url else { return }
             chosenOptions.destinationDirectory = directory
         }
@@ -283,7 +283,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         case "action.copy", "action.move":
             showMainWindow()
             let panel = NSOpenPanel(); panel.canChooseFiles = false; panel.canChooseDirectories = true; panel.canCreateDirectories = true
-            panel.prompt = operation.id == "action.move" ? text("Move here", "Buraya taşı") : text("Copy here", "Buraya kopyala")
+            panel.prompt = operation.id == "action.move" ? text("Move Here", "Buraya taşı") : text("Copy Here", "Buraya kopyala")
             guard panel.runModal() == .OK, let directory = panel.url else { return }
             let move = operation.id == "action.move"
             let item = ActivityItem(operation: operation, inputs: inputs)
@@ -332,7 +332,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
     private func showShelf(_ urls: [URL]) {
         shelfWindows.removeAll { !$0.isVisible }
         let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 330, height: min(400, 110 + urls.count * 58)), styleMask: [.titled, .closable, .resizable, .utilityWindow], backing: .buffered, defer: false)
-        panel.title = text("File shelf", "Dosya rafı")
+        panel.title = text("File Shelf", "Dosya rafı")
         panel.level = .floating; panel.isReleasedWhenClosed = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.contentView = NSHostingView(rootView: FileShelfView(urls: urls, model: self).preferredColorScheme(.dark))

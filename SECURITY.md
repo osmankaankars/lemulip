@@ -1,4 +1,4 @@
-# Security and privacy
+# Security and Privacy
 
 Freewheel processes user-selected local files. It does not include an upload API,
 analytics, crash-reporting service, automatic update check, cloud account, or API
@@ -23,7 +23,7 @@ The application reads the drag pasteboard only when it detects a new file drag.
 It does not monitor ordinary clipboard contents or record keystrokes. AirDrop
 uses the system sharing service only when selected by the user.
 
-## Public source hygiene
+## Public Source Hygiene
 
 Run `python3 script/privacy_check.py` and review the diff before publishing.
 The check never prints matching secret values. The source allowlist excludes
@@ -37,7 +37,7 @@ the generated cover retains its reviewed C2PA origin provenance. This automated
 check is a guardrail, not a complete secret detector;
 review the exact source and images before each publication.
 
-## Reporting a problem
+## Reporting a Problem
 
 If a repository maintainer has enabled GitHub private vulnerability reporting,
 use Security → Report a vulnerability. Otherwise open an issue describing the

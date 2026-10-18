@@ -28,7 +28,8 @@ REPO_NAME = "freewheel"
 BRANCH = "main"
 STATE_KEY = "freewheel.publishState"
 AUTHOR = "Freewheel contributors"
-EMAIL = "freewheel@users.noreply.github.com"
+# A reserved address cannot attribute a generic commit to another GitHub account.
+EMAIL = "contributors@freewheel.invalid"
 COMMIT_MESSAGE = "Add Freewheel local macOS file converter"
 DESCRIPTION = "File tools, right where you drag. Free, local file conversion for macOS."
 TOPICS = ["macos", "swift", "swiftui", "file-converter", "drag-and-drop",
@@ -154,7 +155,7 @@ def update_demo_link(owner):
         if readme.count(start) != 1 or readme.count(end) != 1 or readme.index(start) >= readme.index(end):
             stop("The README demo-link block is malformed. Review it before publishing.")
         homepage = "https://" + owner.lower() + ".github.io/" + REPO_NAME + "/"
-        block = (start + "\n[Open the browser walkthrough](" + homepage +
+        block = (start + "\n[Open the Browser Walkthrough](" + homepage +
                  ") · Available after the Pages deployment succeeds. This is a simulation; the Mac app performs conversions.\n" + end)
         updated = (readme[:readme.index(start)] + block +
                    readme[readme.index(end) + len(end):]).encode("utf-8")
@@ -429,7 +430,7 @@ def main():
             dispatch = invoke([GH, "workflow", "run", "pages.yml", "--repo", slug, "--ref", BRANCH],
                               allow_failure=True, label="Start Pages workflow")
             if dispatch.returncode:
-                warnings.append("Pages workflow dispatch; run Website and interactive demo in Actions")
+                warnings.append("Pages workflow dispatch; run Website and Interactive Demo in Actions")
             else:
                 state["pages_dispatched"] = True
                 save(state)

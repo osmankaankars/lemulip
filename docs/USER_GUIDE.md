@@ -4,19 +4,19 @@ Freewheel has three ways to work: a wheel beside your drag, a regular workspace,
 
 New here? [Install Freewheel](INSTALL.md) first. For specific input and output combinations, use the [format guide](FORMATS.md).
 
-## Your first conversion
+## Your First Conversion
 
 Open Freewheel and add a small image with **⌘O**. Choose **Convert**, then a different format, such as PNG for a JPEG input. When the job finishes, open **Activity** and click its output to reveal it in Finder.
 
 The original stays in place. The new file is saved in the first selected file's folder unless you change the output preference.
 
-## The drag wheel
+## The Drag Wheel
 
 ![Illustrated workflow: drag a file, tap Shift, and drop onto a format.](assets/workflow.svg)
 
 With Freewheel running, begin dragging a local file in Finder. Press a modifier after the drag starts:
 
-| Key | Menu | Typical use |
+| Key | Menu | Typical Use |
 | --- | --- | --- |
 | **⇧ Shift** | Convert | Pick a new format |
 | **⌘ Command** | Tools | Resize an image, split a PDF, trim media |
@@ -26,19 +26,19 @@ Drop onto a segment to choose it. Releasing the modifier alone keeps the wheel o
 
 The menu follows the selected file types. Selecting unrelated types together may leave only archive tools and file actions. Scroll over the wheel to move through additional pages when available.
 
-The current keys are fixed. You can pause the wheel using **Drag wheel enabled** in the menu bar, or **Settings → Drag wheel**.
+The current keys are fixed. You can pause the wheel using **Drag Wheel Enabled** in the menu bar, or **Settings → Drag Wheel**.
 
 Finder drag behavior is still being tested across Mac setups and source applications. If a drag is not recognized, use the workspace.
 
-## The workspace
+## The Workspace
 
-Use **Add files**, **⌘O**, or drag files into the main window. You can also use Finder's **Open With → Freewheel**.
+Use **Add Files**, **⌘O**, or drag files into the main window. You can also use Finder's **Open With → Freewheel**.
 
 Choose **Convert**, **Tools**, or **Actions** above the operation cards. Removing a file from this selection does not delete it from disk. **Clear** empties the selection.
 
 For jobs where order matters, use the up and down arrows beside each file. The displayed order controls PDF merges and the page order when combining images into a PDF.
 
-**Open wheel** opens a clickable version of the wheel for the current selection. In this mode:
+**Open Wheel** opens a clickable version of the wheel for the current selection. In this mode:
 
 | Control | Action |
 | --- | --- |
@@ -48,11 +48,11 @@ For jobs where order matters, use the up and down arrows beside each file. The d
 | Page Up / Page Down | Change the menu page |
 | Escape | Close the wheel |
 
-## Set options before a job
+## Set Options Before a Job
 
-Some operations run as soon as you select them. Others open a panel with relevant settings and a **Create copy** button.
+Some operations run as soon as you select them. Others open a panel with relevant settings and a **Create Copy** button.
 
-| Tool | What to set |
+| Tool | What to Set |
 | --- | --- |
 | Compress | Quality; PDF compression also has a maximum dimension |
 | Resize | Maximum dimension in pixels; keeps the aspect ratio and does not enlarge smaller images |
@@ -65,33 +65,33 @@ Some operations run as soon as you select them. Others open a panel with relevan
 
 PDF page numbers start at 1. Crop dimensions must fit within the image. Media tools require FFmpeg in the desktop interface.
 
-### PDF compression
+### PDF Compression
 
 This tool renders pages as images in a new PDF. Text selection, links, forms, signatures, and accessibility structure are lost in the output. The original remains untouched, and some files may become larger.
 
-Select **Create a flattened copy** only when that result suits your purpose. To keep editable or searchable content, use another PDF operation.
+Select **Create a Flattened Copy** only when that result suits your purpose. To keep editable or searchable content, use another PDF operation.
 
-## Find results and manage jobs
+## Find Results and Manage Jobs
 
 Conversion jobs run one at a time in a queue. **Activity** shows waiting, running, completed, failed, and cancelled jobs.
 
 Use the cancel button for a queued or running conversion. A failed or cancelled conversion attempt removes its temporary staging files. Completed outputs are revealed with the file and folder buttons.
 
-**Clear finished** removes completed entries from Activity. It does not delete outputs. Activity is kept in memory and is cleared when the app quits.
+**Clear Finished** removes completed entries from Activity. It does not delete outputs. Activity is kept in memory and is cleared when the app quits.
 
-### Choose an output folder
+### Choose an Output Folder
 
-In **Settings**, leave **Save in the first file's folder** on to save all outputs of each job beside its first input. This also applies when inputs come from different folders.
+In **Settings**, leave **Save in the First File's Folder** on to save all outputs of each job beside its first input. This also applies when inputs come from different folders.
 
-Turn it off to choose a destination for each job. Existing files are not replaced; Freewheel chooses a new name. **Reveal finished files** controls whether Finder opens automatically after success.
+Turn it off to choose a destination for each job. Existing files are not replaced; Freewheel chooses a new name. **Reveal Finished Files** controls whether Finder opens automatically after success.
 
-### File actions
+### File Actions
 
-**Copy to…** and **Move to…** ask for a destination. Move relocates your selected originals. Both choose unused names. If a multi-file transfer stops partway through, completed transfers remain in place and are listed in Activity.
+**Copy To…** and **Move To…** ask for a destination. Move relocates your selected originals. Both choose unused names. If a multi-file transfer stops partway through, completed transfers remain in place and are listed in Activity.
 
-**Float** keeps the selected files in a small shelf above other windows. **Copy path** copies their absolute paths to the clipboard. **Terminal** opens the first selected file's containing folder, or the folder itself when selected. **AirDrop** opens the system sharing flow when available.
+**Float** keeps the selected files in a small shelf above other windows. **Copy Path** copies their absolute paths to the clipboard. **Terminal** opens the first selected file's containing folder, or the folder itself when selected. **AirDrop** opens the system sharing flow when available.
 
-## Optional engines
+## Optional Engines
 
 **Settings → Local Engines** shows which helpers Freewheel can find. Install the engines you need, then click **Refresh**. Installation instructions are in [Installation](INSTALL.md#optional-engines).
 
@@ -99,7 +99,7 @@ A dimmed operation or a dependency message means its helper is missing. It is no
 
 The interface language can be changed between English and Turkish in **Settings → Language**.
 
-## Command-line use
+## Command-Line Use
 
 From a source checkout, prefix commands with `swift run`. A local app build also produces `dist/freewheel`, which runs directly:
 
@@ -110,7 +110,7 @@ From a source checkout, prefix commands with `swift run`. A local app build also
 ./dist/freewheel engines
 ```
 
-### Convert and combine
+### Convert and Combine
 
 ```bash
 ./dist/freewheel convert png photo.heic
@@ -120,7 +120,7 @@ From a source checkout, prefix commands with `swift run`. A local app build also
 ./dist/freewheel run archive.extract example.zip
 ```
 
-### Use operation settings
+### Use Operation Settings
 
 ```bash
 ./dist/freewheel run image.resize photo.jpg --size 1600
@@ -140,7 +140,7 @@ The command prints output paths. Errors and conversion notes go to standard erro
 
 The desktop interface and Apple framework converters require macOS. Portable text and archive operations, plus supported external-engine routes, can also run on Linux. The macOS helper sandbox is not applied on Linux.
 
-## If something fails
+## If Something Fails
 
 Read the message in Activity before retrying. It may identify a missing engine, unsupported codec, locked PDF, invalid setting, or file limit. [FAQ](FAQ.md) covers common cases.
 

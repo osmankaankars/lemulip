@@ -584,25 +584,25 @@ public enum NativeConverter {
         let size = try pageSize(page)
         var scale = dpi / 72
         if let limit = longEdge { scale = min(scale, CGFloat(limit) / max(size.width, size.height)) }
-        let width = max(1, Int(ceil(size.width * scale))), height = max(1, Int(ceil(size.height * scale)))
-        let context = try bitmap(width: width, height: height, opaque: true)
-        guard let reference = page.pageRef else { throw FreewheelError.operationFailed("The PDF page has no renderable content.") }
-        context.concatenate(reference.getDrawingTransform(.cropBox,
-                            rect: CGRect(x: 0, y: 0, width: width, height: height), rotate: 0, preserveAspectRatio: true))
-        context.drawPDFPage(reference)
-        // Core Graphics renders the page's content stream, not PDFKit's visible
-        // annotation overlays. Draw those in the same page coordinate system.
-        if page.displaysAnnotations {
-            context.saveGState()
-            // PDFAnnotation draws relative to the requested box's origin,
-            // whereas CGPDFPage's transform operates in absolute page space.
-            let origin = page.bounds(for: .cropBox).origin
-            context.translateBy(x: origin.x, y: origin.y)
-            for annotation in page.annotations where annotation.shouldDisplay {
-                annotation.draw(with: .cropBox, in: context)
-            }
-            context.restoreGState()
+        func pixelCount(_ points: CGFloat) -> Int {
+            let value = points * scale
+            let nearest = value.rounded()
+            // A mathematically whole pixel can land a few ULPs above its
+            // integer value (for example, 60 points at 300 DPI). Keep ceiling
+            // for fractional pixels without adding a spurious row or column.
+            let count = abs(value - nearest) <= value.ulp * 4 ? nearest : ceil(value)
+            return max(1, Int(count))
         }
+        let width = pixelCount(size.width), height = pixelCount(size.height)
+        let context = try bitmap(width: width, height: height, opaque: true)
+        let drawingScale = min(CGFloat(width) / size.width, CGFloat(height) / size.height)
+        context.translateBy(x: (CGFloat(width) - size.width * drawingScale) / 2,
+                            y: (CGFloat(height) - size.height * drawingScale) / 2)
+        context.scaleBy(x: drawingScale, y: drawingScale)
+        // PDFKit draws the cropped, rotated content and visible annotations
+        // together. Applying a separate CGPDFPage transform to annotations
+        // mixes absolute page space with PDFKit's box-relative coordinates.
+        page.draw(with: .cropBox, to: context)
         guard let image = context.makeImage() else { throw FreewheelError.operationFailed("PDF page rendering failed.") }
         return image
     }

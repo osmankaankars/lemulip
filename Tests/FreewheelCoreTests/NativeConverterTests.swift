@@ -285,33 +285,37 @@ final class NativeConverterTests: XCTestCase {
         let work = try workspace()
         let original = try pdf(work.inputs.appendingPathComponent("original.pdf"),
             pages: [(CGSize(width: 200, height: 200), "")])
-        let document = try XCTUnwrap(PDFDocument(url: original))
-        let page = try XCTUnwrap(document.page(at: 0))
-        page.setBounds(CGRect(x: 100, y: 40, width: 80, height: 60), for: .cropBox)
-        page.rotation = 90
-        let annotation = PDFAnnotation(bounds: CGRect(x: 120, y: 60, width: 20, height: 20),
-                                       forType: .square, withProperties: nil)
-        annotation.interiorColor = .red
-        annotation.color = .red
-        page.addAnnotation(annotation)
-        let source = work.inputs.appendingPathComponent("cropped.pdf")
-        XCTAssertTrue(document.write(to: source))
-        let result = try await NativeConverter.convert(inputs: [source], operation: operation("convert.png"),
-            options: ConversionOptions(), outputDirectory: work.stage)
-        let pixels = try decodedImage(XCTUnwrap(result.outputs.first))
-        XCTAssertEqual(pixels.width, 250)
-        XCTAssertEqual(pixels.height, 334)
-        let bitmap = NSBitmapImageRep(cgImage: pixels)
-        var redPixels = 0
-        for y in stride(from: 0, to: pixels.height, by: 8) {
-            for x in stride(from: 0, to: pixels.width, by: 8) {
-                if let value = bitmap.colorAt(x: x, y: y)?.usingColorSpace(.sRGB),
-                   value.redComponent > 0.7, value.greenComponent < 0.3, value.blueComponent < 0.3 {
-                    redPixels += 1
+        for rotation in [0, 90, 180, 270] {
+            let document = try XCTUnwrap(PDFDocument(url: original))
+            let page = try XCTUnwrap(document.page(at: 0))
+            page.setBounds(CGRect(x: 100, y: 40, width: 80, height: 60), for: .cropBox)
+            page.rotation = rotation
+            let annotation = PDFAnnotation(bounds: CGRect(x: 120, y: 60, width: 20, height: 20),
+                                           forType: .square, withProperties: nil)
+            annotation.interiorColor = .red
+            annotation.color = .red
+            page.addAnnotation(annotation)
+            let source = work.inputs.appendingPathComponent("cropped-\(rotation).pdf")
+            XCTAssertTrue(document.write(to: source))
+            let result = try await NativeConverter.convert(inputs: [source], operation: operation("convert.png"),
+                options: ConversionOptions(), outputDirectory: freshStage(work))
+            let pixels = try decodedImage(XCTUnwrap(result.outputs.first))
+            let swapsAxes = rotation == 90 || rotation == 270
+            XCTAssertEqual(pixels.width, swapsAxes ? 250 : 334, "Rotation \(rotation)")
+            XCTAssertEqual(pixels.height, swapsAxes ? 334 : 250, "Rotation \(rotation)")
+            let bitmap = NSBitmapImageRep(cgImage: pixels)
+            var redPixels = 0
+            for y in stride(from: 0, to: pixels.height, by: 8) {
+                for x in stride(from: 0, to: pixels.width, by: 8) {
+                    if let value = bitmap.colorAt(x: x, y: y)?.usingColorSpace(.sRGB),
+                       value.redComponent > 0.7, value.greenComponent < 0.3, value.blueComponent < 0.3 {
+                        redPixels += 1
+                    }
                 }
             }
+            XCTAssertGreaterThan(redPixels, 10,
+                "Rotation \(rotation): the crop-box offset must not move the visible annotation outside the page")
         }
-        XCTAssertGreaterThan(redPixels, 10, "The crop-box offset must not move the visible annotation outside the page")
     }
 
     func testPDFMergeAndRotationKeepPageCountsAndOriginals() async throws {

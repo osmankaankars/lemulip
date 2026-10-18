@@ -30,10 +30,10 @@ struct OperationOptionsView: View {
                 if operation.id.hasSuffix("compress") {
                     HStack { Text(model.text("Quality", "Kalite")); Spacer(); Text("\(Int(quality * 100))% ").monospacedDigit().foregroundStyle(Palette.mint) }
                     Slider(value: $quality, in: 0.15...1, step: 0.01)
-                    HStack { Text(model.text("Smaller file", "Daha küçük dosya")); Spacer(); Text(model.text("Higher quality", "Daha yüksek kalite")) }.font(.system(size: 10)).foregroundStyle(Palette.muted)
+                    HStack { Text(model.text("Smaller File", "Daha küçük dosya")); Spacer(); Text(model.text("Higher Quality", "Daha yüksek kalite")) }.font(.system(size: 10)).foregroundStyle(Palette.muted)
                 }
                 if operation.id.hasSuffix("resize") || operation.id == "pdf.compress" {
-                    field(model.text("Maximum dimension (px)", "En büyük kenar (piksel)"), value: $maxDimension)
+                    field(model.text("Maximum Dimension (px)", "En büyük kenar (piksel)"), value: $maxDimension)
                     Text(model.text("Keeps the aspect ratio and never enlarges smaller images.", "En boy oranını korur; küçük görselleri büyütmez."))
                         .font(.system(size: 10)).foregroundStyle(Palette.muted)
                 }
@@ -46,15 +46,15 @@ struct OperationOptionsView: View {
                     HStack(spacing: 18) { field(model.text("Start (seconds)", "Başlangıç (saniye)"), value: $start); field(model.text("End (seconds)", "Bitiş (saniye)"), value: $end) }
                 }
                 if operation.id.hasSuffix("rotate") {
-                    Picker(model.text("Clockwise rotation", "Saat yönünde dönüş"), selection: $rotation) { Text("90°").tag(90); Text("180°").tag(180); Text("270°").tag(270) }.pickerStyle(.segmented)
+                    Picker(model.text("Clockwise Rotation", "Saat yönünde dönüş"), selection: $rotation) { Text("90°").tag(90); Text("180°").tag(180); Text("270°").tag(270) }.pickerStyle(.segmented)
                 }
                 if operation.id == "pdf.extract" {
-                    field(model.text("Page numbers and ranges", "Sayfalar ve aralıklar"), value: $pageRange)
+                    field(model.text("Page Numbers and Ranges", "Sayfalar ve aralıklar"), value: $pageRange)
                     Text(model.text("For example: 1, 3-5, 8. Page numbering starts at 1.", "Örnek: 1, 3-5, 8. Sayfa numaraları 1'den başlar."))
                         .font(.system(size: 10)).foregroundStyle(Palette.muted)
                 }
                 if operation.id == "media.speed" {
-                    HStack { Text(model.text("Playback speed", "Oynatma hızı")); Spacer(); Text(String(format: "%.2f×", speed)).foregroundStyle(Palette.mint).monospacedDigit() }
+                    HStack { Text(model.text("Playback Speed", "Oynatma hızı")); Spacer(); Text(String(format: "%.2f×", speed)).foregroundStyle(Palette.mint).monospacedDigit() }
                     Slider(value: $speed, in: 0.5...4, step: 0.25)
                 }
                 if operation.id == "media.volume" {
@@ -65,7 +65,7 @@ struct OperationOptionsView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         Text(model.text("PDF compression turns pages into images. Searchable text, links, forms, signatures, and accessibility tags are not kept in the new copy. The original PDF is preserved. Some files may become larger.", "PDF sıkıştırma, sayfaları görsele dönüştürür. Yeni kopyada aranabilir metin, bağlantı, form, imza ve erişilebilirlik etiketleri korunmaz. Orijinal PDF korunur. Bazı dosyalar büyüyebilir."))
                             .font(.system(size: 11)).foregroundStyle(.orange).lineSpacing(3)
-                        Toggle(model.text("Create a flattened copy", "Sayfaları görsele dönüştürerek kopya oluştur"), isOn: $flattenAcknowledged).font(.system(size: 11))
+                        Toggle(model.text("Create a Flattened Copy", "Sayfaları görsele dönüştürerek kopya oluştur"), isOn: $flattenAcknowledged).font(.system(size: 11))
                     }.padding(13).background(Color.orange.opacity(0.06), in: RoundedRectangle(cornerRadius: 9))
                 }
                 if let validationError { Text(validationError).font(.system(size: 11)).foregroundStyle(.orange) }
@@ -73,7 +73,7 @@ struct OperationOptionsView: View {
             HStack {
                 Spacer()
                 Button(model.text("Cancel", "Vazgeç")) { model.cancelPending() }.keyboardShortcut(.cancelAction)
-                Button(model.text("Create copy", "Kopya oluştur")) { submit() }.buttonStyle(.borderedProminent).tint(Palette.mint).foregroundStyle(Palette.background)
+                Button(model.text("Create Copy", "Kopya oluştur")) { submit() }.buttonStyle(.borderedProminent).tint(Palette.mint).foregroundStyle(Palette.background)
                     .keyboardShortcut(.defaultAction).disabled(validationError != nil || (operation.id == "pdf.compress" && !flattenAcknowledged))
             }
         }.padding(29).frame(width: 470).background(Palette.background).tint(Palette.mint)

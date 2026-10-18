@@ -1,4 +1,4 @@
-# Freewheel 0.1.2 · Public preview
+# Freewheel 0.1.2 · Public Preview
 
 File tools, right where you drag.
 
@@ -6,7 +6,7 @@ Freewheel is a free, open-source file converter for macOS. Drag local files,
 tap a modifier key, and choose a format or tool from the wheel. Use the workspace
 when you need a queue, conversion options, or a closer look at the result.
 
-## In this preview
+## In This Preview
 
 - A drag wheel with formats, tools, and file actions, plus a floating file shelf.
 - Native image conversion, PDF tools, OCR, subtitles, delimited text, and archives.
@@ -31,22 +31,17 @@ When this release's Mac checks pass, the workflow attaches:
 | `SHA256SUMS.txt` | Checksums for the downloadable files |
 
 Universal packages contain Apple silicon and Intel executables. Optional
-conversion engines are installed separately. Read the [installation guide](INSTALL.md)
+conversion engines are installed separately. Read the [Installation Guide](INSTALL.md)
 before downloading or building.
 
-## What has been verified
-
-A release build on an Apple silicon Mac completed with Xcode 26.3 and Swift
-6.2.4. The generated bundle passed property-list and ad hoc signature checks.
-Portable engine, archive, output-safety, process, and wheel-geometry tests have
-also passed. See [Development](DEVELOPMENT.md) for the scope of that evidence.
+## What Has Been Verified
 
 GitHub release packages are published only after the workflow's Mac tests and
 checks of the downloaded packages succeed. Check the run for the exact release
 commit. A successful source build alone does not establish the result of those
-checks.
+checks. See [Development](DEVELOPMENT.md) for the checks and their scope.
 
-## Preview limits
+## Preview Limits
 
 Packages are ad hoc signed and are **not Developer ID signed or notarized**.
 macOS may block a downloaded copy. Building from source is available.
@@ -57,10 +52,10 @@ OCR results, and optional-engine behavior vary with the input and installed
 tools. The [format reference](FORMATS.md) explains the limits.
 
 The project uses Swift 5 language mode. AVFoundation Sendable-capture warnings
-and selector-style warnings remain with newer SDKs; they did not block the
-verified source build. This is not a complete Swift 6 language-mode migration.
+and selector-style warnings may appear with newer SDKs. A complete Swift 6
+language-mode migration is separate work.
 
-## Fixes included
+## Fixes Included
 
 - An explicit main-actor application entry point fixes desktop startup compilation.
 - Private, pinned libarchive headers allow builds with SDKs that omit those headers.

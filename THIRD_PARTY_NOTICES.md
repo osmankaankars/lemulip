@@ -1,8 +1,8 @@
-# Third-party components
+# Third-Party Components
 
 Freewheel's original source code is distributed under the MIT license in `LICENSE`.
 
-## Components provided by the operating system
+## Components Provided by the Operating System
 
 The macOS application links to Apple's AppKit, SwiftUI, Foundation, CoreGraphics,
 ImageIO, PDFKit, Vision, AVFoundation, and related system frameworks. These are
@@ -11,7 +11,7 @@ provided by macOS and are not redistributed in Freewheel's source package.
 The archive bridge links to the operating system's **libarchive** library. It
 does not bundle a separate runtime implementation.
 
-## Bundled libarchive declaration headers
+## Bundled Libarchive Declaration Headers
 
 Some macOS SDKs omit libarchive's public declaration headers. Freewheel includes
 the following two unmodified headers from **libarchive 3.5.3** in the private
@@ -63,7 +63,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
-## Optional, independently installed engines
+## Optional, Independently Installed Engines
 
 Freewheel detects these tools if they are already installed. It neither downloads
 nor bundles them. Their own licenses and notices apply to those installations:
@@ -78,7 +78,7 @@ nor bundles them. Their own licenses and notices apply to those installations:
 If distributing a modified application that bundles any of these engines, review
 and satisfy the licenses of the exact binaries and codecs you distribute.
 
-## Independent implementation
+## Independent Implementation
 
 Freewheel is an independently implemented application inspired by the general
 workflow of drag-triggered local file tools. No Tangerine source code, app icon,

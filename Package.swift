@@ -6,7 +6,9 @@ let package = Package(
     platforms: [.macOS(.v13)],
     products: [
         .library(name: "FreewheelCore", targets: ["FreewheelCore"]),
-        .executable(name: "Freewheel", targets: ["Freewheel"]),
+        // Distinct product names also keep SwiftPM's intermediate link files
+        // separate on the default case-insensitive macOS filesystem.
+        .executable(name: "FreewheelApp", targets: ["Freewheel"]),
         .executable(name: "freewheel", targets: ["FreewheelCLI"])
     ],
     targets: [

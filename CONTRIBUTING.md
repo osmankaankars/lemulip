@@ -1,10 +1,10 @@
 # Contributing
 
 Useful contributions fix a reproducible problem, improve a conversion route,
-or make the app easier to use. Start with the [user guide](docs/USER_GUIDE.md)
-and [development guide](docs/DEVELOPMENT.md).
+or make the app easier to use. Start with the [User Guide](docs/USER_GUIDE.md)
+and [Development Guide](docs/DEVELOPMENT.md).
 
-## Report a problem
+## Report a Problem
 
 Include the app version, macOS version, conversion or action, expected result,
 and actual result. A small generated sample is ideal. Remove private filenames,
@@ -13,7 +13,7 @@ account details, and document content from screenshots and logs.
 Use private vulnerability reporting for security-sensitive findings as described
 in [SECURITY.md](SECURITY.md).
 
-## Send a change
+## Send a Change
 
 Keep each pull request focused and explain why it is needed. For a larger
 feature, open an issue first so the behavior and scope are clear. Be direct and
@@ -34,3 +34,9 @@ does not verify the desktop interface. Describe any checks you could not run.
 
 Public documentation is in English. Changes to the app's English and Turkish
 text should keep the two interfaces consistent.
+
+Use Title Case for English headings, navigation, menu items, and action labels:
+**Get Started**, **User Guide**, **Crop Image**, and **Create Copy**. Keep articles
+and short prepositions lowercase within a title, as in **Save in the First
+File's Folder**. Use sentence case for explanatory prose and error messages.
+Preserve API names, format acronyms, command names, and identifiers exactly.

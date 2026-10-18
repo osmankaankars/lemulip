@@ -2,17 +2,17 @@
 
 # Freewheel
 
-**File tools, right where you drag.**
+**File Tools, Right Where You Drag.**
 
 Freewheel is a free, open-source file converter for macOS. Start dragging a file, tap a key, and drop it onto a format or tool. Convert a photo, merge PDFs, trim a clip, or make a ZIP without opening a different app for each job.
 
 Files are processed on your Mac. No account, subscription, uploads, or analytics.
 
-[Get started](#get-started) · [User guide](docs/USER_GUIDE.md) · [Formats](docs/FORMATS.md) · [FAQ](docs/FAQ.md)
+[Get Started](#get-started) · [User Guide](docs/USER_GUIDE.md) · [Formats](docs/FORMATS.md) · [FAQ](docs/FAQ.md) · [Roadmap](docs/ROADMAP.md)
 
-## Get started
+## Get Started
 
-**0.1.2 is an early preview.** A source build has completed on Apple silicon. Finder drag compatibility and the full desktop workflow still need hands-on testing. Downloaded packages are ad-hoc signed, without Apple Developer ID signing or notarization.
+**Freewheel is an early source preview.** A downloadable Mac release is not available yet. Check [Build and Verify](https://github.com/osmankaankars/freewheel/actions/workflows/build.yml) for the current build result. Finder drag compatibility and the full desktop workflow still need hands-on testing. Preview packages use ad-hoc signing, without Apple Developer ID signing or notarization.
 
 You need **macOS 13 or later** and **Swift 5.9 or later** from Xcode or Command Line Tools.
 
@@ -26,9 +26,7 @@ The script builds Freewheel and installs it in your account's `Applications` fol
 
 Missing developer tools? Run `xcode-select --install` first. For full Xcode selection, release packages, and first-launch help, see [Installation](docs/INSTALL.md).
 
-If a previous build needed `DEVELOPER_DIR` to select another Xcode installation, include that setting again each time you build. Running the plain command above uses your currently selected developer tools.
-
-## A wheel for the files in your hand
+## A Wheel for the Files in Your Hand
 
 1. Start dragging one or more local files.
 2. Tap **⇧ Shift** for formats, **⌘ Command** for tools, or **⌃ Control** for file actions.
@@ -39,14 +37,14 @@ You can release the modifier key while you keep dragging. The center cancels; a 
 ![Interactive browser preview with a sample file and conversion wheel.](docs/assets/demo-preview.png)
 
 <!-- FREEWHEEL_DEMO_LINK_START -->
-[Open the browser walkthrough](https://osmankaankars.github.io/freewheel/) · Available after the Pages deployment succeeds. This is a simulation; the Mac app performs conversions.
+[Open the Browser Walkthrough](https://osmankaankars.github.io/freewheel/) · This is an interactive simulation with sample files; the Mac app performs conversions.
 <!-- FREEWHEEL_DEMO_LINK_END -->
 
 Prefer a window? Add files with **⌘O**, drop them into the workspace, or choose **Open With → Freewheel**. Reorder a selection before merging PDFs or combining images into a PDF. The same tools are available there, alongside a job queue, Activity, and a floating file shelf.
 
-## What can it do?
+## What Can It Do?
 
-| Work with | Examples |
+| Work With | Examples |
 | --- | --- |
 | Images | PNG, JPEG, HEIC, TIFF and BMP; resize, crop, rotate, remove metadata; images to PDF |
 | PDFs | Merge, split, extract pages, rotate, export pages as images, extract text, offline OCR |
@@ -57,7 +55,9 @@ Prefer a window? Add files with **⌘O**, drop them into the workspace, or choos
 
 Formats depend on the input, installed engines, and available codecs. [The format guide](docs/FORMATS.md) lists supported routes and fidelity limits.
 
-## Start with what is built in
+Image cropping currently uses centered dimensions, and media trimming uses start and end times. Visual crop handles and an audio waveform editor are [planned next](docs/ROADMAP.md#1-visual-image-crop); the browser walkthrough does not include those editors.
+
+## Start With What Is Built In
 
 Common image tools, PDF tools, OCR, archives, subtitles, and basic text conversion work without extra engines.
 
@@ -72,15 +72,15 @@ These commands require [Homebrew](https://brew.sh). For Pandoc, use its [officia
 
 Open **Settings → Local Engines → Refresh** afterward. Freewheel does not download helpers automatically. Installing engines needs internet access; conversion runs locally.
 
-## Your originals stay yours
+## Your Originals Stay Yours
 
-Conversions create new files. Existing names get an unused suffix, such as `photo (2).png`. By default, a job saves every output beside the first selected file. Turn off **Save in the first file's folder** to choose a destination each time.
+Conversions create new files. Existing names get an unused suffix, such as `photo (2).png`. By default, a job saves every output beside the first selected file. Turn off **Save in the First File's Folder** to choose a destination each time.
 
-**Move to…** deliberately moves the selected originals. PDF compression creates a flattened copy and removes searchable text, links, forms, and other PDF structure from that copy. The app asks you to acknowledge this before proceeding.
+**Move To…** deliberately moves the selected originals. PDF compression creates a flattened copy and removes searchable text, links, forms, and other PDF structure from that copy. The app asks you to acknowledge this before proceeding.
 
 Activity lasts for the current session. Only preferences are saved. AirDrop shares files when you choose it.
 
-## Use the same engine in Terminal
+## Use the Same Engine in Terminal
 
 ```bash
 swift run freewheel convert png photo.heic
@@ -89,12 +89,14 @@ swift run freewheel run media.trim clip.mp4 --start 5 --end 25
 swift run freewheel engines
 ```
 
-Use `swift run freewheel --help` for options, or see the [CLI guide](docs/USER_GUIDE.md#command-line-use).
+Use `swift run freewheel --help` for options, or see the [CLI Guide](docs/USER_GUIDE.md#command-line-use).
 
-## Help shape the next release
+## Help Shape the Next Release
 
 Try a small, non-sensitive file and tell us what worked or failed. Good reports include the input format, chosen operation, macOS version, and exact error. [Contributing](CONTRIBUTING.md) covers bug reports and focused changes.
 
+The [roadmap](docs/ROADMAP.md) prioritizes reliable releases, visual editing, a warmer interface, and measurable limits on app size and idle resource use.
+
 Freewheel is MIT licensed. It is an original implementation inspired by the drag-wheel workflow of [Tangerine](https://tangerineformac.com), with its own code and visual identity. It is not affiliated with Tangerine.
 
-[License](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md) · [Security](SECURITY.md) · [Release notes](docs/RELEASE_NOTES.md)
+[License](LICENSE) · [Third-Party Notices](THIRD_PARTY_NOTICES.md) · [Security](SECURITY.md) · [Release Notes](docs/RELEASE_NOTES.md)

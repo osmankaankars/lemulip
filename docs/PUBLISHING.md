@@ -1,4 +1,4 @@
-# Publish and maintain a Freewheel repository
+# Publish and Maintain a Freewheel Repository
 
 The included publisher creates a new public repository named `freewheel` under the GitHub account already authenticated in your terminal. It publishes the reviewed source and preview tag, configures the project, and lets GitHub Actions build the downloads.
 
@@ -6,7 +6,7 @@ Use this helper for a fresh source package. It is not an updater for an existing
 
 Publishing the source does not build or reinstall the Mac app. You do not need to rerun `Build-and-Install.command` before using the publisher; GitHub Actions handles the release build after publication.
 
-## Before running it
+## Before Running It
 
 Install Git, Python 3, and [GitHub CLI](https://cli.github.com). On a Mac with Homebrew, GitHub CLI can be installed with:
 
@@ -24,7 +24,7 @@ If sign-in is needed, complete it separately using GitHub CLI's normal authentic
 
 Review the source folder before making it public. The intended contents are the application, focused tests used by CI, build scripts, guides, artwork, and browser walkthrough. Keep private documents and personal screenshots outside it.
 
-## Run the publisher
+## Run the Publisher
 
 Extract the source into its own folder, open Terminal there, and run:
 
@@ -41,6 +41,9 @@ chmod u+x ./Publish-to-GitHub.command
 
 The helper uses the authenticated account's GitHub login to choose the owner. Commit and tag attribution uses the anonymous **Freewheel contributors** identity. It ignores your personal Git name and email.
 
+Its placeholder email uses the reserved `.invalid` domain, so the generic
+identity does not associate a new commit with an unrelated GitHub account.
+
 If you use more than one GitHub account, bind this run to the expected login. Replace the example value with your GitHub username:
 
 ```bash
@@ -51,7 +54,7 @@ A mismatch stops before editing the source or creating a repository.
 
 On the first run, it checks the working source, fills the marked README demo-link paragraph with the account's Pages address, and checks the source again before committing. The paragraph says the link becomes available after deployment and identifies the demo as a simulation. If that marked block is absent, the README is left untouched.
 
-### What the command sets up
+### What the Command Sets Up
 
 | Item | Result |
 | --- | --- |
@@ -68,11 +71,11 @@ The source check runs against the working files and the entire staged index. An 
 
 Only `main` and the matching annotated preview tag are pushed. The helper does not force-push, delete a repository, reset history, or overwrite an existing remote project.
 
-## What to expect afterward
+## What to Expect Afterward
 
 The command prints repository, Actions, and Releases links. It lists workflow status once and exits; it does not wait indefinitely for a build.
 
-The **Build and verify** workflow tests the native code on Apple silicon and Intel, builds universal packages, and verifies the exact downloads on both architectures. Only a successful tagged run publishes a prerelease with:
+The **Build and Verify** workflow tests the native code on Apple silicon and Intel, builds universal packages, and verifies the exact downloads on both architectures. Only a successful tagged run publishes a prerelease with:
 
 - The universal macOS ZIP, including the app and CLI.
 - The universal macOS DMG.
@@ -81,9 +84,9 @@ The **Build and verify** workflow tests the native code on Apple silicon and Int
 
 The preview is ad-hoc signed, without Developer ID signing or notarization. Do not describe a binary as verified until its workflow has succeeded.
 
-**Website and interactive demo** publishes `site/` through Pages. Its address becomes usable after deployment succeeds. The browser walkthrough is a simulation, not the macOS conversion engine.
+**Website and Interactive Demo** publishes `site/` through Pages. Its address becomes usable after deployment succeeds. The browser walkthrough is a simulation, not the macOS conversion engine.
 
-## Rerun after an interruption
+## Rerun After an Interruption
 
 Rerun the same command from the same unchanged folder. A local marker in `.git/config` records the owner, source tree, anonymous commit, version, and remote repository ID. It is never published.
 
@@ -93,21 +96,21 @@ If source files, history, the account, remote URL, or repository identity change
 
 If repository creation returned an uncertain result and a repository now exists, the helper also stops rather than assuming ownership of it. Inspect the repository and its history manually. Do not erase the local marker to bypass this check.
 
-### Common setup failures
+### Common Setup Failures
 
-| Message | Next step |
+| Message | Next Step |
 | --- | --- |
 | `freewheel` already exists | Review the existing repository; this helper will not replace it |
 | Public source check failed | Remove the reported private or unexpected content from the intended public set, then inspect the staged diff |
 | Existing history or remotes | Use a fresh extracted source package, or manage the existing repository manually |
 | Push failed | Check connectivity and the authenticated account's permission to push code and workflow files; GitHub may require explicit workflow permission for the existing credential |
 | Optional setting needs attention | Open the repository's Settings or Security area; review feature availability and existing account permissions |
-| Pages dispatch failed | After Pages is configured, run **Website and interactive demo** from Actions |
+| Pages dispatch failed | After Pages is configured, run **Website and Interactive Demo** from Actions |
 | Build failed | Inspect the failed job; the workflow will not publish its packages as a release |
 
 The helper reports API failures without printing credentials or raw response bodies. It does not change token scopes or bypass GitHub push protection. Review GitHub's [repository API permissions](https://docs.github.com/en/rest/repos/repos#update-a-repository) and [Pages permissions](https://docs.github.com/en/rest/pages/pages#create-a-github-pages-site) if settings are unavailable.
 
-## Later releases
+## Later Releases
 
 Use branches and reviewed pull requests for subsequent changes. Keep only tests that exercise meaningful behavior and generate their fixtures at runtime.
 
@@ -126,7 +129,7 @@ Before announcing a release, check the actual download links, the Pages deployme
 
 If your source package did not include the marked demo-link paragraph, replace its local walkthrough link with the verified Pages address after deployment.
 
-## GitHub references
+## GitHub References
 
 - [Create a repository with GitHub CLI](https://cli.github.com/manual/gh_repo_create)
 - [Edit repository settings with GitHub CLI](https://cli.github.com/manual/gh_repo_edit)

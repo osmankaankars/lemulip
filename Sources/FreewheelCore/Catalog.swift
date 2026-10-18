@@ -49,9 +49,9 @@ public enum Catalog {
     public static let actions: [FileOperation] = [
         op("action.airdrop", "AirDrop", "airplayaudio", "Share with nearby devices"),
         op("action.float", "Float", "rectangle.on.rectangle", "Keep files on a floating shelf"),
-        op("action.copy", "Copy to…", "doc.on.doc", "Choose a destination folder"),
-        op("action.move", "Move to…", "folder", "Choose a destination folder"),
-        op("action.copyPath", "Copy path", "link", "Copy absolute file paths"),
+        op("action.copy", "Copy To…", "doc.on.doc", "Choose a destination folder"),
+        op("action.move", "Move To…", "folder", "Choose a destination folder"),
+        op("action.copyPath", "Copy Path", "link", "Copy absolute file paths"),
         op("action.terminal", "Terminal", "terminal", "Open the containing folder")
     ]
 
@@ -70,15 +70,15 @@ public enum Catalog {
                 op("image.crop", "Crop", "crop", "Center crop to exact dimensions"),
                 op("image.rotate", "Rotate", "rotate.right", "Rotate in 90° steps"),
                 op("image.flip", "Flip", "arrow.left.and.right.righttriangle.left.righttriangle.right", "Mirror horizontally"),
-                op("image.stripMetadata", "Remove metadata", "eye.slash", "Create a clean copy")
+                op("image.stripMetadata", "Remove Metadata", "eye.slash", "Create a clean copy")
             ]
         case .pdf:
             var result = [
-                op("pdf.split", "Split pages", "square.split.2x2", "One new PDF per page"),
-                op("pdf.extract", "Extract pages", "doc.on.doc", "Choose page numbers and ranges"),
-                op("pdf.rotate", "Rotate pages", "rotate.right", "Rotate every page"),
+                op("pdf.split", "Split Pages", "square.split.2x2", "One new PDF per page"),
+                op("pdf.extract", "Extract Pages", "doc.on.doc", "Choose page numbers and ranges"),
+                op("pdf.rotate", "Rotate Pages", "rotate.right", "Rotate every page"),
                 op("pdf.compress", "Compress", "arrow.down.right.and.arrow.up.left", "Flatten pages to reduce size"),
-                op("pdf.ocr", "Recognize text", "text.viewfinder", "Offline OCR for scanned pages")
+                op("pdf.ocr", "Recognize Text", "text.viewfinder", "Offline OCR for scanned pages")
             ]
             if count > 1 { result.insert(op("pdf.merge", "Merge PDFs", "doc.on.doc.fill", "Combine in the order shown"), at: 0) }
             return result
@@ -87,20 +87,20 @@ public enum Catalog {
                 op("media.compress", "Compress", "arrow.down.right.and.arrow.up.left", "H.264 · adjust quality", "ffmpeg"),
                 op("media.trim", "Trim", "scissors", "Choose start and end time", "ffmpeg"),
                 op("media.resize", "Resize", "arrow.up.left.and.arrow.down.right", "Fit within a maximum dimension", "ffmpeg"),
-                op("media.mute", "Remove audio", "speaker.slash", "Export a silent video", "ffmpeg"),
-                op("media.extractAudio", "Extract audio", "waveform", "Save the audio track", "ffmpeg"),
-                op("media.speed", "Change speed", "speedometer", "Change playback speed", "ffmpeg"),
-                op("media.volume", "Adjust volume", "speaker.wave.2", "Change audio volume", "ffmpeg")
+                op("media.mute", "Remove Audio", "speaker.slash", "Export a silent video", "ffmpeg"),
+                op("media.extractAudio", "Extract Audio", "waveform", "Save the audio track", "ffmpeg"),
+                op("media.speed", "Change Speed", "speedometer", "Change playback speed", "ffmpeg"),
+                op("media.volume", "Adjust Volume", "speaker.wave.2", "Change audio volume", "ffmpeg")
             ]
         case .audio:
             return [
                 op("media.compress", "Compress", "arrow.down.right.and.arrow.up.left", "Reduce audio bitrate", "ffmpeg"),
                 op("media.trim", "Trim", "scissors", "Choose start and end time", "ffmpeg"),
-                op("media.speed", "Change speed", "speedometer", "Change playback speed", "ffmpeg"),
-                op("media.volume", "Adjust volume", "speaker.wave.2", "Change audio volume", "ffmpeg")
+                op("media.speed", "Change Speed", "speedometer", "Change playback speed", "ffmpeg"),
+                op("media.volume", "Adjust Volume", "speaker.wave.2", "Change audio volume", "ffmpeg")
             ]
         case .archive: return [op("archive.extract", "Extract", "shippingbox", "Extract into a new folder")] + archiveCreation
-        case .document: return [op("document.wordCount", "Word count", "text.word.spacing", "Count words locally")] + archiveCreation
+        case .document: return [op("document.wordCount", "Word Count", "text.word.spacing", "Count words locally")] + archiveCreation
         default: return archiveCreation
         }
     }

@@ -1,12 +1,12 @@
-# Formats and conversion limits
+# Formats and Conversion Limits
 
 Freewheel selects operations from the file extensions in your selection. A listed format is a supported route, not a promise that every codec or document feature will survive conversion.
 
-The tables below describe the current implementation. Some features still need broader hands-on macOS testing. See [Installation](INSTALL.md) for optional engines and [the user guide](USER_GUIDE.md) for controls.
+The tables below describe the current implementation. Some features still need broader hands-on macOS testing. See [Installation](INSTALL.md) for optional engines and [User Guide](USER_GUIDE.md) for controls.
 
 ## Images
 
-| Route or tool | Engine | Notes |
+| Route or Tool | Engine | Notes |
 | --- | --- | --- |
 | Images → PNG, JPEG, HEIC, TIFF, BMP | macOS ImageIO; ImageMagick fallback | Input decoding and output codecs depend on the installed system |
 | Images → WebP, AVIF | ImageMagick | Requires an ImageMagick build with the relevant codec |
@@ -39,9 +39,9 @@ PDF tools use the built-in macOS frameworks. OCR results depend on scan quality 
 
 PDF → editable DOCX, Pages, PowerPoint, or spreadsheet output is not implemented. The app and CLI do not provide PDF password entry. Unlock a protected PDF and save a readable copy before converting it. PDFs that disallow text copying are rejected by the text extraction and OCR routes.
 
-## Audio and video
+## Audio and Video
 
-| Input family | Outputs in Convert | Engine |
+| Input Family | Outputs in Convert | Engine |
 | --- | --- | --- |
 | Audio | M4A, WAV, AIFF | Native macOS export where codecs allow; FFmpeg when installed |
 | Audio | MP3, FLAC, OGG, Opus | FFmpeg |
@@ -54,7 +54,7 @@ The desktop media tools use FFmpeg for compression, trimming, resizing, speed an
 
 Freewheel uses the first video stream and first audio stream for its FFmpeg routes. It is not an editor for multiple tracks, subtitles embedded in video, or professional media metadata. Conversions can be lossy, and a compressed output is not guaranteed to be smaller.
 
-## Documents, slides, and spreadsheets
+## Documents, Slides, and Spreadsheets
 
 | Route | Engine | Fidelity |
 | --- | --- | --- |
@@ -94,7 +94,7 @@ Extraction uses macOS's libarchive. ZIP, TAR, and GZIP are supported; RAR, 7z, a
 
 Archives are limited to 10,000 entries, 64 path levels, and 2 GiB of expanded content. To archive a folder, choose an output location outside that folder.
 
-## File and resource limits
+## File and Resource Limits
 
 There are no paid tiers or daily conversion quotas. The implementation does enforce limits to keep jobs bounded:
 

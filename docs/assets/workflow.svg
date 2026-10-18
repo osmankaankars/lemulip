@@ -3,11 +3,11 @@
 <desc id="desc">An original workflow illustration using a fictional morning-light.heic file. The native Mac app opens a conversion wheel when Shift is pressed during a file drag. Dropping onto PNG creates a new PNG and keeps the original. This is an illustration, not an app screenshot.</desc>
 <rect width="1280" height="620" rx="20" fill="#111516"/>
 <g font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">
-<text x="60" y="76" fill="#eff3ed" font-size="40" font-weight="600" letter-spacing="-1.1">File tools, right where you drag.</text>
+<text x="60" y="76" fill="#eff3ed" font-size="40" font-weight="600" letter-spacing="-1.1">File Tools, Right Where You Drag.</text>
 <text x="61" y="112" fill="#a6b4b2" font-size="16">A small wheel for everyday file work on your Mac.</text>
 <path d="M60 148h1160" stroke="#30393a"/>
 <g fill="#91ebc7" font-size="12"><text x="61" y="184">1</text><text x="493" y="184">2</text><text x="932" y="184">3</text></g>
-<g fill="#eff3ed" font-size="20" font-weight="550"><text x="83" y="186">Drag a file</text><text x="515" y="186">Tap Shift</text><text x="954" y="186">Drop onto PNG</text></g>
+<g fill="#eff3ed" font-size="20" font-weight="550"><text x="83" y="186">Drag a File</text><text x="515" y="186">Tap Shift</text><text x="954" y="186">Drop Onto PNG</text></g>
 <g transform="translate(98,241)">
 <rect width="236" height="178" rx="9" fill="#eee5d3"/>
 <clipPath id="art-clip"><rect width="236" height="178" rx="9"/></clipPath>

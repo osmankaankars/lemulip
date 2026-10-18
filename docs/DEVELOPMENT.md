@@ -4,7 +4,7 @@ Freewheel is a Swift package with a native macOS app and a CLI. It requires
 macOS 13 or later and Swift 5.9 or later. A recent full Xcode installation is the
 most straightforward build environment; see [Installation](INSTALL.md).
 
-## Build and check
+## Build and Check
 
 ```bash
 swift build
@@ -19,7 +19,7 @@ the optional engines described in the installation guide, then run
 small temporary inputs. No private documents or binary fixture collections are
 part of the repository.
 
-## Where things live
+## Where Things Live
 
 | Path | Responsibility |
 | --- | --- |
@@ -36,28 +36,31 @@ frameworks and the runtime libarchive library. The declaration headers under
 `LibarchiveHeaders` are unchanged upstream files with the pins and notices in
 [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
 
-## Verification so far
+## Verification in CI
 
-The following results were observed while preparing the public preview. They
-describe their stated environment and scope; the current commit's Actions run
-is the place to check later results.
+The current commit's [Build and Verify run](https://github.com/osmankaankars/freewheel/actions/workflows/build.yml)
+is the source of truth for build and package status. A configured check is not
+evidence that it has passed.
 
-| Check | Observed result |
+| Check | Environment and Scope |
 | --- | --- |
-| Apple silicon source release build | Completed with Xcode 26.3, Swift 6.2.4, and macOS SDK 26.2 |
-| Generated Mac app bundle | Property list validated; ad hoc signature verification passed |
-| Portable engine and integration checks | 29 tests passed on Linux, including actual optional-engine conversions |
-| Wheel geometry | 8 tests passed on Linux |
-| Vendored archive-header repair | Focused rerun: 5 existing archive tests passed without external include flags |
-| Application entry repair | Swift isolation/lifetime reproduction and Linux executable build passed; subsequent native release build completed |
+| Core and native conversion tests | Apple silicon and Intel macOS runners |
+| Optional-engine integrations | Apple silicon with FFmpeg, ImageMagick, LibreOffice, and official Pandoc |
+| Universal package | App and CLI binaries for both architectures, built after tests pass |
+| Downloaded package verification | The exact ZIP and DMG, checked on both architectures before release |
+| Public-source review | Allowlisted source files, metadata checks, and approved artwork hashes |
+| Static analysis | Swift and the C archive bridge through CodeQL |
 
-The portable checks used Swift 6.0.3 in Swift 5 language mode on Ubuntu 24.04.
-macOS-only code is excluded from a Linux build. The archive rerun is part of the
-earlier test set, not five additional tests. The initial optional-engine checks
-used FFmpeg 6.1.1, ImageMagick 6.9.12, official Pandoc 3.12.1, and a LibreOffice
-26.8 development build; those results do not guarantee every engine version.
+The workflows pin their developer tools and actions. See those files for exact
+versions. Linux checks can verify portable code, but exclude macOS frameworks
+and do not establish that the desktop app compiles or behaves correctly.
 
-## Mac checks that matter
+Tests are a separate SwiftPM target. They generate small temporary inputs and
+are not copied into the installed app. Keep checks that catch conversion,
+original-file preservation, archive, or interface-geometry defects; avoid
+redundant test files and committed binary fixtures.
+
+## Mac Checks That Matter
 
 CI runs the core and native-converter tests and package checks on Apple silicon
 and Intel. Optional-engine integration tests run on Apple silicon. Universal
@@ -70,7 +73,7 @@ wheel paging, dropping into the safe center, menu-bar behavior, keyboard access,
 quitting during a job, and installing a quarantined download on a clean Mac.
 A process that launches successfully is not proof of those interactions.
 
-## Prepare a release
+## Prepare a Release
 
 ```bash
 ./script/package_release.sh

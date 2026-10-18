@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   analyze:
-    name: Scan Swift and the C archive bridge
+    name: Scan Swift and the C Archive Bridge
     runs-on: macos-15-intel
     timeout-minutes: 30
     permissions:
@@ -35,9 +35,9 @@ jobs:
         with:
           languages: swift,c-cpp
           build-mode: manual
-      - name: Build the application and archive bridge for analysis
+      - name: Build the Application and Archive Bridge for Analysis
         run: xcrun --sdk macosx swift build --configuration release --arch x86_64 --jobs 2
-      - name: Analyze source
+      - name: Analyze Source
         uses: github/codeql-action/analyze@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4.39.0
         with:
           category: /language:swift-c-cpp

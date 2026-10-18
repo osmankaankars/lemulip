@@ -13,6 +13,6 @@ changelog:
     - title: Maintenance
       labels:
         - dependencies
-    - title: Other changes
+    - title: Other Changes
       labels:
         - "*"

@@ -15,7 +15,7 @@ struct SettingsContent: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 27) {
             VStack(alignment: .leading, spacing: 10) {
-                Text(model.text("Small app. Your rules.", "Küçük uygulama. Senin kuralların."))
+                Text(model.text("Small App. Your Rules.", "Küçük uygulama. Senin kuralların."))
                     .font(.system(size: 30, weight: .semibold)).tracking(-0.9)
                 Text(model.text("No account, subscription, or conversion limits.", "Hesap, abonelik ya da dönüşüm sınırı yok."))
                     .font(.system(size: 12)).foregroundStyle(Palette.muted)
@@ -25,15 +25,15 @@ struct SettingsContent: View {
                     Picker("", selection: $model.language) { Text("English").tag("en"); Text("Türkçe").tag("tr") }.labelsHidden().frame(width: 132)
                 }
                 divider
-                settingRow(model.text("Drag wheel", "Sürükleme çarkı"), subtitle: model.text("Start dragging, then tap ⇧, ⌘, or ⌃", "Sürüklemeye başla, ardından ⇧, ⌘ veya ⌃ tuşuna dokun")) {
+                settingRow(model.text("Drag Wheel", "Sürükleme çarkı"), subtitle: model.text("Start dragging, then tap ⇧, ⌘, or ⌃", "Sürüklemeye başla, ardından ⇧, ⌘ veya ⌃ tuşuna dokun")) {
                     Toggle("", isOn: $model.wheelEnabled).labelsHidden().toggleStyle(.switch).controlSize(.small)
                 }
                 divider
-                settingRow(model.text("Save in the first file's folder", "İlk dosyanın klasörüne kaydet"), subtitle: model.text("Turn off to choose a destination for each job", "Her işlemde hedef klasör seçmek için kapat")) {
+                settingRow(model.text("Save in the First File's Folder", "İlk dosyanın klasörüne kaydet"), subtitle: model.text("Turn off to choose a destination for each job", "Her işlemde hedef klasör seçmek için kapat")) {
                     Toggle("", isOn: $model.outputAlongsideOriginal).labelsHidden().toggleStyle(.switch).controlSize(.small)
                 }
                 divider
-                settingRow(model.text("Reveal finished files", "Biten dosyaları göster"), subtitle: model.text("Show results in Finder after a successful job", "Tamamlanan işlemin sonuçlarını Finder'da göster")) {
+                settingRow(model.text("Reveal Finished Files", "Biten dosyaları göster"), subtitle: model.text("Show results in Finder after a successful job", "Tamamlanan işlemin sonuçlarını Finder'da göster")) {
                     Toggle("", isOn: $model.revealWhenFinished).labelsHidden().toggleStyle(.switch).controlSize(.small)
                 }
             }.background(Palette.panel, in: RoundedRectangle(cornerRadius: 13))
@@ -41,7 +41,7 @@ struct SettingsContent: View {
 
             VStack(alignment: .leading, spacing: 15) {
                 HStack {
-                    Text(model.text("LOCAL ENGINES", "YEREL MOTORLAR")).font(.system(size: 10, weight: .medium, design: .monospaced)).tracking(1.4).foregroundStyle(Palette.muted)
+                    Text(model.text("Local Engines", "YEREL MOTORLAR")).font(.system(size: 10, weight: .medium, design: .monospaced)).tracking(1.4).foregroundStyle(Palette.muted)
                     Spacer()
                     Button { model.engineRefresh += 1 } label: { Label(model.text("Refresh", "Yenile"), systemImage: "arrow.clockwise") }
                         .buttonStyle(.plain).foregroundStyle(Palette.mint).font(.system(size: 11))
@@ -67,7 +67,7 @@ struct SettingsContent: View {
                                 if engine.0 == "pandoc", let url = URL(string: engine.3) { NSWorkspace.shared.open(url) }
                                 else { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(engine.3, forType: .string); copied = engine.0 }
                             } label: {
-                                Text(engine.0 == "pandoc" ? model.text("Open installer page", "Kurulum sayfasını aç") : (copied == engine.0 ? model.text("Copied", "Kopyalandı") : model.text("Copy install command", "Kurulum komutunu kopyala")))
+                                Text(engine.0 == "pandoc" ? model.text("Open Installer Page", "Kurulum sayfasını aç") : (copied == engine.0 ? model.text("Copied", "Kopyalandı") : model.text("Copy Install Command", "Kurulum komutunu kopyala")))
                                     .font(.system(size: 10, weight: .medium)).foregroundStyle(Palette.mint).padding(.horizontal, 10).padding(.vertical, 7)
                                     .background(Palette.mint.opacity(0.07), in: Capsule())
                             }.buttonStyle(.plain)
@@ -83,7 +83,7 @@ struct SettingsContent: View {
                 }
             }
             VStack(alignment: .leading, spacing: 10) {
-                Label(model.text("Privacy by design", "Gizlilik uygulamanın temelinde"), systemImage: "lock.shield").font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.mint)
+                Label(model.text("Privacy by Design", "Gizlilik uygulamanın temelinde"), systemImage: "lock.shield").font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.mint)
                 Text(model.text("No analytics, file uploads, update pings, or persistent file history. Only your settings are saved. AirDrop shares files only when you explicitly choose it.", "Analitik, dosya yükleme, güncelleme sorgusu veya kalıcı dosya geçmişi yok. Yalnızca ayarların kaydedilir. AirDrop, sen seçtiğinde dosya paylaşır."))
                     .font(.system(size: 11)).foregroundStyle(Palette.muted).lineSpacing(4)
                 Text("Freewheel 0.1.2 · MIT License").font(.system(size: 10, design: .monospaced)).foregroundStyle(Palette.muted).padding(.top, 4)
