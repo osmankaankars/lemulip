@@ -12,11 +12,14 @@ the default appearance.
 ## Current Product
 
 The app has a drag wheel, a workspace, a session queue, a floating file shelf,
-and native conversion tools with optional external engines. Source 0.1.3 added
-three saved appearances and a native visual image crop editor. Source 0.1.4 adds
-an audio waveform editor with range selection and playback. Video trimming
-still asks for numeric start and end times. Native UI acceptance for each new
-editor remains part of its release gate.
+and native conversion tools with optional external engines. The published
+[0.1.4 preview](https://github.com/osmankaankars/lemulip/releases/tag/v0.1.4)
+includes three saved appearances, a native visual image crop editor, and an
+audio waveform editor with range selection and playback. The **0.1.5 source
+candidate** adds native video trim, the first part of milestone 3. Its own
+[Mac checks](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
+and release assets determine availability. Hands-on acceptance of the editor interactions remains
+separate from automated CI.
 
 The [browser walkthrough](https://osmankaankars.github.io/lemulip/) demonstrates
 the wheel with sample files. It is a simulation and does not convert files.
@@ -27,13 +30,21 @@ Read [Formats](FORMATS.md) for the actual conversion routes and their limits.
 Make the first downloadable preview dependable before expanding the feature
 list.
 
-**Verified baseline:** the Lemulip naming and universal packaging update at
-`46cb4dc` passed [both Mac test jobs and exact downloaded-package checks](https://github.com/osmankaankars/lemulip/actions/runs/39127334291),
-[CodeQL](https://github.com/osmankaankars/lemulip/actions/runs/39127334294), and
-[Pages deployment](https://github.com/osmankaankars/lemulip/actions/runs/39127338673)
-on October 18, 2026. Both Mac runners launched the downloaded app briefly and
-verified the packaged CLI. New source changes must pass these gates again;
-the baseline does not verify the new themes or crop editor.
+**Verified baseline:** version **0.1.4**, build **7**, at `17bb81a` passed
+[the source build](https://github.com/osmankaankars/lemulip/actions/runs/39139842826),
+[CodeQL](https://github.com/osmankaankars/lemulip/actions/runs/39139842808), and
+[the tagged build and downloaded-package checks](https://github.com/osmankaankars/lemulip/actions/runs/39141454481)
+on October 18, 2026. Each Mac architecture passed 77 core and native tests;
+Apple silicon also passed five optional-engine integration tests. Both runners
+verified the downloaded universal app and CLI. The DMG, app ZIP, source ZIP,
+and checksums are published under `v0.1.4`.
+
+For 0.1.4, the website had already passed its
+[deployment](https://github.com/osmankaankars/lemulip/actions/runs/39137985890)
+at `6eec00a`; its files were unchanged in `17bb81a`. The 0.1.5 website changes
+need their own deployment. Every new app candidate must pass its own Mac
+checks; the 0.1.4 result does not establish the result for 0.1.5 or complete
+hands-on editor acceptance.
 
 - Keep the GUI and CLI build product names distinct on case-insensitive disks.
 - Correct PDF raster dimensions and rendering of annotations on rotated crops.
@@ -54,10 +65,10 @@ satisfy this gate. The current result is visible in [Build and Verify](https://g
 
 Show the actual image and make the selected output area obvious.
 
-**Implemented in source 0.1.3; Mac acceptance pending.** The editor, crop geometry,
-bounded image preview, original-resolution export, and regression cases are now
-in place. Complete the exact-commit Mac build and hands-on pointer, keyboard,
-orientation, and cancellation checks before marking this milestone ready.
+**Published in 0.1.4; automated Mac checks passed.** The editor, crop geometry,
+bounded image preview, original-resolution export, and regression cases are in
+the verified release. Hands-on pointer, keyboard, orientation, and cancellation
+checks are still needed before marking interactive acceptance complete.
 
 - Open a downsampled preview with a movable crop rectangle, eight resize handles,
   a dimmed outer area, and an optional thirds grid.
@@ -85,11 +96,11 @@ cancellation produces no output; and the original file remains unchanged.
 
 Let users hear and see the range they are keeping.
 
-**Implemented in source 0.1.4; Mac acceptance pending.** The native editor,
+**Published in 0.1.4; automated Mac checks passed.** The native editor,
 bounded waveform summary, range controls, selection playback, and export route
-are in place. Exact-commit Mac builds and hands-on playback, seeking, keyboard,
-and cancellation checks are still required. The browser's silent waveform
-concept does not run the native editor.
+are in the verified release. Hands-on playback, seeking, keyboard, and
+cancellation acceptance is still pending. The browser walkthrough does not
+run the native editor.
 
 - Decode a bounded waveform summary in the background and show a loading state
   immediately. Allow cancellation while the waveform is prepared.
@@ -111,15 +122,24 @@ long recordings do not require keeping the entire decoded file in memory.
 
 Build on the editor behavior established by image crop and audio trim.
 
-**Next feature milestone after the image and audio editors pass their Mac
-acceptance checks.** These previews remain planned.
+**Trim Video is implemented in the 0.1.5 source candidate.** Mac verification is
+reported by that commit's Actions run. Work is proceeding one editor at a time. Video crop and PDF previews
+remain planned; image and audio hands-on acceptance remains open.
 
-| Editor | Planned Experience |
+| Editor | Experience and Status |
 | --- | --- |
-| Trim Video | Native video preview, a bounded thumbnail timeline, range handles, selected duration, and playback of the chosen range |
-| Crop Video | The same crop controls over the video preview, with export dimensions and aspect ratio visible |
-| Organize PDF | Page thumbnails with explicit reorder, rotate, remove, and extract actions |
-| Merge PDF | A visible ordered list with page counts and a clear output summary |
+| Trim Video | Source 0.1.5: native video preview, a bounded thumbnail strip, range handles, timestamps, selected duration, and selection playback; MP4/MOV copy export |
+| Crop Video | Planned: crop controls over the video preview, with export dimensions and aspect ratio visible |
+| Organize PDF | Planned: page thumbnails with explicit reorder, rotate, remove, and extract actions |
+| Merge PDF | Planned: an ordered list with page counts and a clear output summary |
+
+The first video trim editor uses native macOS playback and export without new
+dependencies. It requests 12 thumbnails, each at most 192 pixels on its longest
+edge; the engine caps a request at 24 thumbnails. It supports one local,
+native-decodable video track with at most one audio track. MP4 and MOV exports
+re-encode the selected source range; frame and audio-codec boundaries can affect
+the exact duration. Unsupported inputs receive an explanation before editing.
+The original remains unchanged. See [Visual Video Trim](USER_GUIDE.md#visual-video-trim).
 
 **Ready when:** previews and final output agree, ordering is explicit, empty or
 invalid selections cannot be submitted, and long documents or clips load only
@@ -132,8 +152,8 @@ The first visual foundation is implemented in source: **Lemulip** branding,
 appearance choices, a dimensional folded-ribbon icon,
 and navigation materials with an older-system fallback. The wheel stands on its
 own without an enclosing rectangular panel or repeated footer instruction. See the shared
-[Design guide](DESIGN.md). Native build and appearance verification are still
-required before a release claim.
+[Design guide](DESIGN.md). These foundations are included in the verified 0.1.4
+build; hands-on appearance and accessibility review remains open.
 
 Use deep green surfaces, warm readable text, and concentrated color for selection,
 focus, and the primary action. Let users' photos, pages, and waveforms remain the
@@ -194,20 +214,21 @@ third-party Swift package dependencies. Optional conversion engines remain
 separate installations, so users choose the capabilities and disk cost they need.
 The website and test sources are not bundled into the installed app.
 
-The first passing universal build provides a size baseline. The exact CI
-archives from `46cb4dc` contained:
+The published **0.1.4**, build **7**, provides a measured size baseline. Its exact
+release archives contain:
 
 | Artifact | Measured Payload |
 | --- | --- |
-| Installed app files | 7,532,916 bytes, about 7.53 MB |
-| Universal download ZIP, including CLI and notices | 4,317,627 bytes, about 4.32 MB |
-| Universal DMG | 4,023,401 bytes, about 4.02 MB |
+| Installed app files | 9,484,180 bytes, about 9.48 MB |
+| Universal download ZIP, including CLI and notices | 4,916,705 bytes, about 4.92 MB |
+| Universal DMG | 4,610,647 bytes, about 4.61 MB |
 
 Sizes were calculated from the verified archives in the
-[baseline build](https://github.com/osmankaankars/lemulip/actions/runs/39127334291).
-The app payload is the sum of its files, not allocated filesystem blocks. These
-measurements precede the theme and crop changes. Record the new release's sizes
-after packaging. Memory, CPU, and launch-time budgets below are still
+[tagged build](https://github.com/osmankaankars/lemulip/actions/runs/39141454481)
+and checked against the published checksums. The app payload is the sum of its
+files, not allocated filesystem blocks. These measurements include the themes,
+visual crop, and audio waveform editor. Record 0.1.5's sizes after verified
+packaging. Memory, CPU, and launch-time budgets below are still
 **engineering targets, not measured results**:
 
 | Metric | Initial Target | Measurement |

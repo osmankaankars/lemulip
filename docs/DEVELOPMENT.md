@@ -130,6 +130,40 @@ existing queued operation. The waveform path is cached until its view size
 changes. Playback observations must be removed when playback stops; see Apple's
 [playback progress guidance](https://developer.apple.com/documentation/avfoundation/monitoring-playback-progress-in-your-app).
 
+For native video trimming, check a landscape clip, a portrait clip with a display
+transform, silent video, a nonzero range, and a full clip whose duration falls
+between displayed milliseconds. Compare the previewed range with decoded output
+frames and audio, allowing only the documented frame or codec boundary behavior.
+Check both MP4 and MOV when supported. The original must remain unchanged and a
+cancelled export must leave no published file.
+
+Open and close the editor while thumbnails load, change the range during
+playback, close while seeking, and reopen with a different file. Old thumbnail
+requests or seek completions must not update the new editor. Verify pointer,
+keyboard, and accessible range controls agree in all three themes. The
+application's thumbnail count and dimensions are bounded; this does not establish
+a measurement of AVFoundation's process memory or prove hands-on playback
+acceptance. Keep those results separate from automated export tests.
+
+### Video Trim Constraints
+
+The 0.1.5 editor is developed within these limits. Extend the existing focused
+test files with small generated inputs; do not add a fixture collection or a
+parallel test suite for the feature.
+
+| Constraint | Implementation Boundary |
+| --- | --- |
+| No new runtime dependency | Native macOS preview, playback, and MP4/MOV export |
+| Bounded thumbnail storage | Default 12, maximum 24; longest edge at most 192 pixels |
+| Editor-scoped playback | Create the player only while the editor is open; cancel pending seeks and preview work and remove playback observations on close |
+| Explicit input scope | One complete local video file containing its own media, with one video track and at most one audio track |
+| Verified publication | A failed required Mac build, package check, or CodeQL check prevents the release |
+
+The [roadmap's size baseline](ROADMAP.md#keep-it-lightweight) records measured
+0.1.4 archives separately from future app-size, memory, CPU, and launch-time
+targets. Record 0.1.5 measurements only after its exact packages exist; bounded
+thumbnail storage alone does not establish a process-memory result.
+
 ## Prepare a Release
 
 ```bash

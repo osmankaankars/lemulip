@@ -7,8 +7,6 @@ struct OperationOptionsView: View {
     let operation: FileOperation
     @State private var quality = 0.82
     @State private var maxDimension = "1920"
-    @State private var start = "0"
-    @State private var end = "30"
     @State private var pageRange = "1"
     @State private var rotation = 90
     @State private var speed = 2.0
@@ -34,9 +32,6 @@ struct OperationOptionsView: View {
                     field(model.text("Maximum Dimension (px)", "En büyük kenar (piksel)"), value: $maxDimension)
                     Text(model.text("Keeps the aspect ratio and never enlarges smaller images.", "En boy oranını korur; küçük görselleri büyütmez."))
                         .font(.system(size: 10)).foregroundStyle(Palette.muted)
-                }
-                if operation.id == "media.trim" {
-                    HStack(spacing: 18) { field(model.text("Start (seconds)", "Başlangıç (saniye)"), value: $start); field(model.text("End (seconds)", "Bitiş (saniye)"), value: $end) }
                 }
                 if operation.id.hasSuffix("rotate") {
                     Picker(model.text("Clockwise Rotation", "Saat yönünde dönüş"), selection: $rotation) { Text("90°").tag(90); Text("180°").tag(180); Text("270°").tag(270) }.pickerStyle(.segmented)
@@ -78,17 +73,12 @@ struct OperationOptionsView: View {
         if operation.id.hasSuffix("resize") || operation.id == "pdf.compress" {
             guard let dimension = Int(maxDimension), (16...16000).contains(dimension) else { return model.text("Enter a dimension between 16 and 16000 pixels.", "16 ile 16000 piksel arasında bir ölçü gir.") }
         }
-        if operation.id == "media.trim" {
-            guard let s = Double(start.replacingOccurrences(of: ",", with: ".")), let e = Double(end.replacingOccurrences(of: ",", with: ".")), s.isFinite, e.isFinite, s >= 0, e > s else { return model.text("End time must be after the non-negative start time.", "Bitiş başlangıçtan sonra olmalı; süreler negatif olamaz.") }
-        }
         if operation.id == "pdf.extract" && pageRange.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return model.text("Enter at least one page number.", "En az bir sayfa numarası gir.") }
         return nil
     }
     private func submit() {
         var options = ConversionOptions()
         options.quality = quality; options.maxDimension = Int(maxDimension) ?? 1920
-        options.startSeconds = Double(start.replacingOccurrences(of: ",", with: ".")) ?? 0
-        options.endSeconds = Double(end.replacingOccurrences(of: ",", with: ".")) ?? 30
         options.pageRange = pageRange; options.rotationDegrees = rotation; options.speedMultiplier = speed; options.volumeMultiplier = volume
         model.submitPending(options)
     }

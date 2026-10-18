@@ -84,6 +84,8 @@ public struct ConversionOptions: Sendable {
     /// The visual audio editor binds its range to one recording's duration.
     /// Nil keeps the command-line tool's independent start/end options.
     public var audioTrim: AudioTrimSelection? = nil
+    /// A selected video range always uses the native MP4/MOV export path.
+    public var videoTrim: VideoTrimSelection? = nil
     public var startSeconds: Double = 0
     public var endSeconds: Double = 30
     public var rotationDegrees: Int = 90

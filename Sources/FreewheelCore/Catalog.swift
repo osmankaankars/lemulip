@@ -86,9 +86,14 @@ public enum Catalog {
             if count > 1 { result.insert(op("pdf.merge", "Merge PDFs", "doc.on.doc.fill", "Combine in the order shown"), at: 0) }
             return result
         case .video:
+            #if os(macOS)
+            let trim = op("media.trim", "Trim", "scissors", "Preview the range to keep")
+            #else
+            let trim = op("media.trim", "Trim", "scissors", "Choose start and end time", "ffmpeg")
+            #endif
             return [
                 op("media.compress", "Compress", "arrow.down.right.and.arrow.up.left", "H.264 · adjust quality", "ffmpeg"),
-                op("media.trim", "Trim", "scissors", "Choose start and end time", "ffmpeg"),
+                trim,
                 op("media.resize", "Resize", "arrow.up.left.and.arrow.down.right", "Fit within a maximum dimension", "ffmpeg"),
                 op("media.mute", "Remove Audio", "speaker.slash", "Export a silent video", "ffmpeg"),
                 op("media.extractAudio", "Extract Audio", "waveform", "Save the audio track", "ffmpeg"),

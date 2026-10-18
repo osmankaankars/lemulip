@@ -14,6 +14,10 @@ public final class ConversionEngine: Sendable {
                 options.startSeconds = selection.startSeconds
                 options.endSeconds = selection.endSeconds
             }
+            if let selection = options.videoTrim {
+                options.startSeconds = selection.startSeconds
+                options.endSeconds = selection.endSeconds
+            }
             try validateOptions(options, operation: operation)
             var seen = Set<String>()
             let validated = try inputs.map { input -> URL in
@@ -34,6 +38,11 @@ public final class ConversionEngine: Sendable {
             if options.audioTrim != nil {
                 guard validated.count == 1, FileFamily.detect(validated[0]) == .audio else {
                     throw FreewheelError.invalidInput("A waveform selection requires exactly one audio file.")
+                }
+            }
+            if options.videoTrim != nil {
+                guard validated.count == 1, FileFamily.detect(validated[0]) == .video else {
+                    throw FreewheelError.invalidInput("A timeline selection requires exactly one video file.")
                 }
             }
             let destination = (options.destinationDirectory ?? validated[0].deletingLastPathComponent()).standardizedFileURL.resolvingSymlinksInPath()
@@ -57,6 +66,16 @@ public final class ConversionEngine: Sendable {
 
     private func convert(_ inputs: [URL], operation: FileOperation, options: ConversionOptions, stage: URL) async throws -> ConversionResult {
         let families = Set(inputs.map(FileFamily.detect))
+        if options.videoTrim != nil {
+            // The editor's source-bound selection must never fall through to
+            // a general conversion or an external route with different timing.
+            #if os(macOS)
+            return try await NativeConverter.convert(inputs: inputs, operation: operation,
+                                                      options: options, outputDirectory: stage)
+            #else
+            throw FreewheelError.unsupported("Video timeline selections require the native macOS editor. The command-line tool accepts start and end times with FFmpeg.")
+            #endif
+        }
         if let selection = options.audioTrim {
             #if os(macOS)
             let ext = operation.outputExtension?.lowercased() ?? "m4a"
@@ -217,12 +236,21 @@ public final class ConversionEngine: Sendable {
 
     private func validateOptions(_ options: ConversionOptions, operation: FileOperation) throws {
         if let selection = options.audioTrim {
-            guard operation.id == "media.trim", options.imageCrop == nil else {
+            guard operation.id == "media.trim", options.imageCrop == nil, options.videoTrim == nil else {
                 throw FreewheelError.invalidInput("An audio selection can only be used with Trim Audio.")
             }
             try selection.validate()
             if let ext = operation.outputExtension?.lowercased(), !ExternalConverters.audioExtensions.contains(ext) {
                 throw FreewheelError.invalidInput("Choose an audio output for the selected range.")
+            }
+        }
+        if let selection = options.videoTrim {
+            guard operation.id == "media.trim", options.imageCrop == nil, options.audioTrim == nil else {
+                throw FreewheelError.invalidInput("A video selection can only be used with Trim Video.")
+            }
+            try selection.validate()
+            if let ext = operation.outputExtension?.lowercased(), !["mp4", "mov"].contains(ext) {
+                throw FreewheelError.invalidInput("Choose MP4 or MOV for the selected video range.")
             }
         }
         if let crop = options.imageCrop {

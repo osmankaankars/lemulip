@@ -4,6 +4,10 @@ Lemulip has three ways to work: a wheel beside your drag, a regular workspace, a
 
 New here? [Install Lemulip](INSTALL.md) first. For specific input and output combinations, use the [format guide](FORMATS.md).
 
+This guide follows the current **0.1.5 source candidate**. Native video trim is
+new in that candidate; the published **0.1.4** preview includes visual image crop
+and audio waveform trim, with numeric video trimming through optional FFmpeg.
+
 ## Your First Conversion
 
 Open Lemulip and add a small image with **⌘O**. Choose **Convert**, then a different format, such as PNG for a JPEG input. When the job finishes, open **Activity** and click its output to reveal it in Finder.
@@ -75,14 +79,15 @@ Some operations run as soon as you select them. Others open a panel with relevan
 | Crop | Visual selection, aspect ratio, and exact pixel dimensions for one image |
 | Rotate | 90°, 180°, or 270° clockwise |
 | Trim Audio | Waveform handles, timestamps, selected-range playback, and an output format |
-| Trim Video | Start and end time in seconds |
-| Extract PDF pages | Page numbers and ranges, such as `1,3-5,8` |
-| Change speed | Playback multiplier from 0.5× to 4× |
-| Adjust volume | Level from 0% to 300% |
+| Trim Video | Native preview, thumbnail strip, range handles, timestamps, selected-range playback, and MP4/MOV output |
+| Extract PDF Pages | Page numbers and ranges, such as `1,3-5,8` |
+| Change Speed | Playback multiplier from 0.5× to 4× |
+| Adjust Volume | Level from 0% to 300% |
 
 PDF page numbers start at 1. Crop dimensions must fit within the image. Audio
-waveform trimming uses native macOS tools. The other desktop media tools,
-including video trimming, require FFmpeg.
+waveform trimming and the new visual video trim use native macOS tools. Other
+desktop media tools, such as compression, resizing, speed, and volume, require
+FFmpeg.
 
 ### Visual Image Crop
 
@@ -175,7 +180,67 @@ The editor itself does not decode through FFmpeg or mix multiple tracks.
 The waveform is an overview, not a full-resolution audio buffer. The editor
 requests 1,200 peak values and keeps only bounded decoding chunks while reading
 the file. No temporary decoded recording or persistent waveform cache is made.
-Video and CLI trimming retain their numeric start/end workflow.
+CLI trimming retains its numeric start/end workflow.
+
+### Visual Video Trim
+
+**Native video trim starts with 0.1.5.** Check [Releases](https://github.com/osmankaankars/lemulip/releases)
+for downloadable builds. Select one video and choose **Tools → Trim**. The editor opens a native player and
+prepares a small thumbnail strip in the background. Nothing is written while
+you choose a range.
+
+| Control | Action |
+| --- | --- |
+| Drag Start or End | Change a boundary without crossing the other handle |
+| Drag inside the selection | Move the range while keeping its duration |
+| Click the thumbnail strip or scrub its ruler | Move the preview playhead within the selected range |
+| **Start / End** | Enter seconds, `MM:SS.mmm`, or `HH:MM:SS.mmm`; a decimal comma also works |
+| **Selected Duration** | Read the amount of video the range keeps |
+| **Play Selection** | Play from the current playhead and stop at End; after reaching End, start the range again |
+| **Pause** | Pause the preview at its current position |
+| **Go to Selection Start** | Return the paused preview to the beginning of the selected range |
+| **Save As** | Choose an available MP4 or MOV export |
+| **Reset Selection** | Select the full clip |
+| **Cancel** or Escape | Close the editor, cancel unfinished preview work, and stop playback |
+| **Create Copy** | Stop playback and queue the selected range for export |
+
+With the timeline focused, **S** selects the start handle, **E** the end handle,
+and **P** the playhead. Left and right arrows move the active control by
+0.01 seconds; hold Shift for one second. Space plays or pauses. Tab moves to
+the other controls, and accessible actions offer the same adjustments. Invalid
+timestamps disable playback and Create Copy until corrected.
+
+Changing a boundary pauses playback and previews the changed edge without
+starting playback again. The fields show milliseconds; opening a file and using
+Reset Selection preserve its exact end even when it falls between displayed
+milliseconds. Both range handles and typed timestamps keep at least 10
+milliseconds, or the full clip when shorter. Previewing End shows the last
+included frame while the selected end time stays unchanged.
+The native preview respects the source's display orientation and fits it within
+the editor instead of stretching it.
+
+The editor requests 12 thumbnails at most 192 pixels on their longest edge.
+They provide a navigation overview, not a frame-by-frame editing track. The
+preview worker is cancelled when the editor closes; thumbnails are not saved
+as a persistent cache.
+
+MP4 and MOV export re-encode the chosen range using the native presets available
+for the source. Video-frame and audio-codec boundaries can affect the exact
+output duration. This is not a lossless or frame-exact editing guarantee.
+The output keeps the source orientation. The original remains unchanged and
+the normal unused-name output rules apply.
+
+This first editor accepts one complete local file containing one native-decodable
+video track and at most one audio track. The file must contain its own media;
+external media references are rejected. Multiple files, unsupported codecs, and
+protected or live media also receive an explanation. The editor does not mix
+tracks or silently switch to FFmpeg. Subtitle and professional media metadata
+preservation are outside this first editor's scope. Convert an unsupported input
+to a compatible MP4 or MOV first when appropriate; optional FFmpeg provides
+additional conversion routes.
+
+The command-line `media.trim --start … --end …` workflow remains numeric.
+Use the desktop editor to preview and adjust a range visually.
 
 ### PDF Compression
 

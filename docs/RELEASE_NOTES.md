@@ -6,6 +6,34 @@ Lemulip is a free, open-source file converter for macOS. Drag local files,
 tap a modifier key, and choose a format or tool from the wheel. Use the workspace
 when you need a queue, conversion options, or a closer look at the result.
 
+## 0.1.5 · Watch What You Keep
+
+- Open one video in a native preview with a small thumbnail strip, start and
+  end handles, editable timestamps, and a visible selected duration.
+- Seek through the clip and use **Play Selection** to watch the range before
+  saving. Changing the range pauses playback; closing the editor releases the
+  player and cancels unfinished preview work.
+- Export a new **MP4** or **MOV** through native macOS tools, preserving the
+  source orientation and leaving the original file in place. Export re-encodes
+  the range; frame and audio-codec boundaries can affect its exact duration.
+- Request only 12 small thumbnails for the editor, with a core limit of 24 at
+  192 pixels on the longest edge. No extra conversion engine or package
+  dependency is added.
+- Keep range editing, keyboard controls, output handling, and the three saved
+  appearances consistent with the existing editors.
+- Link the website's main download action to the published Mac releases.
+
+This source prepares public preview **0.1.5**, build **8**. Download assets are
+published only after its source and tagged commits pass the required Mac build,
+export, package, and security checks. See [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
+for the exact commit's result and [Releases](https://github.com/osmankaankars/lemulip/releases)
+for available archives. Hands-on playback acceptance remains separate from CI.
+Existing tags and releases are preserved.
+
+Read [Visual Video Trim](USER_GUIDE.md#visual-video-trim) for the controls,
+supported inputs, and encoding limits. Video crop and PDF previews remain
+planned; this candidate implements video trim only.
+
 ## 0.1.4 · Hear What You Keep
 
 - Open one audio file in a native waveform editor with start and end handles,
@@ -28,14 +56,18 @@ when you need a queue, conversion options, or a closer look at the result.
 - Publish download assets from a verified draft so an interrupted upload can
   resume without replacing existing releases or files.
 
-This source is a public preview candidate, version **0.1.4**, build **7**.
-Download assets appear only after the tagged commit passes the Mac build and
-package checks. Hands-on acceptance of the native editor interactions remains
-separate from automated CI. Existing tags and releases are preserved.
+Version **0.1.4**, build **7**, is a published public preview at `17bb81a`.
+[The tagged build](https://github.com/osmankaankars/lemulip/actions/runs/39141454481)
+passed 77 core and native tests on each Mac architecture, five optional-engine
+integration tests on Apple silicon, universal packaging, and both downloaded
+package checks. [CodeQL](https://github.com/osmankaankars/lemulip/actions/runs/39139842808)
+also passed. DMG, app ZIP, source ZIP, and checksum assets are available on
+[the release page](https://github.com/osmankaankars/lemulip/releases/tag/v0.1.4).
+Hands-on acceptance of native editor interactions remains separate from CI.
 
 Read [Audio Waveform Trim](USER_GUIDE.md#audio-waveform-trim) for controls,
-supported inputs, and output precision. Video trimming remains a numeric panel;
-video and PDF previews are the next feature milestone.
+supported inputs, and output precision. In this release, video trimming uses
+the numeric FFmpeg panel; the native video editor starts with source 0.1.5.
 
 ## Included From Source 0.1.3 · Three Themes and Visual Crop
 
@@ -55,9 +87,9 @@ video and PDF previews are the next feature milestone.
 The crop editor supports one still raster up to 40 megapixels and 16,384 pixels
 per side. Its preview is capped at 1,600 pixels on the longest edge. Read
 [Visual Image Crop](USER_GUIDE.md#visual-image-crop) for the controls and limits.
-These changes are included in the 0.1.4 candidate; source 0.1.3 did not create a
-download release. Native image and audio editor acceptance remain separate
-from the previously verified naming and packaging baseline.
+These changes are included in the verified 0.1.4 release; source 0.1.3 did not
+create a download release. Hands-on image and audio editor acceptance remains
+open.
 
 ## Naming and Packaging Foundation
 

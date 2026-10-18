@@ -66,10 +66,22 @@ public enum NativeConverter {
             var options = options
             if let selection = options.audioTrim {
                 guard operation.id == "media.trim", inputs.count == 1,
-                      FileFamily.detect(inputs[0]) == .audio, options.imageCrop == nil else {
+                      FileFamily.detect(inputs[0]) == .audio, options.imageCrop == nil, options.videoTrim == nil else {
                     throw FreewheelError.invalidInput("A waveform selection requires Trim Audio and exactly one audio file.")
                 }
                 try selection.validate()
+                options.startSeconds = selection.startSeconds
+                options.endSeconds = selection.endSeconds
+            }
+            if let selection = options.videoTrim {
+                guard operation.id == "media.trim", inputs.count == 1,
+                      FileFamily.detect(inputs[0]) == .video, options.imageCrop == nil, options.audioTrim == nil else {
+                    throw FreewheelError.invalidInput("A timeline selection requires Trim Video and exactly one video file.")
+                }
+                try selection.validate()
+                if let ext = operation.outputExtension?.lowercased(), !["mp4", "mov"].contains(ext) {
+                    throw FreewheelError.invalidInput("Choose MP4 or MOV for the selected video range.")
+                }
                 options.startSeconds = selection.startSeconds
                 options.endSeconds = selection.endSeconds
             }
@@ -1027,12 +1039,20 @@ public enum NativeConverter {
             if ["media.resize", "media.mute"].contains(operation.id), !["mp4", "mov"].contains(ext) {
                 throw FreewheelError.invalidInput("Resize and mute require a video output.")
             }
-            let output = outputURL(input, suffix: options.audioTrim == nil ? "-converted" : "-trimmed", ext: ext, directory: directory)
+            let selected = options.audioTrim != nil || options.videoTrim != nil
+            let output = outputURL(input, suffix: selected ? "-trimmed" : "-converted", ext: ext, directory: directory)
             // A QuickTime container can refer to media outside its own file.
             // Restrict those references so a local conversion cannot fetch a
             // remote URL or silently read a second, unselected local file.
             let asset: AVURLAsset
-            if let selection = options.audioTrim {
+            if let selection = options.videoTrim {
+                let source = try await VideoTrimSource.load(input)
+                try selection.validate(sourceDuration: source.durationSeconds)
+                guard source.nativeOutputExtensions.contains(ext) else {
+                    throw FreewheelError.unsupported("macOS cannot export this video in the selected format. Choose another available format.")
+                }
+                asset = source.asset
+            } else if let selection = options.audioTrim {
                 let source = try await AudioTrimSource.load(input)
                 try selection.validate(sourceDuration: source.durationSeconds)
                 guard source.nativeOutputExtensions.contains(ext) || ext == "aif" else {
@@ -1055,9 +1075,14 @@ public enum NativeConverter {
                       options.endSeconds > options.startSeconds else {
                     throw FreewheelError.invalidInput("Trim times must be within the media duration, with end after start.")
                 }
-                let timescale: CMTimeScale = options.audioTrim == nil ? 600 : 1_000_000
+                let timescale: CMTimeScale = selected ? 1_000_000 : 600
+                let requestedEnd = min(seconds, options.endSeconds)
+                let end = requestedEnd == seconds ? duration : CMTime(seconds: requestedEnd, preferredTimescale: timescale)
                 range = CMTimeRange(start: CMTime(seconds: options.startSeconds, preferredTimescale: timescale),
-                                    end: CMTime(seconds: min(seconds, options.endSeconds), preferredTimescale: timescale))
+                                    end: end)
+                guard CMTimeGetSeconds(range.duration) > 0 else {
+                    throw FreewheelError.invalidInput("The selected range is shorter than the supported time precision.")
+                }
             }
             if ["wav", "aiff", "aif"].contains(ext) {
                 try await exportPCM(asset, range: range, ext: ext, output: output)
@@ -1070,6 +1095,10 @@ public enum NativeConverter {
         if options.audioTrim != nil {
             return ConversionResult(outputs: outputs,
                 note: "The selected audio was exported locally with AVFoundation. WAV and AIFF use 16-bit PCM at source sample boundaries; M4A re-encodes AAC and may include codec-frame padding. Original files were kept.")
+        }
+        if options.videoTrim != nil {
+            return ConversionResult(outputs: outputs,
+                note: "The selected video was re-encoded locally with AVFoundation. Video-frame timing and audio-codec padding can affect the exact boundaries; this is not a lossless cut. Original files were kept.")
         }
         return ConversionResult(outputs: outputs, note: "Converted locally with AVFoundation. Codec support depends on macOS; FFmpeg enables additional formats and media tools.")
     }
@@ -1096,10 +1125,14 @@ public enum NativeConverter {
         let preset = ext == "m4a" ? AVAssetExportPresetAppleM4A
             : operation.id == "media.compress" ? AVAssetExportPresetMediumQuality : AVAssetExportPresetHighestQuality
         guard let session = AVAssetExportSession(asset: asset, presetName: preset) else {
+            if options.videoTrim != nil { throw VideoTrimSource.decoderError }
             throw FreewheelError.unsupported("macOS cannot export this codec. Enable FFmpeg.")
         }
         let type: AVFileType = ext == "m4a" ? .m4a : ext == "mov" ? .mov : .mp4
-        guard session.supportedFileTypes.contains(type) else { throw FreewheelError.unsupported("This media container needs FFmpeg.") }
+        guard session.supportedFileTypes.contains(type) else {
+            if options.videoTrim != nil { throw VideoTrimSource.decoderError }
+            throw FreewheelError.unsupported("This media container needs FFmpeg.")
+        }
         session.outputURL = output
         session.outputFileType = type
         session.timeRange = range
@@ -1111,14 +1144,20 @@ public enum NativeConverter {
             }
             session.videoComposition = try await resizedVideoComposition(asset, track: track, longEdge: checkedLongEdge(options.maxDimension))
         }
-        await withTaskCancellationHandler(operation: {
+        try await withTaskCancellationHandler(operation: {
+            try Task.checkCancellation()
             await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
                 session.exportAsynchronously { continuation.resume() }
+                // Cancellation can arrive after the preflight check but before
+                // AVFoundation starts. Cancel again after registration so it
+                // cannot leave a newly started export running to completion.
+                if Task.isCancelled { session.cancelExport() }
             }
         }, onCancel: { session.cancelExport() })
         try Task.checkCancellation()
         guard session.status == .completed else {
             if session.status == .cancelled { throw FreewheelError.cancelled }
+            if options.videoTrim != nil { throw VideoTrimSource.decoderError }
             throw FreewheelError.unsupported("AVFoundation could not export this media. Enable FFmpeg for this codec.")
         }
     }

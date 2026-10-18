@@ -35,6 +35,8 @@ struct DashboardView: View {
                       !model.pendingInputURLs.isEmpty,
                       model.pendingInputURLs.allSatisfy({ FileFamily.detect($0) == .audio }) {
                 AudioTrimView(model: model, inputs: model.pendingInputURLs)
+            } else if operation.id == "media.trim" {
+                VideoTrimView(model: model, inputs: model.pendingInputURLs)
             } else {
                 OperationOptionsView(model: model, operation: operation)
             }
@@ -312,7 +314,7 @@ enum OperationNames {
         if operation.id.hasPrefix("convert.") { return operation.detail == "Every page · 300 DPI" ? "Her sayfa · 300 DPI" : "Bu Mac'te işlenir" }
         return [
             "image.compress": "Görsel kalitesini ayarla", "image.resize": "En boy oranını koru", "image.crop": "Koruyacağın alanı seç", "image.rotate": "90° adımlarla döndür", "image.flip": "Yatay olarak yansıt", "image.stripMetadata": "Temiz bir kopya oluştur",
-            "media.trim": "Ses aralığını görerek ve dinleyerek seç",
+            "media.trim": "Aralığı görerek ve oynatarak seç",
             "pdf.merge": "Listedeki sırayla birleştir", "pdf.split": "Her sayfa için yeni bir PDF", "pdf.extract": "Sayfa ve aralık seç", "pdf.rotate": "Tüm sayfaları döndür", "pdf.compress": "Sayfaları görsele dönüştürür", "pdf.ocr": "Taranmış sayfaları çevrimdışı oku",
             "archive.extract": "Yeni bir klasöre çıkar", "archive.createZip": "Seçili dosyaları sıkıştır", "archive.createTar": "Seçili dosyaları paketle", "archive.createGzip": "Her dosyayı ayrı sıkıştır", "document.wordCount": "Kelimeleri yerel olarak say",
             "action.airdrop": "Yakındaki cihazlarla paylaş", "action.float": "Dosyaları yüzen rafta tut", "action.copy": "Hedef klasörü seç", "action.move": "Hedef klasörü seç", "action.copyPath": "Tam dosya yolunu kopyala", "action.terminal": "Bulunduğu klasörde aç"

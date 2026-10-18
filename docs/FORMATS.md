@@ -2,7 +2,11 @@
 
 Lemulip selects operations from the file extensions in your selection. A listed format is a supported route, not a promise that every codec or document feature will survive conversion.
 
-The tables below describe the current implementation. Some features still need broader hands-on macOS testing. See [Installation](INSTALL.md) for optional engines and [User Guide](USER_GUIDE.md) for controls.
+The tables below describe source **0.1.5**, which adds native visual video trim.
+The published 0.1.4 preview uses numeric video trimming through FFmpeg; check
+[Releases](https://github.com/osmankaankars/lemulip/releases) for newer builds. Some
+features still need broader hands-on macOS testing. See [Installation](INSTALL.md)
+for optional engines and [User Guide](USER_GUIDE.md) for controls.
 
 ## Images
 
@@ -76,9 +80,23 @@ The UI shows milliseconds and keeps the precise end of the full recording;
 its smallest editable range is 10 milliseconds, or the full file when shorter.
 Read [Audio Waveform Trim](USER_GUIDE.md#audio-waveform-trim) for the controls.
 
-The other desktop media tools use FFmpeg for video trimming, compression,
-resizing, speed and volume changes, audio removal, and audio extraction.
-Video compression produces H.264 MP4; audio compression produces M4A.
+**Visual video trim**, new in source 0.1.5, uses native macOS preview and export
+to MP4 or MOV. It accepts one local video file with one decodable video track
+and at most one audio track. The file must contain its own media. The editor
+offers only available native outputs.
+Protected or live media, external media references, unsupported codecs, and
+multiple selected files are rejected before editing. It does not silently
+switch to FFmpeg or mix multiple tracks.
+
+Video export re-encodes the selected original range and preserves its display
+orientation. Video-frame and audio-codec boundaries may affect the exact output
+duration; the editor does not promise lossless or frame-exact trimming. It
+leaves the original untouched. See [Visual Video Trim](USER_GUIDE.md#visual-video-trim).
+
+The other desktop media tools use FFmpeg for compression, resizing, speed and
+volume changes, audio removal, and audio extraction. Video compression produces
+H.264 MP4; audio compression produces M4A. Additional video codecs can be
+converted to a compatible MP4 or MOV before opening the native trim editor.
 
 Lemulip uses the first video stream and first audio stream for its FFmpeg routes. It is not an editor for multiple tracks, subtitles embedded in video, or professional media metadata. Conversions can be lossy, and a compressed output is not guaranteed to be smaller.
 
@@ -145,6 +163,12 @@ There are no paid tiers or daily conversion quotas. The implementation does enfo
   1,200. Decoding uses a reusable 4,096-frame scratch buffer and rejects an
   individual decoder buffer larger than 16 MiB. These are application buffer
   limits, not a measurement of the process's total memory use.
+- Video preview requests contain at most 24 thumbnails, each at most 192 pixels
+  on its longest edge; the editor requests 12. This bounds the application's
+  thumbnail cache, not AVFoundation's total decoding or playback memory.
+- The native video trim source must have a finite duration of at most 365 days,
+  display dimensions of at most 16,384 pixels per side, and at most 150 megapixels
+  per frame. Available codecs can impose lower limits.
 - Archive and optional-engine operations have their own size, time, and resource limits.
 
 Files that exceed a limit fail with an error. Lemulip does not silently omit pages to fit a limit. Try a smaller selection or lower image dimensions when appropriate.

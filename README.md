@@ -14,11 +14,13 @@ Files are processed on your Mac. No account, subscription, uploads, or analytics
 
 **Lemulip is an early public preview for macOS 13 or later.** Finder drag compatibility and the full desktop workflow still need hands-on testing.
 
+The published [0.1.4 preview](https://github.com/osmankaankars/lemulip/releases/tag/v0.1.4) includes three themes, visual image crop, and audio waveform trim. Source **0.1.5** adds native video trim. [Releases](https://github.com/osmankaankars/lemulip/releases) lists available downloads; each new version must pass its own Mac checks before its archives are published.
+
 ### Download the App
 
 Open [Releases](https://github.com/osmankaankars/lemulip/releases) and choose the **macOS universal DMG** under **Assets**. Drag **Lemulip** into **Applications**. The app ZIP also includes the `lemulip` command-line tool. These downloads run on Apple silicon and Intel without installing Xcode or Swift.
 
-Downloads appear after [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml) passes and checks the exact packages on both architectures. If no app assets are listed yet, build from source below. Preview packages use ad-hoc signing, without Apple Developer ID signing or notarization; see [First Launch](docs/INSTALL.md#signing-and-first-launch).
+Version 0.1.4 is available as a verified universal download. Each new release must pass [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml), including checks of the exact packages on both architectures. Preview packages use ad-hoc signing, without Apple Developer ID signing or notarization; see [First Launch](docs/INSTALL.md#signing-and-first-launch).
 
 ### Build From Source
 
@@ -57,7 +59,7 @@ Prefer a window? Add files with **⌘O**, drop them into the workspace, or choos
 | Images | PNG, JPEG, HEIC, TIFF and BMP; visual crop, resize, rotate, remove metadata; images to PDF |
 | PDFs | Merge, split, extract pages, rotate, export pages as images, extract text, offline OCR |
 | Audio | Waveform trim with selection playback; M4A, WAV and AIFF export; more formats with optional FFmpeg |
-| Video | Native media conversion where macOS codecs allow it; trimming, resizing and compression with FFmpeg |
+| Video | Native conversion; visual trim to MP4 or MOV in source 0.1.5; more tools and codecs with optional FFmpeg |
 | Documents and tables | Microsoft Word (DOCX), Excel (XLSX), PowerPoint (PPTX), text, CSV ↔ TSV, and subtitles; some routes need an optional local engine |
 | Archives | Create ZIP and TAR, GZIP individual files, extract supported archives into a new folder |
 | File actions | AirDrop, floating shelf, copy, move, copy path, open the containing folder in Terminal |
@@ -86,8 +88,19 @@ The waveform is prepared in bounded chunks, without keeping a full decoded
 recording in memory. This editor uses native macOS decoding and playback;
 unsupported inputs receive an explanation before editing. Read
 [Audio Waveform Trim](docs/USER_GUIDE.md#audio-waveform-trim) for controls and
-encoding limits. Video trimming still uses numeric start and end times;
-video and PDF previews are [next on the roadmap](docs/ROADMAP.md#3-video-and-pdf-previews).
+encoding limits.
+
+## Watch What You Keep
+
+**New in the 0.1.5 source candidate.** Open **Tools → Trim** with one
+video. Watch the native preview, use the thumbnail strip to find your range,
+and adjust its start and end handles or timestamps. **Play Selection** previews
+the chosen section; **Create Copy** saves it as MP4 or MOV.
+
+The editor keeps a fixed number of small thumbnails and uses macOS playback
+and export without an extra conversion engine. Supported inputs depend on
+macOS codecs; export re-encodes the range and keeps the original file in place. Read
+[Visual Video Trim](docs/USER_GUIDE.md#visual-video-trim) for controls and limits.
 
 ## Make It Yours
 
@@ -96,7 +109,7 @@ Choose **Orchard Night**, **Vivid Pistachio**, or **Lemon Drop** in
 your choice and applies it across the workspace, wheel, and editors.
 
 Try the same three appearances in the browser walkthrough. The walkthrough
-uses sample files; it does not perform conversions or run the native crop editor.
+uses sample files; it does not perform conversions or run the native editors.
 
 ## Start With What Is Built In
 

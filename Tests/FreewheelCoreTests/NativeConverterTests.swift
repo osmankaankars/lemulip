@@ -3,6 +3,7 @@ import XCTest
 import AppKit
 import AVFoundation
 import CoreGraphics
+import CoreVideo
 import CoreText
 import ImageIO
 import PDFKit
@@ -804,6 +805,270 @@ final class NativeConverterTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: input), original)
         XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
         XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: work.inputs.path), ["recording.wav"])
+    }
+
+    /// Tiny generated H.264 clips keep the repository free of binary fixtures.
+    /// The first half is red and the second half blue, so an exported range can
+    /// be checked by its actual decoded content as well as its duration.
+    private func videoFixture(_ url: URL, width: Int = 64, height: Int = 32,
+                              frames: Int = 60, portrait: Bool = false) async throws {
+        let writer = try AVAssetWriter(outputURL: url, fileType: .mov)
+        let input = AVAssetWriterInput(mediaType: .video, outputSettings: [
+            AVVideoCodecKey: AVVideoCodecType.h264, AVVideoWidthKey: width, AVVideoHeightKey: height,
+            AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: 200_000, AVVideoMaxKeyFrameIntervalKey: 30]
+        ])
+        input.expectsMediaDataInRealTime = false
+        if portrait {
+            input.transform = CGAffineTransform(a: 0, b: 1, c: -1, d: 0, tx: CGFloat(height), ty: 0)
+        }
+        let adaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: input,
+            sourcePixelBufferAttributes: [
+                kCVPixelBufferPixelFormatTypeKey as String: kCVPixelFormatType_32BGRA,
+                kCVPixelBufferWidthKey as String: width, kCVPixelBufferHeightKey as String: height,
+                kCVPixelBufferCGImageCompatibilityKey as String: true,
+                kCVPixelBufferCGBitmapContextCompatibilityKey as String: true
+            ])
+        XCTAssertTrue(writer.canAdd(input))
+        writer.add(input)
+        guard writer.startWriting() else { throw FreewheelError.operationFailed("The generated video writer did not start.") }
+        writer.startSession(atSourceTime: .zero)
+        let pool = try XCTUnwrap(adaptor.pixelBufferPool)
+        do {
+            for frame in 0..<frames {
+                let deadline = Date().addingTimeInterval(15)
+                while !input.isReadyForMoreMediaData {
+                    guard writer.status == .writing, Date() < deadline else {
+                        throw FreewheelError.operationFailed("The generated video writer stopped accepting frames.")
+                    }
+                    try await Task.sleep(nanoseconds: 1_000_000)
+                }
+                try autoreleasepool {
+                    var pixelBuffer: CVPixelBuffer?
+                    XCTAssertEqual(CVPixelBufferPoolCreatePixelBuffer(kCFAllocatorDefault, pool, &pixelBuffer), kCVReturnSuccess)
+                    let buffer = try XCTUnwrap(pixelBuffer)
+                    XCTAssertEqual(CVPixelBufferLockBaseAddress(buffer, []), kCVReturnSuccess)
+                    defer { CVPixelBufferUnlockBaseAddress(buffer, []) }
+                    let bytes = try XCTUnwrap(CVPixelBufferGetBaseAddress(buffer)).assumingMemoryBound(to: UInt8.self)
+                    let stride = CVPixelBufferGetBytesPerRow(buffer)
+                    let blue = frame >= frames / 2
+                    for y in 0..<height {
+                        for x in 0..<width {
+                            let offset = y * stride + x * 4
+                            bytes[offset] = blue ? 255 : 0
+                            bytes[offset + 1] = 0
+                            bytes[offset + 2] = blue ? 0 : 255
+                            bytes[offset + 3] = 255
+                        }
+                    }
+                    let time = CMTime(value: Int64(frame), timescale: 30)
+                    guard adaptor.append(buffer, withPresentationTime: time) else {
+                        throw FreewheelError.operationFailed("The generated video frame was rejected.")
+                    }
+                }
+            }
+            input.markAsFinished()
+            writer.endSession(atSourceTime: CMTime(value: Int64(frames), timescale: 30))
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                writer.finishWriting { continuation.resume() }
+            }
+            XCTAssertEqual(writer.status, .completed)
+        } catch {
+            writer.cancelWriting()
+            throw error
+        }
+    }
+
+    private func videoWithAudioFixture(_ url: URL, workspace: Workspace) async throws {
+        let silent = workspace.root.appendingPathComponent("generated-video.mov")
+        let sound = workspace.root.appendingPathComponent("generated-audio.wav")
+        try await videoFixture(silent)
+        try audioFixture(sound, channels: 1, frames: 88_200) { frame, _ in
+            let phase: Double = Double(frame) * 2 * Double.pi * 440 / 44_100
+            return Float(sin(phase)) * 0.2
+        }
+        let videoAsset = AVURLAsset(url: silent)
+        let audioAsset = AVURLAsset(url: sound)
+        let videoTracks = try await videoAsset.loadTracks(withMediaType: .video)
+        let audioTracks = try await audioAsset.loadTracks(withMediaType: .audio)
+        let sourceVideo = try XCTUnwrap(videoTracks.first)
+        let sourceAudio = try XCTUnwrap(audioTracks.first)
+        let composition = AVMutableComposition()
+        let picture = try XCTUnwrap(composition.addMutableTrack(withMediaType: .video,
+                                                                preferredTrackID: kCMPersistentTrackID_Invalid))
+        let audio = try XCTUnwrap(composition.addMutableTrack(withMediaType: .audio,
+                                                              preferredTrackID: kCMPersistentTrackID_Invalid))
+        let range = CMTimeRange(start: .zero, duration: CMTime(value: 2, timescale: 1))
+        try picture.insertTimeRange(range, of: sourceVideo, at: .zero)
+        try audio.insertTimeRange(range, of: sourceAudio, at: .zero)
+        let session = try XCTUnwrap(AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality))
+        session.outputURL = url
+        session.outputFileType = .mov
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            session.exportAsynchronously { continuation.resume() }
+        }
+        XCTAssertEqual(session.status, .completed)
+    }
+
+    func testNativeVideoTimelineIsBoundedRotatedAndLeavesOriginalUntouched() async throws {
+        let work = try workspace()
+        let input = work.inputs.appendingPathComponent("portrait.mov")
+        try await videoFixture(input, width: 256, height: 128, frames: 12, portrait: true)
+        let original = try Data(contentsOf: input)
+        let preview = try await NativeConverter.videoTrimPreview(for: input,
+            maxThumbnailCount: Int.max, maxPixelSize: Int.max)
+        XCTAssertEqual(preview.durationSeconds, 0.4, accuracy: 0.001)
+        XCTAssertEqual(preview.displayWidth, 128)
+        XCTAssertEqual(preview.displayHeight, 256)
+        XCTAssertEqual(try XCTUnwrap(preview.nominalFrameRate), 30, accuracy: 0.1)
+        XCTAssertEqual(preview.thumbnails.count, 24)
+        XCTAssertTrue(preview.nativeOutputExtensions.contains("mp4"))
+        XCTAssertTrue(preview.nativeOutputExtensions.contains("mov"))
+        for frame in preview.thumbnails {
+            XCTAssertGreaterThan(frame.image.height, frame.image.width)
+            XCTAssertLessThanOrEqual(frame.image.height, 192)
+            XCTAssertGreaterThan(frame.image.height, 0)
+            XCTAssertGreaterThanOrEqual(frame.timeSeconds, 0)
+            XCTAssertLessThan(frame.timeSeconds, preview.durationSeconds)
+        }
+        let small = try await NativeConverter.videoTrimPreview(for: input, maxThumbnailCount: 1, maxPixelSize: 32)
+        XCTAssertEqual(small.thumbnails.count, 1)
+        XCTAssertLessThanOrEqual(try XCTUnwrap(small.thumbnails.first).image.height, 32)
+        XCTAssertEqual(try Data(contentsOf: input), original)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: work.inputs.path), ["portrait.mov"])
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+    }
+
+    func testNativeSelectedVideoExportsRangeWithAudioAndOriginalBytes() async throws {
+        let work = try workspace()
+        let input = work.inputs.appendingPathComponent("colors-with-audio.mov")
+        try await videoWithAudioFixture(input, workspace: work)
+        let original = try Data(contentsOf: input)
+        let preview = try await NativeConverter.videoTrimPreview(for: input, maxThumbnailCount: 2)
+        var options = ConversionOptions()
+        options.videoTrim = VideoTrimSelection(startSeconds: 1.1, endSeconds: 1.7,
+                                               sourceDuration: preview.durationSeconds)
+        options.startSeconds = 0
+        options.endSeconds = 30
+        for ext in ["mp4", "mov"] {
+            let result = try await NativeConverter.convert(inputs: [input], operation: operation("media.trim", ext: ext),
+                options: options, outputDirectory: freshStage(work))
+            let output = try XCTUnwrap(result.outputs.first)
+            XCTAssertTrue(output.lastPathComponent.contains("trimmed"))
+            let asset = AVURLAsset(url: output)
+            let duration = try await asset.load(.duration)
+            let audio = try await asset.loadTracks(withMediaType: .audio)
+            XCTAssertEqual(CMTimeGetSeconds(duration), 0.6, accuracy: 0.08)
+            XCTAssertEqual(audio.count, 1)
+            let resultPreview = try await NativeConverter.videoTrimPreview(for: output, maxThumbnailCount: 1)
+            let frame = try XCTUnwrap(resultPreview.thumbnails.first).image
+            let pixel = try color(frame, x: frame.width / 2, y: frame.height / 2)
+            // Lossy H.264 is checked by dominant content, not exact RGB bytes.
+            XCTAssertGreaterThan(pixel.blueComponent, 0.75)
+            XCTAssertLessThan(pixel.redComponent, 0.25)
+            XCTAssertTrue(result.note?.contains("re-encoded") == true)
+            XCTAssertTrue(result.note?.contains("boundaries") == true)
+        }
+        XCTAssertEqual(try Data(contentsOf: input), original)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: work.inputs.path), ["colors-with-audio.mov"])
+    }
+
+    func testNativeVideoTrimKeepsFullAndBoundaryRangesOriented() async throws {
+        let work = try workspace()
+        let input = work.inputs.appendingPathComponent("boundary.mov")
+        try await videoFixture(input, portrait: true)
+        let original = try Data(contentsOf: input)
+        let preview = try await NativeConverter.videoTrimPreview(for: input, maxThumbnailCount: 1)
+        let total = preview.durationSeconds
+        let selections = [
+            VideoTrimGeometry.fullDuration(total),
+            VideoTrimSelection(startSeconds: 0, endSeconds: 0.1, sourceDuration: total),
+            VideoTrimSelection(startSeconds: total - 0.1, endSeconds: total, sourceDuration: total)
+        ]
+        for selection in selections {
+            var options = ConversionOptions(); options.videoTrim = selection
+            let result = try await NativeConverter.convert(inputs: [input], operation: operation("media.trim", ext: "mp4"),
+                options: options, outputDirectory: freshStage(work))
+            let output = try XCTUnwrap(result.outputs.first)
+            let exported = try await NativeConverter.videoTrimPreview(for: output, maxThumbnailCount: 1)
+            XCTAssertEqual(exported.durationSeconds, selection.durationSeconds, accuracy: 0.04)
+            XCTAssertEqual(exported.displayWidth, 32)
+            XCTAssertEqual(exported.displayHeight, 64)
+            let frame = try XCTUnwrap(exported.thumbnails.first).image
+            XCTAssertGreaterThan(frame.height, frame.width)
+        }
+        XCTAssertEqual(try Data(contentsOf: input), original)
+    }
+
+    func testNativeVideoTrimRejectsInvalidSourcesAndStaleDuration() async throws {
+        let work = try workspace()
+        let valid = work.inputs.appendingPathComponent("valid.mov")
+        try await videoFixture(valid, frames: 6)
+        let original = try Data(contentsOf: valid)
+        let empty = work.inputs.appendingPathComponent("empty.mov")
+        let text = work.inputs.appendingPathComponent("text.txt")
+        let fake = work.inputs.appendingPathComponent("fake.mp4")
+        try Data().write(to: empty)
+        try Data("Not video".utf8).write(to: text)
+        try Data("Not video".utf8).write(to: fake)
+        for input in [empty, text, URL(string: "https://example.invalid/video.mp4")!] {
+            do {
+                _ = try await NativeConverter.videoTrimPreview(for: input)
+                XCTFail("An invalid video source was accepted")
+            } catch FreewheelError.invalidInput { }
+        }
+        do {
+            _ = try await NativeConverter.videoTrimPreview(for: fake)
+            XCTFail("Non-video data was accepted based on its extension")
+        } catch FreewheelError.unsupported { }
+          catch FreewheelError.invalidInput { }
+        for (count, edge) in [(0, 192), (12, 0), (Int.min, 192), (12, Int.min)] {
+            do {
+                _ = try await NativeConverter.videoTrimPreview(for: valid, maxThumbnailCount: count, maxPixelSize: edge)
+                XCTFail("An invalid thumbnail size was accepted")
+            } catch FreewheelError.invalidInput { }
+        }
+        var options = ConversionOptions()
+        options.videoTrim = VideoTrimSelection(startSeconds: 0, endSeconds: 0.1, sourceDuration: 1)
+        do {
+            _ = try await NativeConverter.convert(inputs: [valid], operation: operation("media.trim", ext: "mp4"),
+                options: options, outputDirectory: work.stage)
+            XCTFail("A stale video duration was accepted")
+        } catch FreewheelError.invalidInput(let message) { XCTAssertTrue(message.contains("changed")) }
+        // The shared engine must retain the source-bound native route, even
+        // when an external engine happens to be installed on the machine.
+        do {
+            _ = try await ConversionEngine().run(inputs: [valid], operation: operation("media.trim", ext: "mov"), options: options)
+            XCTFail("A stale selection reached another conversion route")
+        } catch FreewheelError.invalidInput(let message) { XCTAssertTrue(message.contains("changed")) }
+        XCTAssertEqual(try Data(contentsOf: valid), original)
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+        XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: work.inputs.path)), ["valid.mov", "empty.mov", "text.txt", "fake.mp4"])
+    }
+
+    func testNativeVideoTimelineAndSelectedExportRespectCancellation() async throws {
+        let work = try workspace()
+        let input = work.inputs.appendingPathComponent("clip.mov")
+        try await videoFixture(input, frames: 6)
+        let original = try Data(contentsOf: input)
+        let preview = Task.detached {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await NativeConverter.videoTrimPreview(for: input)
+        }
+        do { _ = try await preview.value; XCTFail("Cancelled video preview completed") }
+        catch is CancellationError { }
+        let export = Task.detached {
+            withUnsafeCurrentTask { $0?.cancel() }
+            var options = ConversionOptions()
+            options.videoTrim = VideoTrimSelection(startSeconds: 0, endSeconds: 0.1, sourceDuration: 0.2)
+            return try await NativeConverter.convert(inputs: [input],
+                operation: FileOperation(id: "media.trim", title: "Trim", outputExtension: "mp4"),
+                options: options, outputDirectory: work.stage)
+        }
+        do { _ = try await export.value; XCTFail("Cancelled video export completed") }
+        catch FreewheelError.cancelled { }
+        XCTAssertEqual(try Data(contentsOf: input), original)
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: work.inputs.path), ["clip.mov"])
     }
 
     func testNativeAudioExportWritesDecodableAIFF() async throws {

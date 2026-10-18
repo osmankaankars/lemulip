@@ -199,10 +199,95 @@ final class EngineTests: XCTestCase {
         let videoTrim = try XCTUnwrap(Catalog.operations(for: [video], mode: .tools).first { $0.id == "media.trim" })
         #if os(macOS)
         XCTAssertNil(audioTrim.dependency)
+        XCTAssertNil(videoTrim.dependency)
         #else
         XCTAssertEqual(audioTrim.dependency, "ffmpeg")
-        #endif
         XCTAssertEqual(videoTrim.dependency, "ffmpeg")
+        #endif
+    }
+
+    func testVideoSelectionRejectsInvalidRangesBeforeCreatingOutput() async throws {
+        let input = root.appendingPathComponent("clip.mp4")
+        try Data([0]).write(to: input)
+        let invalid = [
+            VideoTrimSelection(startSeconds: -1, endSeconds: 1, sourceDuration: 5),
+            VideoTrimSelection(startSeconds: 1, endSeconds: 1, sourceDuration: 5),
+            VideoTrimSelection(startSeconds: 2, endSeconds: 1, sourceDuration: 5),
+            VideoTrimSelection(startSeconds: 0, endSeconds: 6, sourceDuration: 5),
+            VideoTrimSelection(startSeconds: .nan, endSeconds: 1, sourceDuration: 5),
+            VideoTrimSelection(startSeconds: 0, endSeconds: .infinity, sourceDuration: 5),
+            VideoTrimSelection(startSeconds: 0, endSeconds: 1, sourceDuration: .infinity),
+            VideoTrimSelection(startSeconds: 0, endSeconds: 1, sourceDuration: 0)
+        ]
+        for selection in invalid {
+            var options = ConversionOptions(); options.videoTrim = selection
+            do {
+                _ = try await ConversionEngine().run(inputs: [input],
+                    operation: FileOperation(id: "media.trim", title: "Trim", outputExtension: "mp4"), options: options)
+                XCTFail("An invalid video selection was accepted")
+            } catch FreewheelError.invalidInput { }
+        }
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path), ["clip.mp4"])
+    }
+
+    func testVideoSelectionRequiresOneVideoAndExclusiveTrimRoute() async throws {
+        let first = root.appendingPathComponent("first.mp4"), second = root.appendingPathComponent("second.mov")
+        let audio = root.appendingPathComponent("recording.wav")
+        for input in [first, second, audio] { try Data([0]).write(to: input) }
+        var options = ConversionOptions()
+        options.videoTrim = VideoTrimSelection(startSeconds: 0, endSeconds: 1, sourceDuration: 5)
+        let cases: [([URL], String, String)] = [
+            ([first, second], "media.trim", "mp4"), ([audio], "media.trim", "mp4"),
+            ([first, audio], "media.trim", "mp4"), ([first], "convert.mp4", "mp4"),
+            ([first], "media.trim", "wav"), ([first], "media.trim", "webm")
+        ]
+        for (inputs, id, ext) in cases {
+            do {
+                _ = try await ConversionEngine().run(inputs: inputs,
+                    operation: FileOperation(id: id, title: "Operation", outputExtension: ext), options: options)
+                XCTFail("A timeline selection used the wrong inputs, operation, or output")
+            } catch FreewheelError.invalidInput { }
+        }
+        let trim = FileOperation(id: "media.trim", title: "Trim", outputExtension: "mp4")
+        for cropConflict in [false, true] {
+            var conflicting = options
+            if cropConflict {
+                conflicting.imageCrop = ImageCropRegion(x: 0, y: 0, width: 1, height: 1, sourceWidth: 1, sourceHeight: 1)
+            } else {
+                conflicting.audioTrim = AudioTrimSelection(startSeconds: 0, endSeconds: 1, sourceDuration: 5)
+            }
+            do {
+                _ = try await ConversionEngine().run(inputs: [first], operation: trim, options: conflicting)
+                XCTFail("Two different editor selections were accepted together")
+            } catch FreewheelError.invalidInput { }
+        }
+        XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: root.path)), ["first.mp4", "second.mov", "recording.wav"])
+    }
+
+    func testVideoTrimGeometryAndFieldsPreserveTinyAndFullEndpoints() throws {
+        let totals: [Double] = [0.000_5, 0.007_3, 1.000_9, 8, 36_000.000_9]
+        for total in totals {
+            let full = VideoTrimGeometry.fullDuration(total)
+            XCTAssertEqual(full.endSeconds, total)
+            XCTAssertNoThrow(try full.validate())
+            XCTAssertEqual(VideoTrimTime.selection(startText: VideoTrimTime.string(0),
+                endText: VideoTrimTime.string(total), preserving: full), full)
+            let changes: [Double] = [-100, 0, total, 100, .nan, .infinity]
+            for seconds in changes {
+                XCTAssertNoThrow(try VideoTrimGeometry.startChanged(full, to: seconds).validate())
+                XCTAssertNoThrow(try VideoTrimGeometry.endChanged(full, to: seconds).validate())
+                XCTAssertNoThrow(try VideoTrimGeometry.moved(full, by: seconds).validate())
+            }
+        }
+        let nearEnd = VideoTrimSelection(startSeconds: 1.970_9, endSeconds: 2.000_9, sourceDuration: 2.000_9)
+        XCTAssertEqual(VideoTrimTime.selection(startText: VideoTrimTime.string(nearEnd.startSeconds),
+            endText: VideoTrimTime.string(nearEnd.endSeconds), preserving: nearEnd), nearEnd)
+        let moved = VideoTrimGeometry.moved(nearEnd, by: -100)
+        XCTAssertEqual(moved.startSeconds, 0)
+        XCTAssertEqual(moved.durationSeconds, nearEnd.durationSeconds, accuracy: 0.000_000_001)
+        XCTAssertNil(VideoTrimTime.selection(startText: "NaN", endText: "2", preserving: nearEnd))
+        XCTAssertNil(VideoTrimTime.selection(startText: "1", endText: "1", preserving: nearEnd))
+        XCTAssertThrowsError(try nearEnd.validate(sourceDuration: 2.01))
     }
 
     func testAudioTrimHandlesPreserveLengthAndNeverCrossOrRoundPastEOF() throws {
