@@ -50,6 +50,11 @@ public final class ConversionEngine: Sendable {
                     throw FreewheelError.invalidInput("A selected video crop requires exactly one video file.")
                 }
             }
+            if options.pdfOrganization != nil {
+                guard validated.count == 1, FileFamily.detect(validated[0]) == .pdf else {
+                    throw FreewheelError.invalidInput("Organize PDF requires exactly one PDF file.")
+                }
+            }
             let destination = (options.destinationDirectory ?? validated[0].deletingLastPathComponent()).standardizedFileURL.resolvingSymlinksInPath()
             guard destination.isFileURL else { throw FreewheelError.invalidInput("Choose a local output folder.") }
             if operation.id.hasPrefix("archive.create") {
@@ -71,6 +76,16 @@ public final class ConversionEngine: Sendable {
 
     private func convert(_ inputs: [URL], operation: FileOperation, options: ConversionOptions, stage: URL) async throws -> ConversionResult {
         let families = Set(inputs.map(FileFamily.detect))
+        if options.pdfOrganization != nil {
+            // An ordered page plan must never fall through to a converter that
+            // would discard page order, omissions, or rotation deltas.
+            #if os(macOS)
+            return try await NativeConverter.convert(inputs: inputs, operation: operation,
+                                                      options: options, outputDirectory: stage)
+            #else
+            throw FreewheelError.unsupported("Page organization requires the native macOS PDF editor.")
+            #endif
+        }
         if options.videoCrop != nil {
             #if os(macOS)
             return try await NativeConverter.convert(inputs: inputs, operation: operation,
@@ -248,6 +263,19 @@ public final class ConversionEngine: Sendable {
     }
 
     private func validateOptions(_ options: ConversionOptions, operation: FileOperation) throws {
+        if operation.id == "pdf.organize", options.pdfOrganization == nil {
+            throw FreewheelError.invalidInput("Choose pages in Organize PDF before exporting.")
+        }
+        if let plan = options.pdfOrganization {
+            guard operation.id == "pdf.organize", options.imageCrop == nil,
+                  options.audioTrim == nil, options.videoTrim == nil, options.videoCrop == nil else {
+                throw FreewheelError.invalidInput("A PDF page plan can only be used with Organize PDF, without another editor selection.")
+            }
+            try plan.validate()
+            if let ext = operation.outputExtension?.lowercased(), ext != "pdf" {
+                throw FreewheelError.invalidInput("Choose PDF output for the organized pages.")
+            }
+        }
         if operation.id == "media.crop", options.videoCrop == nil {
             throw FreewheelError.invalidInput("Choose a crop in the video editor before exporting.")
         }

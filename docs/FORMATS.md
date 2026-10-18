@@ -2,9 +2,8 @@
 
 Lemulip selects operations from the file extensions in your selection. A listed format is a supported route, not a promise that every codec or document feature will survive conversion.
 
-The tables below describe source **0.1.6**, which adds native visual video crop.
-Native video trim starts with 0.1.5; check
-[Releases](https://github.com/osmankaankars/lemulip/releases) for available builds. Some
+The tables below describe source **0.1.7**, which adds visual PDF organization.
+Check [Releases](https://github.com/osmankaankars/lemulip/releases) for available builds. Some
 features still need broader hands-on macOS testing. See [Installation](INSTALL.md)
 for optional engines and [User Guide](USER_GUIDE.md) for controls.
 
@@ -44,6 +43,7 @@ Transparency is flattened onto white for formats such as JPEG and BMP. Image con
 | Export pages | PNG or JPEG | Every page at 300 DPI, within rendering limits |
 | Extract selectable text | TXT or Markdown | Text extraction; does not recreate the original layout |
 | Recognize text | TXT | Offline OCR using macOS Vision |
+| Organize | PDF | Reorder, rotate, remove, or extract pages from one PDF using page thumbnails |
 | Merge | PDF | Combines files in the displayed order |
 | Split | PDF files | One output per page |
 | Extract pages | PDF | Page numbers and ranges, starting at 1 |
@@ -52,9 +52,24 @@ Transparency is flattened onto white for formats such as JPEG and BMP. Image con
 
 PDF tools use the built-in macOS frameworks. OCR results depend on scan quality and the languages supported by the installed system.
 
+**Visual PDF organization** copies original pages through PDFKit, preserving
+their text, vector content, and page annotations while applying the chosen
+order and quarter-turn rotations. Extraction keeps selected pages in the editor's displayed order.
+It does not provide text editing or combine separate source documents.
+
+Page reassembly is not a guarantee that document-level features survive.
+Bookmarks, links between pages, form relationships, signatures, and accessibility
+structure may no longer be valid. Keep the original when those features matter.
+Read [Organize PDF](USER_GUIDE.md#organize-pdf) for controls and source limits.
+
+The organizer requires permission to assemble and copy pages. Locked PDFs are
+rejected. An encrypted PDF that is already readable can be organized when those
+permissions allow it, with a visible explanation that the new copy is not
+password protected. Source encryption is unchanged.
+
 **Flattening changes the document.** PDF compression removes searchable text, links, forms, signatures, and accessibility structure from the new copy. It may increase the file size.
 
-PDF → editable DOCX, Pages, PowerPoint, or spreadsheet output is not implemented. The app and CLI do not provide PDF password entry. Unlock a protected PDF and save a readable copy before converting it. PDFs that disallow text copying are rejected by the text extraction and OCR routes.
+PDF → editable DOCX, Pages, PowerPoint, or spreadsheet output is not implemented. The app and CLI do not provide PDF password entry. Unlock a locked PDF and save a readable copy before converting it. PDFs that disallow text copying are rejected by the text extraction and OCR routes.
 
 ## Audio and Video
 
@@ -176,6 +191,12 @@ There are no paid tiers or daily conversion quotas. The implementation does enfo
 
 - Up to 1,000 input files per conversion job.
 - Native PDF and image-frame operations allow up to 1,000 pages or frames, with a separate cap on output count.
+- The PDF organizer accepts one PDF with up to 1,000 pages and a source size of
+  512 MiB. Preview and export use temporary streamed copies to keep page edits
+  tied to the same source bytes; these copies are removed when their work ends.
+- PDF organization keeps at most 24 cached thumbnails, each at most 320 pixels
+  on its longest edge. The UI retains only visible and nearby page previews;
+  PDFKit may use additional memory to parse and render a document.
 - Native image input is limited to 150 megapixels. Rendered images are limited to 40 megapixels and a maximum dimension of 16,384 pixels.
 - Native text processing is limited to 32 MiB.
 - Audio waveform summaries contain at most 4,096 peaks; the editor requests

@@ -6,6 +6,30 @@ Lemulip is a free, open-source file converter for macOS. Drag local files,
 tap a modifier key, and choose a format or tool from the wheel. Use the workspace
 when you need a queue, conversion options, or a closer look at the result.
 
+## 0.1.7 · Put Every Page in Place
+
+- Open one PDF in a thumbnail organizer. Reorder pages by dragging or using
+  **Move Earlier** and **Move Later**.
+- Select several pages, rotate them together, or remove them from the copy.
+  **Undo** and **Reset** let you revise the arrangement before exporting.
+- Use **Extract Selected** to save the selected pages in their displayed order,
+  or **Create Copy** to save the whole arrangement as a new PDF.
+- Copy the original PDF pages through native macOS tools, retaining text and
+  vector content. Thumbnail images are used only for the editor.
+- Load small previews as pages come into view, keep a bounded thumbnail cache,
+  and release the editor's temporary resources when it closes. No extra engine
+  or package dependency is added.
+- Match the three saved themes and keep the original file unchanged.
+
+Version **0.1.7**, build **10**, uses the same required Mac build, native export,
+package, and security checks as earlier previews. See
+[Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
+for each commit's result and [Releases](https://github.com/osmankaankars/lemulip/releases)
+for available downloads. Hands-on editor acceptance remains separate from CI.
+
+Read [Organize PDF](USER_GUIDE.md#organize-pdf) for controls and document limits.
+The next editor is the **Merge PDF preview**.
+
 ## 0.1.6 · Frame It Your Way
 
 - Crop one video with a movable selection over the native preview, familiar
@@ -19,7 +43,7 @@ when you need a queue, conversion options, or a closer look at the result.
 - Keep crop controls, keyboard movement, and the three saved appearances
   consistent with the image editor.
 
-This source prepares public preview **0.1.6**, build **9**. Its download assets
+Version **0.1.6**, build **9**, adds visual video crop. Its download assets
 are published only after the required Mac build, export, package, and security
 checks pass. See [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
 for each commit's result and [Releases](https://github.com/osmankaankars/lemulip/releases)
@@ -27,7 +51,7 @@ for available archives. Native interaction acceptance remains separate from CI.
 Existing tags and downloads are preserved.
 
 Read [Visual Video Crop](USER_GUIDE.md#visual-video-crop) for controls, supported
-inputs, and output limits. **Organize PDF** is the next editor on the roadmap.
+inputs, and output limits. PDF page organization starts with source 0.1.7.
 
 ## 0.1.5 · Watch What You Keep
 
@@ -46,7 +70,7 @@ inputs, and output limits. **Organize PDF** is the next editor on the roadmap.
   appearances consistent with the existing editors.
 - Link the website's main download action to the published Mac releases.
 
-This source prepares public preview **0.1.5**, build **8**. Download assets are
+Version **0.1.5**, build **8**, adds native video trim. Download assets are
 published only after its source and tagged commits pass the required Mac build,
 export, package, and security checks. See [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
 for the exact commit's result and [Releases](https://github.com/osmankaankars/lemulip/releases)
@@ -55,7 +79,7 @@ Existing tags and releases are preserved.
 
 Read [Visual Video Trim](USER_GUIDE.md#visual-video-trim) for the controls,
 supported inputs, and encoding limits. Version 0.1.5 adds video trim;
-visual video crop starts with source 0.1.6. PDF previews remain planned.
+visual video crop starts with source 0.1.6 and PDF page organization with 0.1.7.
 
 ## 0.1.4 · Hear What You Keep
 

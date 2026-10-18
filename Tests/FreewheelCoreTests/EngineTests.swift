@@ -12,6 +12,93 @@ final class EngineTests: XCTestCase {
     }
     override func tearDownWithError() throws { if let root { try FileManager.default.removeItem(at: root) } }
 
+    func testPDFPagePlanKeepsSourceIdentityOrderAndQuarterTurns() throws {
+        let fingerprint = String(repeating: "a", count: 64)
+        let plan = PDFOrganizePlan(sourcePageCount: 4, sourceFingerprint: fingerprint,
+                                  pages: [PDFPageEdit(sourceIndex: 3, rotationQuarterTurns: 1),
+                                          PDFPageEdit(sourceIndex: 0, rotationQuarterTurns: 3)])
+        XCTAssertNoThrow(try plan.validate(sourcePageCount: 4, sourceFingerprint: fingerprint))
+        XCTAssertEqual(plan.pages.map(\.sourceIndex), [3, 0])
+        XCTAssertEqual(plan.pages.map(\.rotationQuarterTurns), [1, 3])
+        XCTAssertThrowsError(try plan.validate(sourcePageCount: 3, sourceFingerprint: fingerprint))
+        XCTAssertThrowsError(try plan.validate(sourcePageCount: 4, sourceFingerprint: String(repeating: "b", count: 64)))
+        let source = PDFOrganizeSource(pageCount: 4, fingerprint: fingerprint, isEncrypted: false)
+        XCTAssertEqual(source.initialPlan.pages.map(\.sourceIndex), [0, 1, 2, 3])
+        XCTAssertTrue(source.initialPlan.pages.allSatisfy { $0.rotationQuarterTurns == 0 })
+    }
+
+    func testPDFPagePlanRejectsEmptyDuplicateOutOfRangeAndMalformedEdits() throws {
+        let valid = PDFOrganizePlan(sourcePageCount: 3, sourceFingerprint: String(repeating: "0", count: 64),
+                                   pages: [PDFPageEdit(sourceIndex: 0)])
+        for count in [Int.min, 0, PDFOrganizePlan.maximumPageCount + 1, Int.max] {
+            var invalid = valid; invalid.sourcePageCount = count
+            XCTAssertThrowsError(try invalid.validate())
+        }
+        for fingerprint in ["", String(repeating: "a", count: 63), String(repeating: "a", count: 65),
+                            String(repeating: "G", count: 64), String(repeating: "é", count: 32)] {
+            var invalid = valid; invalid.sourceFingerprint = fingerprint
+            XCTAssertThrowsError(try invalid.validate())
+        }
+        let invalidPages: [[PDFPageEdit]] = [[], [PDFPageEdit(sourceIndex: 0), PDFPageEdit(sourceIndex: 0)],
+            [PDFPageEdit(sourceIndex: -1)], [PDFPageEdit(sourceIndex: 3)], [PDFPageEdit(sourceIndex: Int.max)],
+            [PDFPageEdit(sourceIndex: 0, rotationQuarterTurns: -1)], [PDFPageEdit(sourceIndex: 0, rotationQuarterTurns: 4)],
+            [PDFPageEdit(sourceIndex: 0, rotationQuarterTurns: Int.min)], [PDFPageEdit(sourceIndex: 0, rotationQuarterTurns: Int.max)]]
+        for pages in invalidPages {
+            var invalid = valid; invalid.pages = pages
+            XCTAssertThrowsError(try invalid.validate())
+        }
+    }
+
+    func testPDFOrganizationRequiresOnePDFAndCannotDiscardItsPlan() async throws {
+        let first = root.appendingPathComponent("first.pdf"), second = root.appendingPathComponent("second.pdf")
+        let image = root.appendingPathComponent("image.png")
+        for input in [first, second, image] { try Data([0]).write(to: input) }
+        var options = ConversionOptions()
+        options.pdfOrganization = PDFOrganizePlan(sourcePageCount: 1, sourceFingerprint: String(repeating: "a", count: 64),
+                                                  pages: [PDFPageEdit(sourceIndex: 0)])
+        let cases: [([URL], String, String)] = [([first, second], "pdf.organize", "pdf"),
+            ([image], "pdf.organize", "pdf"), ([first, image], "pdf.organize", "pdf"),
+            ([first], "pdf.extract", "pdf"), ([first], "convert.pdf", "pdf"), ([first], "pdf.organize", "png")]
+        for (inputs, id, ext) in cases {
+            do {
+                _ = try await ConversionEngine().run(inputs: inputs,
+                    operation: FileOperation(id: id, title: "Operation", outputExtension: ext), options: options)
+                XCTFail("A PDF page plan used the wrong input, operation, or output")
+            } catch FreewheelError.invalidInput { }
+        }
+        let operation = FileOperation(id: "pdf.organize", title: "Organize PDF", outputExtension: "pdf")
+        for conflict in 0..<4 {
+            var conflicting = options
+            if conflict == 0 { conflicting.imageCrop = ImageCropRegion(x: 0, y: 0, width: 2, height: 2, sourceWidth: 2, sourceHeight: 2) }
+            if conflict == 1 { conflicting.audioTrim = AudioTrimSelection(startSeconds: 0, endSeconds: 1, sourceDuration: 1) }
+            if conflict == 2 { conflicting.videoTrim = VideoTrimSelection(startSeconds: 0, endSeconds: 1, sourceDuration: 1) }
+            if conflict == 3 { conflicting.videoCrop = VideoCropRegion(x: 0, y: 0, width: 2, height: 2, sourceWidth: 2, sourceHeight: 2, sourceDuration: 1) }
+            do {
+                _ = try await ConversionEngine().run(inputs: [first], operation: operation, options: conflicting)
+                XCTFail("Page organization was combined with another editor selection")
+            } catch FreewheelError.invalidInput { }
+        }
+        do {
+            _ = try await ConversionEngine().run(inputs: [first], operation: operation)
+            XCTFail("A missing page plan reached a generic converter")
+        } catch FreewheelError.invalidInput { }
+        do {
+            _ = try await ConversionEngine().run(inputs: [first], operation: operation, options: options)
+            XCTFail("An invalid PDF must not fall through to an external converter")
+        } catch FreewheelError.invalidInput {
+            #if !os(macOS)
+            XCTFail("Linux should reject the unavailable native editor before parsing the PDF")
+            #endif
+        } catch FreewheelError.unsupported(let message) {
+            #if os(macOS)
+            XCTFail("A native PDF parser rejection must not fall through: \(message)")
+            #else
+            XCTAssertTrue(message.contains("native macOS"))
+            #endif
+        }
+        XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: root.path)), ["first.pdf", "second.pdf", "image.png"])
+    }
+
     func testBatchTextConversionAndConcurrencyNeverOverwriteInputs() async throws {
         let source = root.appendingPathComponent("subtitles.srt")
         let content = "1\n00:00:00,000 --> 00:00:01,000\nHello\n"

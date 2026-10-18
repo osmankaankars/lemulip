@@ -83,6 +83,9 @@ public enum Catalog {
                 op("pdf.compress", "Compress", "arrow.down.right.and.arrow.up.left", "Flatten pages to reduce size"),
                 op("pdf.ocr", "Recognize Text", "text.viewfinder", "Offline OCR for scanned pages")
             ]
+            #if os(macOS)
+            if count == 1 { result.insert(op("pdf.organize", "Organize", "square.grid.2x2", "Arrange, rotate, and choose pages"), at: 0) }
+            #endif
             if count > 1 { result.insert(op("pdf.merge", "Merge PDFs", "doc.on.doc.fill", "Combine in the order shown"), at: 0) }
             return result
         case .video:

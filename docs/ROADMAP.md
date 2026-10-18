@@ -16,7 +16,8 @@ and native conversion tools with optional external engines. The published
 [0.1.4 preview](https://github.com/osmankaankars/lemulip/releases/tag/v0.1.4)
 includes three saved appearances, a native visual image crop editor, and an
 audio waveform editor with range selection and playback. Source **0.1.5** adds
-native video trim; source **0.1.6** adds visual video crop. Each version's own
+native video trim; source **0.1.6** adds visual video crop, and source **0.1.7**
+adds a PDF page organizer. Each version's own
 [Mac checks](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
 and [release assets](https://github.com/osmankaankars/lemulip/releases) determine
 availability. Hands-on acceptance of editor interactions remains separate from
@@ -127,17 +128,17 @@ long recordings do not require keeping the entire decoded file in memory.
 
 Build on the editor behavior established by image crop and audio trim.
 
-**Trim Video is implemented in source 0.1.5; Crop Video follows in source
-0.1.6.** Mac verification is reported by each commit's Actions run. Work is
-proceeding one editor at a time. **Organize PDF is next**, followed by the merge
-preview. Hands-on acceptance of the existing editors remains open.
+**Trim Video, Crop Video, and Organize PDF are implemented in source 0.1.5,
+0.1.6, and 0.1.7 respectively.** Mac verification is reported by each commit's
+Actions run. Work is proceeding one editor at a time. **Merge PDF preview is
+next.** Hands-on acceptance of the existing editors remains open.
 
 | Editor | Experience and Status |
 | --- | --- |
 | Trim Video | Source 0.1.5: native video preview, a bounded thumbnail strip, range handles, timestamps, selected duration, and selection playback; MP4/MOV copy export |
 | Crop Video | Source 0.1.6: a movable crop over the native preview, aspect ratios, output dimensions, and full-duration MP4/MOV copy export |
-| Organize PDF | Next: page thumbnails with explicit reorder, rotate, remove, and extract actions |
-| Merge PDF | Planned: an ordered list with page counts and a clear output summary |
+| Organize PDF | Source 0.1.7: page thumbnails, reorder, selected-page rotation, removal with undo, and extraction to a new PDF |
+| Merge PDF | Next: an ordered list with page counts and a clear output summary |
 
 The first video trim editor uses native macOS playback and export without new
 dependencies. It requests 12 thumbnails, each at most 192 pixels on its longest
@@ -154,6 +155,13 @@ even numbers for the native video encoder; the
 chosen rectangle remains within the source. MP4 and MOV output re-encodes the
 video, using the source frames rather than the preview image. Trim and Crop
 remain separate operations. See [Visual Video Crop](USER_GUIDE.md#visual-video-crop).
+
+PDF organization shows one document as page thumbnails, with dragging and
+explicit controls for ordering, rotation, removal, and selected-page extraction.
+It copies original pages to keep text and vector content, and verifies that the
+source still matches the preview before export. Preview storage and edit history
+are bounded; the editor releases its temporary source copy on close. See
+[Organize PDF](USER_GUIDE.md#organize-pdf) for supported documents and controls.
 
 **Ready when:** previews and final output agree, ordering is explicit, empty or
 invalid selections cannot be submitted, and long documents or clips load only

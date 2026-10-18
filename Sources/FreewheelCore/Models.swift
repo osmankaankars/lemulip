@@ -88,6 +88,8 @@ public struct ConversionOptions: Sendable {
     public var videoTrim: VideoTrimSelection? = nil
     /// A full-duration spatial crop in the upright video's source pixels.
     public var videoCrop: VideoCropRegion? = nil
+    /// Ordered source pages for the native visual PDF organizer.
+    public var pdfOrganization: PDFOrganizePlan? = nil
     public var startSeconds: Double = 0
     public var endSeconds: Double = 30
     public var rotationDegrees: Int = 90

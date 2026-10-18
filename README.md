@@ -14,7 +14,7 @@ Files are processed on your Mac. No account, subscription, uploads, or analytics
 
 **Lemulip is an early public preview for macOS 13 or later.** Finder drag compatibility and the full desktop workflow still need hands-on testing.
 
-Source **0.1.6** adds visual video cropping to the native image, audio, and video editors. [Releases](https://github.com/osmankaankars/lemulip/releases) lists available downloads; each version must pass its own Mac checks before its archives are published.
+Source **0.1.7** adds a visual PDF organizer alongside the native image, audio, and video editors. [Releases](https://github.com/osmankaankars/lemulip/releases) lists available downloads; each version must pass its own Mac checks before its archives are published.
 
 ### Download the App
 
@@ -57,7 +57,7 @@ Prefer a window? Add files with **⌘O**, drop them into the workspace, or choos
 | Work With | Examples |
 | --- | --- |
 | Images | PNG, JPEG, HEIC, TIFF and BMP; visual crop, resize, rotate, remove metadata; images to PDF |
-| PDFs | Merge, split, extract pages, rotate, export pages as images, extract text, offline OCR |
+| PDFs | Visual page organization; reorder, rotate, remove, extract, merge, split, export pages as images, extract text, offline OCR |
 | Audio | Waveform trim with selection playback; M4A, WAV and AIFF export; more formats with optional FFmpeg |
 | Video | Native conversion, visual trim and crop, MP4/MOV export; more tools and codecs with optional FFmpeg |
 | Documents and tables | Microsoft Word (DOCX), Excel (XLSX), PowerPoint (PPTX), text, CSV ↔ TSV, and subtitles; some routes need an optional local engine |
@@ -111,6 +111,18 @@ applies that frame to the whole video and saves a new MP4 or MOV.
 Video cropping starts with source **0.1.6**. It uses native macOS tools and
 keeps the original file in place. Crop and trim are separate operations; read
 [Visual Video Crop](docs/USER_GUIDE.md#visual-video-crop) for controls and output
+limits.
+
+## Put Every Page in Place
+
+Open **Tools → Organize** with one PDF. See its pages as thumbnails, drag them
+into order, rotate a selection, or remove pages from the copy. **Undo** and
+**Reset** let you change your mind before saving. Use **Extract Selected** for a
+smaller PDF or **Create Copy** for the full arrangement.
+
+The organizer copies the original PDF pages, keeping their text and vector
+content. Only previews are rendered as images, and the original file stays in
+place. See [Organize PDF](docs/USER_GUIDE.md#organize-pdf) for controls and document
 limits.
 
 ## Make It Yours

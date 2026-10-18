@@ -4,8 +4,9 @@ Lemulip has three ways to work: a wheel beside your drag, a regular workspace, a
 
 New here? [Install Lemulip](INSTALL.md) first. For specific input and output combinations, use the [format guide](FORMATS.md).
 
-This guide follows source **0.1.6**. Visual image crop and audio waveform trim
-start with 0.1.4, native video trim with 0.1.5, and visual video crop with 0.1.6.
+This guide follows source **0.1.7**, which adds Organize PDF. Visual image crop
+and audio waveform trim start with 0.1.4, native video trim with 0.1.5, and visual
+video crop with 0.1.6.
 Check [Releases](https://github.com/osmankaankars/lemulip/releases) for available
 downloads and the notes for your installed version.
 
@@ -82,6 +83,7 @@ Some operations run as soon as you select them. Others open a panel with relevan
 | Rotate | 90°, 180°, or 270° clockwise |
 | Trim Audio | Waveform handles, timestamps, selected-range playback, and an output format |
 | Trim Video | Native preview, thumbnail strip, range handles, timestamps, selected-range playback, and MP4/MOV output |
+| Organize PDF | Page thumbnails, ordering, rotation, removal, and extraction for one PDF |
 | Extract PDF Pages | Page numbers and ranges, such as `1,3-5,8` |
 | Change Speed | Playback multiplier from 0.5× to 4× |
 | Adjust Volume | Level from 0% to 300% |
@@ -298,6 +300,60 @@ reads the original video frames. The player exists only while the editor is
 open, and closing it cancels preview work and releases playback resources. No
 persistent frame cache is created. Completed outputs use the normal unused-name
 rules, and the original file stays in place.
+
+### Organize PDF
+
+**Organize PDF starts with 0.1.7.** Select one PDF and choose
+**Tools → Organize**. Pages appear as small previews. Each card shows its current
+position and **Original Page** number so you can identify it after reordering.
+
+| Control | Action |
+| --- | --- |
+| Click a page | Select that page |
+| Command-click | Add or remove one page from the selection |
+| Shift-click | Select a range of pages |
+| Drag selected pages | Move the selection to another position |
+| **Move Earlier / Move Later** | Move the selected pages toward the beginning or end |
+| **Rotate Left / Rotate Right** | Turn selected pages by 90° |
+| **Remove** | Leave selected pages out of the new copy |
+| **Undo** | Revert the last arrangement change |
+| **Redo** | Reapply an undone change |
+| **Reset** | Restore the original page order, rotations, and full page list |
+| **Extract Selected** | Queue only the selected pages, in the current displayed order |
+| **Create Copy** | Queue every remaining page, in the current displayed order |
+| **Cancel** or Escape | Close without exporting |
+
+With the page grid focused, use arrow keys to select pages, hold Shift to extend
+the selection, and press Delete to remove it from the copy. **⌘A** selects all
+pages; **⌘Z** undoes an edit and **⇧⌘Z** redoes it. Use **⌥⌘← / ⌥⌘→** to move
+the selection and **⌘L / ⌘R** to rotate it left or right. Tab moves between the
+other controls.
+
+Removing a page here changes only the pending copy. It does not delete a page
+from the original file. The editor keeps at least one page; select pages before
+using a selection action. Rotations apply to the page's current orientation,
+including pages that were already rotated in the source.
+
+The new PDF uses the original pages, keeping their text, vector content, and
+page annotations. It is not made from the thumbnails. Document-level features such as bookmarks,
+links between pages, form relationships, signatures, and accessibility structure
+are not guaranteed to remain valid after pages are moved or removed. Use the
+original for work that depends on those features. The ordinary **Extract Pages**
+tool remains available for entering page numbers and ranges directly.
+
+There is no password field. Locked PDFs and documents that do not permit
+copying and page organization receive an explanation. An encrypted PDF that
+opens without a password can be organized when those permissions allow it;
+the editor explains before export that **the new copy will not be password
+protected**. The original keeps its existing protection.
+
+The editor supports one local PDF with up to **1,000 pages** and a source size
+of **512 MiB**. Previews load as pages come into view; the thumbnail cache holds
+at most 24 images, each at most 320 pixels on its longest edge. A temporary
+source copy keeps the preview consistent while you work and is removed when the
+editor closes. If the source changes before export, reopen the editor to use
+the updated document. Completed PDFs follow the normal output-folder and
+unused-name rules.
 
 ### PDF Compression
 

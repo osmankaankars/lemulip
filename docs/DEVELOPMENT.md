@@ -192,6 +192,40 @@ or a seek is pending, then open another video; the previous request must not
 update the new editor. A passing export test does not establish these UI results.
 The same Mac build, package, and security gates apply before publication.
 
+### PDF Organization Constraints
+
+The 0.1.7 organizer uses PDFKit and the existing queued output flow. Extend the
+existing core and native test files with small PDFs generated during each test;
+do not add a fixture collection or another PDF engine.
+
+| Constraint | Implementation Boundary |
+| --- | --- |
+| Stable page identity | Edits refer to original page indices; output order follows the plan, and rotations add to each page's source rotation |
+| Source consistency | One PDF, up to 1,000 pages and 512 MiB; a streamed private snapshot and content fingerprint bind edits to their preview source |
+| Page content | Copy PDF pages, preserving text and vector content; never build export from preview images |
+| Document permissions | Reject locked files; require assembly and copying permission, and disclose unprotected output for an already-readable encrypted source |
+| Bounded preview storage | At most 24 cached thumbnails, each at most 320 pixels on its longest edge; retain only visible and nearby previews in the UI |
+| Bounded editing history | At most 40 undo snapshots and 40 redo snapshots |
+| Non-destructive output | Keep at least one page, reject invalid plans, and use staging with unused output names |
+
+Serialize PDFKit access inside the preview session. Release its document,
+thumbnails, and private source snapshot on close. Export takes its own bounded
+snapshot and compares the source fingerprint before copying pages; temporary
+snapshots must be removed on success, failure, and cancellation.
+
+Check reordered nonadjacent pages, subset extraction, all four quarter-turn
+rotations, already-rotated pages, mixed page sizes, crop boxes, visible
+annotations, and selectable text in the saved PDF. Verify that a replaced
+source is rejected and that the original bytes remain unchanged. Failed or
+cancelled work must leave no published output.
+
+Hands-on checks should cover single and range selection, dragging and button
+reordering, Undo/Redo/Reset, keyboard and VoiceOver access, and all three themes.
+Scroll through a long document, close during loading, and reopen a different
+PDF; stale previews must not appear in the new editor. Thumbnail limits bound
+application-owned images, not PDFKit's total memory. Keep UI acceptance and
+memory measurements separate from passing native export tests.
+
 ## Prepare a Release
 
 ```bash

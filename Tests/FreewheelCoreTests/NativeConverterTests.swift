@@ -5,6 +5,7 @@ import AVFoundation
 import CoreGraphics
 import CoreVideo
 import CoreText
+import Darwin
 import ImageIO
 import PDFKit
 @testable import FreewheelCore
@@ -561,6 +562,240 @@ final class NativeConverterTests: XCTestCase {
         XCTAssertEqual(document.pageCount, 3)
         for index in 0..<document.pageCount { XCTAssertEqual(document.page(at: index)?.rotation, 90) }
         XCTAssertEqual(try Data(contentsOf: one), original)
+    }
+
+    func testPDFOrganizerLoadsBoundedThumbnailsFromOneStableSnapshot() async throws {
+        let work = try workspace()
+        let raw = try pdf(work.inputs.appendingPathComponent("raw.pdf"),
+            pages: (0..<30).map { (CGSize(width: 160, height: 80), "Page \($0 + 1)") })
+        let document = try XCTUnwrap(PDFDocument(url: raw))
+        let first = try XCTUnwrap(document.page(at: 0))
+        first.setBounds(CGRect(x: 20, y: 10, width: 120, height: 60), for: .cropBox)
+        first.rotation = 90
+        let annotation = PDFAnnotation(bounds: CGRect(x: 40, y: 20, width: 30, height: 20),
+                                       forType: .square, withProperties: nil)
+        annotation.interiorColor = .red; annotation.color = .red
+        first.addAnnotation(annotation)
+        let source = work.inputs.appendingPathComponent("pages.pdf")
+        XCTAssertTrue(document.write(to: source))
+        let original = try Data(contentsOf: source)
+        let session = PDFOrganizeSession(input: source)
+        let metadata = try await session.open()
+        XCTAssertEqual(metadata.pageCount, 30)
+        XCTAssertEqual(metadata.fingerprint.count, 64)
+        let initialCache = await session.cachedThumbnailCount
+        XCTAssertEqual(initialCache, 0, "Opening the editor must not render every page")
+        let rotated = try await session.thumbnail(for: 0)
+        XCTAssertEqual(rotated.widthPoints, 60, accuracy: 0.001)
+        XCTAssertEqual(rotated.heightPoints, 120, accuracy: 0.001)
+        var redPixels = 0
+        for y in stride(from: 0, to: rotated.image.height, by: 8) {
+            for x in stride(from: 0, to: rotated.image.width, by: 8) {
+                let sample = try color(rotated.image, x: x, y: y)
+                if sample.redComponent > 0.7, sample.greenComponent < 0.3, sample.blueComponent < 0.3 { redPixels += 1 }
+            }
+        }
+        XCTAssertGreaterThan(redPixels, 2, "The rotated crop-box preview must retain visible annotations")
+        for index in 1..<metadata.pageCount {
+            let thumbnail = try await session.thumbnail(for: index)
+            XCTAssertEqual(thumbnail.sourceIndex, index)
+            XCTAssertLessThanOrEqual(thumbnail.image.width, PDFOrganizeSession.thumbnailPixelLimit)
+            XCTAssertLessThanOrEqual(thumbnail.image.height, PDFOrganizeSession.thumbnailPixelLimit)
+            let count = await session.cachedThumbnailCount
+            XCTAssertLessThanOrEqual(count, PDFOrganizeSession.thumbnailCacheLimit)
+        }
+        for index in [-1, metadata.pageCount] {
+            do { _ = try await session.thumbnail(for: index); XCTFail("An invalid page index was accepted") }
+            catch FreewheelError.invalidInput { }
+        }
+        XCTAssertEqual(try Data(contentsOf: source), original)
+        // PDFKit must keep reading the private snapshot, not a mutable original.
+        try FileManager.default.removeItem(at: source)
+        let retained = try await session.thumbnail(for: 0)
+        XCTAssertEqual(retained.widthPoints, rotated.widthPoints)
+        await session.close()
+        let closedCache = await session.cachedThumbnailCount
+        XCTAssertEqual(closedCache, 0)
+        do { _ = try await session.thumbnail(for: 0); XCTFail("A closed editor continued decoding") }
+        catch FreewheelError.cancelled { }
+    }
+
+    func testPDFOrganizerCopiesOrderedPagesTextBoxesAnnotationsAndAddedRotations() async throws {
+        let work = try workspace()
+        let raw = try pdf(work.inputs.appendingPathComponent("raw.pdf"), pages: [
+            (CGSize(width: 240, height: 160), "Alpha"), (CGSize(width: 160, height: 240), "Bravo"),
+            (CGSize(width: 300, height: 180), "Charlie")])
+        let document = try XCTUnwrap(PDFDocument(url: raw))
+        document.documentAttributes = [PDFDocumentAttribute.authorAttribute: "Fixture Author"]
+        for (index, angle) in [90, 0, 270].enumerated() {
+            let page = try XCTUnwrap(document.page(at: index))
+            page.rotation = angle
+            page.setBounds(page.bounds(for: .mediaBox).insetBy(dx: 10, dy: 10), for: .cropBox)
+            let annotation = PDFAnnotation(bounds: CGRect(x: 20, y: 20, width: 20, height: 20),
+                                           forType: .square, withProperties: nil)
+            annotation.contents = "Annotation \(index + 1)"
+            annotation.interiorColor = .red
+            page.addAnnotation(annotation)
+        }
+        let source = work.inputs.appendingPathComponent("pages.pdf")
+        XCTAssertTrue(document.write(to: source))
+        let original = try Data(contentsOf: source)
+        let session = PDFOrganizeSession(input: source)
+        let metadata = try await session.open()
+        var plan = metadata.initialPlan
+        plan.pages = [PDFPageEdit(sourceIndex: 2, rotationQuarterTurns: 1),
+                      PDFPageEdit(sourceIndex: 0, rotationQuarterTurns: 2)]
+        var options = ConversionOptions(); options.pdfOrganization = plan
+        let result = try await NativeConverter.convert(inputs: [source], operation: operation("pdf.organize", ext: "pdf"),
+            options: options, outputDirectory: work.stage)
+        let output = try XCTUnwrap(result.outputs.first)
+        XCTAssertNotEqual(output, source)
+        let organized = try XCTUnwrap(PDFDocument(url: output))
+        XCTAssertEqual(organized.pageCount, 2)
+        XCTAssertTrue(organized.page(at: 0)?.string?.contains("Charlie") == true)
+        XCTAssertTrue(organized.page(at: 1)?.string?.contains("Alpha") == true)
+        XCTAssertFalse(organized.string?.contains("Bravo") == true)
+        for (position, sourceIndex, rotation) in [(0, 2, 0), (1, 0, 270)] {
+            let page = try XCTUnwrap(organized.page(at: position))
+            let originalPage = try XCTUnwrap(document.page(at: sourceIndex))
+            XCTAssertEqual(page.rotation, rotation)
+            XCTAssertEqual(page.bounds(for: .mediaBox), originalPage.bounds(for: .mediaBox))
+            XCTAssertEqual(page.bounds(for: .cropBox), originalPage.bounds(for: .cropBox))
+            XCTAssertEqual(page.annotations.map(\.contents), originalPage.annotations.map(\.contents))
+        }
+        XCTAssertNil(organized.documentAttributes?[PDFDocumentAttribute.authorAttribute])
+        XCTAssertEqual(try Data(contentsOf: source), original)
+        // Extracting one selected page keeps the same source identity and delta.
+        plan.pages = [plan.pages[1]]; options.pdfOrganization = plan
+        let extracted = try await ConversionEngine().run(inputs: [source],
+            operation: operation("pdf.organize", ext: "pdf"), options: options)
+        let onePage = try XCTUnwrap(PDFDocument(url: XCTUnwrap(extracted.outputs.first)))
+        XCTAssertEqual(onePage.pageCount, 1)
+        XCTAssertTrue(onePage.page(at: 0)?.string?.contains("Alpha") == true)
+        XCTAssertEqual(onePage.page(at: 0)?.rotation, 270)
+        XCTAssertEqual(try Data(contentsOf: source), original)
+        await session.close()
+    }
+
+    func testPDFOrganizerRejectsChangedSourceBytesEvenWithTheSameSizeAndDate() async throws {
+        let work = try workspace()
+        let source = try pdf(work.inputs.appendingPathComponent("pages.pdf"),
+                             pages: [(CGSize(width: 200, height: 100), "Original")])
+        var bytes = try Data(contentsOf: source)
+        bytes.append(Data("\n% Source Version A\n".utf8))
+        try bytes.write(to: source)
+        let originalDate = try XCTUnwrap(try FileManager.default.attributesOfItem(atPath: source.path)[.modificationDate] as? Date)
+        let session = PDFOrganizeSession(input: source)
+        let metadata = try await session.open()
+        var options = ConversionOptions(); options.pdfOrganization = metadata.initialPlan
+        bytes[bytes.count - 2] = 0x42
+        try bytes.write(to: source)
+        try FileManager.default.setAttributes([.modificationDate: originalDate], ofItemAtPath: source.path)
+        do {
+            _ = try await NativeConverter.convert(inputs: [source], operation: operation("pdf.organize"),
+                options: options, outputDirectory: work.stage)
+            XCTFail("A same-size replacement was accepted using stale page edits")
+        } catch FreewheelError.invalidInput(let message) { XCTAssertTrue(message.contains("changed")) }
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+        XCTAssertEqual(try Data(contentsOf: source), bytes)
+        await session.close()
+    }
+
+    func testPDFOrganizerRespectsLockedAndRestrictedSourcesAndDisclosesUnprotectedCopies() async throws {
+        let work = try workspace()
+        let plain = try pdf(work.inputs.appendingPathComponent("plain.pdf"),
+                            pages: [(CGSize(width: 200, height: 100), "Permitted Content")])
+        let copy = PDFAccessPermissions.allowsContentCopying.rawValue
+        let assembly = PDFAccessPermissions.allowsDocumentAssembly.rawValue
+        let cases: [(String, UInt, Bool)] = [("allowed", copy | assembly, false),
+            ("no-copy", assembly, false), ("no-assembly", copy, false), ("locked", copy | assembly, true)]
+        for (name, permissions, locked) in cases {
+            let source = work.inputs.appendingPathComponent("\(name).pdf")
+            let document = try XCTUnwrap(PDFDocument(url: plain))
+            let ownerPassword = UUID().uuidString
+            let writeOptions: [PDFDocumentWriteOption: Any] = [
+                .ownerPasswordOption: ownerPassword,
+                .userPasswordOption: locked ? UUID().uuidString : "",
+                .accessPermissionsOption: NSNumber(value: permissions)
+            ]
+            XCTAssertTrue(document.write(to: source, withOptions: writeOptions))
+            let original = try Data(contentsOf: source)
+            let reopened = try XCTUnwrap(PDFDocument(url: source))
+            XCTAssertTrue(reopened.isEncrypted, "The fixture must actually be encrypted")
+            XCTAssertEqual(reopened.isLocked, locked)
+            if !locked {
+                XCTAssertEqual(reopened.allowsCopying, permissions & copy != 0)
+                XCTAssertEqual(reopened.allowsDocumentAssembly, permissions & assembly != 0)
+            }
+            let session = PDFOrganizeSession(input: source)
+            let stage = try freshStage(work)
+            if name == "allowed" {
+                let metadata = try await session.open()
+                XCTAssertTrue(metadata.isEncrypted)
+                var options = ConversionOptions(); options.pdfOrganization = metadata.initialPlan
+                let result = try await NativeConverter.convert(inputs: [source], operation: operation("pdf.organize"),
+                    options: options, outputDirectory: stage)
+                let output = try XCTUnwrap(PDFDocument(url: XCTUnwrap(result.outputs.first)))
+                XCTAssertFalse(output.isEncrypted)
+                XCTAssertTrue(output.string?.contains("Permitted Content") == true)
+                XCTAssertTrue(result.note?.contains("without password protection") == true)
+            } else {
+                do { _ = try await session.open(); XCTFail("A locked or restricted PDF entered the editor") }
+                catch FreewheelError.invalidInput { }
+                var options = ConversionOptions()
+                options.pdfOrganization = PDFOrganizePlan(sourcePageCount: 1,
+                    sourceFingerprint: try PDFSourceSnapshot.capture(source).fingerprint, pages: [PDFPageEdit(sourceIndex: 0)])
+                do {
+                    _ = try await NativeConverter.convert(inputs: [source], operation: operation("pdf.organize"),
+                        options: options, outputDirectory: stage)
+                    XCTFail("Export bypassed the source PDF permissions")
+                } catch FreewheelError.invalidInput { }
+                XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: stage.path).isEmpty)
+            }
+            XCTAssertEqual(try Data(contentsOf: source), original)
+            await session.close()
+        }
+    }
+
+    func testPDFOrganizerRejectsNonregularOversizedAndCancelledInputs() async throws {
+        let work = try workspace()
+        let pipe = work.inputs.appendingPathComponent("pipe.pdf")
+        XCTAssertEqual(mkfifo(pipe.path, 0o600), 0)
+        let oversized = work.inputs.appendingPathComponent("oversized.pdf")
+        XCTAssertTrue(FileManager.default.createFile(atPath: oversized.path, contents: nil))
+        let handle = try FileHandle(forWritingTo: oversized)
+        try handle.truncate(atOffset: UInt64(PDFSourceSnapshot.maximumBytes) + 1)
+        try handle.close()
+        let empty = work.inputs.appendingPathComponent("empty.pdf")
+        let invalid = work.inputs.appendingPathComponent("invalid.pdf")
+        try Data().write(to: empty)
+        try Data("This is not a PDF".utf8).write(to: invalid)
+        for input in [pipe, oversized, empty, invalid] {
+            let session = PDFOrganizeSession(input: input)
+            do { _ = try await session.open(); XCTFail("An invalid PDF source reached PDFKit") }
+            catch FreewheelError.invalidInput { }
+            await session.close()
+        }
+        let source = try pdf(work.inputs.appendingPathComponent("valid.pdf"),
+                             pages: [(CGSize(width: 100, height: 100), "Valid")])
+        let session = PDFOrganizeSession(input: source)
+        let cancelledOpen = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await session.open()
+        }
+        do { _ = try await cancelledOpen.value; XCTFail("A cancelled editor open continued") }
+        catch is CancellationError { }
+        let metadata = try await session.open()
+        let cancelledExport = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            var options = ConversionOptions(); options.pdfOrganization = metadata.initialPlan
+            return try await NativeConverter.convert(inputs: [source], operation: self.operation("pdf.organize"),
+                options: options, outputDirectory: work.stage)
+        }
+        do { _ = try await cancelledExport.value; XCTFail("A cancelled page export continued") }
+        catch FreewheelError.cancelled { }
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+        await session.close()
     }
 
     func testPDFCompressionKeepsPhysicalPageDimensionsAndDisclosesFlattening() async throws {

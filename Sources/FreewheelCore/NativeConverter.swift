@@ -64,6 +64,21 @@ public enum NativeConverter {
         do {
             try Task.checkCancellation()
             var options = options
+            if operation.id == "pdf.organize", options.pdfOrganization == nil {
+                throw FreewheelError.invalidInput("Choose pages in Organize PDF before exporting.")
+            }
+            if let plan = options.pdfOrganization {
+                guard operation.id == "pdf.organize", inputs.count == 1,
+                      FileFamily.detect(inputs[0]) == .pdf, options.imageCrop == nil,
+                      options.audioTrim == nil, options.videoTrim == nil, options.videoCrop == nil else {
+                    throw FreewheelError.invalidInput("A PDF page plan requires Organize PDF and exactly one PDF, without another editor selection.")
+                }
+                try plan.validate()
+                if let ext = operation.outputExtension?.lowercased(), ext != "pdf" {
+                    throw FreewheelError.invalidInput("Choose PDF output for the organized pages.")
+                }
+                return try organizePDF(inputs[0], plan: plan, options: options, directory: outputDirectory)
+            }
             if operation.id == "media.crop", options.videoCrop == nil {
                 throw FreewheelError.invalidInput("Choose a crop in the video editor before exporting.")
             }
@@ -576,7 +591,7 @@ public enum NativeConverter {
 
     // MARK: - PDF
 
-    private static func loadPDF(_ input: URL, password: String) throws -> PDFDocument {
+    static func loadPDF(_ input: URL, password: String) throws -> PDFDocument {
         guard let document = PDFDocument(url: input) else {
             throw FreewheelError.invalidInput("\(input.lastPathComponent) is not a readable PDF.")
         }
@@ -589,6 +604,38 @@ public enum NativeConverter {
             throw FreewheelError.invalidInput("PDFs must contain between 1 and \(maximumPages) pages.")
         }
         return document
+    }
+
+    private static func organizePDF(_ input: URL, plan: PDFOrganizePlan,
+                                    options: ConversionOptions, directory: URL) throws -> ConversionResult {
+        let snapshot = try PDFSourceSnapshot.capture(input)
+        let document = try snapshot.openDocument()
+        try plan.validate(sourcePageCount: document.pageCount, sourceFingerprint: snapshot.fingerprint)
+        let result = PDFDocument()
+        result.documentAttributes = options.removeMetadata ? [:] : document.documentAttributes
+        for edit in plan.pages {
+            try Task.checkCancellation()
+            let page = try copiedPage(document, at: edit.sourceIndex)
+            _ = try pageSize(page)
+            // Normalize first so adding the bounded delta cannot overflow.
+            let original = ((page.rotation % 360) + 360) % 360
+            guard original % 90 == 0 else {
+                throw FreewheelError.invalidInput("A source PDF page has an unsupported rotation.")
+            }
+            page.rotation = (original + edit.rotationQuarterTurns * 90) % 360
+            result.insert(page, at: result.pageCount)
+        }
+        try Task.checkCancellation()
+        let output = outputURL(input, suffix: "-organized", ext: "pdf", directory: directory)
+        try savePDF(result, to: output)
+        try Task.checkCancellation()
+        // Keep the source snapshot alive until PDFKit has written every copied
+        // page; copied pages can retain references to the source data provider.
+        return withExtendedLifetime(snapshot) {
+            ConversionResult(outputs: [output], note: document.isEncrypted
+                ? "Created a new PDF without password protection. Review links, bookmarks, forms, and signatures after changing pages."
+                : "Created a new PDF with the selected page order and rotations. Review links, bookmarks, forms, and signatures after changing pages.")
+        }
     }
 
     private static func copiedPage(_ document: PDFDocument, at index: Int) throws -> PDFPage {
@@ -740,7 +787,7 @@ public enum NativeConverter {
         return result
     }
 
-    private static func pageSize(_ page: PDFPage) throws -> CGSize {
+    static func pageSize(_ page: PDFPage) throws -> CGSize {
         guard let reference = page.pageRef else { throw FreewheelError.operationFailed("The PDF page could not be rendered.") }
         let box = reference.getBoxRect(.cropBox).intersection(reference.getBoxRect(.mediaBox))
         guard box.width.isFinite, box.height.isFinite, box.width > 0, box.height > 0,
@@ -751,7 +798,7 @@ public enum NativeConverter {
         return turn == 90 || turn == 270 ? CGSize(width: box.height, height: box.width) : box.size
     }
 
-    private static func renderPDF(_ page: PDFPage, dpi: CGFloat, longEdge: Int? = nil) throws -> CGImage {
+    static func renderPDF(_ page: PDFPage, dpi: CGFloat, longEdge: Int? = nil) throws -> CGImage {
         let size = try pageSize(page)
         var scale = dpi / 72
         if let limit = longEdge { scale = min(scale, CGFloat(limit) / max(size.width, size.height)) }
