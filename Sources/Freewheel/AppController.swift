@@ -55,6 +55,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
+        NSApp.appearance = NSAppearance(named: Palette.appearanceName)
         buildWindow()
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         statusItem?.button?.image = NSImage(systemSymbolName: "circle.hexagongrid", accessibilityDescription: "Freewheel")
@@ -161,7 +162,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
     @objc func showSettings() { section = "settings"; engineRefresh += 1; showMainWindow() }
     @objc private func toggleWheel() { wheelEnabled.toggle() }
     @objc private func showAbout() {
-        NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Freewheel", .applicationVersion: "0.1.2", .credits: NSAttributedString(string: "Free, open-source file conversion.\nMIT licensed · Freewheel contributors\nAll processing happens on this Mac.")])
+        NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Freewheel", .applicationVersion: "0.1.2", .credits: NSAttributedString(string: "Free, open-source file conversion.\nCreated by Kaan Kars · MIT licensed\nAll processing happens on this Mac.")])
     }
 
     @objc func chooseFiles() {

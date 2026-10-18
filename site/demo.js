@@ -79,9 +79,9 @@
     const definitions = svgElement("defs", {});
     const surface = svgElement("linearGradient", { id: "wheel-surface", x1: "0", y1: "0", x2: "0.7", y2: "1" });
     surface.append(
-      svgElement("stop", { offset: "0", "stop-color": "#FFFFFF", "stop-opacity": "0.96" }),
-      svgElement("stop", { offset: "0.55", "stop-color": "#FFFDF3", "stop-opacity": "0.74" }),
-      svgElement("stop", { offset: "1", "stop-color": "#F2F8DA", "stop-opacity": "0.87" })
+      svgElement("stop", { offset: "0", "stop-color": "#3C5745" }),
+      svgElement("stop", { offset: "0.55", "stop-color": "#2A4131" }),
+      svgElement("stop", { offset: "1", "stop-color": "#1C3024" })
     );
     const active = svgElement("linearGradient", { id: "wheel-active", x1: "0", y1: "0", x2: "0.7", y2: "1" });
     active.append(
@@ -126,7 +126,6 @@
   function setPhase(next) {
     phase = next; demo.dataset.phase = next;
     $("reset").disabled = phase === "idle" && history.length === 0;
-    $("selection-tag").hidden = phase === "idle" || phase === "queued" || phase === "done";
     $("wheel-frame").hidden = phase === "queued" || phase === "done";
     $("result").hidden = phase !== "queued" && phase !== "done";
     $("next-step").disabled = phase === "queued";
@@ -146,7 +145,6 @@
     center.querySelector("span").textContent = phase === "wheel" ? "Cancel" : "Open Wheel";
     center.querySelector("use").setAttribute("href", phase === "wheel" ? "#icon-close" : "#icon-arrow");
     center.setAttribute("aria-label", phase === "wheel" ? "Close the wheel" : "Pick up the sample and open the wheel");
-    $("wheel-help").textContent = phase === "wheel" ? "Choose an operation · Arrow keys + Enter · Esc to close" : "Pick up the sample. Then tap Shift.";
     [...wheelSVG.querySelectorAll(".wheel-choice")].forEach((item) => {
       item.setAttribute("tabindex", phase === "wheel" ? "0" : "-1");
       item.setAttribute("aria-disabled", phase === "wheel" ? "false" : "true");

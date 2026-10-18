@@ -4,6 +4,10 @@ import SwiftUI
 
 /// Color is concentrated in actions and the app mark; file content stays neutral.
 enum Palette {
+    // Orchard Night is the current product theme, including native controls.
+    static let themeName = "Orchard Night"
+    static let appearanceName: NSAppearance.Name = .darkAqua
+
     static let canvasColor = adaptive(light: 0xFFF9EB, dark: 0x14251D)
     static let panelColor = adaptive(light: 0xFFFEF6, dark: 0x1C3024)
     static let raisedColor = adaptive(light: 0xEDF1DC, dark: 0x2C4331)

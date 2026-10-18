@@ -14,6 +14,45 @@ struct ProcessOutput: Sendable {
 
 /// Drains both pipes while the process runs. Cancellation also stops the child.
 enum ProcessRunner {
+    static func canonicalDirectoryPath(_ directory: URL) throws -> String {
+        let path = directory.path
+        guard directory.isFileURL, path.hasPrefix("/"), !path.contains("\0") else {
+            throw FreewheelError.invalidInput("A converter directory must be a local absolute path.")
+        }
+        // Foundation's resolvingSymlinksInPath may shorten /private/tmp to /tmp.
+        // POSIX realpath preserves the filesystem spelling used by LibreOffice.
+        guard let resolved = path.withCString({ realpath($0, nil) }) else {
+            throw FreewheelError.invalidInput("A converter directory could not be resolved.")
+        }
+        defer { free(resolved) }
+        var info = stat()
+        guard lstat(resolved, &info) == 0, info.st_mode & mode_t(S_IFMT) == mode_t(S_IFDIR) else {
+            throw FreewheelError.invalidInput("A converter directory is not available.")
+        }
+        return String(cString: resolved)
+    }
+
+    static func canonicalUnixSocketPath(_ socket: URL) throws -> String {
+        let name = socket.lastPathComponent
+        guard socket.isFileURL, !socket.hasDirectoryPath,
+              !name.isEmpty, name != ".", name != "..", !name.contains("/"), !name.contains("\0") else {
+            throw FreewheelError.invalidInput("A converter socket must be a local file path.")
+        }
+        // The socket usually does not exist yet, so resolve its existing parent.
+        let parent = try canonicalDirectoryPath(socket.deletingLastPathComponent())
+        let path = (parent == "/" ? "" : parent) + "/" + name
+        var info = stat()
+        if lstat(path, &info) == 0 {
+            // Never turn a symlink at the requested name into a grant elsewhere.
+            guard info.st_mode & mode_t(S_IFMT) == mode_t(S_IFSOCK) else {
+                throw FreewheelError.invalidInput("A converter socket path is already occupied.")
+            }
+        } else if errno != ENOENT {
+            throw FreewheelError.invalidInput("A converter socket path could not be checked.")
+        }
+        return path
+    }
+
     static func run(executable: URL, arguments: [String], currentDirectory: URL? = nil,
                     environment: [String: String] = [:], maximumOutputBytes: Int = 524_288,
                     timeout: TimeInterval = 900, denyNetwork: Bool = true,
@@ -38,7 +77,7 @@ enum ProcessRunner {
             // Exact path parameters grant no IP access or access to other sockets.
             for (index, socket) in allowedUnixSockets.enumerated() {
                 let key = "FREEWHEEL_SOCKET_\(index)"
-                parameters += ["-D", "\(key)=\(socket.resolvingSymlinksInPath().path)"]
+                parameters += ["-D", "\(key)=\(try canonicalUnixSocketPath(socket))"]
                 profile += "(allow network-bind network-inbound (local unix-socket (path-literal (param \"\(key)\"))))"
                 profile += "(allow network-outbound (remote unix-socket (path-literal (param \"\(key)\"))))"
             }

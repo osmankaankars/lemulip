@@ -21,6 +21,10 @@ struct SettingsContent: View {
                     .font(.system(size: 12)).foregroundStyle(Palette.muted)
             }
             VStack(spacing: 0) {
+                settingRow(model.text("Theme", "Tema"), subtitle: model.text("Vivid lime on deep orchard green", "Koyu orman yeşili üzerinde canlı lime")) {
+                    Text(Palette.themeName).font(.system(size: 12, weight: .medium)).foregroundStyle(Palette.accent)
+                }
+                divider
                 settingRow(model.text("Language", "Dil"), subtitle: model.text("App interface language", "Uygulama arayüzünün dili")) {
                     Picker("", selection: $model.language) { Text("English").tag("en"); Text("Türkçe").tag("tr") }.labelsHidden().frame(width: 132)
                 }

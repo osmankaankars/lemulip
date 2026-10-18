@@ -80,7 +80,5 @@ and satisfy the licenses of the exact binaries and codecs you distribute.
 
 ## Independent Implementation
 
-Freewheel is an independently implemented application inspired by the general
-workflow of drag-triggered local file tools. No Tangerine source code, app icon,
-brand assets, illustrations, or proprietary binaries are included. Tangerine is
-not affiliated with or an endorser of this project.
+Freewheel's application code, icon, and product artwork are original to this
+project. Third-party components and optional engines are documented above.

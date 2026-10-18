@@ -27,9 +27,6 @@ ROOT = Path(sys.argv[1]).resolve()
 REPO_NAME = "freewheel"
 BRANCH = "main"
 STATE_KEY = "freewheel.publishState"
-AUTHOR = "Freewheel contributors"
-# A reserved address cannot attribute a generic commit to another GitHub account.
-EMAIL = "contributors@freewheel.invalid"
 COMMIT_MESSAGE = "Add Freewheel local macOS file converter"
 DESCRIPTION = "File tools, right where you drag. Free, local file conversion for macOS."
 TOPICS = ["macos", "swift", "swiftui", "file-converter", "drag-and-drop",
@@ -273,6 +270,10 @@ def main():
         or expected_owner.lower() != owner.lower()
     ):
         stop("The authenticated GitHub account does not match FREEWHEEL_GITHUB_OWNER. No source edit or repository creation was made. Check the active account separately.")
+    # Attribute the work to this verified account without reading or publishing
+    # its private email address or personal Git configuration.
+    author = owner
+    email = str(owner_id) + "+" + owner + "@users.noreply.github.com"
     slug = owner + "/" + REPO_NAME
     origin = "https://github.com/" + slug + ".git"
     repo_endpoint = "repos/" + slug
@@ -332,21 +333,21 @@ def main():
         elif repository is not None and state.get("creation_succeeded") is not True:
             stop("A repository now exists, but its creation was not confirmed by this helper. Review it manually before publishing.")
 
-    ENV.update(GIT_AUTHOR_NAME=AUTHOR, GIT_AUTHOR_EMAIL=EMAIL,
-               GIT_COMMITTER_NAME=AUTHOR, GIT_COMMITTER_EMAIL=EMAIL,
+    ENV.update(GIT_AUTHOR_NAME=author, GIT_AUTHOR_EMAIL=email,
+               GIT_COMMITTER_NAME=author, GIT_COMMITTER_EMAIL=email,
                GIT_AUTHOR_DATE=state["date"], GIT_COMMITTER_DATE=state["date"])
     if head.returncode:
-        git("-c", "user.name=" + AUTHOR, "-c", "user.email=" + EMAIL,
+        git("-c", "user.name=" + author, "-c", "user.email=" + email,
             "-c", "commit.cleanup=verbatim", "commit", "--no-gpg-sign", "-m", COMMIT_MESSAGE,
             label="Create public source commit")
     commit = value("rev-parse", "HEAD")
-    expected_commit = ("tree " + tree + "\nauthor " + AUTHOR + " <" + EMAIL + "> " + state["date"] +
-                       "\ncommitter " + AUTHOR + " <" + EMAIL + "> " + state["date"] +
+    expected_commit = ("tree " + tree + "\nauthor " + author + " <" + email + "> " + state["date"] +
+                       "\ncommitter " + author + " <" + email + "> " + state["date"] +
                        "\n\n" + COMMIT_MESSAGE + "\n")
     if git("cat-file", "commit", commit).stdout.decode() != expected_commit or (
         state.get("commit") is not None and state["commit"] != commit
     ):
-        stop("The local commit is not the exact anonymous initial commit recorded by this helper.")
+        stop("The local commit is not the exact account-attributed initial commit recorded by this helper.")
     state["commit"] = commit
     save(state)
     permitted = {"refs/heads/" + BRANCH, "refs/tags/" + tag}
@@ -355,14 +356,14 @@ def main():
     tag_ref = "refs/tags/" + tag
     tag_message = "Freewheel " + version + " public preview"
     if git("show-ref", "--verify", "--quiet", tag_ref, allow_failure=True).returncode:
-        git("-c", "user.name=" + AUTHOR, "-c", "user.email=" + EMAIL,
+        git("-c", "user.name=" + author, "-c", "user.email=" + email,
             "tag", "-a", tag, commit, "-m", tag_message, label="Create annotated preview tag")
-    expected_tag = ("object " + commit + "\ntype commit\ntag " + tag + "\ntagger " + AUTHOR +
-                    " <" + EMAIL + "> " + state["date"] + "\n\n" + tag_message + "\n")
+    expected_tag = ("object " + commit + "\ntype commit\ntag " + tag + "\ntagger " + author +
+                    " <" + email + "> " + state["date"] + "\n\n" + tag_message + "\n")
     if git("cat-file", "tag", tag_ref).stdout.decode() != expected_tag:
         stop("The local preview tag has a different target or annotation. It was not overwritten.")
     tag_object = value("rev-parse", tag_ref)
-    print("Checked " + str(len(names)) + " source files. Public identity: " + AUTHOR + ".", flush=True)
+    print("Checked " + str(len(names)) + " source files. Public identity: " + author + ".", flush=True)
 
     if repository is None:
         if state.get("creation_succeeded") or state.get("repo_id") is not None:

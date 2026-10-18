@@ -1,9 +1,9 @@
 # Design
 
-Freewheel should feel bright, useful, and at home on a Mac. The visual direction
-combines vivid pistachio and lime with warm neutral surfaces, a dimensional
-folded-ribbon icon, and clear controls. Photos, pages, and waveforms keep their
-own colors.
+Freewheel should feel lively, useful, and at home on a Mac. **Orchard Night** is
+the selected default: deep orchard-green surfaces, vivid pistachio and lime
+accents, warm white text, and a dimensional folded-ribbon icon. Photos, pages,
+and waveforms keep their own colors.
 
 ## Color System
 
@@ -23,8 +23,10 @@ Use the bright fill for selection and the main action. Use the darker functional
 green for small text on light surfaces. A bright brand color is not automatically
 a readable text color.
 
-The native palette follows the system appearance. The web walkthrough has an
-intentional light product-page presentation; it is not a native app screenshot.
+The native app and website use Orchard Night by default, including when the
+system uses a light appearance. The light tokens remain available for a future
+appearance preference. The web walkthrough is an illustrated simulation, not
+a native app screenshot.
 
 ## Materials and Depth
 
@@ -66,6 +68,11 @@ lighting and appearance variants remains a separate milestone, guided by
 - Use sentence case for explanations and status messages.
 - Name an action after its result. Keep keyboard focus visible and pair color
   with labels, symbols, or selection indicators.
+- Let the wheel stand on its own. Keep its operation labels and essential mode
+  controls, with no enclosing rectangular panel or repeated instruction below it.
+  Retain nonvisual guidance for assistive technology.
+- Label Office outputs by the application and format people recognize. Keep
+  engine setup details in Settings, missing-engine help, and the format guide.
 - Mark simulations and planned editors clearly. Show actual exported output
   before describing a capability as finished.
 

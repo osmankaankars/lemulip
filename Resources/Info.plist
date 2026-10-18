@@ -16,7 +16,7 @@
     <key>NSPrincipalClass</key><string>NSApplication</string>
     <key>NSHighResolutionCapable</key><true/>
     <key>NSSupportsAutomaticGraphicsSwitching</key><true/>
-    <key>NSHumanReadableCopyright</key><string>Copyright © 2026 Freewheel contributors. MIT License.</string>
+    <key>NSHumanReadableCopyright</key><string>Copyright © 2026 Kaan Kars and contributors. MIT License.</string>
     <key>CFBundleDocumentTypes</key>
     <array>
         <dict>

@@ -56,16 +56,27 @@ Freewheel uses the first video stream and first audio stream for its FFmpeg rout
 
 ## Documents, Slides, and Spreadsheets
 
+**DOCX** is a Microsoft Word document, **XLSX** is an Excel workbook, and
+**PPTX** is a PowerPoint presentation. LibreOffice is an optional local engine
+that reads and writes those formats; it is not a separate output format.
+You do not need Microsoft Office installed to run these conversions.
+
 | Route | Engine | Fidelity |
 | --- | --- | --- |
 | TXT, Markdown, RTF, HTML → TXT, Markdown, RTF, HTML, PDF | Built in for basic routes | Text-focused; see exceptions below |
 | Markdown → HTML, DOCX, ODT | Pandoc | Structured conversion |
+| TXT, RTF, HTML → DOCX | LibreOffice | Creates a Word document; complex formatting may change |
 | EPUB input or EPUB output | Pandoc; some source formats also need LibreOffice | Reflowable document conversion |
 | DOC, DOCX, ODT and supported Pages input → configured document outputs | LibreOffice | Depends on the input document and installed fonts |
 | PPT, PPTX, ODP → PDF, PPTX, ODP | LibreOffice | Layout may change |
 | XLS, XLSX, ODS, CSV, TSV → XLSX, ODS, CSV, TSV, PDF | LibreOffice, except CSV ↔ TSV | Layout, formulas, and sheet handling depend on the output |
 | CSV ↔ TSV | Built in | Preserves quoted delimiters and multiline fields |
 | Word count | Built in for basic text; Pandoc or LibreOffice for other documents | Reports a count in Activity |
+
+The engine runs in the background. You choose a file format in Freewheel and
+receive that file, which can be opened in its compatible application.
+LibreOffice documents its [Microsoft Office format support](https://help.libreoffice.org/latest/en-US/text/shared/guide/ms_user.html)
+and [background conversion options](https://help.libreoffice.org/latest/en-US/text/shared/guide/start_parameters.html).
 
 Basic Markdown conversion to PDF, RTF, or TXT preserves text. It does not render a full Markdown layout. Exporting an Office document as Markdown also produces plain text in a Markdown file. EPUB → PDF currently renders extracted text, not a reproduction of the ebook's layout.
 

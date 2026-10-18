@@ -76,16 +76,44 @@ final class EngineTests: XCTestCase {
     func testOfficeProfileURLAndIPCNameMatchLibreOffice() throws {
         let profile = root.appendingPathComponent("office profile % # []", isDirectory: true)
         try FileManager.default.createDirectory(at: profile, withIntermediateDirectories: false)
-        let url = ExternalConverters.officeProfileURL(profile)
+        let url = try ExternalConverters.officeProfileURL(profile)
         XCTAssertTrue(url.hasSuffix("/office%20profile%20%25%20%23%20%5B%5D"))
-        XCTAssertEqual(try XCTUnwrap(URL(string: url)).path, profile.resolvingSymlinksInPath().path)
+        let canonicalProfile = try XCTUnwrap(URL(string: url))
+        let sourceInfo = try FileManager.default.attributesOfItem(atPath: profile.path)
+        let resolvedInfo = try FileManager.default.attributesOfItem(atPath: canonicalProfile.path)
+        XCTAssertEqual(try XCTUnwrap(sourceInfo[.systemFileNumber] as? NSNumber), try XCTUnwrap(resolvedInfo[.systemFileNumber] as? NSNumber))
+        XCTAssertEqual(try XCTUnwrap(sourceInfo[.systemNumber] as? NSNumber), try XCTUnwrap(resolvedInfo[.systemNumber] as? NSNumber))
+        let link = root.appendingPathComponent("profile link", isDirectory: true)
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: profile)
+        XCTAssertEqual(try ExternalConverters.officeProfileURL(link), url)
+
+        let pendingSocket = link.appendingPathComponent("private.sock")
+        XCTAssertEqual(try ProcessRunner.canonicalUnixSocketPath(pendingSocket), canonicalProfile.path + "/private.sock")
+        XCTAssertThrowsError(try ProcessRunner.canonicalUnixSocketPath(link.appendingPathComponent("missing/socket")))
+        try FileManager.default.createSymbolicLink(at: pendingSocket, withDestinationURL: canonicalProfile.appendingPathComponent("other.sock"))
+        XCTAssertThrowsError(try ProcessRunner.canonicalUnixSocketPath(pendingSocket), "A dangling socket symlink must not become a grant")
+        try FileManager.default.removeItem(at: pendingSocket)
+        try Data("occupied".utf8).write(to: pendingSocket)
+        XCTAssertThrowsError(try ProcessRunner.canonicalUnixSocketPath(pendingSocket), "An occupied non-socket path must be rejected")
+        XCTAssertThrowsError(try ExternalConverters.officeProfileURL(pendingSocket))
         #if os(macOS)
+        // Foundation shortens /private paths. LibreOffice hashes their POSIX spelling.
+        let fixture = "fw-office-\(UUID().uuidString)"
+        let alias = URL(fileURLWithPath: "/tmp/\(fixture)/profile % # []", isDirectory: true)
+        let physical = URL(fileURLWithPath: "/private/tmp/\(fixture)", isDirectory: true)
+        try FileManager.default.createDirectory(at: alias, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        defer { try? FileManager.default.removeItem(at: physical) }
+        XCTAssertEqual(try ExternalConverters.officeProfileURL(alias), "file:///private/tmp/\(fixture)/profile%20%25%20%23%20%5B%5D")
+        let pending = alias.appendingPathComponent("not-created.sock")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: pending.path))
+        XCTAssertEqual(try ProcessRunner.canonicalUnixSocketPath(pending), "/private/tmp/\(fixture)/profile % # []/not-created.sock")
+
         // Independent MD5 vectors exercise LibreOffice's unpadded-byte spelling.
         for (profileURL, digest) in [
             ("file:///private/tmp/freewheel-profile", "8dde90caf5ca1b752d47c91e1954854"),
             ("file:///private/tmp/office%20profile%20%25%20%23%20%5B%5D", "1fa5e9fd753261a2573ad92a1224b74")
         ] {
-            let sockets = ExternalConverters.officeIPCSockets(profileURL: profileURL)
+            let sockets = try ExternalConverters.officeIPCSockets(profileURL: profileURL)
             XCTAssertEqual(sockets.map(\.lastPathComponent), Array(repeating: "OSL_PIPE_\(getuid())_SingleOfficeIPC_\(digest)", count: 2))
             XCTAssertEqual(sockets.map { $0.deletingLastPathComponent().path }, ["/private/tmp", "/private/var/tmp"])
         }

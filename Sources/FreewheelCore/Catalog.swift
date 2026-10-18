@@ -41,6 +41,9 @@ public enum Catalog {
             else if family == .pdf { detail = "Extract selectable text" }
             else if family == .image && ext == "pdf" && inputs.count > 1 { detail = "Combine in the order shown" }
             else if ext == "epub" { detail = "Reflowable ebook" }
+            else if ext == "docx" { detail = "Microsoft Word Document" }
+            else if ext == "xlsx" { detail = "Microsoft Excel Workbook" }
+            else if ext == "pptx" { detail = "Microsoft PowerPoint Presentation" }
             else { detail = dependency.map { "Local \($0) engine" } ?? "Built into macOS" }
             return FileOperation(id: "convert.\(ext)", title: ext.uppercased(), symbol: symbol(for: family, output: ext), outputExtension: ext, detail: detail, dependency: dependency)
         }

@@ -34,6 +34,24 @@ Some formats need an optional local converter. Install FFmpeg for broader media 
 
 See [Optional engines](INSTALL.md#optional-engines), then click **Refresh** under **Settings → Local Engines**. Freewheel does not install a helper automatically.
 
+## Can I Create Word, Excel, and PowerPoint Files?
+
+Yes. Supported routes can create **DOCX** documents, **XLSX** workbooks, and
+**PPTX** presentations. These are Microsoft Office file formats, and the results
+can be opened in Word, Excel, and PowerPoint.
+
+LibreOffice is the optional local conversion engine for many of these routes.
+Freewheel calls it in the background without opening its editor. Microsoft Office
+does not need to be installed. Markdown-to-DOCX uses Pandoc instead.
+
+Installing LibreOffice adds a separate application to your Mac. It is optional
+and is not bundled into Freewheel. Common image, PDF, archive, subtitle, and
+basic text tools work without it.
+
+Complex formatting can change between formats. PDF-to-editable-Office conversion
+is planned, not currently implemented. See [Formats](FORMATS.md#documents-slides-and-spreadsheets)
+for the exact routes.
+
 ## Why Is Pandoc Reporting a Missing Template?
 
 Freewheel runs Pandoc with `--sandbox`. The installed binary needs embedded data files for some formats, including EPUB, DOCX, and ODT. Install the [official Pandoc package](https://pandoc.org/installing.html), then refresh engine detection.

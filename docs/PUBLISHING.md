@@ -39,10 +39,12 @@ chmod u+x ./Publish-to-GitHub.command
 ./Publish-to-GitHub.command
 ```
 
-The helper uses the authenticated account's GitHub login to choose the owner. Commit and tag attribution uses the anonymous **Freewheel contributors** identity. It ignores your personal Git name and email.
+The helper uses the authenticated account's GitHub login to choose the owner and
+the public commit name. Commit and tag attribution uses that account's ID-based
+GitHub `noreply` address. It ignores your personal Git name and private email.
 
-Its placeholder email uses the reserved `.invalid` domain, so the generic
-identity does not associate a new commit with an unrelated GitHub account.
+This lets GitHub associate the contribution with the account while keeping its
+private email out of public history. See GitHub's [commit email reference](https://docs.github.com/en/account-and-profile/reference/email-addresses-reference).
 
 If you use more than one GitHub account, bind this run to the expected login. Replace the example value with your GitHub username:
 
@@ -88,7 +90,7 @@ The preview is ad-hoc signed, without Developer ID signing or notarization. Do n
 
 ## Rerun After an Interruption
 
-Rerun the same command from the same unchanged folder. A local marker in `.git/config` records the owner, source tree, anonymous commit, version, and remote repository ID. It is never published.
+Rerun the same command from the same unchanged folder. A local marker in `.git/config` records the owner, source tree, account-attributed commit, version, and remote repository ID. It is never published.
 
 A retry checks those values, the origin URL, local branch and tag, and remote references before continuing. It can retry missing setup after a completed source push. Existing matching references are left in place.
 

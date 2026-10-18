@@ -246,10 +246,10 @@ enum ExternalConverters {
             case "tsv": filter = "csv:Text - txt - csv (StarCalc):9,34,76,1"
             default: filter = target
             }
-            let profileURL = officeProfileURL(profile)
+            let profileURL = try officeProfileURL(profile)
             var ipcSockets: [URL] = []
             #if os(macOS)
-            ipcSockets = officeIPCSockets(profileURL: profileURL)
+            ipcSockets = try officeIPCSockets(profileURL: profileURL)
             #endif
             _ = try await ProcessRunner.checked(executable: office, arguments: ["-env:UserInstallation=\(profileURL)", "--headless", "--norestore", "--nodefault", "--nolockcheck", "--nofirststartwizard", "--convert-to", filter, "--outdir", out.path, copiedInput.path], currentDirectory: job, timeout: 180, allowedUnixSockets: ipcSockets)
             let expected = out.appendingPathComponent("input.\(target == "tsv" ? "csv" : target)")
@@ -266,16 +266,16 @@ enum ExternalConverters {
         return ConversionResult(outputs: outputs, note: target == "csv" || target == "tsv" ? "CSV and TSV export the active sheet only; formulas and formatting become values." : target == "html" ? "HTML with embedded media is saved as a folder containing index.html and its resources. Complex layouts may change." : "Complex layouts may change when moving between office formats.")
     }
 
-    static func officeProfileURL(_ profile: URL) -> String {
+    static func officeProfileURL(_ profile: URL) throws -> String {
         // Match LibreOffice's canonical file-URL spelling, without a trailing slash.
         // sal/osl/unx/file_url.cxx uses this URI character set.
         let characters = CharacterSet(charactersIn: "!$&'()*+,-./0123456789:=@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~")
-        let path = profile.resolvingSymlinksInPath().standardizedFileURL.path
+        let path = try ProcessRunner.canonicalDirectoryPath(profile)
         return "file://" + path.addingPercentEncoding(withAllowedCharacters: characters)!
     }
 
     #if os(macOS)
-    static func officeIPCSockets(profileURL: String) -> [URL] {
+    static func officeIPCSockets(profileURL: String) throws -> [URL] {
         // LibreOffice 26.8 and current master use UTF-16 bytes and unpadded hex
         // for the profile's IPC name. MD5 here reproduces a name, not a security check.
         // https://github.com/LibreOffice/core/blob/libreoffice-26.8.0.3/desktop/source/deployment/misc/dp_misc.cxx
@@ -284,8 +284,9 @@ enum ExternalConverters {
         let name = "OSL_PIPE_\(getuid())_SingleOfficeIPC_\(digest)"
         // OSL_SOCKET_PATH is only a fallback when both standard directories are
         // unwritable, so an environment override would not relocate a normal run.
-        return ["/tmp", "/var/tmp"].map {
-            URL(fileURLWithPath: $0, isDirectory: true).appendingPathComponent(name).resolvingSymlinksInPath()
+        return try ["/tmp", "/var/tmp"].map {
+            let socket = URL(fileURLWithPath: $0, isDirectory: true).appendingPathComponent(name)
+            return URL(fileURLWithPath: try ProcessRunner.canonicalUnixSocketPath(socket), isDirectory: false)
         }
     }
     #endif

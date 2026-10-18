@@ -52,7 +52,7 @@ ALLOWED_EMAILS = {b"contributors@freewheel.invalid"}
 # Update a digest only after reviewing the new image and its metadata.
 PUBLIC_IMAGES = {
     "Resources/AppIcon.png": "141333d6fbca0f0e3bc27bc4b3afbff1d2e46e74c15f9e972da87ef263a1478a",
-    "docs/assets/demo-preview.png": "bad39c4c95764305c402f1af590578f7016ddd220a1ae945c89988bd83c1e39e",
+    "docs/assets/demo-preview.png": "e779bce8bd888977674e96ce14cd445b59cf89b744fde043e7185cef87d9df18",
 }
 TEXT_SIZE_LIMIT = 2_000_000
 IMAGE_SIZE_LIMIT = 8_000_000

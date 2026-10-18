@@ -49,7 +49,7 @@ Prefer a window? Add files with **⌘O**, drop them into the workspace, or choos
 | Images | PNG, JPEG, HEIC, TIFF and BMP; resize, crop, rotate, remove metadata; images to PDF |
 | PDFs | Merge, split, extract pages, rotate, export pages as images, extract text, offline OCR |
 | Audio and video | Native media conversion where macOS codecs allow it; more formats, trimming and compression with FFmpeg |
-| Documents and tables | Basic text formats, CSV ↔ TSV and SRT ↔ VTT; Office formats with LibreOffice; EPUB and structured Markdown with Pandoc |
+| Documents and tables | Microsoft Word (DOCX), Excel (XLSX), PowerPoint (PPTX), text, CSV ↔ TSV, and subtitles; some routes need an optional local engine |
 | Archives | Create ZIP and TAR, GZIP individual files, extract supported archives into a new folder |
 | File actions | AirDrop, floating shelf, copy, move, copy path, open the containing folder in Terminal |
 
@@ -71,6 +71,8 @@ brew install --cask libreoffice
 These commands require [Homebrew](https://brew.sh). For Pandoc, use its [official macOS installer](https://pandoc.org/installing.html), which includes the templates needed by Freewheel's restricted document conversion.
 
 Open **Settings → Local Engines → Refresh** afterward. Freewheel does not download helpers automatically. Installing engines needs internet access; conversion runs locally.
+
+DOCX, XLSX, and PPTX are Microsoft Office file formats. LibreOffice handles some of these conversions in the background; you can open the results in Word, Excel, or PowerPoint. Microsoft Office does not need to be installed for those routes. See [Office Formats](docs/FORMATS.md#documents-slides-and-spreadsheets) for the supported input and output combinations.
 
 ## Your Originals Stay Yours
 
@@ -97,6 +99,12 @@ Try a small, non-sensitive file and tell us what worked or failed. Good reports 
 
 The [roadmap](docs/ROADMAP.md) prioritizes reliable releases, visual editing, a warmer interface, and measurable limits on app size and idle resource use.
 
-Freewheel is MIT licensed. It is an original implementation inspired by the drag-wheel workflow of [Tangerine](https://tangerineformac.com), with its own code and visual identity. It is not affiliated with Tangerine.
+## Contributors
+
+Created and maintained by **[Kaan Kars](https://github.com/osmankaankars)**.
+
+Contributions are welcome. See [Contributing](CONTRIBUTING.md) for bug reports, improvements, and development guidance.
+
+Freewheel is MIT licensed. Its drag-wheel workflow was inspired by [Tangerine](https://tangerineformac.com).
 
 [License](LICENSE) · [Third-Party Notices](THIRD_PARTY_NOTICES.md) · [Security](SECURITY.md) · [Release Notes](docs/RELEASE_NOTES.md)

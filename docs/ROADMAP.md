@@ -96,15 +96,16 @@ the preview data needed for the visible editor.
 
 ## 4. Warm Visual Identity
 
-The first visual foundation is implemented in source: a vivid pistachio and lime
-palette, a dimensional folded-ribbon icon, system light and dark appearance,
-and navigation materials with an older-system fallback. See the shared
+The first visual foundation is implemented in source: **Orchard Night** as the
+default, vivid pistachio and lime accents, a dimensional folded-ribbon icon,
+and navigation materials with an older-system fallback. The wheel stands on its
+own without an enclosing rectangular panel or repeated footer instruction. See the shared
 [Design guide](DESIGN.md). Native build and appearance verification are still
 required before a release claim.
 
-Use warm neutral surfaces, dark readable text, and concentrated color for
-selection, focus, and the primary action. Let users' photos, pages, and waveforms
-remain the main content.
+Use deep green surfaces, warm readable text, and concentrated color for selection,
+focus, and the primary action. Let users' photos, pages, and waveforms remain the
+main content.
 
 - Refine the original icon at Finder and Dock sizes; add a wordmark and a
   layered Icon Composer variant after the naming decision.
@@ -112,7 +113,8 @@ remain the main content.
   domains, and relevant trademarks. Candidate names are not approved identities.
 - Share color, spacing, typography, focus, and control states across the wheel,
   workspace, editors, website, and documentation.
-- Support system light and dark appearance, reduced motion, and keyboard access.
+- Keep Orchard Night consistent across windows and editors. Add an appearance
+  preference later; preserve reduced motion, transparency options, and keyboard access.
 - Use Title Case for English headings and actions; keep explanatory text direct.
 - Replace promotional concepts with actual app screenshots as each editor ships.
   Label any interactive simulation clearly.
@@ -122,7 +124,26 @@ contrast requirements, and the same editing task feels consistent across the
 app and its product pages. A rename needs its own migration plan for preferences,
 bundle identity, repository links, and existing downloads.
 
-## 5. Additional Tools
+## 5. Easier Office Conversion
+
+The current implementation offers DOCX, XLSX, and PPTX output through optional
+local engines. Make common routes easier to use while preserving a small app.
+
+- Keep format names clear: Microsoft Word Document, Excel Workbook, and
+  PowerPoint Presentation. Explain an engine requirement before a job starts.
+- Evaluate built-in export for basic DOCX documents and single-sheet CSV/TSV to
+  XLSX. Define the supported formatting and data types before expanding scope.
+- Keep an optional local engine for complex Office documents and verify font,
+  table, formula, and slide behavior with representative files.
+- Develop PDF-to-editable-DOCX as a separate layout-reconstruction feature.
+  Follow with spreadsheet and slide export only when their outputs are usable.
+- Add slide-to-image export with explicit page selection and image dimensions.
+
+**Ready when:** supported routes produce files that open correctly in their
+target applications, layout and data limitations are clear, and optional engine
+installation is required only where the documented route needs it.
+
+## 6. Additional Tools
 
 After the core editors are reliable, prioritize tools by repeated real tasks:
 photo adjustments with before/after comparison, metadata inspection and editing,
@@ -164,16 +185,3 @@ Create preview workers only when an editor opens. Downsample image previews,
 bound waveform and thumbnail caches, cancel obsolete requests, and release their
 buffers on close. Full-resolution export should use the original file through
 the existing safe output pipeline. Heavy work must not block the main thread.
-
-## Design Benchmark
-
-The October 2026 review covered Tangerine's [homepage](https://tangerineformac.com/),
-[tool details](https://tangerineformac.com/tools), [press kit](https://tangerineformac.com/press),
-and [privacy page](https://tangerineformac.com/privacy), including its public
-editor screenshots and videos. The visual crop canvas, audio waveform selection,
-video timeline, and PDF thumbnails provide useful reference points for editing
-clarity. This was a review of public materials, not a hands-on performance test.
-
-Freewheel will use its own code, artwork, and product identity. Feature names
-and conversion counts alone do not establish comparable quality; the editor
-behavior and exported result must earn that comparison.

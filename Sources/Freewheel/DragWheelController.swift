@@ -207,11 +207,13 @@ private final class DragWheelView: NSView {
 
     override func draw(_ dirtyRect: NSRect) {
         guard let controller else { return }
-        Palette.panelColor.setFill()
-        NSBezierPath(roundedRect: bounds.insetBy(dx: 7, dy: 7), xRadius: 38, yRadius: 38).fill()
-        Palette.lineColor.setStroke()
-        NSBezierPath(roundedRect: bounds.insetBy(dx: 7.5, dy: 7.5), xRadius: 38, yRadius: 38).stroke()
         let visible = controller.visibleOperations
+        if visible.isEmpty {
+            let ring = NSBezierPath(ovalIn: NSRect(x: 42, y: 42, width: 336, height: 336))
+            ring.append(NSBezierPath(ovalIn: NSRect(x: 148, y: 148, width: 124, height: 124)))
+            ring.windingRule = .evenOdd
+            Palette.raisedColor.setFill(); ring.fill()
+        }
         for (index, operation) in visible.enumerated() {
             let step = 360.0 / Double(visible.count)
             let start = 90 - Double(index) * step + step / 2 - 1.3
@@ -225,8 +227,12 @@ private final class DragWheelView: NSView {
             segment.line(to: point(62, end))
             segment.appendArc(withCenter: center, radius: 62, startAngle: CGFloat(end), endAngle: CGFloat(start), clockwise: false)
             segment.close()
-            (selectedIndex == index ? accent.withAlphaComponent(0.20) : Palette.raisedColor).setFill(); segment.fill()
-            if selectedIndex == index { accent.withAlphaComponent(0.65).setStroke(); segment.lineWidth = 1.2; segment.stroke() }
+            // Each sector carries its own surface; the surrounding panel is clear.
+            Palette.raisedColor.setFill(); segment.fill()
+            if selectedIndex == index {
+                accent.withAlphaComponent(0.20).setFill(); segment.fill()
+                accent.withAlphaComponent(0.65).setStroke(); segment.lineWidth = 1.2; segment.stroke()
+            }
             let position = WheelGeometry.position(index: index, itemCount: visible.count, radius: 119)
             let location = NSPoint(x: center.x + CGFloat(position.x), y: center.y + CGFloat(position.y))
             let missing = operation.dependency.map { !EngineLocator.isAvailable($0) } ?? false
@@ -239,17 +245,19 @@ private final class DragWheelView: NSView {
         label(controller.text("Cancel", "Vazgeç"), rect: NSRect(x: 158, y: 184, width: 104, height: 22), size: 11, color: muted)
         for (index, mode) in WheelMode.allCases.enumerated() {
             let rect = NSRect(x: 65 + index * 98, y: 377, width: 94, height: 25)
+            Palette.panelColor.setFill(); NSBezierPath(roundedRect: rect, xRadius: 8, yRadius: 8).fill()
             if mode == controller.mode { accent.withAlphaComponent(0.12).setFill(); NSBezierPath(roundedRect: rect, xRadius: 8, yRadius: 8).fill() }
             let title = controller.text(mode.title, mode == .convert ? "Dönüştür" : mode == .tools ? "Araçlar" : "İşlemler")
             label(title, rect: rect.insetBy(dx: 2, dy: 5), size: 10, color: mode == controller.mode ? accent : muted)
         }
         if visible.isEmpty { label(controller.text("No operations for this selection", "Bu seçim için işlem yok"), rect: NSRect(x: 42, y: 300, width: 336, height: 34), size: 11, color: muted) }
         if controller.pageCount > 1 {
+            for rect in [NSRect(x: 70, y: 24, width: 34, height: 25), NSRect(x: 155, y: 24, width: 110, height: 25), NSRect(x: 316, y: 24, width: 34, height: 25)] {
+                Palette.panelColor.setFill(); NSBezierPath(roundedRect: rect, xRadius: 8, yRadius: 8).fill()
+            }
             label("‹", rect: NSRect(x: 70, y: 24, width: 34, height: 25), size: 21, color: accent)
             label("\(controller.page + 1) / \(controller.pageCount)", rect: NSRect(x: 155, y: 25, width: 110, height: 22), size: 11, color: muted)
             label("›", rect: NSRect(x: 316, y: 24, width: 34, height: 25), size: 21, color: accent)
-        } else {
-            label(controller.manual ? controller.text("Click or use arrows + Return · Esc to close", "Tıkla veya oklar + Enter · Esc ile kapat") : controller.text("Drop onto an operation", "Bir işlemin üzerine bırak"), rect: NSRect(x: 28, y: 26, width: 364, height: 20), size: 10, color: muted)
         }
     }
 
