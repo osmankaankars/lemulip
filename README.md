@@ -12,9 +12,17 @@ Files are processed on your Mac. No account, subscription, uploads, or analytics
 
 ## Get Started
 
-**Lemulip is an early public preview.** Check [Releases](https://github.com/osmankaankars/lemulip/releases) for verified Mac downloads. If the current release has no app assets, build from source below. [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml) tests Apple silicon and Intel and checks the exact universal packages before publishing. Finder drag compatibility and the full desktop workflow still need hands-on testing. Preview packages use ad-hoc signing, without Apple Developer ID signing or notarization.
+**Lemulip is an early public preview for macOS 13 or later.** Finder drag compatibility and the full desktop workflow still need hands-on testing.
 
-You need **macOS 13 or later** and **Swift 5.9 or later** from Xcode or Command Line Tools.
+### Download the App
+
+Open [Releases](https://github.com/osmankaankars/lemulip/releases) and choose the **macOS universal DMG** under **Assets**. Drag **Lemulip** into **Applications**. The app ZIP also includes the `lemulip` command-line tool. These downloads run on Apple silicon and Intel without installing Xcode or Swift.
+
+Downloads appear after [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml) passes and checks the exact packages on both architectures. If no app assets are listed yet, build from source below. Preview packages use ad-hoc signing, without Apple Developer ID signing or notarization; see [First Launch](docs/INSTALL.md#signing-and-first-launch).
+
+### Build From Source
+
+You need **Swift 5.9 or later** from compatible Xcode Command Line Tools or full Xcode.
 
 Download the source, extract it, and run this in the Lemulip folder:
 

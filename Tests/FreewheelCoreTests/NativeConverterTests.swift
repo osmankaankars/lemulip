@@ -661,9 +661,17 @@ final class NativeConverterTests: XCTestCase {
         }
         let original = try Data(contentsOf: input)
         let preview = try await NativeConverter.audioTrimPreview(for: input, maxSamples: 32)
-        let start = 0.123, end = 0.567
-        let expectedFirstFrame = ceil(start * preview.sampleRate)
-        let expectedFrames = ceil(end * preview.sampleRate) - expectedFirstFrame
+        let start: Double = 0.123, end: Double = 0.567
+        let fixtureSampleRate: Double = 44_100
+        let amplitude: Double = 0.8
+        let sampleAccuracy: Float = 0.0001
+        let expectedFirstFrame: Double = ceil(start * preview.sampleRate)
+        let expectedFrames: Double = ceil(end * preview.sampleRate) - expectedFirstFrame
+        let expectedLastFrame: Double = ceil(end * fixtureSampleRate) - 1
+        let firstSampleValue: Double = expectedFirstFrame / fixtureSampleRate * amplitude
+        let lastSampleValue: Double = expectedLastFrame / fixtureSampleRate * amplitude
+        let expectedFirstSample: Float = Float(firstSampleValue)
+        let expectedLastSample: Float = Float(lastSampleValue)
         var options = ConversionOptions()
         options.audioTrim = AudioTrimSelection(startSeconds: start, endSeconds: end,
                                                sourceDuration: preview.durationSeconds)
@@ -680,11 +688,11 @@ final class NativeConverterTests: XCTestCase {
             let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: 1))
             try file.read(into: buffer)
             let channels = try XCTUnwrap(buffer.floatChannelData)
-            XCTAssertEqual(channels[0][0], Float(expectedFirstFrame / 44_100 * 0.8), accuracy: 0.0001)
-            XCTAssertEqual(channels[1][0], -Float(expectedFirstFrame / 44_100 * 0.8), accuracy: 0.0001)
+            XCTAssertEqual(channels[0][0], expectedFirstSample, accuracy: sampleAccuracy)
+            XCTAssertEqual(channels[1][0], -expectedFirstSample, accuracy: sampleAccuracy)
             file.framePosition = file.length - 1
             try file.read(into: buffer)
-            XCTAssertEqual(channels[0][0], Float((ceil(end * 44_100) - 1) / 44_100 * 0.8), accuracy: 0.0001)
+            XCTAssertEqual(channels[0][0], expectedLastSample, accuracy: sampleAccuracy)
             XCTAssertTrue(result.note?.contains("16-bit PCM") == true)
         }
         XCTAssertEqual(try Data(contentsOf: input), original)

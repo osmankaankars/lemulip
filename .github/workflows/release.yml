@@ -1,0 +1,197 @@
+name: Preview Release
+
+on:
+  workflow_run:
+    workflows: [Build and Verify, CodeQL]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lemulip-preview-release
+  cancel-in-progress: false
+
+jobs:
+  prerequisites:
+    name: Verify Release Prerequisites
+    if: >-
+      github.repository_id == '1424213526' &&
+      github.repository_owner_id == '56635935' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' ||
+       github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      sha: ${{ steps.verify.outputs.sha }}
+    steps:
+      # No checkout or artifact execution occurs before all trust and CI gates.
+      - name: Verify the Trusted Commit and Its Required Jobs
+        id: verify
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import json, os, re, sys
+          from pathlib import Path
+          from urllib.error import HTTPError, URLError
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+
+          REPO = 'osmankaankars/lemulip'
+          REPO_ID, OWNER_ID = 1424213526, 56635935
+          PREFIX = 'repos/' + REPO
+          MAX_ATTEMPTS = 20
+          EXPECTED = {
+              'build.yml': ('macOS Tests (arm64)', 'macOS Tests (x86_64)',
+                            'Universal macOS Package', 'Verify Release Download (arm64)',
+                            'Verify Release Download (x86_64)'),
+              'codeql.yml': ('Scan Swift and the C Archive Bridge',),
+          }
+
+          def require(condition, message):
+              if not condition: raise SystemExit('Lemulip: ' + message)
+
+          def api(endpoint):
+              request = Request('https://api.github.com/' + endpoint, headers={
+                  'Authorization': 'Bearer ' + os.environ['GH_TOKEN'],
+                  'Accept': 'application/vnd.github+json',
+                  'X-GitHub-Api-Version': '2026-03-10',
+                  'User-Agent': 'Lemulip-Preview-Prerequisites'})
+              try:
+                  with urlopen(request, timeout=30) as response:
+                      body = response.read(4 * 1024 * 1024 + 1)
+              except HTTPError as error:
+                  raise SystemExit('GitHub prerequisite check failed (HTTP ' + str(error.code) + ').') from None
+              except (URLError, TimeoutError, OSError):
+                  raise SystemExit('GitHub prerequisite check could not be confirmed.') from None
+              require(len(body) <= 4 * 1024 * 1024, 'A prerequisite response exceeded its size limit.')
+              result = json.loads(body)
+              require(isinstance(result, dict), 'A prerequisite response has an unexpected shape.')
+              return result
+
+          def trusted_main(sha):
+              repo = api(PREFIX)
+              owner = repo.get('owner', {})
+              require(repo.get('id') == REPO_ID and repo.get('full_name') == REPO
+                      and repo.get('private') is False and repo.get('archived') is False
+                      and repo.get('default_branch') == 'main' and owner.get('id') == OWNER_ID
+                      and owner.get('login') == 'osmankaankars', 'The public repository identity differs.')
+              ref = api(PREFIX + '/git/ref/heads/main')
+              require(ref.get('ref') == 'refs/heads/main' and ref.get('object', {}).get('type') == 'commit',
+                      'Main could not be verified.')
+              if ref['object'].get('sha') != sha:
+                  print('Main has newer work. This completed commit will not publish a release.')
+                  raise SystemExit(0)
+
+          def positive(value):
+              return type(value) is int and value > 0
+
+          def complete_list(result, key):
+              items, count = result.get(key), result.get('total_count')
+              require(isinstance(items, list) and type(count) is int and count == len(items)
+                      and count <= 100 and all(isinstance(item, dict) for item in items),
+                      'Required workflow results could not be checked completely.')
+              return items
+
+          def successful_jobs(run, names, sha):
+              remaining = set(names)
+              latest = run['run_attempt']
+              require(latest <= MAX_ATTEMPTS, 'The workflow exceeds the bounded attempt review limit.')
+              # Partial reruns retain earlier successes in this same run. Never
+              # fall back past a newer failed, skipped, or pending execution.
+              for attempt in range(latest, max(0, latest - MAX_ATTEMPTS), -1):
+                  jobs = complete_list(api(PREFIX + '/actions/runs/' + str(run['id']) + '/attempts/'
+                                           + str(attempt) + '/jobs?per_page=100'), 'jobs')
+                  for name in names:
+                      if name not in remaining:
+                          continue
+                      found = [job for job in jobs if job.get('name') == name]
+                      require(len(found) <= 1, 'A required job is duplicated in one attempt: ' + name)
+                      if not found:
+                          continue
+                      job = found[0]
+                      require(job.get('run_id') == run['id'] and job.get('head_sha') == sha
+                              and (job.get('head_branch') is None or job['head_branch'] == 'main')
+                              and job.get('run_attempt', attempt) == attempt
+                              and job.get('status') == 'completed' and job.get('conclusion') == 'success',
+                              'The latest execution of a required job has not passed for this commit: ' + name)
+                      remaining.remove(name)
+                  if not remaining:
+                      return
+              require(False, 'Required jobs are missing from the bounded run history: ' + ', '.join(sorted(remaining)))
+
+          def verify():
+              event = json.loads(Path(os.environ['GITHUB_EVENT_PATH']).read_text())
+              require(event.get('repository', {}).get('id') == REPO_ID,
+                      'This event does not belong to the expected repository.')
+              event_name = os.environ.get('GITHUB_EVENT_NAME')
+              if event_name == 'workflow_run':
+                  trigger = event.get('workflow_run', {})
+                  require(trigger.get('head_branch') == 'main'
+                          and trigger.get('event') in {'push', 'workflow_dispatch'}
+                          and trigger.get('status') == 'completed' and trigger.get('conclusion') == 'success'
+                          and trigger.get('repository', {}).get('id') == REPO_ID
+                          and trigger.get('head_repository', {}).get('id') == REPO_ID
+                          and str(trigger.get('path', '')).split('@', 1)[0]
+                              in {'.github/workflows/build.yml', '.github/workflows/codeql.yml'},
+                          'The workflow trigger is not a successful trusted main run.')
+                  sha = trigger.get('head_sha', '')
+              else:
+                  require(event_name == 'workflow_dispatch' and os.environ.get('GITHUB_REF') == 'refs/heads/main',
+                          'Manual release preparation must run on main.')
+                  sha = os.environ.get('GITHUB_SHA', '')
+              require(isinstance(sha, str) and re.fullmatch(r'[0-9a-f]{40}', sha), 'The source commit is invalid.')
+              trusted_main(sha)
+              for filename, names in EXPECTED.items():
+                  query = urlencode({'head_sha': sha, 'branch': 'main',
+                                     'exclude_pull_requests': 'true', 'per_page': 100})
+                  items = complete_list(api(PREFIX + '/actions/workflows/' + filename + '/runs?' + query), 'workflow_runs')
+                  runs = [item for item in items
+                          if positive(item.get('id')) and positive(item.get('run_number'))
+                          and positive(item.get('run_attempt')) and item.get('head_sha') == sha
+                          and item.get('head_branch') == 'main' and item.get('event') in {'push', 'workflow_dispatch'}
+                          and str(item.get('path', '')).split('@', 1)[0] == '.github/workflows/' + filename
+                          and isinstance(item.get('repository'), dict) and item['repository'].get('id') == REPO_ID
+                          and isinstance(item.get('head_repository'), dict) and item['head_repository'].get('id') == REPO_ID]
+                  latest = max(runs, key=lambda item: (item['run_number'], item['run_attempt'])) if runs else None
+                  if latest is None or latest.get('status') != 'completed' or latest.get('conclusion') != 'success':
+                      print(filename + ' has not passed for this commit. No release tag will be created.')
+                      return
+                  successful_jobs(latest, names, sha)
+              trusted_main(sha)
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+                  output.write('sha=' + sha + '\n')
+              print('Verified main, both Mac test jobs, the universal package, both downloads, and CodeQL.')
+
+          try:
+              verify()
+          except (OSError, ValueError, TypeError, KeyError, AttributeError):
+              raise SystemExit('A release prerequisite could not be verified; no source was checked out.') from None
+          PY
+
+  prepare:
+    name: Prepare Verified Preview
+    needs: prerequisites
+    if: needs.prerequisites.outputs.sha != ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.prerequisites.outputs.sha }}
+          persist-credentials: false
+      - name: Create the Reviewed Tag and Start Its Mac Build
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LEMULIP_REVIEWED_SHA: ${{ needs.prerequisites.outputs.sha }}
+        run: python3 script/publish_preview.py

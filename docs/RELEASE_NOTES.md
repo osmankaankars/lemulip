@@ -18,11 +18,17 @@ when you need a queue, conversion options, or a closer look at the result.
   editor cancels its preview request and stops playback.
 - Use the same three saved themes and keyboard controls throughout the editor.
 - Include the visual crop editor and three appearances from source 0.1.3 below.
+- Fix the Swift compiler timeout in the selected-audio sample check without
+  removing the check or changing its tolerance.
+- Create the preview tag automatically after the same source commit passes
+  the required Mac build, package, and CodeQL checks, then start its tagged build.
+- Publish download assets from a verified draft so an interrupted upload can
+  resume without replacing existing releases or files.
 
-This is a public preview candidate, with source version **0.1.4**. The new
-native editors still need exact-commit Mac builds and hands-on acceptance.
+This source is a public preview candidate, version **0.1.4**, build **6**.
 Download assets appear only after the tagged commit passes the Mac build and
-package checks. Existing tags and releases are preserved.
+package checks. Hands-on acceptance of the native editor interactions remains
+separate from automated CI. Existing tags and releases are preserved.
 
 Read [Audio Waveform Trim](USER_GUIDE.md#audio-waveform-trim) for controls,
 supported inputs, and output precision. Video trimming remains a numeric panel;

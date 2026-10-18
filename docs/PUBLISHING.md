@@ -1,13 +1,81 @@
-# Publish and Maintain a Lemulip Repository
+# Publish and Maintain Lemulip
 
-The included publisher creates a new public repository named `lemulip` under the GitHub account already authenticated in your terminal. It publishes the reviewed source and preview tag, configures the project, and lets GitHub Actions build the downloads.
+The existing [Lemulip repository](https://github.com/osmankaankars/lemulip) prepares
+preview releases automatically after reviewed source reaches `main` and its
+required checks pass. Publishing source does not reinstall the Mac app; download
+the verified DMG or app ZIP when the tagged release finishes.
 
-Use this helper for a fresh source package. It is not an updater for an existing project with development history.
+## Automatic Preview Releases
 
-For the existing project, preserve its repository and history during the
-[Freewheel-to-Lemulip transition](#renaming-an-existing-freewheel-repository).
+1. **Build and Verify** tests the code on Apple silicon and Intel, builds the
+   universal package, and verifies the exact downloaded archives on both
+   architectures. **CodeQL** runs independently on the same commit.
+2. **Preview Release** checks that both latest workflow runs passed for the same
+   commit, including the latest execution of all five required build jobs and
+   the CodeQL analysis job. A partial rerun can retain earlier successes within
+   the same run. It verifies the repository identity and confirms that the
+   commit is still `main` before checking out any source.
+3. After repeating those checks, it creates an annotated `vMAJOR.MINOR.PATCH` tag
+   matching `Resources/Info.plist`. The tagger is explicitly
+   `Kaan Kars <56635935+osmankaankars@users.noreply.github.com>`.
+4. It explicitly starts **Build and Verify** at that tag. The tagged pipeline
+   builds the release archives, verifies their downloads again, and publishes
+   the complete preview release with its DMG, app ZIP, source ZIP, and checksums.
 
-Publishing the source does not build or reinstall the Mac app. You do not need to rerun `Build-and-Install.command` before using the publisher; GitHub Actions handles the release build after publication.
+Source checks and tagged builds are separate runs. A successful Pages deployment
+does not satisfy the native build gate. A successful source build alone does not
+mean the release files have been published yet.
+
+The workflow needs no personal access token or signing identity in the source.
+Its first job has read permissions; only the second job has the repository
+contents and Actions write permissions needed to create the tag and dispatch
+the build. GitHub's built-in token creates the annotation with the approved
+public tagger. Its tag creation does not trigger a push workflow, so the explicit
+dispatch is necessary. See [GitHub's workflow-triggering rules](https://docs.github.com/en/actions/concepts/security/github_token).
+
+The coordinator never moves an existing tag, changes release contents, or reruns
+a failed tagged build automatically. If the matching tag already exists, it
+checks the target, tagger, and exact annotation. An active or successful tagged
+build prevents a duplicate dispatch. Historical tags and releases stay intact.
+
+### Resume a Missing Tag or Build
+
+After the commit's source checks pass, open **Actions → Preview Release → Run
+Workflow**, choose `main`, and run it. This resumes an interrupted tag or dispatch
+step without rewriting history. A queued or failed source check still blocks a
+new tag; fix the source failure first.
+
+If a tagged build fails, inspect its failed job and rerun that build only after
+resolving the cause. **Preview Release** leaves the failed run and existing tag
+in place for review. The final publisher can resume a matching incomplete draft:
+it preserves verified uploaded files and adds only missing files. It preserves
+conflicting tags, assets, and published releases, and publishes the draft only
+after all four expected assets match. If a GitHub 502 response left an empty
+asset with `state=starter`, inspect and remove only that empty draft placeholder
+before rerunning the failed publisher job; an ordinary rerun will not replace it.
+
+If the version tag belongs to a different commit, update the app version and
+release notes for a new release. Do not delete or move the existing tag to make
+the automation pass.
+
+## Publish a Fresh Repository
+
+The included `Publish-to-GitHub.command` is a legacy initialization helper. It
+creates a new public repository named `lemulip` under the GitHub account already
+authenticated in your terminal, publishes an initial source package and preview
+tag, and configures repository settings. Use the reviewed update workflow for
+the existing project.
+
+Both release scripts deliberately verify the existing project's repository ID,
+owner ID, public tagger, and exact annotation. The helper's initial annotation
+uses an older format. Before tagged publication can succeed in a fork or new
+repository, its maintainer must adapt and review **both**
+`script/publish_preview.py` and `script/publish_release.py`, their release
+workflows, and the initial tag creation step for that repository. Running the
+legacy helper alone does not complete this release setup.
+
+You do not need to rerun `Build-and-Install.command` before source publication;
+GitHub Actions handles the release build.
 
 ## Before Running It
 
@@ -70,7 +138,7 @@ On the first run, it checks the working source, fills the marked README demo-lin
 | Website | GitHub Pages configured to use the included Actions workflow |
 | Homepage | The repository's Pages address after Pages configuration succeeds |
 | Security | Attempts private vulnerability reporting, secret scanning, push protection, and Dependabot settings where available |
-| Downloads | Produced by CI after build, test, and package verification |
+| Downloads | Built and verified by CI; publication requires the reviewed release setup above |
 
 The source check runs against the working files and the entire staged index. An unrelated staged file blocks publication. Build products, local Git metadata, downloaded source ZIPs, private files, and credentials are not part of the source commit.
 
@@ -80,7 +148,10 @@ Only `main` and the matching annotated preview tag are pushed. The helper does n
 
 The command prints repository, Actions, and Releases links. It lists workflow status once and exits; it does not wait indefinitely for a build.
 
-The **Build and Verify** workflow tests the native code on Apple silicon and Intel, builds universal packages, and verifies the exact downloads on both architectures. Only a successful tagged run publishes a prerelease with:
+The **Build and Verify** workflow tests the native code on Apple silicon and
+Intel, builds universal packages, and verifies the exact downloads on both
+architectures. Once the release setup matches the repository and annotated tag,
+a successful tagged run publishes a prerelease with:
 
 - The universal macOS ZIP, including the app and CLI.
 - The universal macOS DMG.
@@ -119,7 +190,11 @@ The helper reports API failures without printing credentials or raw response bod
 
 Use branches and reviewed pull requests for subsequent changes. Keep only tests that exercise meaningful behavior and generate their fixtures at runtime.
 
-Update the app version and release notes together, run the relevant checks, and review the staged source. Tag the reviewed commit with the matching `vMAJOR.MINOR.PATCH` version. Keep signing identities, notarization credentials, and all personal configuration outside the repository.
+Update the app version and release notes together, run the relevant checks, and
+review the staged source. For the existing project, push the reviewed changes to
+`main`; **Preview Release** creates the matching tag after the required source
+checks pass. Keep signing identities, notarization credentials, and all personal
+configuration outside the repository.
 
 For local packaging, use:
 
@@ -162,3 +237,5 @@ for the first verified Lemulip release.
 - [Edit repository settings with GitHub CLI](https://cli.github.com/manual/gh_repo_edit)
 - [Repository topics and security settings](https://docs.github.com/en/rest/repos/repos)
 - [GitHub Pages configuration](https://docs.github.com/en/rest/pages/pages)
+- [Workflow completion triggers](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#workflow_run)
+- [Workflow dispatch API](https://docs.github.com/en/rest/actions/workflows#create-a-workflow-dispatch-event)

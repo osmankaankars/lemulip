@@ -1,6 +1,38 @@
 # Install Lemulip
 
-Lemulip is an early source preview for **macOS 13 or later**. A downloadable Mac release is not available yet. The full desktop workflow and compatibility across supported Macs are still being tested.
+Lemulip is an early public preview for **macOS 13 or later**, with universal
+packages for Apple silicon and Intel. The full desktop workflow and compatibility
+across supported Macs are still being tested.
+
+## Install From a Release
+
+Open [Releases](https://github.com/osmankaankars/lemulip/releases) and expand the
+preview's **Assets**. Downloads appear after that version passes its Mac build
+and package checks. If no app download is listed yet, use [Build From Source](#build-from-source).
+
+| Download | Includes | Install |
+| --- | --- | --- |
+| `Lemulip-<version>-macOS-universal.dmg` | Mac app and guides | Open the DMG and drag **Lemulip** into **Applications** |
+| `Lemulip-<version>-macOS-universal.zip` | Mac app, `lemulip` CLI, and guides | Extract the ZIP and move **Lemulip.app** into **Applications** |
+| `Lemulip-<version>-Source.zip` | Source code | Follow the source-build instructions below |
+
+The app downloads run without installing Xcode or Swift. Keep the CLI somewhere
+convenient if you plan to use it. See [Signing and First Launch](#signing-and-first-launch)
+before opening a preview for the first time.
+
+### Verify a Download
+
+Release assets include `SHA256SUMS.txt`. To check all three archives, put them
+and the checksum file in the same folder, then run:
+
+```bash
+shasum -a 256 -c SHA256SUMS.txt
+```
+
+If you downloaded only the DMG or app ZIP, calculate that file's SHA-256 with
+`shasum -a 256` and compare it with the matching line in `SHA256SUMS.txt`.
+Checksums detect a mismatch with the published files; they do not provide Apple
+notarization.
 
 ## Build From Source
 
@@ -63,22 +95,6 @@ The outputs are `dist/Lemulip.app` and `dist/lemulip`. For Apple silicon and Int
 ```bash
 ./script/build_app.sh --universal
 ```
-
-## Release Packages
-
-When a release contains binary assets, choose the **macOS universal DMG** for the app, or the **ZIP** for the app plus command-line executable.
-
-Open the DMG and drag Lemulip into Applications. For the ZIP, extract it and move the app into Applications. Keep the CLI somewhere convenient if you plan to use it.
-
-The **Build and Verify** workflow is configured to produce a `Lemulip-macOS-universal` artifact after its checks succeed. Download only from a successful run. A workflow file in the source is not evidence of a completed build.
-
-Release assets include `SHA256SUMS.txt`. With the listed packages and checksum file in the same folder, check them using:
-
-```bash
-shasum -a 256 -c SHA256SUMS.txt
-```
-
-The checksum detects a mismatch with the published package. It does not provide Apple notarization.
 
 ## Signing and First Launch
 

@@ -45,7 +45,12 @@ RULES = {
     "credential-in-url": rb"https?://[^\s/:]+:[^\s/@]+@",
     "embedded-email": rb"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+\b",
 }
-ALLOWED_EMAILS = {b"contributors@lemulip.invalid"}
+# The release tagger uses the creator's explicitly approved public GitHub
+# noreply address. Personal email addresses remain blocked.
+ALLOWED_EMAILS = {
+    b"contributors@lemulip.invalid",
+    b"56635935+osmankaankars@users.noreply.github.com",
+}
 
 # Only these visually reviewed illustrations may be binary. Generated artwork
 # retains its provenance; no image may carry private metadata.
