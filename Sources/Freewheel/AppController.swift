@@ -109,7 +109,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         window.isMovableByWindowBackground = true
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 850, height: 620)
-        window.contentView = NSHostingView(rootView: DashboardView(model: self).preferredColorScheme(.dark))
+        window.contentView = NSHostingView(rootView: DashboardView(model: self))
         window.setFrameAutosaveName("FreewheelMainWindow")
         window.center()
         mainWindow = window
@@ -335,7 +335,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         panel.title = text("File Shelf", "Dosya rafı")
         panel.level = .floating; panel.isReleasedWhenClosed = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        panel.contentView = NSHostingView(rootView: FileShelfView(urls: urls, model: self).preferredColorScheme(.dark))
+        panel.contentView = NSHostingView(rootView: FileShelfView(urls: urls, model: self))
         panel.center(); panel.makeKeyAndOrderFront(nil)
         shelfWindows.append(panel)
     }

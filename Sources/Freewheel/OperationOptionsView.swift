@@ -20,7 +20,7 @@ struct OperationOptionsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
             HStack(spacing: 13) {
-                Image(systemName: operation.symbol).font(.system(size: 24)).foregroundStyle(Palette.mint)
+                Image(systemName: operation.symbol).font(.system(size: 24)).foregroundStyle(Palette.accent)
                 VStack(alignment: .leading, spacing: 5) {
                     Text(OperationNames.title(operation, language: model.language)).font(.system(size: 23, weight: .semibold)).tracking(-0.5)
                     Text(model.text("A new copy will be created.", "Yeni bir kopya oluşturulur.")).font(.system(size: 11)).foregroundStyle(Palette.muted)
@@ -28,7 +28,7 @@ struct OperationOptionsView: View {
             }
             VStack(alignment: .leading, spacing: 18) {
                 if operation.id.hasSuffix("compress") {
-                    HStack { Text(model.text("Quality", "Kalite")); Spacer(); Text("\(Int(quality * 100))% ").monospacedDigit().foregroundStyle(Palette.mint) }
+                    HStack { Text(model.text("Quality", "Kalite")); Spacer(); Text("\(Int(quality * 100))% ").monospacedDigit().foregroundStyle(Palette.accent) }
                     Slider(value: $quality, in: 0.15...1, step: 0.01)
                     HStack { Text(model.text("Smaller File", "Daha küçük dosya")); Spacer(); Text(model.text("Higher Quality", "Daha yüksek kalite")) }.font(.system(size: 10)).foregroundStyle(Palette.muted)
                 }
@@ -54,11 +54,11 @@ struct OperationOptionsView: View {
                         .font(.system(size: 10)).foregroundStyle(Palette.muted)
                 }
                 if operation.id == "media.speed" {
-                    HStack { Text(model.text("Playback Speed", "Oynatma hızı")); Spacer(); Text(String(format: "%.2f×", speed)).foregroundStyle(Palette.mint).monospacedDigit() }
+                    HStack { Text(model.text("Playback Speed", "Oynatma hızı")); Spacer(); Text(String(format: "%.2f×", speed)).foregroundStyle(Palette.accent).monospacedDigit() }
                     Slider(value: $speed, in: 0.5...4, step: 0.25)
                 }
                 if operation.id == "media.volume" {
-                    HStack { Text(model.text("Volume", "Ses düzeyi")); Spacer(); Text("\(Int(volume * 100))%").foregroundStyle(Palette.mint).monospacedDigit() }
+                    HStack { Text(model.text("Volume", "Ses düzeyi")); Spacer(); Text("\(Int(volume * 100))%").foregroundStyle(Palette.accent).monospacedDigit() }
                     Slider(value: $volume, in: 0...3, step: 0.05)
                 }
                 if operation.id == "pdf.compress" {
@@ -73,10 +73,10 @@ struct OperationOptionsView: View {
             HStack {
                 Spacer()
                 Button(model.text("Cancel", "Vazgeç")) { model.cancelPending() }.keyboardShortcut(.cancelAction)
-                Button(model.text("Create Copy", "Kopya oluştur")) { submit() }.buttonStyle(.borderedProminent).tint(Palette.mint).foregroundStyle(Palette.background)
+                Button(model.text("Create Copy", "Kopya oluştur")) { submit() }.buttonStyle(.borderedProminent).tint(Palette.lime).foregroundStyle(Palette.onLime)
                     .keyboardShortcut(.defaultAction).disabled(validationError != nil || (operation.id == "pdf.compress" && !flattenAcknowledged))
             }
-        }.padding(29).frame(width: 470).background(Palette.background).tint(Palette.mint)
+        }.padding(29).frame(width: 470).background(Palette.background).tint(Palette.accent)
     }
     private func field(_ title: String, value: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 7) { Text(title).font(.system(size: 11)).foregroundStyle(Palette.muted); TextField("", text: value).textFieldStyle(.roundedBorder) }

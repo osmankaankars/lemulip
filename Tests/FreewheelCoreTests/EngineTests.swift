@@ -1,5 +1,8 @@
 import XCTest
 @testable import FreewheelCore
+#if os(macOS)
+import Darwin
+#endif
 
 final class EngineTests: XCTestCase {
     private var root: URL!
@@ -69,4 +72,97 @@ final class EngineTests: XCTestCase {
         do { _ = try await ProcessRunner.run(executable: sleep, arguments: ["30"], timeout: 0.1); XCTFail("Timeout was ignored") }
         catch { XCTAssertTrue(error.localizedDescription.contains("time limit")) }
     }
+
+    func testOfficeProfileURLAndIPCNameMatchLibreOffice() throws {
+        let profile = root.appendingPathComponent("office profile % # []", isDirectory: true)
+        try FileManager.default.createDirectory(at: profile, withIntermediateDirectories: false)
+        let url = ExternalConverters.officeProfileURL(profile)
+        XCTAssertTrue(url.hasSuffix("/office%20profile%20%25%20%23%20%5B%5D"))
+        XCTAssertEqual(try XCTUnwrap(URL(string: url)).path, profile.resolvingSymlinksInPath().path)
+        #if os(macOS)
+        // Independent MD5 vectors exercise LibreOffice's unpadded-byte spelling.
+        for (profileURL, digest) in [
+            ("file:///private/tmp/freewheel-profile", "8dde90caf5ca1b752d47c91e1954854"),
+            ("file:///private/tmp/office%20profile%20%25%20%23%20%5B%5D", "1fa5e9fd753261a2573ad92a1224b74")
+        ] {
+            let sockets = ExternalConverters.officeIPCSockets(profileURL: profileURL)
+            XCTAssertEqual(sockets.map(\.lastPathComponent), Array(repeating: "OSL_PIPE_\(getuid())_SingleOfficeIPC_\(digest)", count: 2))
+            XCTAssertEqual(sockets.map { $0.deletingLastPathComponent().path }, ["/private/tmp", "/private/var/tmp"])
+        }
+        #endif
+    }
+
+    #if os(macOS)
+    func testProcessAllowsOnlyRequestedUnixSocketAndStillBlocksIP() async throws {
+        let python = try XCTUnwrap(EngineLocator.find("python3"), "Python 3 is required for the native sandbox regression")
+        // Keep below sockaddr_un's length limit, independent of Darwin's temp path.
+        let directory = URL(fileURLWithPath: "/private/tmp", isDirectory: true)
+            .appendingPathComponent("fw-ipc-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let allowed = directory.appendingPathComponent("allowed\"(x).sock")
+        let other = directory.appendingPathComponent("other.sock")
+        let descriptor = Darwin.socket(AF_UNIX, SOCK_STREAM, 0)
+        let listener = try XCTUnwrap(descriptor >= 0 ? descriptor : nil, "Could not create the ungranted test listener")
+        defer { _ = Darwin.close(listener) }
+        guard Darwin.fcntl(listener, F_SETFD, FD_CLOEXEC) == 0 else {
+            XCTFail("Could not keep the test listener out of child processes")
+            return
+        }
+        var address = sockaddr_un()
+        address.sun_len = UInt8(MemoryLayout<sockaddr_un>.size)
+        address.sun_family = sa_family_t(AF_UNIX)
+        let path = Array((other.path + "\0").utf8)
+        guard path.count <= MemoryLayout.size(ofValue: address.sun_path) else {
+            XCTFail("Generated IPC fixture exceeds the Unix socket path limit")
+            return
+        }
+        withUnsafeMutableBytes(of: &address.sun_path) { $0.copyBytes(from: path) }
+        let bound = withUnsafePointer(to: &address) {
+            $0.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                Darwin.bind(listener, $0, socklen_t(MemoryLayout<sockaddr_un>.size))
+            }
+        }
+        guard bound == 0, Darwin.listen(listener, 1) == 0 else {
+            XCTFail("Could not start the ungranted test listener")
+            return
+        }
+        let program = """
+        import errno, os, socket, sys
+        allowed, other = sys.argv[1:]
+        def blocked(address, family, kind, operation):
+            with socket.socket(family, kind) as candidate:
+                candidate.settimeout(1)
+                try:
+                    getattr(candidate, operation)(address)
+                except OSError as error:
+                    assert error.errno in (errno.EPERM, errno.EACCES), str(error)
+                else:
+                    raise AssertionError('An ungranted socket operation was allowed')
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as server:
+            server.settimeout(1)
+            server.bind(allowed)
+            server.listen(1)
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+                client.settimeout(1)
+                client.connect(allowed)
+                connection, _ = server.accept()
+                with connection:
+                    client.sendall(b'private IPC')
+                    assert connection.recv(32) == b'private IPC'
+            # These paths have valid parents; failure must be permission denial.
+            blocked(allowed + '.other', socket.AF_UNIX, socket.SOCK_STREAM, 'bind')
+            blocked(other, socket.AF_UNIX, socket.SOCK_STREAM, 'connect')
+            blocked(('127.0.0.1', 0), socket.AF_INET, socket.SOCK_STREAM, 'bind')
+            blocked(('127.0.0.1', 9), socket.AF_INET, socket.SOCK_STREAM, 'connect')
+            blocked(('::1', 0), socket.AF_INET6, socket.SOCK_STREAM, 'bind')
+            blocked(('::1', 9), socket.AF_INET6, socket.SOCK_STREAM, 'connect')
+        os.unlink(allowed)
+        """
+        let result = try await ProcessRunner.run(executable: python, arguments: ["-I", "-c", program, allowed.path, other.path], timeout: 10, allowedUnixSockets: [allowed])
+        XCTAssertEqual(result.exitCode, 0, result.errorText)
+        let denied = try await ProcessRunner.run(executable: python, arguments: ["-I", "-c", program, allowed.path, other.path], timeout: 10)
+        XCTAssertNotEqual(denied.exitCode, 0, "Unix sockets should remain blocked unless explicitly granted")
+    }
+    #endif
 }

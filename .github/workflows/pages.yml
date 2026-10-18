@@ -3,9 +3,9 @@ name: Website and Interactive Demo
 on:
   push:
     branches: [main]
-    paths: ['site/**', 'docs/assets/demo-preview.png', '.github/workflows/pages.yml', 'script/privacy_check.py']
+    paths: ['site/**', 'Resources/AppIcon.png', 'docs/assets/demo-preview.png', '.github/workflows/pages.yml', 'script/privacy_check.py']
   pull_request:
-    paths: ['site/**', 'docs/assets/demo-preview.png', '.github/workflows/pages.yml', 'script/privacy_check.py']
+    paths: ['site/**', 'Resources/AppIcon.png', 'docs/assets/demo-preview.png', '.github/workflows/pages.yml', 'script/privacy_check.py']
   workflow_dispatch:
 
 permissions:
@@ -46,6 +46,7 @@ jobs:
           from urllib.parse import urlsplit
           destination = pathlib.Path(os.environ['RUNNER_TEMP']) / 'freewheel-pages'
           shutil.copytree('site', destination)
+          shutil.copyfile('Resources/AppIcon.png', destination / 'app-icon.png')
           (destination / 'assets').mkdir(exist_ok=True)
           shutil.copyfile('docs/assets/demo-preview.png', destination / 'assets/demo-preview.png')
           repo = os.environ['SITE_REPOSITORY']
@@ -53,6 +54,7 @@ jobs:
               raise SystemExit('Invalid Pages repository')
           index = destination / 'index.html'
           page = index.read_text()
+          page = page.replace('../Resources/AppIcon.png', './app-icon.png')
           page = page.replace('data-repository=""', 'data-repository="' + html.escape('https://github.com/' + repo, quote=True) + '"', 1)
           base = os.environ.get('PAGES_URL', '').rstrip('/')
           if base:

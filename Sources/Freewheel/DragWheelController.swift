@@ -175,20 +175,24 @@ private final class DragWheelView: NSView {
     private var acceptedSequence: Int?
     private var acceptedURLs: [URL] = []
     private var lastScroll = TimeInterval.zero
-    private let mint = NSColor(calibratedRed: 0.57, green: 0.92, blue: 0.78, alpha: 1)
-    private let muted = NSColor(calibratedWhite: 0.62, alpha: 1)
+    private let accent = Palette.accentColor
+    private let muted = Palette.mutedColor
     private var center: NSPoint { NSPoint(x: 210, y: 210) }
 
     init(frame: NSRect, controller: DragWheelController) {
         self.controller = controller
         super.init(frame: frame)
-        appearance = NSAppearance(named: .darkAqua)
         registerForDraggedTypes([.fileURL])
         setAccessibilityElement(true)
         setAccessibilityLabel("Freewheel file operations. Use arrow keys and Return, or drop onto an operation.")
     }
     required init?(coder: NSCoder) { nil }
     override var acceptsFirstResponder: Bool { true }
+
+    override func viewDidChangeEffectiveAppearance() {
+        super.viewDidChangeEffectiveAppearance()
+        needsDisplay = true
+    }
 
     override func updateTrackingAreas() {
         super.updateTrackingAreas()
@@ -203,9 +207,9 @@ private final class DragWheelView: NSView {
 
     override func draw(_ dirtyRect: NSRect) {
         guard let controller else { return }
-        NSColor(calibratedRed: 0.065, green: 0.082, blue: 0.086, alpha: 0.98).setFill()
+        Palette.panelColor.setFill()
         NSBezierPath(roundedRect: bounds.insetBy(dx: 7, dy: 7), xRadius: 38, yRadius: 38).fill()
-        NSColor.white.withAlphaComponent(0.08).setStroke()
+        Palette.lineColor.setStroke()
         NSBezierPath(roundedRect: bounds.insetBy(dx: 7.5, dy: 7.5), xRadius: 38, yRadius: 38).stroke()
         let visible = controller.visibleOperations
         for (index, operation) in visible.enumerated() {
@@ -221,29 +225,29 @@ private final class DragWheelView: NSView {
             segment.line(to: point(62, end))
             segment.appendArc(withCenter: center, radius: 62, startAngle: CGFloat(end), endAngle: CGFloat(start), clockwise: false)
             segment.close()
-            (selectedIndex == index ? mint.withAlphaComponent(0.20) : NSColor.white.withAlphaComponent(0.035)).setFill(); segment.fill()
-            if selectedIndex == index { mint.withAlphaComponent(0.65).setStroke(); segment.lineWidth = 1.2; segment.stroke() }
+            (selectedIndex == index ? accent.withAlphaComponent(0.20) : Palette.raisedColor).setFill(); segment.fill()
+            if selectedIndex == index { accent.withAlphaComponent(0.65).setStroke(); segment.lineWidth = 1.2; segment.stroke() }
             let position = WheelGeometry.position(index: index, itemCount: visible.count, radius: 119)
             let location = NSPoint(x: center.x + CGFloat(position.x), y: center.y + CGFloat(position.y))
             let missing = operation.dependency.map { !EngineLocator.isAvailable($0) } ?? false
-            symbol(operation.symbol, rect: NSRect(x: location.x - 12, y: location.y + 2, width: 24, height: 24), color: missing ? muted : mint)
-            label(OperationNames.title(operation, language: controller.language), rect: NSRect(x: location.x - 49, y: location.y - 30, width: 98, height: 30), size: 10.5, color: missing ? muted : .white)
+            symbol(operation.symbol, rect: NSRect(x: location.x - 12, y: location.y + 2, width: 24, height: 24), color: missing ? muted : accent)
+            label(OperationNames.title(operation, language: controller.language), rect: NSRect(x: location.x - 49, y: location.y - 30, width: 98, height: 30), size: 10.5, color: missing ? muted : Palette.inkColor)
         }
-        NSColor.white.withAlphaComponent(0.035).setFill()
+        Palette.raisedColor.setFill()
         NSBezierPath(ovalIn: NSRect(x: 152, y: 152, width: 116, height: 116)).fill()
         symbol("xmark", rect: NSRect(x: 201, y: 214, width: 18, height: 18), color: muted)
         label(controller.text("Cancel", "Vazgeç"), rect: NSRect(x: 158, y: 184, width: 104, height: 22), size: 11, color: muted)
         for (index, mode) in WheelMode.allCases.enumerated() {
             let rect = NSRect(x: 65 + index * 98, y: 377, width: 94, height: 25)
-            if mode == controller.mode { mint.withAlphaComponent(0.12).setFill(); NSBezierPath(roundedRect: rect, xRadius: 8, yRadius: 8).fill() }
+            if mode == controller.mode { accent.withAlphaComponent(0.12).setFill(); NSBezierPath(roundedRect: rect, xRadius: 8, yRadius: 8).fill() }
             let title = controller.text(mode.title, mode == .convert ? "Dönüştür" : mode == .tools ? "Araçlar" : "İşlemler")
-            label(title, rect: rect.insetBy(dx: 2, dy: 5), size: 10, color: mode == controller.mode ? mint : muted)
+            label(title, rect: rect.insetBy(dx: 2, dy: 5), size: 10, color: mode == controller.mode ? accent : muted)
         }
         if visible.isEmpty { label(controller.text("No operations for this selection", "Bu seçim için işlem yok"), rect: NSRect(x: 42, y: 300, width: 336, height: 34), size: 11, color: muted) }
         if controller.pageCount > 1 {
-            label("‹", rect: NSRect(x: 70, y: 24, width: 34, height: 25), size: 21, color: mint)
+            label("‹", rect: NSRect(x: 70, y: 24, width: 34, height: 25), size: 21, color: accent)
             label("\(controller.page + 1) / \(controller.pageCount)", rect: NSRect(x: 155, y: 25, width: 110, height: 22), size: 11, color: muted)
-            label("›", rect: NSRect(x: 316, y: 24, width: 34, height: 25), size: 21, color: mint)
+            label("›", rect: NSRect(x: 316, y: 24, width: 34, height: 25), size: 21, color: accent)
         } else {
             label(controller.manual ? controller.text("Click or use arrows + Return · Esc to close", "Tıkla veya oklar + Enter · Esc ile kapat") : controller.text("Drop onto an operation", "Bir işlemin üzerine bırak"), rect: NSRect(x: 28, y: 26, width: 364, height: 20), size: 10, color: muted)
         }

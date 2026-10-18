@@ -44,7 +44,7 @@ struct SettingsContent: View {
                     Text(model.text("Local Engines", "YEREL MOTORLAR")).font(.system(size: 10, weight: .medium, design: .monospaced)).tracking(1.4).foregroundStyle(Palette.muted)
                     Spacer()
                     Button { model.engineRefresh += 1 } label: { Label(model.text("Refresh", "Yenile"), systemImage: "arrow.clockwise") }
-                        .buttonStyle(.plain).foregroundStyle(Palette.mint).font(.system(size: 11))
+                        .buttonStyle(.plain).foregroundStyle(Palette.accent).font(.system(size: 11))
                 }
                 Text(model.text("Images, PDFs, OCR, archives, subtitles, and basic text tools are built in. Add free engines for more formats. Installation needs internet; conversions stay local.", "Görsel, PDF, OCR, arşiv, altyazı ve temel metin araçları uygulamada hazır. Daha fazla biçim için ücretsiz motorlar ekleyebilirsin. Kurulum internet gerektirir; dönüşümler yerelde çalışır."))
                     .font(.system(size: 12)).foregroundStyle(Palette.muted).lineSpacing(4)
@@ -52,7 +52,7 @@ struct SettingsContent: View {
                     ForEach(engines, id: \.0) { engine in
                         let installed = EngineLocator.isAvailable(engine.0)
                         HStack(alignment: .center, spacing: 14) {
-                            Image(systemName: installed ? "checkmark.circle.fill" : "plus.circle").font(.system(size: 19)).foregroundStyle(installed ? Palette.mint : Palette.muted)
+                            Image(systemName: installed ? "checkmark.circle.fill" : "plus.circle").font(.system(size: 19)).foregroundStyle(installed ? Palette.accent : Palette.muted)
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(engine.1).font(.system(size: 13, weight: .semibold))
                                 Text(engineSubtitle(engine.0, fallback: engine.2)).font(.system(size: 10)).foregroundStyle(Palette.muted)
@@ -68,8 +68,8 @@ struct SettingsContent: View {
                                 else { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(engine.3, forType: .string); copied = engine.0 }
                             } label: {
                                 Text(engine.0 == "pandoc" ? model.text("Open Installer Page", "Kurulum sayfasını aç") : (copied == engine.0 ? model.text("Copied", "Kopyalandı") : model.text("Copy Install Command", "Kurulum komutunu kopyala")))
-                                    .font(.system(size: 10, weight: .medium)).foregroundStyle(Palette.mint).padding(.horizontal, 10).padding(.vertical, 7)
-                                    .background(Palette.mint.opacity(0.07), in: Capsule())
+                                    .font(.system(size: 10, weight: .medium)).foregroundStyle(Palette.accent).padding(.horizontal, 10).padding(.vertical, 7)
+                                    .background(Palette.accent.opacity(0.07), in: Capsule())
                             }.buttonStyle(.plain)
                         }.padding(17)
                         if engine.0 != engines.last?.0 { divider }
@@ -79,15 +79,15 @@ struct SettingsContent: View {
                     Text(model.text("Install commands require Homebrew. Pandoc uses its official installer. No automatic downloads.", "Kurulum komutları Homebrew gerektirir. Pandoc için resmî paket kullanılır. Otomatik indirme yok."))
                         .font(.system(size: 10)).foregroundStyle(Palette.muted)
                     Spacer()
-                    Link("Homebrew ↗", destination: URL(string: "https://brew.sh")!).font(.system(size: 10)).foregroundStyle(Palette.mint)
+                    Link("Homebrew ↗", destination: URL(string: "https://brew.sh")!).font(.system(size: 10)).foregroundStyle(Palette.accent)
                 }
             }
             VStack(alignment: .leading, spacing: 10) {
-                Label(model.text("Privacy by Design", "Gizlilik uygulamanın temelinde"), systemImage: "lock.shield").font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.mint)
+                Label(model.text("Privacy by Design", "Gizlilik uygulamanın temelinde"), systemImage: "lock.shield").font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.accent)
                 Text(model.text("No analytics, file uploads, update pings, or persistent file history. Only your settings are saved. AirDrop shares files only when you explicitly choose it.", "Analitik, dosya yükleme, güncelleme sorgusu veya kalıcı dosya geçmişi yok. Yalnızca ayarların kaydedilir. AirDrop, sen seçtiğinde dosya paylaşır."))
                     .font(.system(size: 11)).foregroundStyle(Palette.muted).lineSpacing(4)
                 Text("Freewheel 0.1.2 · MIT License").font(.system(size: 10, design: .monospaced)).foregroundStyle(Palette.muted).padding(.top, 4)
-            }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.mint.opacity(0.04), in: RoundedRectangle(cornerRadius: 13))
+            }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.accent.opacity(0.04), in: RoundedRectangle(cornerRadius: 13))
         }
     }
     private var divider: some View { Rectangle().fill(Palette.line).frame(height: 1).padding(.horizontal, 17) }

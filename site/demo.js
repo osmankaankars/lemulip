@@ -75,6 +75,21 @@
   }
   function renderWheel() {
     wheelSVG.replaceChildren();
+    // Static highlights give the control depth without a rendering loop.
+    const definitions = svgElement("defs", {});
+    const surface = svgElement("linearGradient", { id: "wheel-surface", x1: "0", y1: "0", x2: "0.7", y2: "1" });
+    surface.append(
+      svgElement("stop", { offset: "0", "stop-color": "#FFFFFF", "stop-opacity": "0.96" }),
+      svgElement("stop", { offset: "0.55", "stop-color": "#FFFDF3", "stop-opacity": "0.74" }),
+      svgElement("stop", { offset: "1", "stop-color": "#F2F8DA", "stop-opacity": "0.87" })
+    );
+    const active = svgElement("linearGradient", { id: "wheel-active", x1: "0", y1: "0", x2: "0.7", y2: "1" });
+    active.append(
+      svgElement("stop", { offset: "0", "stop-color": "#E2FF98" }),
+      svgElement("stop", { offset: "0.45", "stop-color": "#BDF620" }),
+      svgElement("stop", { offset: "1", "stop-color": "#A7E817" })
+    );
+    definitions.append(surface, active); wheelSVG.append(definitions);
     operations[mode].forEach((operation, index, all) => {
       const group = svgElement("g", {
         class: "wheel-choice", role: "button", tabindex: phase === "wheel" ? "0" : "-1",
@@ -116,11 +131,11 @@
     $("result").hidden = phase !== "queued" && phase !== "done";
     $("next-step").disabled = phase === "queued";
     const steps = {
-      idle: [1, "Pick Up the Sample.", "Drag the image, or use the button.", "Pick Up Sample"],
-      picked: [2, "Bring the Tools to You.", "Tap Shift, or open the wheel below.", "Open Wheel"],
+      idle: [1, "Pick Up The Sample.", "Drag the image, or use the button.", "Pick Up Sample"],
+      picked: [2, "Bring The Tools To You.", "Tap Shift, or open the wheel below.", "Open Wheel"],
       wheel: [3, "Choose What Comes Next.", "Drop onto a format, or choose it with a click.", mode === "convert" ? "Try PNG" : `Try ${operations[mode][0].title}`],
-      queued: [3, "Queued in the Preview.", "This is an example, not a real conversion.", "Previewing…"],
-      done: [3, "That's the Idea.", "Try another mode, or get the Mac app.", "Try Another Spin"]
+      queued: [3, "Queued In The Preview.", "This is an example, not a real conversion.", "Previewing…"],
+      done: [3, "That's The Idea.", "Try another mode, or get the Mac app.", "Try Another Spin"]
     };
     const [number, title, detail, button] = steps[phase];
     $("step-counter").replaceChildren(document.createTextNode(String(number)));
@@ -132,7 +147,7 @@
     center.querySelector("use").setAttribute("href", phase === "wheel" ? "#icon-close" : "#icon-arrow");
     center.setAttribute("aria-label", phase === "wheel" ? "Close the wheel" : "Pick up the sample and open the wheel");
     $("wheel-help").textContent = phase === "wheel" ? "Choose an operation · Arrow keys + Enter · Esc to close" : "Pick up the sample. Then tap Shift.";
-    [...wheelSVG.children].forEach((item) => {
+    [...wheelSVG.querySelectorAll(".wheel-choice")].forEach((item) => {
       item.setAttribute("tabindex", phase === "wheel" ? "0" : "-1");
       item.setAttribute("aria-disabled", phase === "wheel" ? "false" : "true");
     });
@@ -171,14 +186,14 @@
     const operation = operations[mode][index], chosenMode = mode;
     const filename = operation.extension ? `morning-light.${operation.extension}` : operation.title;
     const detail = operation.extension ? (operation.engine ? `The Mac app creates this output with the optional ${operation.engine} engine.` : "The Mac app creates a new file and keeps the original.") : operation.detail;
-    setPhase("queued"); $("result-label").textContent = "Queued in Preview";
+    setPhase("queued"); $("result-label").textContent = "Queued In Preview";
     $("result-filename").textContent = filename; $("result-detail").textContent = "Showing the next step in the example…";
     $("result-symbol").setAttribute("href", "#icon-history");
     $("result").querySelector(".result-original").hidden = chosenMode === "actions";
     if (focusResult) $("result").focus({ preventScroll: true });
     announce(`${operation.title} queued in the preview. No real files are being changed.`);
     timer = setTimeout(() => {
-      setPhase("done"); $("result-label").textContent = operation.extension ? "Example Result" : "In the Mac App";
+      setPhase("done"); $("result-label").textContent = operation.extension ? "Example Result" : "In The Mac App";
       $("result-detail").textContent = detail; $("result-symbol").setAttribute("href", "#icon-check");
       history.unshift({ filename, title: operation.title, mode: chosenMode });
       history = history.slice(0, 12); renderActivity();

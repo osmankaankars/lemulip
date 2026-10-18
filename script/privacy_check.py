@@ -47,12 +47,12 @@ RULES = {
 }
 ALLOWED_EMAILS = {b"contributors@freewheel.invalid"}
 
-# Only these visually reviewed illustrations may be binary. The cover retains
-# its generated-media provenance; neither image may carry private metadata.
+# Only these visually reviewed illustrations may be binary. Generated artwork
+# retains its provenance; no image may carry private metadata.
 # Update a digest only after reviewing the new image and its metadata.
 PUBLIC_IMAGES = {
-    "docs/assets/cover.png": "0c81481a690d51aee8c83b00fb24bab472e79b93704ae9440e15b971630d9a7e",
-    "docs/assets/demo-preview.png": "00550499ccce4f61bd263f3f088806da127c05aeb8bbd8a2af2b990210294246",
+    "Resources/AppIcon.png": "141333d6fbca0f0e3bc27bc4b3afbff1d2e46e74c15f9e972da87ef263a1478a",
+    "docs/assets/demo-preview.png": "bad39c4c95764305c402f1af590578f7016ddd220a1ae945c89988bd83c1e39e",
 }
 TEXT_SIZE_LIMIT = 2_000_000
 IMAGE_SIZE_LIMIT = 8_000_000
@@ -78,7 +78,7 @@ def image_is_public(name: str, data: bytes) -> bool:
         allowed_chunks = {
             b"IHDR", b"PLTE", b"tRNS", b"IDAT", b"IEND", b"sRGB", b"gAMA", b"cHRM",
         }
-        if name == "docs/assets/cover.png":
+        if name == "Resources/AppIcon.png":
             allowed_chunks.add(b"caBX")  # Reviewed C2PA origin provenance, covered by the digest.
         if end > len(data) or kind not in allowed_chunks:
             return False

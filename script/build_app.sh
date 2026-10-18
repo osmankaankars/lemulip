@@ -45,7 +45,7 @@ fi
 cp Resources/Info.plist "$CONTENTS/Info.plist"
 cp LICENSE "$CONTENTS/Resources/LICENSE"
 cp THIRD_PARTY_NOTICES.md "$CONTENTS/Resources/THIRD_PARTY_NOTICES.md"
-/usr/bin/xcrun --sdk macosx swift script/make_icon.swift "$STAGING/AppIcon.iconset"
+/usr/bin/xcrun --sdk macosx swift script/make_icon.swift Resources/AppIcon.png "$STAGING/AppIcon.iconset"
 iconutil --convert icns "$STAGING/AppIcon.iconset" --output "$CONTENTS/Resources/AppIcon.icns"
 chmod +x "$CONTENTS/MacOS/$APP_NAME" "$STAGING/freewheel"
 plutil -lint "$CONTENTS/Info.plist"

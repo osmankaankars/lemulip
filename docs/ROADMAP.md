@@ -96,11 +96,18 @@ the preview data needed for the visible editor.
 
 ## 4. Warm Visual Identity
 
-Explore a pistachio-and-cream direction alongside a lemonade palette. Use warm
-neutral surfaces, dark readable text, and color for selection, focus, and the
-primary action. Let users' photos, pages, and waveforms remain the main content.
+The first visual foundation is implemented in source: a vivid pistachio and lime
+palette, a dimensional folded-ribbon icon, system light and dark appearance,
+and navigation materials with an older-system fallback. See the shared
+[Design guide](DESIGN.md). Native build and appearance verification are still
+required before a release claim.
 
-- Design an original icon and wordmark that also work in the menu bar and Finder.
+Use warm neutral surfaces, dark readable text, and concentrated color for
+selection, focus, and the primary action. Let users' photos, pages, and waveforms
+remain the main content.
+
+- Refine the original icon at Finder and Dock sizes; add a wordmark and a
+  layered Icon Composer variant after the naming decision.
 - Choose a short, pronounceable name after checking existing apps, projects,
   domains, and relevant trademarks. Candidate names are not approved identities.
 - Share color, spacing, typography, focus, and control states across the wheel,

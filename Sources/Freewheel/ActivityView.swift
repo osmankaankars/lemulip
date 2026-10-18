@@ -15,13 +15,13 @@ struct ActivityContent: View {
                         .font(.system(size: 12)).foregroundStyle(Palette.muted)
                 }
                 Spacer()
-                Button(model.text("Clear Finished", "Bitenleri temizle")) { model.clearActivity() }.buttonStyle(.plain).foregroundStyle(Palette.mint).font(.system(size: 12))
+                Button(model.text("Clear Finished", "Bitenleri temizle")) { model.clearActivity() }.buttonStyle(.plain).foregroundStyle(Palette.accent).font(.system(size: 12))
             }
             if model.activity.isEmpty {
                 VStack(spacing: 16) {
-                    Image(systemName: "clock.arrow.circlepath").font(.system(size: 36, weight: .light)).foregroundStyle(Palette.mint)
+                    Image(systemName: "clock.arrow.circlepath").font(.system(size: 36, weight: .light)).foregroundStyle(Palette.accent)
                     Text(model.text("Your Next Conversion Starts Here.", "Bir sonraki dönüşümün burada görünecek.")).font(.system(size: 15, weight: .medium))
-                    Button(model.text("Choose Files", "Dosya seç")) { model.chooseFiles() }.buttonStyle(.borderedProminent).tint(Palette.mint).foregroundStyle(Palette.background)
+                    Button(model.text("Choose Files", "Dosya seç")) { model.chooseFiles() }.buttonStyle(.borderedProminent).tint(Palette.lime).foregroundStyle(Palette.onLime)
                 }.frame(maxWidth: .infinity).padding(.vertical, 65).background(Palette.panel, in: RoundedRectangle(cornerRadius: 16))
             } else {
                 HStack(spacing: 18) {
@@ -35,7 +35,7 @@ struct ActivityContent: View {
     }
     private func stat(_ number: String, _ label: String) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(number).font(.system(size: 29, weight: .medium, design: .rounded)).foregroundStyle(Palette.mint)
+            Text(number).font(.system(size: 29, weight: .medium, design: .rounded)).foregroundStyle(Palette.accent)
             Text(label).font(.system(size: 11)).foregroundStyle(Palette.muted)
         }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.panel, in: RoundedRectangle(cornerRadius: 12))
     }
@@ -50,7 +50,7 @@ struct ActivityRow: View {
             ZStack {
                 RoundedRectangle(cornerRadius: 9).fill(Palette.raised).frame(width: 39, height: 39)
                 if item.state == .running { ProgressView().controlSize(.small) }
-                else { Image(systemName: item.state == .succeeded ? "checkmark" : item.state == .failed ? "exclamationmark" : item.state == .cancelled ? "xmark" : "clock").foregroundStyle(item.state == .failed ? .orange : Palette.mint) }
+                else { Image(systemName: item.state == .succeeded ? "checkmark" : item.state == .failed ? "exclamationmark" : item.state == .cancelled ? "xmark" : "clock").foregroundStyle(item.state == .failed ? .orange : Palette.accent) }
             }
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
@@ -64,7 +64,7 @@ struct ActivityRow: View {
                 if !item.outputs.isEmpty {
                     ForEach(item.outputs.prefix(4), id: \.self) { url in
                         Button { model.reveal([url]) } label: {
-                            Label(url.lastPathComponent, systemImage: "doc").font(.system(size: 10)).foregroundStyle(Palette.mint).lineLimit(1)
+                            Label(url.lastPathComponent, systemImage: "doc").font(.system(size: 10)).foregroundStyle(Palette.accent).lineLimit(1)
                         }.buttonStyle(.plain)
                     }
                     if item.outputs.count > 4 { Text(model.text("+ \(item.outputs.count - 4) more", "+ \(item.outputs.count - 4) dosya daha")).font(.system(size: 10)).foregroundStyle(Palette.muted) }
@@ -75,7 +75,7 @@ struct ActivityRow: View {
                 Button { model.cancelJob(item.id) } label: { Image(systemName: "xmark.circle").foregroundStyle(Palette.muted) }
                     .buttonStyle(.plain).help(model.text("Cancel", "İptal et"))
             } else if item.state == .succeeded && !item.outputs.isEmpty {
-                Button { model.reveal(item.outputs) } label: { Image(systemName: "folder").foregroundStyle(Palette.mint) }
+                Button { model.reveal(item.outputs) } label: { Image(systemName: "folder").foregroundStyle(Palette.accent) }
                     .buttonStyle(.plain).help(model.text("Show in Finder", "Finder'da göster"))
             }
         }.padding(17).background(Palette.panel, in: RoundedRectangle(cornerRadius: 12)).overlay(RoundedRectangle(cornerRadius: 12).stroke(Palette.line, lineWidth: 1))

@@ -4,23 +4,13 @@ import SwiftUI
 import UniformTypeIdentifiers
 import FreewheelCore
 
-enum Palette {
-    static let background = Color(red: 0.065, green: 0.082, blue: 0.086)
-    static let panel = Color(red: 0.098, green: 0.122, blue: 0.126)
-    static let raised = Color(red: 0.13, green: 0.157, blue: 0.161)
-    static let mint = Color(red: 0.57, green: 0.92, blue: 0.78)
-    static let muted = Color(red: 0.58, green: 0.64, blue: 0.64)
-    static let line = Color.white.opacity(0.08)
-}
-
 struct DashboardView: View {
     @ObservedObject var model: AppController
     @State private var isTargeted = false
 
     var body: some View {
         HStack(spacing: 0) {
-            sidebar
-            Rectangle().fill(Palette.line).frame(width: 1)
+            sidebar.padding(12)
             VStack(spacing: 0) {
                 topBar
                 ScrollView {
@@ -35,7 +25,8 @@ struct DashboardView: View {
             }
         }
         .background(Palette.background)
-        .tint(Palette.mint)
+        .foregroundStyle(Palette.ink)
+        .tint(Palette.accent)
         .frame(minWidth: 850, minHeight: 620)
         .sheet(item: $model.pendingOperation, onDismiss: { model.cancelPending() }) { operation in
             OperationOptionsView(model: model, operation: operation)
@@ -48,9 +39,9 @@ struct DashboardView: View {
     private var sidebar: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 11) {
-                Image(systemName: "circle.hexagongrid.fill").font(.system(size: 30, weight: .medium)).foregroundStyle(Palette.mint)
+                AppMark(size: 42)
                 Text("Freewheel").font(.system(size: 20, weight: .semibold, design: .rounded)).tracking(-0.6)
-            }.padding(.top, 52).padding(.bottom, 42)
+            }.padding(.top, 40).padding(.bottom, 32)
             VStack(spacing: 7) {
                 nav("workspace", "square.stack.3d.up", model.text("Workspace", "Çalışma alanı"))
                 nav("activity", "clock.arrow.circlepath", model.text("Activity", "İşlemler"))
@@ -59,7 +50,7 @@ struct DashboardView: View {
             Spacer()
             VStack(alignment: .leading, spacing: 14) {
                 HStack(spacing: 7) {
-                    Circle().fill(model.wheelEnabled ? Palette.mint : Palette.muted).frame(width: 6, height: 6)
+                    Circle().fill(model.wheelEnabled ? Palette.accent : Palette.muted).frame(width: 6, height: 6)
                     Text(model.text(model.wheelEnabled ? "Wheel is ready" : "Wheel is paused", model.wheelEnabled ? "Çark hazır" : "Çark duraklatıldı"))
                         .font(.system(size: 12, weight: .medium))
                 }
@@ -73,7 +64,7 @@ struct DashboardView: View {
         }
         .padding(.horizontal, 22)
         .frame(width: 203)
-        .background(Palette.panel.opacity(0.5))
+        .navigationChrome(radius: 22)
     }
 
     private func nav(_ id: String, _ symbol: String, _ title: String) -> some View {
@@ -86,9 +77,9 @@ struct DashboardView: View {
                 Text(title).font(.system(size: 13, weight: model.section == id ? .semibold : .regular))
                 Spacer()
                 if id == "activity" && model.isBusy { ProgressView().controlSize(.mini) }
-            }.foregroundStyle(model.section == id ? Palette.mint : Palette.muted)
+            }.foregroundStyle(model.section == id ? Palette.onLime : Palette.muted)
                 .padding(.horizontal, 13).padding(.vertical, 12)
-                .background(model.section == id ? Palette.mint.opacity(0.09) : .clear, in: RoundedRectangle(cornerRadius: 9))
+                .background(model.section == id ? Palette.lime : .clear, in: RoundedRectangle(cornerRadius: 11))
         }.buttonStyle(.plain)
     }
 
@@ -98,16 +89,16 @@ struct DashboardView: View {
                 .font(.system(size: 10, weight: .medium, design: .monospaced)).tracking(1.8).foregroundStyle(Palette.muted)
             Spacer()
             HStack(spacing: 6) { Image(systemName: "infinity"); Text(model.text("Free Forever", "Her zaman ücretsiz")) }
-                .font(.system(size: 11, weight: .medium)).foregroundStyle(Palette.mint)
+                .font(.system(size: 11, weight: .medium)).foregroundStyle(Palette.accent)
                 .padding(.horizontal, 11).padding(.vertical, 6)
-                .overlay(Capsule().stroke(Palette.mint.opacity(0.2), lineWidth: 1))
+                .overlay(Capsule().stroke(Palette.accent.opacity(0.2), lineWidth: 1))
         }.padding(.horizontal, 32).padding(.top, 36).padding(.bottom, 16)
     }
 
     private var workspace: some View {
         Group {
             VStack(alignment: .leading, spacing: 11) {
-                Text(model.text("A New Spin on Your Files.", "Dosyalarına yeni bir biçim."))
+                Text(model.text("A Fresh Spin On Your Files.", "Dosyalarına taze bir dokunuş."))
                     .font(.system(size: 32, weight: .semibold)).tracking(-1.15)
                 Text(model.text("Convert, refine, and move on. Everything happens on this Mac.", "Dönüştür, düzenle, devam et. Her işlem bu Mac'te gerçekleşir."))
                     .font(.system(size: 13)).foregroundStyle(Palette.muted)
@@ -121,12 +112,7 @@ struct DashboardView: View {
 
     private var dropZone: some View {
         VStack(spacing: 18) {
-            ZStack {
-                Circle().stroke(Palette.mint.opacity(0.08), lineWidth: 1).frame(width: 100, height: 100)
-                Circle().stroke(Palette.mint.opacity(0.16), lineWidth: 1).frame(width: 75, height: 75)
-                Circle().fill(Palette.mint.opacity(0.1)).frame(width: 56, height: 56)
-                Image(systemName: "arrow.triangle.2.circlepath").font(.system(size: 23, weight: .medium)).foregroundStyle(Palette.mint)
-            }.padding(.top, 26)
+            AppMark(size: 112).padding(.top, 24)
             VStack(spacing: 7) {
                 Text(model.text(isTargeted ? "Drop to Get Started" : "Drop Your Files Here", isTargeted ? "Başlamak için bırak" : "Dosyalarını buraya bırak"))
                     .font(.system(size: 19, weight: .medium))
@@ -135,13 +121,18 @@ struct DashboardView: View {
             }
             Button { model.chooseFiles() } label: {
                 HStack(spacing: 8) { Image(systemName: "plus"); Text(model.text("Choose Files", "Dosya seç")); Text("⌘O").opacity(0.45) }
-                    .font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.background)
-                    .padding(.horizontal, 18).padding(.vertical, 11).background(Palette.mint, in: Capsule())
+                    .font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.onLime)
+                    .padding(.horizontal, 20).padding(.vertical, 12).background(Palette.lime, in: Capsule())
+                    .overlay(Capsule().stroke(Palette.onLime.opacity(0.16), lineWidth: 1))
             }.buttonStyle(.plain).padding(.bottom, 27)
         }
         .frame(maxWidth: .infinity)
-        .background(isTargeted ? Palette.mint.opacity(0.07) : Palette.panel.opacity(0.8), in: RoundedRectangle(cornerRadius: 18))
-        .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(isTargeted ? Palette.mint : Palette.line, style: StrokeStyle(lineWidth: 1.2, dash: [5, 5])))
+        .background(Palette.panel, in: RoundedRectangle(cornerRadius: 24))
+        .overlay(alignment: .top) {
+            RoundedRectangle(cornerRadius: 24).fill(LinearGradient(colors: [Palette.lime.opacity(isTargeted ? 0.28 : 0.10), .clear], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .allowsHitTesting(false)
+        }
+        .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(isTargeted ? Palette.accent : Palette.line, style: StrokeStyle(lineWidth: isTargeted ? 2 : 1, dash: [6, 5])))
         .onDrop(of: [UTType.fileURL.identifier], isTargeted: $isTargeted, perform: loadDrop)
     }
 
@@ -151,7 +142,7 @@ struct DashboardView: View {
                 Label(model.text("\(model.files.count) selected", "\(model.files.count) dosya seçildi"), systemImage: "doc.on.doc")
                     .font(.system(size: 12, weight: .medium)).foregroundStyle(Palette.muted)
                 Spacer()
-                Button(model.text("Add Files", "Dosya ekle")) { model.chooseFiles() }.buttonStyle(.plain).foregroundStyle(Palette.mint)
+                Button(model.text("Add Files", "Dosya ekle")) { model.chooseFiles() }.buttonStyle(.plain).foregroundStyle(Palette.accent)
                 Button(model.text("Clear", "Temizle")) { model.files = [] }.buttonStyle(.plain).foregroundStyle(Palette.muted).padding(.leading, 10)
             }.padding(16)
             Rectangle().fill(Palette.line).frame(height: 1)
@@ -190,10 +181,10 @@ struct DashboardView: View {
                                 .background(model.mode == mode ? Palette.raised : .clear, in: RoundedRectangle(cornerRadius: 7))
                         }.buttonStyle(.plain)
                     }
-                }.padding(4).background(Palette.panel, in: RoundedRectangle(cornerRadius: 10))
+                }.padding(5).navigationChrome(radius: 14)
                 Spacer()
                 Button { model.showWheel() } label: { Label(model.text("Open Wheel", "Çarkı aç"), systemImage: "circle.hexagongrid") }
-                    .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(Palette.mint)
+                    .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(Palette.accent)
             }
             if model.operations.isEmpty {
                 Text(model.text("Select files of the same type to convert them together. File actions work with any selection.", "Birlikte dönüştürmek için aynı türde dosyalar seç. Dosya işlemleri her seçimle çalışır."))
@@ -234,7 +225,7 @@ struct DashboardView: View {
             HStack {
                 Text(model.text("Latest Activity", "SON İŞLEM")).font(.system(size: 10, weight: .medium, design: .monospaced)).tracking(1.2).foregroundStyle(Palette.muted)
                 Spacer()
-                Button(model.text("View All", "Tümünü gör")) { model.section = "activity" }.buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(Palette.mint)
+                Button(model.text("View All", "Tümünü gör")) { model.section = "activity" }.buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(Palette.accent)
             }
             ActivityRow(item: item, model: model)
         }
@@ -278,18 +269,18 @@ struct OperationCard: View {
         Button { model.begin(operation) } label: {
             VStack(alignment: .leading, spacing: 14) {
                 HStack {
-                    Image(systemName: operation.symbol).font(.system(size: 20, weight: .regular)).foregroundStyle(missing ? Palette.muted : Palette.mint)
+                    Image(systemName: operation.symbol).font(.system(size: 20, weight: .regular)).foregroundStyle(missing ? Palette.muted : Palette.accent)
                     Spacer()
                     Image(systemName: missing ? "plus.circle" : "arrow.up.right").font(.system(size: 11)).foregroundStyle(Palette.muted)
                 }
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(OperationNames.title(operation, language: model.language)).font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
+                    Text(OperationNames.title(operation, language: model.language)).font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.ink)
                     Text(missing ? model.text("Add \(operation.dependency ?? "engine")", "\(operation.dependency ?? "Motor") ekle") : OperationNames.detail(operation, language: model.language))
                         .font(.system(size: 10)).foregroundStyle(Palette.muted).lineLimit(2).frame(height: 27, alignment: .topLeading)
                 }
             }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
                 .background(hover ? Palette.raised : Palette.panel, in: RoundedRectangle(cornerRadius: 11))
-                .overlay(RoundedRectangle(cornerRadius: 11).stroke(hover ? Palette.mint.opacity(0.5) : Palette.line, lineWidth: 1))
+                .overlay(RoundedRectangle(cornerRadius: 11).stroke(hover ? Palette.accent.opacity(0.5) : Palette.line, lineWidth: 1))
                 .contentShape(RoundedRectangle(cornerRadius: 11))
         }.buttonStyle(.plain).onHover { hover = $0 }.help(operation.detail)
             .accessibilityLabel(OperationNames.title(operation, language: model.language))

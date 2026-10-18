@@ -16,9 +16,11 @@ struct ProcessOutput: Sendable {
 enum ProcessRunner {
     static func run(executable: URL, arguments: [String], currentDirectory: URL? = nil,
                     environment: [String: String] = [:], maximumOutputBytes: Int = 524_288,
-                    timeout: TimeInterval = 900, denyNetwork: Bool = true) async throws -> ProcessOutput {
+                    timeout: TimeInterval = 900, denyNetwork: Bool = true,
+                    allowedUnixSockets: [URL] = []) async throws -> ProcessOutput {
         try Task.checkCancellation()
-        guard executable.isFileURL, maximumOutputBytes > 0, timeout > 0 else {
+        guard executable.isFileURL, maximumOutputBytes > 0, timeout > 0,
+              allowedUnixSockets.allSatisfy({ $0.isFileURL && $0.path != "/" && !$0.path.contains("\0") }) else {
             throw FreewheelError.invalidInput("Invalid converter process configuration.")
         }
         var launchURL = executable
@@ -30,7 +32,17 @@ enum ProcessRunner {
                 throw FreewheelError.unsupported("This macOS installation cannot enforce offline access for optional converters because sandbox-exec is unavailable. Built-in conversions remain available.")
             }
             launchURL = URL(fileURLWithPath: "/usr/bin/sandbox-exec")
-            launchArguments = ["-p", "(version 1)(allow default)(deny network*)", executable.path] + arguments
+            var profile = "(version 1)(allow default)(deny network*)"
+            var parameters: [String] = []
+            // LibreOffice needs its own Unix IPC socket even in headless mode.
+            // Exact path parameters grant no IP access or access to other sockets.
+            for (index, socket) in allowedUnixSockets.enumerated() {
+                let key = "FREEWHEEL_SOCKET_\(index)"
+                parameters += ["-D", "\(key)=\(socket.resolvingSymlinksInPath().path)"]
+                profile += "(allow network-bind network-inbound (local unix-socket (path-literal (param \"\(key)\"))))"
+                profile += "(allow network-outbound (remote unix-socket (path-literal (param \"\(key)\"))))"
+            }
+            launchArguments = parameters + ["-p", profile, executable.path] + arguments
         }
         #endif
         let state = ProcessState(executable: launchURL, arguments: launchArguments,
@@ -42,9 +54,10 @@ enum ProcessRunner {
     }
 
     static func checked(executable: URL, arguments: [String], currentDirectory: URL? = nil,
-                        environment: [String: String] = [:], timeout: TimeInterval = 900) async throws -> ProcessOutput {
+                        environment: [String: String] = [:], timeout: TimeInterval = 900,
+                        allowedUnixSockets: [URL] = []) async throws -> ProcessOutput {
         let output = try await run(executable: executable, arguments: arguments, currentDirectory: currentDirectory,
-                                   environment: environment, timeout: timeout)
+                                   environment: environment, timeout: timeout, allowedUnixSockets: allowedUnixSockets)
         guard output.exitCode == 0 else {
             let reason = output.errorText.isEmpty ? "Exit status \(output.exitCode)." : String(output.errorText.prefix(3_000))
             throw FreewheelError.operationFailed("\(executable.lastPathComponent) could not complete the conversion. \(reason)")

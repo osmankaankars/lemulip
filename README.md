@@ -1,4 +1,4 @@
-![Freewheel. File tools, right where you drag.](docs/assets/cover.png)
+<p align="center"><img src="Resources/AppIcon.png" width="132" height="132" alt="Freewheel’s green folded-ribbon app icon"></p>
 
 # Freewheel
 
@@ -8,7 +8,7 @@ Freewheel is a free, open-source file converter for macOS. Start dragging a file
 
 Files are processed on your Mac. No account, subscription, uploads, or analytics.
 
-[Get Started](#get-started) · [User Guide](docs/USER_GUIDE.md) · [Formats](docs/FORMATS.md) · [FAQ](docs/FAQ.md) · [Roadmap](docs/ROADMAP.md)
+[Get Started](#get-started) · [User Guide](docs/USER_GUIDE.md) · [Formats](docs/FORMATS.md) · [FAQ](docs/FAQ.md) · [Roadmap](docs/ROADMAP.md) · [Design](docs/DESIGN.md)
 
 ## Get Started
 
