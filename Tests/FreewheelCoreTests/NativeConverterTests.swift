@@ -564,6 +564,212 @@ final class NativeConverterTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: one), original)
     }
 
+    func testPDFMergePreviewLoadsSummariesAndBoundedFirstPageThumbnails() async throws {
+        let work = try workspace()
+        let first = try pdf(work.inputs.appendingPathComponent("first.pdf"),
+                            pages: [(CGSize(width: 200, height: 100), "Cover")])
+        var inputs = [first]
+        for index in 1..<(PDFMergeSession.thumbnailCacheLimit + 2) {
+            let copy = work.inputs.appendingPathComponent("document-\(index).pdf")
+            try FileManager.default.copyItem(at: first, to: copy)
+            inputs.append(copy)
+        }
+        let session = PDFMergeSession(inputs: inputs)
+        var sources: [PDFMergeSource] = []
+        for index in inputs.indices {
+            let source = try await session.source(for: index)
+            XCTAssertEqual(source.inputIndex, index)
+            XCTAssertEqual(source.pageCount, 1)
+            XCTAssertFalse(source.isEncrypted)
+            XCTAssertEqual(source.fingerprint.utf8.count, 64)
+            sources.append(source)
+            let thumbnail = try await session.thumbnail(for: index)
+            XCTAssertEqual(thumbnail.sourceIndex, 0)
+            XCTAssertLessThanOrEqual(thumbnail.image.width, PDFMergeSession.thumbnailPixelLimit)
+            XCTAssertLessThanOrEqual(thumbnail.image.height, PDFMergeSession.thumbnailPixelLimit)
+            XCTAssertEqual(thumbnail.widthPoints, 200, accuracy: 0.01)
+            let count = await session.cachedThumbnailCount
+            XCTAssertLessThanOrEqual(count, PDFMergeSession.thumbnailCacheLimit)
+        }
+        let bytes = await session.inspectedByteCount
+        XCTAssertEqual(bytes, sources.reduce(0) { $0 + $1.byteCount })
+        let again = try await session.source(for: 0)
+        XCTAssertEqual(again, sources[0])
+        let bytesAfterRepeat = await session.inspectedByteCount
+        XCTAssertEqual(bytesAfterRepeat, bytes, "Repeating a source request must not consume its budget twice")
+        XCTAssertThrowsError(try PDFSourceSnapshot.capture(first, byteLimit: sources[0].byteCount - 1))
+        await session.close()
+        let closedCount = await session.cachedThumbnailCount
+        let closedBytes = await session.inspectedByteCount
+        XCTAssertEqual(closedCount, 0)
+        XCTAssertEqual(closedBytes, 0)
+        do { _ = try await session.thumbnail(for: 0); XCTFail("A closed merge preview rendered another page") }
+        catch FreewheelError.cancelled { }
+    }
+
+    func testPDFMergePreviewExportsTheChosenFileOrderAndIgnoresRemovedInputs() async throws {
+        let work = try workspace()
+        let first = try pdf(work.inputs.appendingPathComponent("first.pdf"), pages: [
+            (CGSize(width: 240, height: 160), "Alpha One"), (CGSize(width: 160, height: 240), "Alpha Two")])
+        let removed = try pdf(work.inputs.appendingPathComponent("removed.pdf"),
+                              pages: [(CGSize(width: 200, height: 100), "Omitted")])
+        let last = try pdf(work.inputs.appendingPathComponent("last.pdf"), pages: [
+            (CGSize(width: 300, height: 180), "Charlie One"), (CGSize(width: 180, height: 300), "Charlie Two")])
+        let document = try XCTUnwrap(PDFDocument(url: last))
+        document.documentAttributes = [PDFDocumentAttribute.authorAttribute: "Fixture Author"]
+        let page = try XCTUnwrap(document.page(at: 0))
+        page.rotation = 90
+        page.setBounds(page.bounds(for: .mediaBox).insetBy(dx: 8, dy: 8), for: .cropBox)
+        let annotation = PDFAnnotation(bounds: CGRect(x: 20, y: 20, width: 20, height: 20),
+                                       forType: .square, withProperties: nil)
+        annotation.contents = "Merge Annotation"
+        annotation.interiorColor = .red
+        page.addAnnotation(annotation)
+        XCTAssertTrue(document.write(to: last))
+        let originals = try [first, last].map { try Data(contentsOf: $0) }
+        let inputs = [first, removed, last]
+        let session = PDFMergeSession(inputs: inputs)
+        var sources: [PDFMergeSource] = []
+        for index in inputs.indices { sources.append(try await session.source(for: index)) }
+        var options = ConversionOptions()
+        options.pdfMerge = PDFMergePlan(sourceInputCount: 3, sources: [sources[2], sources[0]])
+        options.destinationDirectory = work.stage
+        let existing = work.stage.appendingPathComponent("Merged.pdf")
+        let sentinel = Data("Keep Existing Output".utf8)
+        try sentinel.write(to: existing)
+        try FileManager.default.removeItem(at: removed)
+        var outputs = Set<URL>()
+        for alias in [false, true] {
+            if alias { try FileManager.default.createSymbolicLink(at: removed, withDestinationURL: first) }
+            let result = try await ConversionEngine().run(inputs: inputs, operation: operation("pdf.merge", ext: "pdf"), options: options)
+            let output = try XCTUnwrap(result.outputs.first)
+            XCTAssertTrue(outputs.insert(output).inserted)
+            XCTAssertNotEqual(output, existing)
+            let merged = try XCTUnwrap(PDFDocument(url: output))
+            XCTAssertEqual(merged.pageCount, 4)
+            for (index, text) in ["Charlie One", "Charlie Two", "Alpha One", "Alpha Two"].enumerated() {
+                XCTAssertTrue(merged.page(at: index)?.string?.contains(text) == true)
+            }
+            XCTAssertFalse(merged.string?.contains("Omitted") == true)
+            let cover = try XCTUnwrap(merged.page(at: 0))
+            XCTAssertEqual(cover.rotation, page.rotation)
+            XCTAssertEqual(cover.bounds(for: .mediaBox), page.bounds(for: .mediaBox))
+            XCTAssertEqual(cover.bounds(for: .cropBox), page.bounds(for: .cropBox))
+            XCTAssertEqual(cover.annotations.map(\.contents), page.annotations.map(\.contents))
+            XCTAssertNil(merged.documentAttributes?[PDFDocumentAttribute.authorAttribute])
+            XCTAssertEqual(try Data(contentsOf: existing), sentinel)
+            XCTAssertEqual(try [first, last].map { try Data(contentsOf: $0) }, originals)
+        }
+        XCTAssertFalse(try FileManager.default.contentsOfDirectory(atPath: work.stage.path)
+            .contains(where: { $0.hasPrefix(".freewheel-") }))
+        await session.close()
+    }
+
+    func testPDFMergePreviewRejectsChangedSourceBytesAndCancelledWork() async throws {
+        let work = try workspace()
+        let first = try pdf(work.inputs.appendingPathComponent("first.pdf"),
+                            pages: [(CGSize(width: 200, height: 100), "First")])
+        let second = try pdf(work.inputs.appendingPathComponent("second.pdf"),
+                             pages: [(CGSize(width: 200, height: 100), "Second")])
+        var bytes = try Data(contentsOf: second)
+        bytes.append(Data("\n% Source Version A\n".utf8))
+        try bytes.write(to: second)
+        let originalDate = try XCTUnwrap(try FileManager.default.attributesOfItem(atPath: second.path)[.modificationDate] as? Date)
+        let session = PDFMergeSession(inputs: [first, second])
+        let firstSource = try await session.source(for: 0)
+        let secondSource = try await session.source(for: 1)
+        var options = ConversionOptions()
+        options.pdfMerge = PDFMergePlan(sourceInputCount: 2, sources: [firstSource, secondSource])
+        let original = bytes
+        for grows in [false, true] {
+            bytes = original
+            if grows { bytes.append(Data("% Changed\n".utf8)) }
+            else { bytes[bytes.count - 2] = 0x42 }
+            try bytes.write(to: second)
+            try FileManager.default.setAttributes([.modificationDate: originalDate], ofItemAtPath: second.path)
+            do { _ = try await session.thumbnail(for: 1); XCTFail("A replaced PDF produced a stale cover preview") }
+            catch FreewheelError.invalidInput(let message) {
+                XCTAssertTrue(message.contains("changed"))
+                XCTAssertTrue(message.contains(second.lastPathComponent))
+                XCTAssertFalse(message.contains(work.root.path))
+            }
+            do {
+                _ = try await NativeConverter.convert(inputs: [first, second], operation: operation("pdf.merge"),
+                    options: options, outputDirectory: work.stage)
+                XCTFail("A replaced PDF was merged using its old preview")
+            } catch FreewheelError.invalidInput(let message) { XCTAssertTrue(message.contains("changed")) }
+            XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+            XCTAssertEqual(try Data(contentsOf: second), bytes)
+        }
+        try original.write(to: second)
+        let cancelledOpen = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await session.source(for: 0)
+        }
+        do { _ = try await cancelledOpen.value; XCTFail("A cancelled merge preview continued") }
+        catch is CancellationError { }
+        let cancelledExport = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await NativeConverter.convert(inputs: [first, second], operation: self.operation("pdf.merge"),
+                options: options, outputDirectory: work.stage)
+        }
+        do { _ = try await cancelledExport.value; XCTFail("A cancelled merge export continued") }
+        catch FreewheelError.cancelled { }
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+        XCTAssertEqual(try Data(contentsOf: second), original)
+        await session.close()
+    }
+
+    func testPDFMergePreviewHonorsDocumentPermissionsAndDisclosesUnprotectedOutput() async throws {
+        let work = try workspace()
+        let plain = try pdf(work.inputs.appendingPathComponent("plain.pdf"),
+                            pages: [(CGSize(width: 200, height: 100), "Permitted Content")])
+        let copy = PDFAccessPermissions.allowsContentCopying.rawValue
+        let assembly = PDFAccessPermissions.allowsDocumentAssembly.rawValue
+        let cases: [(String, UInt, Bool)] = [("allowed", copy | assembly, false),
+            ("no-copy", assembly, false), ("no-assembly", copy, false), ("locked", copy | assembly, true)]
+        for (name, permissions, locked) in cases {
+            let source = work.inputs.appendingPathComponent("\(name).pdf")
+            let document = try XCTUnwrap(PDFDocument(url: plain))
+            let writeOptions: [PDFDocumentWriteOption: Any] = [
+                .ownerPasswordOption: UUID().uuidString,
+                .userPasswordOption: locked ? UUID().uuidString : "",
+                .accessPermissionsOption: NSNumber(value: permissions)
+            ]
+            XCTAssertTrue(document.write(to: source, withOptions: writeOptions))
+            let original = try Data(contentsOf: source)
+            let snapshot = try PDFSourceSnapshot.capture(source)
+            let session = PDFMergeSession(inputs: [plain, source])
+            let first = try await session.source(for: 0)
+            let protected = PDFMergeSource(inputIndex: 1, pageCount: 1, fingerprint: snapshot.fingerprint,
+                byteCount: snapshot.byteCount, isEncrypted: true)
+            var options = ConversionOptions()
+            options.pdfMerge = PDFMergePlan(sourceInputCount: 2, sources: [first, protected])
+            let stage = try freshStage(work)
+            if name == "allowed" {
+                let opened = try await session.source(for: 1)
+                XCTAssertEqual(opened, protected)
+                let result = try await NativeConverter.convert(inputs: [plain, source], operation: operation("pdf.merge"),
+                    options: options, outputDirectory: stage)
+                let output = try XCTUnwrap(PDFDocument(url: XCTUnwrap(result.outputs.first)))
+                XCTAssertFalse(output.isEncrypted)
+                XCTAssertEqual(output.pageCount, 2)
+                XCTAssertTrue(result.note?.contains("without password protection") == true)
+            } else {
+                do { _ = try await session.source(for: 1); XCTFail("A locked or restricted PDF entered the merge preview") }
+                catch FreewheelError.invalidInput(let message) { XCTAssertTrue(message.contains(source.lastPathComponent)) }
+                do {
+                    _ = try await NativeConverter.convert(inputs: [plain, source], operation: operation("pdf.merge"),
+                        options: options, outputDirectory: stage)
+                    XCTFail("Merge export bypassed source permissions")
+                } catch FreewheelError.invalidInput { }
+                XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: stage.path).isEmpty)
+            }
+            XCTAssertEqual(try Data(contentsOf: source), original)
+            await session.close()
+        }
+    }
+
     func testPDFOrganizerLoadsBoundedThumbnailsFromOneStableSnapshot() async throws {
         let work = try workspace()
         let raw = try pdf(work.inputs.appendingPathComponent("raw.pdf"),

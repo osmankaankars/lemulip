@@ -14,7 +14,7 @@ Files are processed on your Mac. No account, subscription, uploads, or analytics
 
 **Lemulip is an early public preview for macOS 13 or later.** Finder drag compatibility and the full desktop workflow still need hands-on testing.
 
-Source **0.1.7** adds a visual PDF organizer alongside the native image, audio, and video editors. [Releases](https://github.com/osmankaankars/lemulip/releases) lists available downloads; each version must pass its own Mac checks before its archives are published.
+Source **0.1.8** adds a PDF merge preview alongside the page organizer and native image, audio, and video editors. [Releases](https://github.com/osmankaankars/lemulip/releases) lists available downloads; each version must pass its own Mac checks before its archives are published.
 
 ### Download the App
 
@@ -57,7 +57,7 @@ Prefer a window? Add files with **⌘O**, drop them into the workspace, or choos
 | Work With | Examples |
 | --- | --- |
 | Images | PNG, JPEG, HEIC, TIFF and BMP; visual crop, resize, rotate, remove metadata; images to PDF |
-| PDFs | Visual page organization; reorder, rotate, remove, extract, merge, split, export pages as images, extract text, offline OCR |
+| PDFs | Visual page organization and merge preview; reorder, rotate, remove, extract, merge, split, export pages as images, extract text, offline OCR |
 | Audio | Waveform trim with selection playback; M4A, WAV and AIFF export; more formats with optional FFmpeg |
 | Video | Native conversion, visual trim and crop, MP4/MOV export; more tools and codecs with optional FFmpeg |
 | Documents and tables | Microsoft Word (DOCX), Excel (XLSX), PowerPoint (PPTX), text, CSV ↔ TSV, and subtitles; some routes need an optional local engine |
@@ -125,6 +125,19 @@ content. Only previews are rendered as images, and the original file stays in
 place. See [Organize PDF](docs/USER_GUIDE.md#organize-pdf) for controls and document
 limits.
 
+## Bring Your PDFs Together
+
+Select several PDFs and open **Tools → Merge PDFs**. See each document's first
+page, page count, and position in the result. Drag the files into order or use
+**Move Earlier / Move Later**; the output page ranges update with the arrangement.
+Remove a document from the pending copy, undo an edit, or reset the list before
+choosing **Create Copy**.
+
+The merge uses every page from the retained documents and keeps the originals
+in place. It uses native macOS tools and reuses the organizer's bounded preview
+handling. See [Merge PDF](docs/USER_GUIDE.md#merge-pdf) for controls and document
+limits.
+
 ## Make It Yours
 
 Choose **Orchard Night**, **Vivid Pistachio**, or **Lemon Drop** in
@@ -153,7 +166,7 @@ DOCX, XLSX, and PPTX are Microsoft Office file formats. LibreOffice handles some
 
 ## Your Originals Stay Yours
 
-Conversions create new files. Existing names get an unused suffix, such as `photo (2).png`. By default, a job saves every output beside the first selected file. Turn off **Save in the First File's Folder** to choose a destination each time.
+Conversions create new files. Existing names get an unused suffix, such as `photo (2).png`. By default, a job saves every output beside its first file; a visual PDF merge uses the first retained document in the displayed arrangement. Turn off **Save in the First File's Folder** to choose a destination each time.
 
 **Move To…** deliberately moves the selected originals. PDF compression creates a flattened copy and removes searchable text, links, forms, and other PDF structure from that copy. The app asks you to acknowledge this before proceeding.
 

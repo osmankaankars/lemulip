@@ -6,6 +6,32 @@ Lemulip is a free, open-source file converter for macOS. Drag local files,
 tap a modifier key, and choose a format or tool from the wheel. Use the workspace
 when you need a queue, conversion options, or a closer look at the result.
 
+## 0.1.8 · Bring Your PDFs Together
+
+- Review several PDFs before merging. Each row shows a first-page preview,
+  the document's page count, and its page range in the output.
+- Drag documents into order or use **Move Earlier / Move Later**. Page ranges
+  and the total page count follow the displayed arrangement.
+- Remove documents from the pending copy and revise the arrangement with
+  **Undo**, **Redo**, and **Reset**.
+- Use **Create Copy** to combine every page from the retained documents through
+  native macOS tools. Text and vector content remain PDF content, and the source
+  files stay in place.
+- Validate that exported documents match the preview sources. Keep thumbnails
+  and temporary source copies bounded, and release them when their work ends.
+- Use the same three saved appearances and existing conversion queue without
+  adding an engine or package dependency.
+
+Version **0.1.8**, build **11**, uses the required Mac build, native export,
+package, and security checks. See
+[Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
+for each commit's result and [Releases](https://github.com/osmankaankars/lemulip/releases)
+for available downloads. Hands-on editor acceptance remains separate from CI.
+
+Read [Merge PDF](USER_GUIDE.md#merge-pdf) for controls and document limits.
+The four planned video and PDF editors are implemented in source. The next
+development milestone is [Warm Visual Identity](ROADMAP.md#4-warm-visual-identity).
+
 ## 0.1.7 · Put Every Page in Place
 
 - Open one PDF in a thumbnail organizer. Reorder pages by dragging or using
@@ -28,7 +54,7 @@ for each commit's result and [Releases](https://github.com/osmankaankars/lemulip
 for available downloads. Hands-on editor acceptance remains separate from CI.
 
 Read [Organize PDF](USER_GUIDE.md#organize-pdf) for controls and document limits.
-The next editor is the **Merge PDF preview**.
+PDF merge preview starts with source 0.1.8.
 
 ## 0.1.6 · Frame It Your Way
 

@@ -55,21 +55,7 @@ public actor PDFOrganizeSession {
             touch(sourceIndex)
             return cached
         }
-        let thumbnail = try autoreleasepool {
-            guard let page = document.page(at: sourceIndex) else {
-                throw FreewheelError.operationFailed("PDF page \(sourceIndex + 1) could not be read.")
-            }
-            guard page.rotation % 90 == 0 else {
-                throw FreewheelError.invalidInput("A source PDF page has an unsupported rotation.")
-            }
-            let size = try NativeConverter.pageSize(page)
-            let image = try NativeConverter.renderPDF(page, dpi: 144, longEdge: Self.thumbnailPixelLimit)
-            guard image.width <= Self.thumbnailPixelLimit, image.height <= Self.thumbnailPixelLimit else {
-                throw FreewheelError.operationFailed("A PDF preview exceeded its thumbnail size limit.")
-            }
-            return PDFPageThumbnail(image: image, sourceIndex: sourceIndex,
-                                    widthPoints: Double(size.width), heightPoints: Double(size.height))
-        }
+        let thumbnail = try PDFSourceSnapshot.thumbnail(in: document, at: sourceIndex)
         try Task.checkCancellation()
         while thumbnails.count >= Self.thumbnailCacheLimit, let oldest = recency.first {
             thumbnails.removeValue(forKey: oldest)
@@ -106,24 +92,26 @@ final class PDFSourceSnapshot {
     static let maximumBytes: Int64 = 512 * 1_024 * 1_024
     let url: URL
     let fingerprint: String
+    let byteCount: Int64
     private let directory: URL
 
-    private init(url: URL, fingerprint: String, directory: URL) {
-        self.url = url; self.fingerprint = fingerprint; self.directory = directory
+    private init(url: URL, fingerprint: String, byteCount: Int64, directory: URL) {
+        self.url = url; self.fingerprint = fingerprint
+        self.byteCount = byteCount; self.directory = directory
     }
 
     deinit { try? FileManager.default.removeItem(at: directory) }
 
-    static func capture(_ input: URL) throws -> PDFSourceSnapshot {
+    static func capture(_ input: URL, byteLimit: Int64 = PDFSourceSnapshot.maximumBytes) throws -> PDFSourceSnapshot {
         try Task.checkCancellation()
         guard input.isFileURL, !input.path.contains("\0"), FileFamily.detect(input) == .pdf else {
-            throw FreewheelError.invalidInput("Choose one local PDF to organize.")
+            throw FreewheelError.invalidInput("Choose a local PDF for the preview.")
         }
         // O_NONBLOCK prevents a named pipe masquerading as a .pdf from blocking
         // before fstat can reject it. It does not change regular-file reads.
         let descriptor = Darwin.open(input.path, O_RDONLY | O_NONBLOCK | O_CLOEXEC)
         guard descriptor >= 0 else {
-            throw FreewheelError.invalidInput("Choose a readable PDF to organize.")
+            throw FreewheelError.invalidInput("Choose a readable PDF for the preview.")
         }
         let reader = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
         defer { try? reader.close() }
@@ -131,7 +119,10 @@ final class PDFSourceSnapshot {
         guard fstat(reader.fileDescriptor, &before) == 0,
               before.st_mode & mode_t(S_IFMT) == mode_t(S_IFREG),
               before.st_size > 0, before.st_size <= maximumBytes else {
-            throw FreewheelError.invalidInput("Organize PDF supports nonempty, readable PDF files up to 512 MiB.")
+            throw FreewheelError.invalidInput("PDF previews support nonempty, readable PDF files up to 512 MiB.")
+        }
+        guard byteLimit > 0, byteLimit <= maximumBytes, before.st_size <= byteLimit else {
+            throw FreewheelError.invalidInput("The selected PDFs exceed the 512 MiB total size limit. Choose a smaller batch.")
         }
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("lemulip-pdf-\(UUID().uuidString)", isDirectory: true)
@@ -152,7 +143,7 @@ final class PDFSourceSnapshot {
             try Task.checkCancellation()
             let count: Int64 = try autoreleasepool {
                 guard let chunk = try reader.read(upToCount: 256 * 1_024), !chunk.isEmpty else { return 0 }
-                guard Int64(chunk.count) <= maximumBytes - total else {
+                guard Int64(chunk.count) <= byteLimit - total else {
                     throw FreewheelError.invalidInput("The PDF changed or exceeded the 512 MiB preview limit.")
                 }
                 hash.update(data: chunk)
@@ -171,7 +162,7 @@ final class PDFSourceSnapshot {
         try writer.close()
         try Task.checkCancellation()
         let fingerprint = hash.finalize().map { String(format: "%02x", $0) }.joined()
-        let result = PDFSourceSnapshot(url: url, fingerprint: fingerprint, directory: directory)
+        let result = PDFSourceSnapshot(url: url, fingerprint: fingerprint, byteCount: total, directory: directory)
         owned = true
         return result
     }
@@ -182,6 +173,44 @@ final class PDFSourceSnapshot {
             throw FreewheelError.invalidInput("This PDF does not permit copying and organizing its pages. Ask its owner for a copy that permits these changes.")
         }
         return document
+    }
+
+    static func thumbnail(in document: PDFDocument, at sourceIndex: Int) throws -> PDFPageThumbnail {
+        try Task.checkCancellation()
+        return try autoreleasepool {
+            guard sourceIndex >= 0, sourceIndex < document.pageCount else {
+                throw FreewheelError.invalidInput("Choose a page within this PDF.")
+            }
+            guard let page = document.page(at: sourceIndex) else {
+                throw FreewheelError.operationFailed("PDF page \(sourceIndex + 1) could not be read.")
+            }
+            guard page.rotation % 90 == 0 else {
+                throw FreewheelError.invalidInput("A source PDF page has an unsupported rotation.")
+            }
+            let limit = PDFOrganizeSession.thumbnailPixelLimit
+            let size = try NativeConverter.pageSize(page)
+            let image = try NativeConverter.renderPDF(page, dpi: 144, longEdge: limit)
+            guard image.width <= limit, image.height <= limit else {
+                throw FreewheelError.operationFailed("A PDF preview exceeded its thumbnail size limit.")
+            }
+            return PDFPageThumbnail(image: image, sourceIndex: sourceIndex,
+                                    widthPoints: Double(size.width), heightPoints: Double(size.height))
+        }
+    }
+
+    /// Native file errors can contain full paths. Keep a useful filename and
+    /// the controlled PDF diagnostic, without exposing private folder names.
+    static func withFileContext<T>(_ input: URL, _ body: () throws -> T) throws -> T {
+        do { return try body() }
+        catch is CancellationError { throw CancellationError() }
+        catch FreewheelError.cancelled { throw FreewheelError.cancelled }
+        catch FreewheelError.invalidInput(let message) {
+            throw FreewheelError.invalidInput("\(input.lastPathComponent): \(message)")
+        } catch FreewheelError.operationFailed(let message) {
+            throw FreewheelError.operationFailed("\(input.lastPathComponent): \(message)")
+        } catch {
+            throw FreewheelError.operationFailed("\(input.lastPathComponent) could not be read. Check that it is a local, readable PDF and try again.")
+        }
     }
 
     private static func sameFileVersion(_ lhs: stat, _ rhs: stat) -> Bool {

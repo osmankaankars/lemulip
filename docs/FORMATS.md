@@ -2,7 +2,7 @@
 
 Lemulip selects operations from the file extensions in your selection. A listed format is a supported route, not a promise that every codec or document feature will survive conversion.
 
-The tables below describe source **0.1.7**, which adds visual PDF organization.
+The tables below describe source **0.1.8**, which adds PDF merge preview.
 Check [Releases](https://github.com/osmankaankars/lemulip/releases) for available builds. Some
 features still need broader hands-on macOS testing. See [Installation](INSTALL.md)
 for optional engines and [User Guide](USER_GUIDE.md) for controls.
@@ -44,7 +44,7 @@ Transparency is flattened onto white for formats such as JPEG and BMP. Image con
 | Extract selectable text | TXT or Markdown | Text extraction; does not recreate the original layout |
 | Recognize text | TXT | Offline OCR using macOS Vision |
 | Organize | PDF | Reorder, rotate, remove, or extract pages from one PDF using page thumbnails |
-| Merge | PDF | Combines files in the displayed order |
+| Merge | PDF | Review first-page previews, document order, page counts, and output page ranges before combining whole documents |
 | Split | PDF files | One output per page |
 | Extract pages | PDF | Page numbers and ranges, starting at 1 |
 | Rotate pages | PDF | Rotates every page in the selected document |
@@ -62,10 +62,18 @@ Bookmarks, links between pages, form relationships, signatures, and accessibilit
 structure may no longer be valid. Keep the original when those features matter.
 Read [Organize PDF](USER_GUIDE.md#organize-pdf) for controls and source limits.
 
-The organizer requires permission to assemble and copy pages. Locked PDFs are
-rejected. An encrypted PDF that is already readable can be organized when those
-permissions allow it, with a visible explanation that the new copy is not
-password protected. Source encryption is unchanged.
+**Visual PDF merge** shows the first page of each source document, its page
+count, and its resulting page range. Reordering or removing documents updates
+the output summary. Every page from the retained files is copied in document
+order, preserving its source orientation, text, vector content, and page
+annotations. The document-level limitations above also apply to merged files.
+Read [Merge PDF](USER_GUIDE.md#merge-pdf) for controls and limits. The CLI merges
+documents in argument order without opening this editor.
+
+The organizer and merge preview require permission to assemble and copy pages.
+Locked PDFs are rejected. An encrypted PDF that is already readable can be used
+when those permissions allow it, with a visible explanation that the new copy
+is not password protected. Source encryption is unchanged.
 
 **Flattening changes the document.** PDF compression removes searchable text, links, forms, signatures, and accessibility structure from the new copy. It may increase the file size.
 
@@ -197,6 +205,13 @@ There are no paid tiers or daily conversion quotas. The implementation does enfo
 - PDF organization keeps at most 24 cached thumbnails, each at most 320 pixels
   on its longest edge. The UI retains only visible and nearby page previews;
   PDFKit may use additional memory to parse and render a document.
+- Visual PDF merge accepts 2–100 source PDFs totaling at most 512 MiB, with up
+  to 1,000 pages in each source. The retained arrangement must contain at least
+  two documents and at most 1,000 pages in total before export.
+- Merge preview inspects one source at a time and keeps at most 24 first-page
+  thumbnails, each at most 320 pixels on its longest edge. Preview snapshots
+  are removed after each source operation; export retains its bounded source
+  snapshots until the PDF has been written, then removes them.
 - Native image input is limited to 150 megapixels. Rendered images are limited to 40 megapixels and a maximum dimension of 16,384 pixels.
 - Native text processing is limited to 32 MiB.
 - Audio waveform summaries contain at most 4,096 peaks; the editor requests

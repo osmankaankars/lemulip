@@ -12,6 +12,104 @@ final class EngineTests: XCTestCase {
     }
     override func tearDownWithError() throws { if let root { try FileManager.default.removeItem(at: root) } }
 
+    func testPDFMergePlanRetainsFileIdentityOrderAndSubsetsWithinBounds() throws {
+        let first = PDFMergeSource(inputIndex: 0, pageCount: 400, fingerprint: String(repeating: "a", count: 64),
+                                   byteCount: PDFMergePlan.maximumTotalBytes - 100, isEncrypted: false)
+        let last = PDFMergeSource(inputIndex: 3, pageCount: 600, fingerprint: String(repeating: "b", count: 64),
+                                  byteCount: 100, isEncrypted: true)
+        let plan = PDFMergePlan(sourceInputCount: 4, sources: [last, first])
+        XCTAssertNoThrow(try plan.validate(sourceInputCount: 4))
+        XCTAssertEqual(plan.sources.map(\.inputIndex), [3, 0])
+        XCTAssertEqual(plan.sources.map(\.pageCount), [600, 400])
+        XCTAssertThrowsError(try plan.validate(sourceInputCount: 3))
+        XCTAssertThrowsError(try plan.validate(sourceInputCount: 5))
+    }
+
+    func testPDFMergePlanRejectsInvalidBindingsCountsAndOverflowingTotals() throws {
+        func source(_ index: Int, pages: Int = 1, bytes: Int64 = 100,
+                    fingerprint: String = String(repeating: "a", count: 64)) -> PDFMergeSource {
+            PDFMergeSource(inputIndex: index, pageCount: pages, fingerprint: fingerprint,
+                           byteCount: bytes, isEncrypted: false)
+        }
+        let valid = PDFMergePlan(sourceInputCount: 3, sources: [source(2), source(0)])
+        for count in [Int.min, 0, 1, PDFMergePlan.maximumInputCount + 1, Int.max] {
+            var plan = valid; plan.sourceInputCount = count
+            XCTAssertThrowsError(try plan.validate())
+        }
+        let invalidSources: [[PDFMergeSource]] = [[], [source(0)], [source(0), source(0)],
+            [source(-1), source(0)], [source(3), source(0)], [source(Int.max), source(0)],
+            [source(1, pages: 0), source(0)], [source(1, pages: -1), source(0)],
+            [source(1, pages: Int.max), source(0)], [source(1, pages: 1_000), source(0)],
+            [source(1, bytes: 0), source(0)], [source(1, bytes: -1), source(0)],
+            [source(1, bytes: Int64.max), source(0)], [source(1, bytes: PDFMergePlan.maximumTotalBytes), source(0)]]
+        for sources in invalidSources {
+            var plan = valid; plan.sources = sources
+            XCTAssertThrowsError(try plan.validate())
+        }
+        for fingerprint in ["", String(repeating: "a", count: 63), String(repeating: "a", count: 65),
+                            String(repeating: "G", count: 64), String(repeating: "é", count: 32)] {
+            var plan = valid; plan.sources[0] = source(2, fingerprint: fingerprint)
+            XCTAssertThrowsError(try plan.validate())
+        }
+    }
+
+    func testPDFMergePreviewCannotDiscardItsPlanOrReadRemovedInputs() async throws {
+        let first = root.appendingPathComponent("first.pdf"), second = root.appendingPathComponent("second.pdf")
+        let removed = root.appendingPathComponent("removed.pdf"), image = root.appendingPathComponent("image.png")
+        for input in [first, second, image] { try Data([0]).write(to: input) }
+        func source(_ index: Int) -> PDFMergeSource {
+            PDFMergeSource(inputIndex: index, pageCount: 1, fingerprint: String(repeating: "a", count: 64),
+                           byteCount: 1, isEncrypted: false)
+        }
+        var options = ConversionOptions()
+        options.pdfMerge = PDFMergePlan(sourceInputCount: 3, sources: [source(2), source(0)])
+        let operation = FileOperation(id: "pdf.merge", title: "Merge PDF", outputExtension: "pdf")
+        let cases: [([URL], String, String)] = [([first, second], "pdf.merge", "pdf"),
+            ([first, removed, image], "pdf.merge", "pdf"), ([first, removed, second], "pdf.extract", "pdf"),
+            ([first, removed, second], "convert.pdf", "pdf"), ([first, removed, second], "pdf.merge", "png")]
+        for (inputs, id, ext) in cases {
+            do {
+                _ = try await ConversionEngine().run(inputs: inputs,
+                    operation: FileOperation(id: id, title: "Operation", outputExtension: ext), options: options)
+                XCTFail("A merge plan used the wrong input list, operation, or output")
+            } catch FreewheelError.invalidInput { }
+        }
+        for conflict in 0..<5 {
+            var conflicting = options
+            if conflict == 0 { conflicting.imageCrop = ImageCropRegion(x: 0, y: 0, width: 2, height: 2, sourceWidth: 2, sourceHeight: 2) }
+            if conflict == 1 { conflicting.audioTrim = AudioTrimSelection(startSeconds: 0, endSeconds: 1, sourceDuration: 1) }
+            if conflict == 2 { conflicting.videoTrim = VideoTrimSelection(startSeconds: 0, endSeconds: 1, sourceDuration: 1) }
+            if conflict == 3 { conflicting.videoCrop = VideoCropRegion(x: 0, y: 0, width: 2, height: 2, sourceWidth: 2, sourceHeight: 2, sourceDuration: 1) }
+            if conflict == 4 { conflicting.pdfOrganization = PDFOrganizePlan(sourcePageCount: 1,
+                sourceFingerprint: String(repeating: "a", count: 64), pages: [PDFPageEdit(sourceIndex: 0)]) }
+            do {
+                _ = try await ConversionEngine().run(inputs: [first, removed, second], operation: operation, options: conflicting)
+                XCTFail("A merge plan was combined with another editor selection")
+            } catch FreewheelError.invalidInput { }
+        }
+        // A removed file may disappear or later alias a retained path. Both
+        // cases must reach the native-only route, never reread that input.
+        for alias in [false, true] {
+            if alias { try FileManager.default.createSymbolicLink(at: removed, withDestinationURL: first) }
+            do {
+                _ = try await ConversionEngine().run(inputs: [first, removed, second], operation: operation, options: options)
+                XCTFail("The invalid retained PDF must fail before publishing")
+            } catch FreewheelError.invalidInput {
+                #if !os(macOS)
+                XCTFail("Removed inputs must not prevent reaching the native-only route")
+                #endif
+            } catch FreewheelError.unsupported(let message) {
+                #if os(macOS)
+                XCTFail("A native PDF rejection must not fall through: \(message)")
+                #else
+                XCTAssertTrue(message.contains("native macOS"))
+                #endif
+            }
+        }
+        XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: root.path)),
+                       ["first.pdf", "second.pdf", "image.png", "removed.pdf"])
+    }
+
     func testPDFPagePlanKeepsSourceIdentityOrderAndQuarterTurns() throws {
         let fingerprint = String(repeating: "a", count: 64)
         let plan = PDFOrganizePlan(sourcePageCount: 4, sourceFingerprint: fingerprint,

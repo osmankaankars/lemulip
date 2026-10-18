@@ -86,7 +86,13 @@ public enum Catalog {
             #if os(macOS)
             if count == 1 { result.insert(op("pdf.organize", "Organize", "square.grid.2x2", "Arrange, rotate, and choose pages"), at: 0) }
             #endif
-            if count > 1 { result.insert(op("pdf.merge", "Merge PDFs", "doc.on.doc.fill", "Combine in the order shown"), at: 0) }
+            if count > 1 {
+                #if os(macOS)
+                result.insert(op("pdf.merge", "Merge PDFs", "doc.on.doc.fill", "Preview and arrange documents"), at: 0)
+                #else
+                result.insert(op("pdf.merge", "Merge PDFs", "doc.on.doc.fill", "Combine in the order shown"), at: 0)
+                #endif
+            }
             return result
         case .video:
             #if os(macOS)

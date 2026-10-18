@@ -16,8 +16,8 @@ and native conversion tools with optional external engines. The published
 [0.1.4 preview](https://github.com/osmankaankars/lemulip/releases/tag/v0.1.4)
 includes three saved appearances, a native visual image crop editor, and an
 audio waveform editor with range selection and playback. Source **0.1.5** adds
-native video trim; source **0.1.6** adds visual video crop, and source **0.1.7**
-adds a PDF page organizer. Each version's own
+native video trim; source **0.1.6** adds visual video crop, source **0.1.7**
+adds a PDF page organizer, and source **0.1.8** adds PDF merge preview. Each version's own
 [Mac checks](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
 and [release assets](https://github.com/osmankaankars/lemulip/releases) determine
 availability. Hands-on acceptance of editor interactions remains separate from
@@ -128,17 +128,18 @@ long recordings do not require keeping the entire decoded file in memory.
 
 Build on the editor behavior established by image crop and audio trim.
 
-**Trim Video, Crop Video, and Organize PDF are implemented in source 0.1.5,
-0.1.6, and 0.1.7 respectively.** Mac verification is reported by each commit's
-Actions run. Work is proceeding one editor at a time. **Merge PDF preview is
-next.** Hands-on acceptance of the existing editors remains open.
+**All four editor implementations are complete in source:** Trim Video in
+0.1.5, Crop Video in 0.1.6, Organize PDF in 0.1.7, and Merge PDF preview in
+0.1.8. Mac verification is reported by each commit's Actions run. Hands-on
+acceptance of these editors remains open. **Warm Visual Identity is the next
+development milestone.**
 
 | Editor | Experience and Status |
 | --- | --- |
 | Trim Video | Source 0.1.5: native video preview, a bounded thumbnail strip, range handles, timestamps, selected duration, and selection playback; MP4/MOV copy export |
 | Crop Video | Source 0.1.6: a movable crop over the native preview, aspect ratios, output dimensions, and full-duration MP4/MOV copy export |
 | Organize PDF | Source 0.1.7: page thumbnails, reorder, selected-page rotation, removal with undo, and extraction to a new PDF |
-| Merge PDF | Next: an ordered list with page counts and a clear output summary |
+| Merge PDF | Source 0.1.8: first-page previews, document reordering and removal with undo, page counts, and output page ranges before creating a copy |
 
 The first video trim editor uses native macOS playback and export without new
 dependencies. It requests 12 thumbnails, each at most 192 pixels on its longest
@@ -163,11 +164,22 @@ source still matches the preview before export. Preview storage and edit history
 are bounded; the editor releases its temporary source copy on close. See
 [Organize PDF](USER_GUIDE.md#organize-pdf) for supported documents and controls.
 
+PDF merge preview arranges whole documents in an ordered list. Each row shows
+the first page, document page count, and resulting page range; the total updates
+as files move or leave the arrangement. Export copies the original PDF pages
+and validates their source fingerprints. The preview shares bounded rendering
+and temporary-file handling with the organizer. See
+[Merge PDF](USER_GUIDE.md#merge-pdf).
+
 **Ready when:** previews and final output agree, ordering is explicit, empty or
 invalid selections cannot be submitted, and long documents or clips load only
 the preview data needed for the visible editor.
 
 ## 4. Warm Visual Identity
+
+**Next development milestone.** Refine the established identity across the app
+and its product pages, starting with the icon at everyday sizes and a Lemulip
+wordmark.
 
 The first visual foundation is implemented in source: **Lemulip** branding,
 **Orchard Night** as the default, **Vivid Pistachio** and **Lemon Drop** as saved

@@ -60,10 +60,34 @@ public enum NativeConverter {
         inputs: [URL], operation: FileOperation, options: ConversionOptions,
         outputDirectory: URL
     ) async throws -> ConversionResult {
-        try validateJob(inputs: inputs, outputDirectory: outputDirectory)
+        let jobInputs: [URL]
+        if let plan = options.pdfMerge {
+            try plan.validate(sourceInputCount: inputs.count)
+            var seen = Set<String>()
+            jobInputs = try plan.sources.map { source in
+                let input = inputs[source.inputIndex]
+                guard input.isFileURL, !input.path.contains("\0"), FileFamily.detect(input) == .pdf,
+                      seen.insert(input.standardizedFileURL.resolvingSymlinksInPath().path).inserted else {
+                    throw FreewheelError.invalidInput("Choose each local PDF once in the merge preview.")
+                }
+                return input
+            }
+        } else { jobInputs = inputs }
+        try validateJob(inputs: jobInputs, outputDirectory: outputDirectory)
         do {
             try Task.checkCancellation()
             var options = options
+            if let plan = options.pdfMerge {
+                guard operation.id == "pdf.merge", options.pdfOrganization == nil,
+                      options.imageCrop == nil, options.audioTrim == nil,
+                      options.videoTrim == nil, options.videoCrop == nil else {
+                    throw FreewheelError.invalidInput("A PDF merge plan can only be used with Merge PDF, without another editor selection.")
+                }
+                if let ext = operation.outputExtension?.lowercased(), ext != "pdf" {
+                    throw FreewheelError.invalidInput("Choose PDF output for the merge preview.")
+                }
+                return try mergePDFs(inputs, plan: plan, directory: outputDirectory)
+            }
             if operation.id == "pdf.organize", options.pdfOrganization == nil {
                 throw FreewheelError.invalidInput("Choose pages in Organize PDF before exporting.")
             }
@@ -675,6 +699,68 @@ public enum NativeConverter {
         let output = OutputStore.uniqueURL(in: directory, stem: "Merged", extension: "pdf")
         try savePDF(merged, to: output)
         return ConversionResult(outputs: [output], note: decrypted ? "The merged output is not password protected." : nil)
+    }
+
+    private static func mergePDFs(_ inputs: [URL], plan: PDFMergePlan,
+                                  directory: URL) throws -> ConversionResult {
+        try plan.validate(sourceInputCount: inputs.count)
+        var snapshots: [PDFSourceSnapshot] = []
+        var documents: [PDFDocument] = []
+        var capturedBytes: Int64 = 0
+        // Validate every retained source before copying any page. Keeping the
+        // bounded snapshots and documents alive also protects PDFKit's lazy
+        // data providers if an original file changes during the export.
+        for source in plan.sources {
+            try Task.checkCancellation()
+            let input = inputs[source.inputIndex]
+            let (snapshot, document) = try PDFSourceSnapshot.withFileContext(input) {
+                let snapshot = try PDFSourceSnapshot.capture(input,
+                    byteLimit: PDFMergePlan.maximumTotalBytes - capturedBytes)
+                let document = try snapshot.openDocument()
+                let actual = PDFMergeSource(inputIndex: source.inputIndex, pageCount: document.pageCount,
+                    fingerprint: snapshot.fingerprint, byteCount: snapshot.byteCount,
+                    isEncrypted: document.isEncrypted)
+                guard actual == source else {
+                    throw FreewheelError.invalidInput("This PDF changed after the merge preview opened. Reopen Merge PDF before exporting.")
+                }
+                return (snapshot, document)
+            }
+            capturedBytes += snapshot.byteCount
+            snapshots.append(snapshot)
+            documents.append(document)
+        }
+        return try withExtendedLifetime((snapshots, documents)) {
+            let merged = PDFDocument()
+            merged.documentAttributes = [:]
+            for (position, document) in documents.enumerated() {
+                let input = inputs[plan.sources[position].inputIndex]
+                try PDFSourceSnapshot.withFileContext(input) {
+                    for index in 0..<document.pageCount {
+                        try Task.checkCancellation()
+                        try autoreleasepool {
+                            let page = try copiedPage(document, at: index)
+                            _ = try pageSize(page)
+                            guard page.rotation % 90 == 0 else {
+                                throw FreewheelError.invalidInput("A source PDF page has an unsupported rotation.")
+                            }
+                            merged.insert(page, at: merged.pageCount)
+                        }
+                    }
+                }
+            }
+            try Task.checkCancellation()
+            let output = OutputStore.uniqueURL(in: directory, stem: "Merged", extension: "pdf")
+            try savePDF(merged, to: output)
+            try Task.checkCancellation()
+            guard let verified = PDFDocument(url: output), !verified.isLocked, !verified.isEncrypted,
+                  verified.pageCount == merged.pageCount else {
+                throw FreewheelError.operationFailed("The merged PDF could not be verified. No output was published.")
+            }
+            let note = plan.sources.contains(where: \.isEncrypted)
+                ? "Created a merged PDF without password protection. Review links, bookmarks, forms, and signatures after merging."
+                : "Created a new PDF in the selected file order. Review links, bookmarks, forms, and signatures after merging."
+            return ConversionResult(outputs: [output], note: note)
+        }
     }
 
     private static func convertPDFs(_ inputs: [URL], operation: FileOperation,

@@ -219,7 +219,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
             showMainWindow(); return
         }
         if operation.id.hasPrefix("action.") { performFileAction(operation, inputs: selection); return }
-        let withOptions: Set<String> = ["image.compress", "image.resize", "image.crop", "image.rotate", "pdf.organize", "pdf.extract", "pdf.rotate", "pdf.compress", "media.compress", "media.trim", "media.crop", "media.resize", "media.speed", "media.volume"]
+        let withOptions: Set<String> = ["image.compress", "image.resize", "image.crop", "image.rotate", "pdf.organize", "pdf.merge", "pdf.extract", "pdf.rotate", "pdf.compress", "media.compress", "media.trim", "media.crop", "media.resize", "media.speed", "media.volume"]
         if withOptions.contains(operation.id) {
             // A second global-wheel drop must not replace the input shown by
             // an open editor, including another crop with the same operation ID.
@@ -246,7 +246,14 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
             guard panel.runModal() == .OK, let directory = panel.url else { return }
             chosenOptions.destinationDirectory = directory
         }
-        let item = ActivityItem(operation: operation, inputs: inputs)
+        let activityInputs: [URL]
+        if let merge = chosenOptions.pdfMerge,
+           (try? merge.validate(sourceInputCount: inputs.count)) != nil {
+            activityInputs = merge.sources.map { inputs[$0.inputIndex] }
+        } else {
+            activityInputs = inputs
+        }
+        let item = ActivityItem(operation: operation, inputs: activityInputs)
         activity.insert(item, at: 0)
         queue.append((item.id, inputs, operation, chosenOptions))
         startNextJob()

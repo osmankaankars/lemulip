@@ -35,6 +35,8 @@ struct DashboardView: View {
                 VideoCropView(model: model, inputs: model.pendingInputURLs)
             } else if operation.id == "pdf.organize" {
                 PDFOrganizeView(model: model, inputs: model.pendingInputURLs)
+            } else if operation.id == "pdf.merge" {
+                PDFMergeView(model: model, inputs: model.pendingInputURLs)
             } else if operation.id == "media.trim",
                       !model.pendingInputURLs.isEmpty,
                       model.pendingInputURLs.allSatisfy({ FileFamily.detect($0) == .audio }) {
@@ -320,7 +322,7 @@ enum OperationNames {
             "image.compress": "Görsel kalitesini ayarla", "image.resize": "En boy oranını koru", "image.crop": "Koruyacağın alanı seç", "image.rotate": "90° adımlarla döndür", "image.flip": "Yatay olarak yansıt", "image.stripMetadata": "Temiz bir kopya oluştur",
             "media.trim": "Aralığı görerek ve oynatarak seç",
             "media.crop": "Videoda koruyacağın alanı seç",
-            "pdf.organize": "Sayfaları gör, sırala ve düzenle", "pdf.merge": "Listedeki sırayla birleştir", "pdf.split": "Her sayfa için yeni bir PDF", "pdf.extract": "Sayfa ve aralık seç", "pdf.rotate": "Tüm sayfaları döndür", "pdf.compress": "Sayfaları görsele dönüştürür", "pdf.ocr": "Taranmış sayfaları çevrimdışı oku",
+            "pdf.organize": "Sayfaları gör, sırala ve düzenle", "pdf.merge": "Dosyaları önizle ve sırala", "pdf.split": "Her sayfa için yeni bir PDF", "pdf.extract": "Sayfa ve aralık seç", "pdf.rotate": "Tüm sayfaları döndür", "pdf.compress": "Sayfaları görsele dönüştürür", "pdf.ocr": "Taranmış sayfaları çevrimdışı oku",
             "archive.extract": "Yeni bir klasöre çıkar", "archive.createZip": "Seçili dosyaları sıkıştır", "archive.createTar": "Seçili dosyaları paketle", "archive.createGzip": "Her dosyayı ayrı sıkıştır", "document.wordCount": "Kelimeleri yerel olarak say",
             "action.airdrop": "Yakındaki cihazlarla paylaş", "action.float": "Dosyaları yüzen rafta tut", "action.copy": "Hedef klasörü seç", "action.move": "Hedef klasörü seç", "action.copyPath": "Tam dosya yolunu kopyala", "action.terminal": "Bulunduğu klasörde aç"
         ][operation.id] ?? operation.detail

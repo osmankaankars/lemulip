@@ -226,6 +226,49 @@ PDF; stale previews must not appear in the new editor. Thumbnail limits bound
 application-owned images, not PDFKit's total memory. Keep UI acceptance and
 memory measurements separate from passing native export tests.
 
+### PDF Merge Preview Constraints
+
+The 0.1.8 merge preview reuses PDFKit, the organizer's bounded source snapshots
+and thumbnail rendering, and the existing output queue. Extend the two existing
+core and native converter test files with generated documents; add no PDF
+engine, binary fixtures, or test file collection.
+
+| Constraint | Implementation Boundary |
+| --- | --- |
+| Stable document identity | Refer to each file's original input index through reorder, removal, undo, and export; copy its pages in source order |
+| Bounded input | 2–100 original PDFs, up to 1,000 pages each, totaling at most 512 MiB |
+| Bounded output | Keep at least two documents; the retained arrangement must total at most 1,000 pages |
+| Source consistency | Bind each retained document to its preview fingerprint, page count, byte count, and encryption state; reject changed sources before copying pages |
+| Document permissions | Reject locked or restricted documents; require assembly and copying permission and disclose unprotected output when a retained source is already-readable and encrypted |
+| Bounded previews | One serialized PDFKit session with at most 24 first-page thumbnails, each at most 320 pixels on its longest edge |
+| Bounded history | At most 40 undo snapshots and 40 redo snapshots; retain only document identities and selection state |
+| Non-destructive output | Copy actual PDF pages into staging, preserve originals, and publish under an unused name only after successful completion |
+
+Inspect sources sequentially and report progress. Release the document and its
+temporary snapshot after a source summary or first-page render; retain only
+small metadata and the bounded thumbnail cache between requests. Cancel stale
+loads when the editor closes and prevent their results from reaching a new
+editor session. Export keeps the retained documents and their snapshots alive
+through PDFKit's write, then removes temporary copies on success, failure, and
+cancellation. PDFKit may allocate beyond the application-owned thumbnail cache;
+the cache limit is not a claim about total memory.
+
+Keep a selected merge plan exclusive to `pdf.merge` with PDF output. Never
+fall through to a generic converter that ignores the chosen order or omissions.
+The direct CLI merge retains its existing argument-order contract.
+
+Check reversed and nonadjacent document orders, removal followed by undo,
+mixed page sizes and source rotations, visible annotations, and selectable text
+in the output. Verify original bytes are unchanged, retained source changes
+are rejected, and failed or cancelled export publishes nothing. Exercise page,
+file, byte, and permission limits without checking private documents into git.
+
+Hands-on checks should cover group dragging, keyboard and button reordering,
+range selection, output page ranges, Undo/Redo/Reset, VoiceOver, and all three
+themes. Close during source inspection and during a thumbnail request, then
+open another selection; no stale row or image should reappear. Native export
+tests and source inspection do not establish these UI acceptance results.
+
 ## Prepare a Release
 
 ```bash

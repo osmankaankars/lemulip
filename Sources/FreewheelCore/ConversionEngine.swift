@@ -19,15 +19,28 @@ public final class ConversionEngine: Sendable {
                 options.endSeconds = selection.endSeconds
             }
             try validateOptions(options, operation: operation)
+            try options.pdfMerge?.validate(sourceInputCount: inputs.count)
+            let retainedPDFInputs = options.pdfMerge.map { Set($0.sources.map(\.inputIndex)) }
             var seen = Set<String>()
-            let validated = try inputs.map { input -> URL in
+            let validated = try inputs.enumerated().map { index, input -> URL in
                 guard input.isFileURL, !input.path.contains("\0") else { throw FreewheelError.invalidInput("Lemulip only converts files on this Mac. Download remote files first.") }
                 let resolved = input.standardizedFileURL.resolvingSymlinksInPath()
-                let values = try resolved.resourceValues(forKeys: [.isRegularFileKey, .isDirectoryKey, .isReadableKey])
-                guard values.isRegularFile == true || values.isDirectory == true, values.isReadable != false else {
-                    throw FreewheelError.invalidInput("An input is not a readable file or folder.")
+                // A removed merge input keeps its index but need not still be
+                // present. Only retained PDFs participate in the new output.
+                if retainedPDFInputs?.contains(index) ?? true {
+                    let values: URLResourceValues
+                    do { values = try resolved.resourceValues(forKeys: [.isRegularFileKey, .isDirectoryKey, .isReadableKey]) }
+                    catch {
+                        if retainedPDFInputs != nil {
+                            throw FreewheelError.invalidInput("\(input.lastPathComponent) is no longer a readable local PDF. Reopen Merge PDF after checking the file.")
+                        }
+                        throw error
+                    }
+                    guard values.isRegularFile == true || values.isDirectory == true, values.isReadable != false else {
+                        throw FreewheelError.invalidInput("An input is not a readable file or folder.")
+                    }
+                    guard seen.insert(resolved.path).inserted else { throw FreewheelError.invalidInput("The same input was selected more than once.") }
                 }
-                guard seen.insert(resolved.path).inserted else { throw FreewheelError.invalidInput("The same input was selected more than once.") }
                 return resolved
             }
             if options.imageCrop != nil {
@@ -55,7 +68,13 @@ public final class ConversionEngine: Sendable {
                     throw FreewheelError.invalidInput("Organize PDF requires exactly one PDF file.")
                 }
             }
-            let destination = (options.destinationDirectory ?? validated[0].deletingLastPathComponent()).standardizedFileURL.resolvingSymlinksInPath()
+            if let plan = options.pdfMerge {
+                guard plan.sources.allSatisfy({ FileFamily.detect(validated[$0.inputIndex]) == .pdf }) else {
+                    throw FreewheelError.invalidInput("The merge preview requires PDF files.")
+                }
+            }
+            let firstOutputInput = options.pdfMerge?.sources.first?.inputIndex ?? 0
+            let destination = (options.destinationDirectory ?? validated[firstOutputInput].deletingLastPathComponent()).standardizedFileURL.resolvingSymlinksInPath()
             guard destination.isFileURL else { throw FreewheelError.invalidInput("Choose a local output folder.") }
             if operation.id.hasPrefix("archive.create") {
                 for input in validated {
@@ -76,6 +95,16 @@ public final class ConversionEngine: Sendable {
 
     private func convert(_ inputs: [URL], operation: FileOperation, options: ConversionOptions, stage: URL) async throws -> ConversionResult {
         let families = Set(inputs.map(FileFamily.detect))
+        if options.pdfMerge != nil {
+            // Generic or external merges cannot replace a preview-bound plan:
+            // they would lose the chosen order or reintroduce removed files.
+            #if os(macOS)
+            return try await NativeConverter.convert(inputs: inputs, operation: operation,
+                                                      options: options, outputDirectory: stage)
+            #else
+            throw FreewheelError.unsupported("PDF merge previews require the native macOS editor. The command-line tool can merge PDFs in their input order.")
+            #endif
+        }
         if options.pdfOrganization != nil {
             // An ordered page plan must never fall through to a converter that
             // would discard page order, omissions, or rotation deltas.
@@ -263,6 +292,17 @@ public final class ConversionEngine: Sendable {
     }
 
     private func validateOptions(_ options: ConversionOptions, operation: FileOperation) throws {
+        if let plan = options.pdfMerge {
+            guard operation.id == "pdf.merge", options.pdfOrganization == nil,
+                  options.imageCrop == nil, options.audioTrim == nil,
+                  options.videoTrim == nil, options.videoCrop == nil else {
+                throw FreewheelError.invalidInput("A PDF merge plan can only be used with Merge PDF, without another editor selection.")
+            }
+            try plan.validate()
+            if let ext = operation.outputExtension?.lowercased(), ext != "pdf" {
+                throw FreewheelError.invalidInput("Choose PDF output for the merge preview.")
+            }
+        }
         if operation.id == "pdf.organize", options.pdfOrganization == nil {
             throw FreewheelError.invalidInput("Choose pages in Organize PDF before exporting.")
         }

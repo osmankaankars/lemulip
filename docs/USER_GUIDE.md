@@ -4,9 +4,9 @@ Lemulip has three ways to work: a wheel beside your drag, a regular workspace, a
 
 New here? [Install Lemulip](INSTALL.md) first. For specific input and output combinations, use the [format guide](FORMATS.md).
 
-This guide follows source **0.1.7**, which adds Organize PDF. Visual image crop
-and audio waveform trim start with 0.1.4, native video trim with 0.1.5, and visual
-video crop with 0.1.6.
+This guide follows source **0.1.8**, which adds Merge PDF preview. Visual image
+crop and audio waveform trim start with 0.1.4, native video trim with 0.1.5,
+visual video crop with 0.1.6, and Organize PDF with 0.1.7.
 Check [Releases](https://github.com/osmankaankars/lemulip/releases) for available
 downloads and the notes for your installed version.
 
@@ -42,7 +42,10 @@ Use **Add Files**, **⌘O**, or drag files into the main window. You can also us
 
 Choose **Convert**, **Tools**, or **Actions** above the operation cards. Removing a file from this selection does not delete it from disk. **Clear** empties the selection.
 
-For jobs where order matters, use the up and down arrows beside each file. The displayed order controls PDF merges and the page order when combining images into a PDF.
+For jobs where order matters, use the up and down arrows beside each file. This
+order becomes the starting arrangement in the PDF merge preview and controls
+the page order when combining images into a PDF. The merge editor lets you
+review and change its arrangement before creating the copy.
 
 **Open Wheel** opens a clickable version of the wheel for the current selection. In this mode:
 
@@ -84,6 +87,7 @@ Some operations run as soon as you select them. Others open a panel with relevan
 | Trim Audio | Waveform handles, timestamps, selected-range playback, and an output format |
 | Trim Video | Native preview, thumbnail strip, range handles, timestamps, selected-range playback, and MP4/MOV output |
 | Organize PDF | Page thumbnails, ordering, rotation, removal, and extraction for one PDF |
+| Merge PDF | First-page previews, document order, page counts, and output page ranges for several PDFs |
 | Extract PDF Pages | Page numbers and ranges, such as `1,3-5,8` |
 | Change Speed | Playback multiplier from 0.5× to 4× |
 | Adjust Volume | Level from 0% to 300% |
@@ -355,6 +359,76 @@ editor closes. If the source changes before export, reopen the editor to use
 the updated document. Completed PDFs follow the normal output-folder and
 unused-name rules.
 
+### Merge PDF
+
+**Merge PDF preview starts with 0.1.8.** Select two or more PDFs and choose
+**Tools → Merge PDFs**. The editor inspects the documents with visible progress,
+then shows them in the order you selected in the workspace.
+
+Each row shows the filename, a first-page preview, the document's page count,
+and **Pages A–B in Your Copy**. **Original File** identifies its position in the
+starting selection, even after you move it. The summary shows how many PDFs
+and pages will be included. Page ranges and totals update as the arrangement
+changes.
+
+| Control | Action |
+| --- | --- |
+| Click a document | Select that document |
+| Command-click | Add or remove one document from the selection |
+| Shift-click | Select a range of documents |
+| Drag selected documents | Move them together, keeping their relative order |
+| **Move Earlier / Move Later** | Move selected documents toward the beginning or end |
+| **Remove** | Leave selected documents out of the pending copy |
+| **Select All** | Select every remaining document |
+| **Undo / Redo** | Revert an arrangement change or reapply it |
+| **Reset** | Restore the complete starting file list and its order |
+| **Create Copy** | Queue one PDF containing every page from the retained documents |
+| **Cancel** or Escape | Close without exporting |
+
+With the document list focused, use Up and Down to select a row and hold Shift
+to extend the selection. **⌘A** selects all documents, Delete removes the
+selection, **⌘Z** undoes an edit, and **⇧⌘Z** redoes it. Use **⌥⌘↑ / ⌥⌘↓** to
+move the selection. Tab moves between the other controls.
+
+At least two documents must remain. **Remove** changes the pending merge and
+leaves files on disk untouched. Every page within a document keeps its source
+order and orientation. To rotate, remove, or extract individual pages, use
+[Organize PDF](#organize-pdf) on that document first, then merge the saved copy.
+
+The resulting PDF uses actual source pages, retaining text, vector content,
+and page annotations. First-page images are only previews. Document-level
+bookmarks, links between pages, form relationships, signatures, and accessibility
+structure may not remain valid after files are combined; keep the originals
+when those features matter.
+
+The preview requires readable local PDFs with permission to assemble and copy
+pages. There is no password field. Locked or restricted documents receive an
+explanation before editing. If a retained document is encrypted but already
+readable, the editor explains before export that **the new copy will not be
+password protected**. Original document protection is unchanged.
+
+Start with **2–100 PDFs**, each with up to **1,000 pages**, and no more than
+**512 MiB of source files in total**. The new copy can contain at most
+**1,000 pages**. If the initial page total is higher, remove whole documents
+until the arrangement fits; at least two documents must still remain.
+
+Previews use a shared cache of at most 24 small images, each at most 320 pixels
+on its longest edge. Documents are inspected sequentially, and each temporary
+source copy is removed after its inspection or preview work ends. Export makes
+its own temporary source copies and checks that the retained documents still
+match their previews. If one has changed, reopen the editor to use the updated
+files. Export copies are removed on completion, failure, or cancellation.
+These limits bound Lemulip's cache and source copies, not PDFKit's total memory.
+
+With **Settings → Save in the First File's Folder** enabled, the completed PDF
+is saved beside the first retained document in the displayed arrangement.
+Moving or removing the first document changes that default folder. Turn the
+setting off to choose a destination. Existing files are preserved with the
+normal unused-name rule.
+
+The command-line `pdf.merge` operation combines files in argument order without
+opening the preview editor.
+
 ### PDF Compression
 
 This tool renders pages as images in a new PDF. Text selection, links, forms, signatures, and accessibility structure are lost in the output. The original remains untouched, and some files may become larger.
@@ -371,7 +445,10 @@ Use the cancel button for a queued or running conversion. A failed or cancelled 
 
 ### Choose an Output Folder
 
-In **Settings**, leave **Save in the First File's Folder** on to save all outputs of each job beside its first input. This also applies when inputs come from different folders.
+In **Settings**, leave **Save in the First File's Folder** on to save all outputs
+of each job beside its first input. A visual PDF merge uses the first retained
+document in the editor's displayed order. This also applies when inputs come
+from different folders.
 
 Turn it off to choose a destination for each job. Existing files are not replaced; Lemulip chooses a new name. **Reveal Finished Files** controls whether Finder opens automatically after success.
 

@@ -90,6 +90,9 @@ public struct ConversionOptions: Sendable {
     public var videoCrop: VideoCropRegion? = nil
     /// Ordered source pages for the native visual PDF organizer.
     public var pdfOrganization: PDFOrganizePlan? = nil
+    /// An ordered, source-bound file list from the native PDF merge preview.
+    /// Nil preserves the command-line tool's original-order merge.
+    public var pdfMerge: PDFMergePlan? = nil
     public var startSeconds: Double = 0
     public var endSeconds: Double = 30
     public var rotationDegrees: Int = 90
