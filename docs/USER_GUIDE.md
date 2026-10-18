@@ -4,9 +4,9 @@ Lemulip has three ways to work: a wheel beside your drag, a regular workspace, a
 
 New here? [Install Lemulip](INSTALL.md) first. For specific input and output combinations, use the [format guide](FORMATS.md).
 
-This guide follows source **0.1.8**, which adds Merge PDF preview. Visual image
+This guide follows source **0.1.10**, which adds basic Word and Excel export. Visual image
 crop and audio waveform trim start with 0.1.4, native video trim with 0.1.5,
-visual video crop with 0.1.6, and Organize PDF with 0.1.7.
+visual video crop with 0.1.6, Organize PDF with 0.1.7, and Merge PDF preview with 0.1.8.
 Check [Releases](https://github.com/osmankaankars/lemulip/releases) for available
 downloads and the notes for your installed version.
 
@@ -458,11 +458,65 @@ Turn it off to choose a destination for each job. Existing files are not replace
 
 **Float** keeps the selected files in a small shelf above other windows. **Copy Path** copies their absolute paths to the clipboard. **Terminal** opens the first selected file's containing folder, or the folder itself when selected. **AirDrop** opens the system sharing flow when available.
 
+## Basic Office Exports
+
+Source **0.1.10** adds two everyday Office exports that work without installing
+an extra engine. Microsoft Office is not required for conversion.
+
+### Create a Word Document
+
+1. Add a **TXT** file to the workspace or start dragging it in Finder.
+2. Choose **Convert → DOCX** in the workspace, or press **Shift** while dragging
+   and drop onto **DOCX** in the wheel.
+3. When the job completes, reveal the new `.docx` file from **Activity**.
+
+This native macOS route creates a basic Word document from your text. It keeps
+paragraphs, tabs, and Unicode. Save the source as UTF-8 or BOM-marked UTF-16;
+TXT input must be between **1 byte and 32 MiB** and contain text beyond an
+encoding marker. The output does not infer formatting from plain text. A heading
+written as `# Notes` stays that text.
+For formatted Markdown → DOCX, use a Markdown file with optional Pandoc.
+
+RTF, HTML, and existing Office documents continue to use the optional engines
+listed in [Formats](FORMATS.md#documents-slides-and-spreadsheets).
+
+### Create an Excel Workbook
+
+1. Add a **CSV** or **TSV** file.
+2. Choose **Convert → XLSX**, or use the drag wheel's **XLSX** segment.
+3. Reveal the `.xlsx` output from **Activity**. Each source creates its own
+   workbook containing one worksheet named **Sheet1**.
+
+Every field is saved as text. Product codes such as `00123` keep their leading
+zeros, date-looking strings keep their spelling, and `=SUM(A1:A2)` stays text
+without being calculated. Quoted commas or tabs, escaped quotes, and multiline
+fields remain within their cells. The first row is not given special header
+formatting, and multiple inputs are not combined into a single workbook.
+Use UTF-8 or BOM-marked UTF-16 input. Blank rows stay in place; an empty input
+creates a blank Sheet1.
+
+Use a spreadsheet application to deliberately change cell types when you need
+numeric calculations. Existing XLS, XLSX, and ODS files still use LibreOffice
+for supported conversions.
+
+An input can contain at most **32 MiB**, **100,000 rows**, **16,384 columns**, and
+**500,000 fields**, including empty fields. One cell can hold at most **32,767
+UTF-16 code units** and **253 line feeds**; some Unicode characters use two code
+units. Oversized input fails with an explanation instead of losing rows or
+text. See [Basic Excel Export](FORMATS.md#basic-excel-export) for the full scope.
+
+Both exports use the normal output-folder preference and choose an unused name.
+Your source files stay in place.
+
 ## Optional Engines
 
 **Settings → Local Engines** shows which helpers Lemulip can find. Install the engines you need, then click **Refresh**. Installation instructions are in [Installation](INSTALL.md#optional-engines).
 
 A dimmed operation or a dependency message means its helper is missing. It is not a paid feature. Available input codecs also depend on macOS and the installed helper's build.
+
+TXT → DOCX and CSV/TSV → XLSX work without an extra engine on macOS. LibreOffice
+continues to handle richer Office routes; Markdown → DOCX uses Pandoc. The
+format name describes the file you receive, not an application you must install.
 
 The interface language can be changed between English and Turkish in **Settings → Language**.
 
@@ -482,6 +536,8 @@ From a source checkout, prefix commands with `swift run`. A local app build also
 ```bash
 ./dist/lemulip convert png photo.heic
 ./dist/lemulip convert vtt subtitles.srt
+./dist/lemulip convert docx notes.txt
+./dist/lemulip convert xlsx table.csv
 ./dist/lemulip run pdf.merge first.pdf second.pdf
 ./dist/lemulip run archive.createZip image.png notes.txt
 ./dist/lemulip run archive.extract example.zip
@@ -505,7 +561,10 @@ Use `--output` with an existing destination folder. Quote paths containing space
 
 The command prints output paths. Errors and conversion notes go to standard error. Finder, shelf, and AirDrop actions are available only in the desktop app.
 
-The desktop interface and Apple framework converters require macOS. Portable text and archive operations, plus supported external-engine routes, can also run on Linux. The macOS helper sandbox is not applied on Linux.
+The desktop interface and Apple framework converters, including native TXT →
+DOCX, require macOS. Portable text, CSV/TSV → XLSX, and archive operations, plus
+supported external-engine routes, can also run on Linux. The macOS helper
+sandbox is not applied on Linux.
 
 ## If Something Fails
 

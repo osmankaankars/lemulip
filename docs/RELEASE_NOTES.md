@@ -6,6 +6,38 @@ Lemulip is a free, open-source file converter for macOS. Drag local files,
 tap a modifier key, and choose a format or tool from the wheel. Use the workspace
 when you need a queue, conversion options, or a closer look at the result.
 
+## 0.1.10 · Simple Files, Ready for Office
+
+- Convert TXT files into basic **Word documents (DOCX)** with native macOS
+  tools. Keep plain text, paragraphs, tabs, and Unicode without installing
+  LibreOffice or Microsoft Office.
+- Convert CSV and TSV files into **Excel workbooks (XLSX)** with one worksheet
+  named **Sheet1** per input. Quoted delimiters and multiline fields stay in
+  their cells.
+- Store spreadsheet values as text. Preserve leading zeros and identifiers;
+  do not guess numbers or dates, or turn formula-looking text into executable
+  spreadsheet formulas.
+- Explain the basic export scope and optional engine requirements before a
+  job starts. Rich document and existing-workbook routes retain their engines;
+  Markdown → DOCX still uses Pandoc.
+- Enforce explicit input, row, column, cell, and text limits. Create copies
+  through the existing output pipeline and preserve the originals.
+- Keep the native app small: no new package dependency, bundled Office engine,
+  or committed binary fixture collection.
+
+Version **0.1.10**, build **13**, begins the
+[Easier Office Conversion](ROADMAP.md#5-easier-office-conversion) milestone.
+Its own Mac compilation, conversion, package, and security checks are required
+before release assets are published. [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
+records each commit's result; [Releases](https://github.com/osmankaankars/lemulip/releases)
+lists available downloads. Native Word and Excel acceptance remains separate
+from portable and automated reader checks.
+
+Read [Basic Office Exports](USER_GUIDE.md#basic-office-exports) for the workflow
+and [Office Formats](FORMATS.md#documents-slides-and-spreadsheets) for exact limits.
+The next slice checks richer Office routes and investigates basic native RTF
+export before extending the supported formatting.
+
 ## 0.1.9 · A Brighter First Impression
 
 - Place the vivid green and cream ribbon on a warm white icon tile, giving the

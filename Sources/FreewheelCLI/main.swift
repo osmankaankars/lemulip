@@ -25,11 +25,15 @@ Options:
 
 Examples:
   lemulip convert png photo.heic
+  lemulip convert docx notes.txt
+  lemulip convert xlsx table.csv
   lemulip run pdf.merge first.pdf second.pdf
   lemulip run media.trim video.mp4 --start 5 --end 25
   lemulip run archive.extract example.zip
 
 Conversions never replace the original. No files are uploaded.
+TXT to DOCX is built into macOS. CSV/TSV to XLSX is built in on both platforms:
+one worksheet per file, with every value kept as text (no formula or date inference).
 Image/PDF/native media operations require macOS; portable text/archive and
 installed external engines can also be used on Linux.
 """

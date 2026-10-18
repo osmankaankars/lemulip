@@ -174,6 +174,12 @@ public final class ConversionEngine: Sendable {
                 try TextCodec.convertDelimited(TextCodec.read(input), from: input.pathExtension.lowercased() == "csv" ? "," : "\t", to: target == "csv" ? "," : "\t")
             }
         }
+        if operation.id.hasPrefix("convert."), target == "xlsx",
+           inputs.allSatisfy({ ["csv", "tsv"].contains($0.pathExtension.lowercased()) }) {
+            // CSV and TSV have no type schema. Keep the same literal text
+            // semantics even when an optional spreadsheet engine is installed.
+            return try await SpreadsheetWriter.convert(inputs: inputs, directory: stage)
+        }
         if operation.id.hasPrefix("media.") || (!families.isEmpty && families.isSubset(of: [.audio, .video])) {
             if EngineLocator.isAvailable("ffmpeg") { return try await ExternalConverters.media(inputs, operation: operation, options: options, directory: stage) }
             #if os(macOS)

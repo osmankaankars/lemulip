@@ -41,8 +41,8 @@ public enum Catalog {
             else if family == .pdf { detail = "Extract selectable text" }
             else if family == .image && ext == "pdf" && inputs.count > 1 { detail = "Combine in the order shown" }
             else if ext == "epub" { detail = "Reflowable ebook" }
-            else if ext == "docx" { detail = "Microsoft Word Document" }
-            else if ext == "xlsx" { detail = "Microsoft Excel Workbook" }
+            else if ext == "docx" { detail = dependency == nil ? "Microsoft Word Document · Plain Text" : "Microsoft Word Document" }
+            else if ext == "xlsx" { detail = dependency == nil ? "Microsoft Excel Workbook · Text Cells" : "Microsoft Excel Workbook" }
             else if ext == "pptx" { detail = "Microsoft PowerPoint Presentation" }
             else { detail = dependency.map { "Local \($0) engine" } ?? "Built into macOS" }
             return FileOperation(id: "convert.\(ext)", title: ext.uppercased(), symbol: symbol(for: family, output: ext), outputExtension: ext, detail: detail, dependency: dependency)
@@ -158,9 +158,12 @@ public enum Catalog {
         case .video: return ["mp4", "mov", "m4a"].contains(output) ? nil : "ffmpeg"
         case .presentation: return "libreoffice"
         case .spreadsheet:
-            if inputs.allSatisfy({ ["csv", "tsv"].contains($0.pathExtension.lowercased()) }) && ["csv", "tsv"].contains(output) { return nil }
+            if inputs.allSatisfy({ ["csv", "tsv"].contains($0.pathExtension.lowercased()) }) && ["csv", "tsv", "xlsx"].contains(output) { return nil }
             return "libreoffice"
         case .document:
+            #if os(macOS)
+            if output == "docx", inputs.allSatisfy({ $0.pathExtension.lowercased() == "txt" }) { return nil }
+            #endif
             if output == "epub" || inputs.contains(where: { $0.pathExtension.lowercased() == "epub" }) { return "pandoc" }
             if ["html", "docx", "odt"].contains(output) && inputs.contains(where: { ["md", "markdown"].contains($0.pathExtension.lowercased()) }) { return "pandoc" }
             if ["docx", "odt"].contains(output) || inputs.contains(where: { ["doc", "docx", "odt", "pages"].contains($0.pathExtension.lowercased()) }) { return "libreoffice" }

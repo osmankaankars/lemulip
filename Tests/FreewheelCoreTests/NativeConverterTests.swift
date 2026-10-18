@@ -1052,6 +1052,128 @@ final class NativeConverterTests: XCTestCase {
         XCTAssertFalse(text.contains("script")); XCTAssertFalse(text.contains("https:"))
     }
 
+    func testNativeWordExportPreservesTextAndUsesPublicPackageMetadata() async throws {
+        let work = try workspace()
+        let input = work.inputs.appendingPathComponent("plain.txt")
+        let text = "  İstanbul  東京 🍋\tSecond Column\n\nXML & < > \"quoted\"\nhttps://example.invalid/unchanged\nFINALMARKER"
+        let original = Data([0xEF, 0xBB, 0xBF]) + Data(text.utf8)
+        try original.write(to: input)
+        let result = try await NativeConverter.convert(inputs: [input], operation: operation("convert.docx"),
+            options: ConversionOptions(), outputDirectory: work.stage)
+        let output = try XCTUnwrap(result.outputs.first)
+        XCTAssertEqual(result.outputs.count, 1)
+        XCTAssertEqual(output.pathExtension, "docx")
+        XCTAssertEqual(try Data(contentsOf: input), original)
+        XCTAssertTrue(result.note?.contains("Author and editor metadata use Lemulip") == true)
+        let word = try Data(contentsOf: output)
+        XCTAssertEqual(word.prefix(4), Data([0x50, 0x4B, 0x03, 0x04]))
+        let reopened = try NSAttributedString(data: word,
+            options: [.documentType: NSAttributedString.DocumentType.officeOpenXML], documentAttributes: nil)
+        // TextKit may expose the final DOCX paragraph terminator as one extra
+        // newline. No other whitespace or document content may disappear.
+        XCTAssertTrue(reopened.string == text || reopened.string == text + "\n")
+
+        // Inspect the real OPC package through the existing libarchive bridge;
+        // checking only a PK signature would accept an arbitrary ZIP file.
+        let extracted = try await ExternalConverters.archives([output], operation: operation("archive.extract"),
+                                                               directory: freshStage(work))
+        let package = try XCTUnwrap(extracted.outputs.first)
+        let contentTypes = try XMLDocument(contentsOf: package.appendingPathComponent("[Content_Types].xml"),
+                                           options: .nodeLoadExternalEntitiesNever)
+        XCTAssertEqual(try contentTypes.nodes(forXPath: "/*[local-name()='Types']/*[local-name()='Override' and @ContentType='application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml']").count, 1)
+        let relationships = try XMLDocument(contentsOf: package.appendingPathComponent("_rels/.rels"),
+                                            options: .nodeLoadExternalEntitiesNever)
+        let mainRelationship = try XCTUnwrap(try relationships.nodes(forXPath: "/*[local-name()='Relationships']/*[local-name()='Relationship']")
+            .compactMap { $0 as? XMLElement }
+            .first { $0.attribute(forName: "Type")?.stringValue?.hasSuffix("/officeDocument") == true })
+        let target = try XCTUnwrap(mainRelationship.attribute(forName: "Target")?.stringValue)
+        XCTAssertNotEqual(mainRelationship.attribute(forName: "TargetMode")?.stringValue, "External")
+        XCTAssertFalse(target.split(separator: "/").contains(".."))
+        let mainPath = target.hasPrefix("/") ? String(target.dropFirst()) : target
+        let document = try XMLDocument(contentsOf: package.appendingPathComponent(mainPath), options: .nodeLoadExternalEntitiesNever)
+        XCTAssertEqual(document.rootElement()?.localName, "document")
+        let content = try document.nodes(forXPath: "//*[local-name()='t']").compactMap { $0.stringValue }.joined()
+        XCTAssertTrue(content.contains("XML & < > \"quoted\""))
+        XCTAssertTrue(content.contains("FINALMARKER"))
+
+        let parts = try XCTUnwrap(FileManager.default.enumerator(at: package, includingPropertiesForKeys: nil))
+        for case let part as URL in parts where ["xml", "rels"].contains(part.pathExtension) {
+            let xml = try XMLDocument(contentsOf: part, options: .nodeLoadExternalEntitiesNever)
+            let personalFields = try xml.nodes(forXPath: "//*[local-name()='creator' or local-name()='lastModifiedBy' or local-name()='Company' or local-name()='Manager']")
+            for field in personalFields {
+                XCTAssertTrue(["", "Lemulip"].contains(field.stringValue ?? ""), "Office metadata must contain only the public product identity")
+            }
+            XCTAssertTrue(try xml.nodes(forXPath: "//*[local-name()='Relationship' and @TargetMode='External']").isEmpty)
+            XCTAssertFalse(try String(contentsOf: part, encoding: .utf8).contains(work.root.path))
+        }
+    }
+
+    func testNativeWordExportDecodesUTF8AndBothUTF16ByteOrders() async throws {
+        let work = try workspace()
+        let inputText = "Alpha\r\n\r\nİstanbul\t東京\rFinal"
+        let expected = "Alpha\n\nİstanbul\t東京\nFinal"
+        let originals = [Data(inputText.utf8),
+                         Data([0xFF, 0xFE]) + (try XCTUnwrap(inputText.data(using: .utf16LittleEndian))),
+                         Data([0xFE, 0xFF]) + (try XCTUnwrap(inputText.data(using: .utf16BigEndian)))]
+        for (index, original) in originals.enumerated() {
+            let input = work.inputs.appendingPathComponent("encoding-\(index).TXT")
+            try original.write(to: input)
+            let result = try await NativeConverter.convert(inputs: [input], operation: operation("convert.docx"),
+                options: ConversionOptions(), outputDirectory: freshStage(work))
+            let reopened = try NSAttributedString(data: Data(contentsOf: XCTUnwrap(result.outputs.first)),
+                options: [.documentType: NSAttributedString.DocumentType.officeOpenXML], documentAttributes: nil)
+            XCTAssertTrue(reopened.string == expected || reopened.string == expected + "\n")
+            XCTAssertEqual(try Data(contentsOf: input), original)
+        }
+    }
+
+    func testNativeWordExportRejectsUnsupportedTextWithoutPublishingOutput() async throws {
+        let work = try workspace()
+        let invalidInputs = [Data([0xC3, 0x28]), Data([0xFF, 0xFE, 0x41]), Data([0xFF, 0xFE, 0x00, 0xD8]), Data([0xEF, 0xBB, 0xBF]),
+                             Data("Alpha\u{0000}Beta".utf8), Data("Alpha\u{000B}Beta".utf8), Data("Alpha\u{FFFE}Beta".utf8)]
+        for (index, original) in invalidInputs.enumerated() {
+            let input = work.inputs.appendingPathComponent("invalid-\(index).txt")
+            let stage = try freshStage(work)
+            try original.write(to: input)
+            do {
+                _ = try await NativeConverter.convert(inputs: [input], operation: operation("convert.docx"),
+                    options: ConversionOptions(), outputDirectory: stage)
+                XCTFail("Invalid text must not silently become a Word document")
+            } catch FreewheelError.invalidInput { }
+            XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: stage.path).isEmpty)
+            XCTAssertEqual(try Data(contentsOf: input), original)
+        }
+        let oversized = work.inputs.appendingPathComponent("oversized.txt")
+        try Data("A".utf8).write(to: oversized)
+        let handle = try FileHandle(forWritingTo: oversized)
+        try handle.truncate(atOffset: 32 * 1_024 * 1_024 + 1)
+        try handle.close()
+        do {
+            _ = try await NativeConverter.convert(inputs: [oversized], operation: operation("convert.docx"),
+                options: ConversionOptions(), outputDirectory: work.stage)
+            XCTFail("Word export must enforce the text input size bound")
+        } catch FreewheelError.invalidInput { }
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+    }
+
+    func testNativeWordExportPreflightsRichInputsBeforeReadingTheBatch() async throws {
+        let work = try workspace()
+        let invalidText = work.inputs.appendingPathComponent("not-utf8.txt")
+        try Data([0xC3, 0x28]).write(to: invalidText)
+        for (ext, content) in [("rtf", "{\\rtf1\\ansi Rich \\b text\\b0}"), ("html", "<p>Rich <b>text</b></p>"), ("md", "# Heading")] {
+            let rich = work.inputs.appendingPathComponent("rich.\(ext)")
+            let original = Data(content.utf8)
+            try original.write(to: rich)
+            do {
+                _ = try await NativeConverter.convert(inputs: [invalidText, rich], operation: operation("convert.docx"),
+                    options: ConversionOptions(), outputDirectory: work.stage)
+                XCTFail("Rich inputs must keep their optional document engine")
+            } catch FreewheelError.unsupported { }
+            XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+            XCTAssertEqual(try Data(contentsOf: rich), original)
+        }
+    }
+
     func testSVGExternalResourcesAreRejectedBeforeRendering() async throws {
         let work = try workspace()
         let source = work.inputs.appendingPathComponent("external.svg")

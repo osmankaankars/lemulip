@@ -309,6 +309,66 @@ themes. Close during source inspection and during a thumbnail request, then
 open another selection; no stale row or image should reappear. Native export
 tests and source inspection do not establish these UI acceptance results.
 
+## Basic Office Export Constraints
+
+Source 0.1.10 adds two bounded routes before optional engine selection:
+**TXT → DOCX on macOS** and **CSV/TSV → XLSX on all supported core platforms**.
+Keep their scope explicit in the catalog, job notes, and format guide. Preserve
+existing LibreOffice routes for RTF, HTML, Office documents, workbooks, and
+presentations, and Pandoc for Markdown → DOCX. A built-in export failure must
+not silently select a different engine with different data semantics.
+
+| Constraint | Implementation Boundary |
+| --- | --- |
+| No new runtime dependency | AppKit's DOCX writer; a small XLSX package writer using the existing archive bridge |
+| Plain Word input | TXT only, 1 byte–32 MiB; UTF-8 with an optional BOM or BOM-marked UTF-16; reject empty decoded text and unsupported controls |
+| Word content | Basic paragraphs, tabs, and Unicode; normalize CRLF/CR to logical line breaks; no rich-text, HTML, or Markdown interpretation |
+| Spreadsheet input | CSV or TSV, at most 32 MiB of actual input bytes; UTF-8 or BOM-marked UTF-16; strict quoted-field parsing |
+| Spreadsheet content | One Sheet1 per input; every field stored as text, including empty fields; no inferred headers, dates, numeric types, formulas, charts, or external references |
+| Bounded worksheet | At most 100,000 rows, 16,384 columns, and 500,000 fields; at most 32,767 UTF-16 code units and 253 line feeds per cell |
+| Public metadata | Set DOCX author/editor explicitly to Lemulip and keep company/manager empty; include no user identity, device name, or source path in generated package metadata |
+| Safe publication | Preserve source bytes, build in staging, choose an unused output name, and remove unpublished output on failure or cancellation |
+
+The TXT route uses
+[`NSAttributedString.DocumentType.officeOpenXML`](https://developer.apple.com/documentation/foundation/nsattributedstring/documenttype/officeopenxml)
+and AppKit's document-data export. Apple's
+[formatted-document guide](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/AttributedStrings/Articles/HTMLFilesandAttributedStrings.html)
+describes the writer and its document attributes. API support alone is not a
+formatting guarantee; basic RTF export needs separate fidelity work before it
+can join this route.
+
+The XLSX writer stores explicit text cells and preserves whitespace. Retain
+quoted delimiters and doubled quotes, blank rows, and multiline cells. A final
+row separator adds no extra row; empty input creates a blank Sheet1. Escape
+literal `_xHHHH_` sequences and carriage returns according to Microsoft's
+[Office escaped-string rules](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-oi29500/d34ae755-c53f-4a44-a363-c6dd3ee018a4).
+Reject unsupported XML controls instead of replacing them. The worksheet's
+column, cell-length, and line-feed constraints stay within Microsoft's
+[Excel limits](https://support.microsoft.com/en-us/excel/excel-specifications-and-limits?content_language=English);
+the lower row and total-field limits are Lemulip's resource policy. Check bounds
+while parsing and writing, before an oversized table accumulates in memory.
+
+Extend the existing tests using small generated documents. For DOCX, inspect
+package structure, extracted text, logical line breaks, tabs, Unicode, public
+metadata, invalid input, cancellation, and original preservation on macOS. For
+XLSX, verify relationships and content types, one named sheet, explicit text
+cells, leading zeros, long identifiers, formula-looking strings, whitespace,
+OOXML escapes, malformed quoting, and boundary failures. Keep the optional
+LibreOffice integration check exercising that engine directly; a built-in
+route should not accidentally replace external-engine coverage.
+
+The existing optional-engine integration tests are configured to read generated
+DOCX and XLSX exports through LibreOffice, alongside explicit LibreOffice
+conversion cases. Their 0.1.10 result must be verified in that commit's Mac CI
+after publication; the presence of these checks does not mean they have passed.
+
+Opening generated files with an independent reader helps catch packaging and
+text interpretation errors. Release acceptance also needs real Word and Excel
+checks: inspect paragraphs, tabs, Unicode, cell values, and text typing without
+repair prompts. Distinguish portable tests, Mac CI, external-reader checks, and
+hands-on target-application acceptance in reports. A passing parser or native
+writer round trip does not establish all four.
+
 ## Prepare a Release
 
 ```bash

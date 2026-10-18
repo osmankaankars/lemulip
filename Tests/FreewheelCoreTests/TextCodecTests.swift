@@ -50,6 +50,87 @@ final class TextCodecTests: XCTestCase {
         XCTAssertThrowsError(try TextCodec.parseDelimited("a,un\"escaped", delimiter: ","))
     }
 
+    func testDelimitedRowsStreamQuotedValuesAndStopWhenConsumerFails() throws {
+        var rows: [[String]] = []
+        try TextCodec.forEachDelimitedRow("\u{FEFF}name,note,empty\r\n\"Ada, Jr.\",\"one\r\ntwo\"\"quoted\"\"\",\r\n\r\n", delimiter: ",") { rows.append($0) }
+        XCTAssertEqual(rows, [["name", "note", "empty"], ["Ada, Jr.", "one\r\ntwo\"quoted\"", ""], [""]])
+        var delivered = 0
+        XCTAssertThrowsError(try TextCodec.forEachDelimitedRow("a,b\nc,d\ne,f\n", delimiter: ",") { _ in
+            delivered += 1
+            throw FreewheelError.operationFailed("Stop Reading")
+        })
+        XCTAssertEqual(delivered, 1)
+    }
+
+    func testDelimitedLimitsRejectRowsColumnsCellsAndUTF16WithoutTruncation() throws {
+        let limits = TextCodec.DelimitedLimits(rows: 2, columns: 3, cells: 5, fieldUTF16: 3, fieldLineFeeds: 1)
+        var rows: [[String]] = []
+        try TextCodec.forEachDelimitedRow("1,2,3\n4,5", delimiter: ",", limits: limits) { rows.append($0) }
+        XCTAssertEqual(rows, [["1", "2", "3"], ["4", "5"]])
+        for input in ["1,2,3,4", "1\n2\n3", "1,2,3\n4,5,6", "🍋ab", "\"\n\n\""] {
+            XCTAssertThrowsError(try TextCodec.forEachDelimitedRow(input, delimiter: ",", limits: limits) { _ in })
+        }
+        let longest = String(repeating: "🍋", count: 16_383) + "a"
+        var accepted: [[String]] = []
+        try TextCodec.forEachDelimitedRow(longest, delimiter: ",", limits: SpreadsheetWriter.limits) { accepted.append($0) }
+        XCTAssertEqual(accepted, [[longest]])
+        XCTAssertThrowsError(try TextCodec.forEachDelimitedRow(longest + "a", delimiter: ",", limits: SpreadsheetWriter.limits) { _ in })
+        let lineFeeds = "\"" + String(repeating: "\n", count: 253) + "\""
+        XCTAssertNoThrow(try TextCodec.forEachDelimitedRow(lineFeeds, delimiter: ",", limits: SpreadsheetWriter.limits) { _ in })
+    }
+
+    func testWorkbookRowAndCellBudgetsStopDelimiterHeavyInputsEarly() throws {
+        var count = 0
+        let tooManyRows = String(repeating: "\n", count: 100_001)
+        XCTAssertThrowsError(try TextCodec.forEachDelimitedRow(tooManyRows, delimiter: ",", limits: SpreadsheetWriter.limits) { _ in count += 1 })
+        XCTAssertEqual(count, 100_000)
+        let row = String(repeating: ",", count: 9) + "\n"
+        var cells = 0
+        XCTAssertThrowsError(try TextCodec.forEachDelimitedRow(String(repeating: row, count: 50_001), delimiter: ",", limits: SpreadsheetWriter.limits) { values in cells += values.count })
+        XCTAssertEqual(cells, 500_000)
+    }
+
+    func testDelimitedParsingObservesCancellationInsideALongQuotedField() async throws {
+        let task = Task {
+            var delivered = 0
+            do {
+                try TextCodec.forEachDelimitedRow("first\n\"" + String(repeating: "\"\"", count: 20_000) + "\"", delimiter: ",") { _ in
+                    delivered += 1
+                    withUnsafeCurrentTask { $0?.cancel() }
+                }
+                XCTFail("A cancelled parser finished the table")
+            } catch is CancellationError { XCTAssertEqual(delivered, 1) }
+        }
+        try await task.value
+    }
+
+    func testTextReaderRejectsOversizedActualFileAndKeepsUTF8BOMBehavior() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("lemulip-text-limit-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let input = directory.appendingPathComponent("large.csv")
+        try Data().write(to: input)
+        let handle = try FileHandle(forWritingTo: input)
+        try handle.truncate(atOffset: UInt64(TextCodec.maximumInputBytes + 1))
+        try handle.close()
+        XCTAssertThrowsError(try TextCodec.read(input))
+        XCTAssertThrowsError(try TextCodec.readData(input))
+        let bom = directory.appendingPathComponent("bom.csv")
+        try Data([0xEF, 0xBB, 0xBF] + Array("İstanbul,00123\n".utf8)).write(to: bom)
+        XCTAssertEqual(try TextCodec.read(bom), "İstanbul,00123\n")
+    }
+
+    func testTextByteReaderChecksCancellationBeforeOpeningTheInput() async throws {
+        let task = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            do {
+                _ = try TextCodec.readData(FileManager.default.temporaryDirectory.appendingPathComponent("missing-\(UUID().uuidString).txt"))
+                XCTFail("A cancelled byte read succeeded")
+            } catch is CancellationError { }
+        }
+        try await task.value
+    }
+
     func testWordCountIncludesTurkishAndUnicodeText() {
         XCTAssertEqual(TextCodec.wordCount("Merhaba dünya\nHello again\n"), "4 words · 26 characters · 2 lines")
         XCTAssertEqual(TextCodec.wordCount(""), "0 words · 0 characters · 0 lines")

@@ -319,6 +319,8 @@ enum OperationNames {
     static func detail(_ operation: FileOperation, language: String) -> String {
         guard language == "tr" else { return operation.detail }
         if let dependency = operation.dependency { return "Yerel \(dependency) motoru" }
+        if operation.id == "convert.xlsx" { return "Microsoft Excel · Metin hücreleri" }
+        if operation.id == "convert.docx" { return "Microsoft Word · Düz metin" }
         if operation.id.hasPrefix("convert.") { return operation.detail == "Every page · 300 DPI" ? "Her sayfa · 300 DPI" : "Bu Mac'te işlenir" }
         return [
             "image.compress": "Görsel kalitesini ayarla", "image.resize": "En boy oranını koru", "image.crop": "Koruyacağın alanı seç", "image.rotate": "90° adımlarla döndür", "image.flip": "Yatay olarak yansıt", "image.stripMetadata": "Temiz bir kopya oluştur",

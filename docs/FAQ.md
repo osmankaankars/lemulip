@@ -30,7 +30,7 @@ Review the source and release origin before opening it. Apple's [guide to safely
 
 ## Why Does an Operation Ask for FFmpeg or Another Engine?
 
-Some formats need an optional local converter. Install FFmpeg for broader media support, ImageMagick for additional image codecs, LibreOffice for Office files, or Pandoc for EPUB and structured document routes.
+Some formats need an optional local converter. Install FFmpeg for broader media support, ImageMagick for additional image codecs, LibreOffice for rich documents, existing workbooks and slides, or Pandoc for EPUB and structured document routes.
 
 See [Optional engines](INSTALL.md#optional-engines), then click **Refresh** under **Settings → Local Engines**. Lemulip does not install a helper automatically.
 
@@ -43,6 +43,12 @@ can be opened in Word, Excel, and PowerPoint.
 LibreOffice is the optional local conversion engine for many of these routes.
 Lemulip calls it in the background without opening its editor. Microsoft Office
 does not need to be installed. Markdown-to-DOCX uses Pandoc instead.
+
+Two basic exports need no extra engine: **TXT → DOCX** on macOS and
+**CSV/TSV → XLSX**. The Word route preserves plain text, paragraphs, and tabs.
+Each Excel export has one worksheet and stores every value as text, so identifiers
+keep their leading zeros and formula-looking strings stay literal. Convert
+numeric columns in your spreadsheet app when you need calculations.
 
 Installing LibreOffice adds a separate application to your Mac. It is optional
 and is not bundled into Lemulip. Common image, PDF, archive, subtitle, and

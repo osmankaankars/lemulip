@@ -1,5 +1,8 @@
 import XCTest
 @testable import FreewheelCore
+#if canImport(FoundationXML)
+import FoundationXML
+#endif
 #if os(macOS)
 import Darwin
 #endif
@@ -11,6 +14,216 @@ final class EngineTests: XCTestCase {
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
     }
     override func tearDownWithError() throws { if let root { try FileManager.default.removeItem(at: root) } }
+
+    func testBuiltInWorkbookPreservesTextValuesAndHasOnlyLocalRequiredParts() async throws {
+        let rows = [["Name", "Value", "Note", ""],
+            ["İstanbul 🍋", "00123", "A&B <tag> > \"quoted\"", ""],
+            ["Dates", "2026-10-18", "=SUM(A1:A2)", "+42"],
+            ["Numbers", "12345678901234567890", "-12.50", "@name"],
+            ["Escapes", "_x0041_", "_x005F_", "line1\r\nline2\tend"],
+            [" whitespace ", "  both  ", "", ""], [""]]
+        let input = root.appendingPathComponent("Table Ω.csv")
+        let original = Data((rows.map { row in row.map { "\"" + $0.replacingOccurrences(of: "\"", with: "\"\"") + "\"" }.joined(separator: ",") }.joined(separator: "\r\n") + "\r\n").utf8)
+        try original.write(to: input)
+        let result = try await ConversionEngine().run(inputs: [input], operation: FileOperation(id: "convert.xlsx", title: "XLSX"))
+        XCTAssertEqual(result.outputs.count, 1)
+        XCTAssertTrue(result.note?.contains("stored as text") == true)
+        let package = try await unpackWorkbook(result.outputs[0])
+        let enumerator = try XCTUnwrap(FileManager.default.enumerator(at: package, includingPropertiesForKeys: [.isRegularFileKey]))
+        let filenames = try enumerator.compactMap { item -> String? in
+            guard let file = item as? URL, try file.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true else { return nil }
+            return String(file.path.dropFirst(package.path.count + 1))
+        }
+        XCTAssertEqual(Set(filenames), ["[Content_Types].xml", "_rels/.rels", "xl/workbook.xml", "xl/_rels/workbook.xml.rels", "xl/worksheets/sheet1.xml"])
+        let types = try workbookXML(package.appendingPathComponent("[Content_Types].xml"))
+        XCTAssertEqual(types.rootName, "Types")
+        XCTAssertEqual(types.rootNamespace, "http://schemas.openxmlformats.org/package/2006/content-types")
+        let overrides = types.elements["Override"] ?? []
+        XCTAssertTrue(overrides.contains { $0["PartName"] == "/xl/workbook.xml" && $0["ContentType"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml" })
+        XCTAssertTrue(overrides.contains { $0["PartName"] == "/xl/worksheets/sheet1.xml" && $0["ContentType"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml" })
+        for (part, target, kind) in [("_rels/.rels", "xl/workbook.xml", "officeDocument"),
+                                   ("xl/_rels/workbook.xml.rels", "worksheets/sheet1.xml", "worksheet")] {
+            let relationships = try workbookXML(package.appendingPathComponent(part))
+            XCTAssertEqual(relationships.rootNamespace, "http://schemas.openxmlformats.org/package/2006/relationships")
+            let entries = try XCTUnwrap(relationships.elements["Relationship"])
+            XCTAssertEqual(entries.count, 1)
+            XCTAssertEqual(entries[0]["Id"], "rId1")
+            XCTAssertEqual(entries[0]["Target"], target)
+            XCTAssertEqual(entries[0]["Type"], "http://schemas.openxmlformats.org/officeDocument/2006/relationships/\(kind)")
+            XCTAssertNil(entries[0]["TargetMode"])
+        }
+        let workbook = try workbookXML(package.appendingPathComponent("xl/workbook.xml"))
+        XCTAssertEqual(workbook.elements["sheet"]?.count, 1)
+        XCTAssertEqual(workbook.elements["sheet"]?.first?["name"], "Sheet1")
+        XCTAssertEqual(workbook.elements["sheet"]?.first?["sheetId"], "1")
+        XCTAssertEqual(workbook.elements["sheet"]?.first?["r:id"], "rId1")
+        let sheet = try workbookXML(package.appendingPathComponent("xl/worksheets/sheet1.xml"))
+        XCTAssertEqual(sheet.rootName, "worksheet")
+        XCTAssertEqual(sheet.rootNamespace, "http://schemas.openxmlformats.org/spreadsheetml/2006/main")
+        XCTAssertEqual(sheet.elements["row"]?.count, rows.count)
+        XCTAssertEqual(sheet.cells.count, rows.reduce(0) { $0 + $1.count })
+        XCTAssertNil(sheet.elements["f"])
+        XCTAssertNil(sheet.elements["v"])
+        for (rowIndex, row) in rows.enumerated() {
+            for (column, value) in row.enumerated() {
+                let reference = "\(["A", "B", "C", "D"][column])\(rowIndex + 1)"
+                let cell = try XCTUnwrap(sheet.cells[reference])
+                XCTAssertEqual(cell.type, "inlineStr", reference)
+                XCTAssertEqual(try decodeWorkbookString(cell.text), value, reference)
+            }
+        }
+        // These literal expectations catch Xstring corruption independently
+        // of the XML parser and the small decoder used for value comparisons.
+        XCTAssertEqual(sheet.cells["B5"]?.text, "_x005F_x0041_")
+        XCTAssertEqual(sheet.cells["C5"]?.text, "_x005F_x005F_")
+        XCTAssertEqual(sheet.cells["D5"]?.text, "line1_x000D_\nline2\tend")
+        XCTAssertEqual(try Data(contentsOf: input), original)
+    }
+
+    func testBuiltInWorkbookReadsUTF16TSVAndWritesEmptySheet() async throws {
+        let input = root.appendingPathComponent("table.tsv")
+        let content = "Title\tValue\tEmpty\r\n\"With\ttab\"\t00123\t\r\n\r\n"
+        try XCTUnwrap(content.data(using: .utf16)).write(to: input)
+        let converted = try await ConversionEngine().run(inputs: [input], operation: FileOperation(id: "convert.xlsx", title: "XLSX"))
+        let package = try await unpackWorkbook(converted.outputs[0])
+        let sheet = try workbookXML(package.appendingPathComponent("xl/worksheets/sheet1.xml"))
+        XCTAssertEqual(sheet.cells["A2"]?.text, "With\ttab")
+        XCTAssertEqual(sheet.cells["B2"]?.text, "00123")
+        XCTAssertEqual(sheet.cells["C2"]?.text, "")
+        XCTAssertEqual(sheet.cells["A3"]?.text, "")
+        XCTAssertEqual(sheet.elements["row"]?.count, 3)
+        let empty = root.appendingPathComponent("empty.csv")
+        try Data().write(to: empty)
+        let blank = try await ConversionEngine().run(inputs: [empty], operation: FileOperation(id: "convert.xlsx", title: "XLSX"))
+        let blankPackage = try await unpackWorkbook(blank.outputs[0])
+        let blankSheet = try workbookXML(blankPackage.appendingPathComponent("xl/worksheets/sheet1.xml"))
+        XCTAssertTrue(blankSheet.cells.isEmpty)
+        XCTAssertEqual(blankSheet.elements["sheetData"]?.count, 1)
+        XCTAssertNil(blankSheet.elements["row"])
+    }
+
+    func testWorkbookColumnReferencesReachExcelBoundaryWithoutDroppingEmptyFields() async throws {
+        var fields = [String](repeating: "", count: 16_384)
+        let marked = [0: "A", 25: "Z", 26: "AA", 51: "AZ", 52: "BA", 16_383: "XFD"]
+        for (index, value) in marked { fields[index] = value }
+        let input = root.appendingPathComponent("wide.csv")
+        try fields.joined(separator: ",").write(to: input, atomically: true, encoding: .utf8)
+        let converted = try await ConversionEngine().run(inputs: [input], operation: FileOperation(id: "convert.xlsx", title: "XLSX"))
+        let package = try await unpackWorkbook(converted.outputs[0])
+        let sheet = try workbookXML(package.appendingPathComponent("xl/worksheets/sheet1.xml"))
+        XCTAssertEqual(sheet.cells.count, 16_384)
+        for value in marked.values { XCTAssertEqual(sheet.cells[value + "1"]?.text, value) }
+        XCTAssertEqual(sheet.cells["B1"]?.text, "")
+    }
+
+    func testWorkbookFailureRollsBackWholeBatchWithoutTruncatingInvalidCells() async throws {
+        let valid = root.appendingPathComponent("valid.csv"), invalid = root.appendingPathComponent("invalid.csv")
+        try "name,value\nSample,123\n".write(to: valid, atomically: true, encoding: .utf8)
+        let invalidInputs = ["a,\"unfinished", "a,\"closed\"junk", "NUL,\u{0000}", "Control,\u{000B}",
+            "Noncharacter,\u{FFFF}", String(repeating: "🍋", count: 16_384),
+            "\"" + String(repeating: "\n", count: 254) + "\"", String(repeating: ",", count: 16_384)]
+        for content in invalidInputs {
+            try content.write(to: invalid, atomically: true, encoding: .utf8)
+            do {
+                _ = try await ConversionEngine().run(inputs: [valid, invalid], operation: FileOperation(id: "convert.xlsx", title: "XLSX"))
+                XCTFail("An invalid workbook batch was published")
+            } catch FreewheelError.invalidInput { }
+            XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: root.path)), ["valid.csv", "invalid.csv"])
+            XCTAssertEqual(try String(contentsOf: invalid, encoding: .utf8), content)
+        }
+    }
+
+    func testWorkbookConcurrentExportsAndCancellationKeepExistingFiles() async throws {
+        let input = root.appendingPathComponent("table.csv"), existing = root.appendingPathComponent("table.xlsx")
+        try "name,value\nSample,00123\n".write(to: input, atomically: true, encoding: .utf8)
+        try "Keep This File".write(to: existing, atomically: true, encoding: .utf8)
+        let engine = ConversionEngine(), operation = FileOperation(id: "convert.xlsx", title: "XLSX")
+        async let first = engine.run(inputs: [input], operation: operation)
+        async let second = engine.run(inputs: [input], operation: operation)
+        let results = try await [first, second]
+        XCTAssertEqual(Set(results.flatMap(\.outputs)).count, 2)
+        XCTAssertEqual(try String(contentsOf: existing, encoding: .utf8), "Keep This File")
+        let before = Set(try FileManager.default.contentsOfDirectory(atPath: root.path))
+        let cancelled = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await engine.run(inputs: [input], operation: operation)
+        }
+        do { _ = try await cancelled.value; XCTFail("A cancelled workbook was published") }
+        catch FreewheelError.cancelled { }
+        XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: root.path)), before)
+        XCTAssertFalse(before.contains { $0.hasPrefix(".freewheel-") })
+    }
+
+    func testOfficeCatalogAdvertisesOnlyImplementedBuiltInRoutes() throws {
+        func operation(_ names: [String], _ output: String) throws -> FileOperation {
+            try XCTUnwrap(Catalog.operations(for: names.map { root.appendingPathComponent($0) }, mode: .convert).first { $0.id == "convert.\(output)" })
+        }
+        XCTAssertNil(try operation(["one.csv", "two.tsv"], "xlsx").dependency)
+        XCTAssertEqual(try operation(["one.csv"], "xlsx").detail, "Microsoft Excel Workbook · Text Cells")
+        XCTAssertEqual(try operation(["one.csv", "two.xlsx"], "xlsx").dependency, "libreoffice")
+        XCTAssertEqual(try operation(["one.csv"], "ods").dependency, "libreoffice")
+        #if os(macOS)
+        XCTAssertNil(try operation(["one.txt"], "docx").dependency)
+        XCTAssertEqual(try operation(["one.txt"], "docx").detail, "Microsoft Word Document · Plain Text")
+        #else
+        XCTAssertEqual(try operation(["one.txt"], "docx").dependency, "libreoffice")
+        #endif
+        XCTAssertEqual(try operation(["one.txt", "two.rtf"], "docx").dependency, "libreoffice")
+        XCTAssertEqual(try operation(["one.html"], "docx").dependency, "libreoffice")
+        XCTAssertEqual(try operation(["one.md"], "docx").dependency, "pandoc")
+    }
+
+    private func unpackWorkbook(_ input: URL) async throws -> URL {
+        let result = try await ConversionEngine().run(inputs: [input], operation: FileOperation(id: "archive.extract", title: "Extract"))
+        return try XCTUnwrap(result.outputs.first)
+    }
+
+    private func workbookXML(_ input: URL) throws -> WorkbookXML {
+        let reader = WorkbookXML(), parser = XMLParser(data: try Data(contentsOf: input))
+        parser.shouldProcessNamespaces = true
+        parser.shouldResolveExternalEntities = false
+        parser.delegate = reader
+        guard parser.parse() else {
+            XCTFail("Invalid workbook XML: \(parser.parserError?.localizedDescription ?? "Unknown Error")")
+            throw FreewheelError.operationFailed("Invalid workbook XML")
+        }
+        return reader
+    }
+
+    private func decodeWorkbookString(_ text: String) throws -> String {
+        let expression = try NSRegularExpression(pattern: "_x([0-9A-Fa-f]{4})_")
+        let result = NSMutableString(string: text)
+        for match in expression.matches(in: text, range: NSRange(text.startIndex..., in: text)).reversed() {
+            let digits = (text as NSString).substring(with: match.range(at: 1))
+            if let code = UInt32(digits, radix: 16), let scalar = UnicodeScalar(code) {
+                result.replaceCharacters(in: match.range, with: String(scalar))
+            }
+        }
+        return result as String
+    }
+
+    private final class WorkbookXML: NSObject, XMLParserDelegate {
+        struct Cell { let type: String?; let text: String }
+        var rootName: String?, rootNamespace: String?
+        var elements: [String: [[String: String]]] = [:]
+        var cells: [String: Cell] = [:]
+        private var reference: String?, type: String?, text = "", inText = false
+        func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?,
+                    qualifiedName qName: String?, attributes attributeDict: [String: String] = [:]) {
+            if rootName == nil { rootName = elementName; rootNamespace = namespaceURI }
+            elements[elementName, default: []].append(attributeDict)
+            if elementName == "c" { reference = attributeDict["r"]; type = attributeDict["t"]; text = "" }
+            if elementName == "t", reference != nil { inText = true }
+        }
+        func parser(_ parser: XMLParser, foundCharacters string: String) { if inText { text += string } }
+        func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
+            if elementName == "t" { inText = false }
+            if elementName == "c", let reference {
+                cells[reference] = Cell(type: type, text: text)
+                self.reference = nil
+            }
+        }
+    }
 
     func testPDFMergePlanRetainsFileIdentityOrderAndSubsetsWithinBounds() throws {
         let first = PDFMergeSource(inputIndex: 0, pageCount: 400, fingerprint: String(repeating: "a", count: 64),

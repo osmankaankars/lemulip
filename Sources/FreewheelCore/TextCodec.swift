@@ -1,6 +1,16 @@
 import Foundation
 
 enum TextCodec {
+    static let maximumInputBytes = 32 * 1024 * 1024
+
+    struct DelimitedLimits {
+        let rows: Int
+        let columns: Int
+        let cells: Int
+        let fieldUTF16: Int
+        let fieldLineFeeds: Int
+    }
+
     private struct Cue {
         let start: Int64
         let end: Int64
@@ -8,14 +18,31 @@ enum TextCodec {
     }
 
     static func read(_ input: URL) throws -> String {
-        let size = try input.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
-        guard size <= 32 * 1024 * 1024 else { throw FreewheelError.invalidInput("Text files larger than 32 MiB are not supported by this tool.") }
-        let data = try Data(contentsOf: input, options: .mappedIfSafe)
+        let data = try readData(input)
         let text: String?
         if data.starts(with: [0xFF, 0xFE]) || data.starts(with: [0xFE, 0xFF]) { text = String(data: data, encoding: .utf16) }
         else { text = String(data: data, encoding: .utf8) }
         guard let text else { throw FreewheelError.invalidInput("Save this text file as UTF-8 or UTF-16 and try again.") }
         return text.first == "\u{FEFF}" ? String(text.dropFirst()) : text
+    }
+
+    static func readData(_ input: URL) throws -> Data {
+        try Task.checkCancellation()
+        let size = try input.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
+        guard size <= maximumInputBytes else { throw FreewheelError.invalidInput("Text files larger than 32 MiB are not supported by this tool.") }
+        let handle = try FileHandle(forReadingFrom: input)
+        defer { try? handle.close() }
+        var data = Data()
+        // Read at most one byte beyond the limit. A file growing after the
+        // size check must not turn a bounded text job into an unbounded read.
+        while true {
+            try Task.checkCancellation()
+            let count = min(65_536, maximumInputBytes + 1 - data.count)
+            guard let chunk = try handle.read(upToCount: count), !chunk.isEmpty else { break }
+            data.append(chunk)
+            guard data.count <= maximumInputBytes else { throw FreewheelError.invalidInput("Text files larger than 32 MiB are not supported by this tool.") }
+        }
+        return data
     }
 
     static func convertSubtitles(_ input: String, from source: String, to target: String) throws -> String {
@@ -106,28 +133,85 @@ enum TextCodec {
 
     /// RFC 4180-style quoting is also used for TSV so tabs/newlines remain inside their fields.
     static func parseDelimited(_ text: String, delimiter: Character) throws -> [[String]] {
+        var rows: [[String]] = []
+        try forEachDelimitedRow(text, delimiter: delimiter) { rows.append($0) }
+        return rows
+    }
+
+    /// Delivers a row at a time so workbook export never retains the full cell
+    /// table. Limits apply before each row or field can increase that table.
+    static func forEachDelimitedRow(_ text: String, delimiter: Character,
+                                    limits: DelimitedLimits? = nil,
+                                    body: ([String]) throws -> Void) throws {
         guard delimiter == "," || delimiter == "\t" else { throw FreewheelError.invalidInput("Choose a comma or tab delimiter.") }
+        if let limits {
+            guard limits.rows > 0, limits.columns > 0, limits.cells > 0,
+                  limits.fieldUTF16 > 0, limits.fieldLineFeeds >= 0,
+                  limits.fieldUTF16 <= Int.max / 3 else {
+                throw FreewheelError.invalidInput("The table limits are invalid.")
+            }
+        }
+        try Task.checkCancellation()
         let marker: UInt8 = delimiter == "," ? 44 : 9
         var bytes = Array(text.utf8)
         if bytes.starts(with: [0xEF, 0xBB, 0xBF]) { bytes.removeFirst(3) }
-        if bytes.isEmpty { return [] }
+        try Task.checkCancellation()
+        if bytes.isEmpty { return }
         enum State { case start, unquoted, quoted, afterQuote }
         var state = State.start
-        var rows: [[String]] = [], row: [String] = [], field: [UInt8] = []
-        var index = 0, endedRow = false
-        func finishField() { row.append(String(decoding: field, as: UTF8.self)); field.removeAll(keepingCapacity: true); state = .start }
+        var row: [String] = [], field: [UInt8] = []
+        var rowCount = 0, cellCount = 0, lineFeeds = 0
+        var index = 0, nextCancellationCheck = 0, endedRow = false
+        func appendByte(_ byte: UInt8) throws {
+            if let limits {
+                // A valid scalar uses at most three UTF-8 bytes per UTF-16
+                // code unit. This stops a huge field before decoding it.
+                guard field.count < limits.fieldUTF16 * 3 else {
+                    throw FreewheelError.invalidInput("An Excel cell exceeds the \(limits.fieldUTF16)-character text limit.")
+                }
+                if byte == 10 {
+                    guard lineFeeds < limits.fieldLineFeeds else {
+                        throw FreewheelError.invalidInput("An Excel cell exceeds the \(limits.fieldLineFeeds)-line-break limit.")
+                    }
+                    lineFeeds += 1
+                }
+            }
+            field.append(byte)
+        }
+        func finishField() throws {
+            if let limits {
+                guard rowCount < limits.rows else { throw FreewheelError.invalidInput("This table exceeds Lemulip's \(limits.rows)-row workbook limit.") }
+                guard row.count < limits.columns else { throw FreewheelError.invalidInput("A table row exceeds Excel's \(limits.columns)-column limit.") }
+                guard cellCount < limits.cells else { throw FreewheelError.invalidInput("This table exceeds Lemulip's \(limits.cells)-cell workbook limit.") }
+            }
+            let value = String(decoding: field, as: UTF8.self)
+            if let limits, value.utf16.count > limits.fieldUTF16 {
+                throw FreewheelError.invalidInput("An Excel cell exceeds the \(limits.fieldUTF16)-character text limit.")
+            }
+            row.append(value); cellCount += 1
+            field.removeAll(keepingCapacity: true); lineFeeds = 0; state = .start
+        }
+        func finishRow() throws {
+            try Task.checkCancellation()
+            try body(row)
+            rowCount += 1
+            row.removeAll(keepingCapacity: true)
+        }
         while index < bytes.count {
+            if index >= nextCancellationCheck {
+                try Task.checkCancellation(); nextCancellationCheck = index + 16_384
+            }
             let byte = bytes[index]
             endedRow = false
             if state == .quoted {
                 if byte == 34 {
-                    if index + 1 < bytes.count, bytes[index + 1] == 34 { field.append(34); index += 1 }
+                    if index + 1 < bytes.count, bytes[index + 1] == 34 { try appendByte(34); index += 1 }
                     else { state = .afterQuote }
-                } else { field.append(byte) }
+                } else { try appendByte(byte) }
             } else if byte == marker {
-                finishField()
+                try finishField()
             } else if byte == 10 || byte == 13 {
-                finishField(); rows.append(row); row.removeAll(keepingCapacity: true); endedRow = true
+                try finishField(); try finishRow(); endedRow = true
                 if byte == 13, index + 1 < bytes.count, bytes[index + 1] == 10 { index += 1 }
             } else if state == .afterQuote {
                 throw FreewheelError.invalidInput("A quoted table field has unexpected characters after its closing quote.")
@@ -135,13 +219,12 @@ enum TextCodec {
                 guard state == .start else { throw FreewheelError.invalidInput("A table field contains an unescaped quote.") }
                 state = .quoted
             } else {
-                state = .unquoted; field.append(byte)
+                state = .unquoted; try appendByte(byte)
             }
             index += 1
         }
         guard state != .quoted else { throw FreewheelError.invalidInput("A quoted table field is missing its closing quote.") }
-        if !endedRow { finishField(); rows.append(row) }
-        return rows
+        if !endedRow { try finishField(); try finishRow() }
     }
 
     static func wordCount(_ text: String) -> String {

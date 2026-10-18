@@ -9,7 +9,7 @@ struct SettingsContent: View {
     private let engines: [(String, String, String, String)] = [
         ("ffmpeg", "FFmpeg", "Video & audio formats, compression, trim, speed", "brew install ffmpeg"),
         ("imagemagick", "ImageMagick", "WebP, AVIF & additional image codecs", "brew install imagemagick"),
-        ("libreoffice", "LibreOffice", "Office documents, slides & spreadsheets", "brew install --cask libreoffice"),
+        ("libreoffice", "LibreOffice", "Rich documents, existing workbooks & slides", "brew install --cask libreoffice"),
         ("pandoc", "Pandoc", "EPUB & structured document conversion", "https://pandoc.org/installing.html")
     ]
     var body: some View {
@@ -47,7 +47,7 @@ struct SettingsContent: View {
                     Button { model.engineRefresh += 1 } label: { Label(model.text("Refresh", "Yenile"), systemImage: "arrow.clockwise") }
                         .buttonStyle(.plain).foregroundStyle(Palette.accent).font(.system(size: 11))
                 }
-                Text(model.text("Images, PDFs, OCR, archives, subtitles, and basic text tools are built in. Add free engines for more formats. Installation needs internet; conversions stay local.", "Görsel, PDF, OCR, arşiv, altyazı ve temel metin araçları uygulamada hazır. Daha fazla biçim için ücretsiz motorlar ekleyebilirsin. Kurulum internet gerektirir; dönüşümler yerelde çalışır."))
+                Text(model.text("Images, PDFs, OCR, archives, subtitles, and basic text tools are built in. TXT to Word and CSV/TSV to Excel need no extra engine. Excel exports keep every value as text. Add free engines for more formats; conversions stay local.", "Görsel, PDF, OCR, arşiv, altyazı ve temel metin araçları uygulamada hazır. TXT’den Word’e, CSV/TSV’den Excel’e dönüşüm için ek motor gerekmez. Excel çıktısında tüm değerler metin olarak korunur. Daha fazla biçim için ücretsiz motorlar ekleyebilirsin; dönüşümler yerelde çalışır."))
                     .font(.system(size: 12)).foregroundStyle(Palette.muted).lineSpacing(4)
                 VStack(spacing: 0) {
                     ForEach(engines, id: \.0) { engine in
@@ -148,7 +148,7 @@ struct SettingsContent: View {
     }
     private func engineSubtitle(_ id: String, fallback: String) -> String {
         guard model.language == "tr" else { return fallback }
-        return ["ffmpeg": "Video ve ses biçimleri, sıkıştırma, kesme, hız", "imagemagick": "WebP, AVIF ve ek görsel biçimleri", "libreoffice": "Office belgeleri, sunumlar ve tablolar", "pandoc": "EPUB ve yapılandırılmış belge dönüşümü"][id] ?? fallback
+        return ["ffmpeg": "Video ve ses biçimleri, sıkıştırma, kesme, hız", "imagemagick": "WebP, AVIF ve ek görsel biçimleri", "libreoffice": "Biçimlendirilmiş belgeler, mevcut çalışma kitapları ve sunumlar", "pandoc": "EPUB ve yapılandırılmış belge dönüşümü"][id] ?? fallback
     }
 }
 #endif

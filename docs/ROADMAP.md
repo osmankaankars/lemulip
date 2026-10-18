@@ -18,7 +18,9 @@ includes three saved appearances, a native visual image crop editor, and an
 audio waveform editor with range selection and playback. Source **0.1.5** adds
 native video trim; source **0.1.6** adds visual video crop, source **0.1.7**
 adds a PDF page organizer, source **0.1.8** adds PDF merge preview, and source
-**0.1.9** refines the icon and shared visual identity. Each version's own
+**0.1.9** refines the icon and shared visual identity. Source **0.1.10** adds
+basic TXT → DOCX and CSV/TSV → XLSX export without an extra engine on macOS.
+Each version's own
 [Mac checks](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
 and [release assets](https://github.com/osmankaankars/lemulip/releases) determine
 availability. Hands-on acceptance of editor interactions remains separate from
@@ -222,17 +224,36 @@ and keep historical tags and downloads intact.
 
 ## 5. Easier Office Conversion
 
-**Next development milestone.**
+**Partially implemented in source 0.1.10.** The first slice adds basic Office
+exports without an extra engine: TXT → DOCX through macOS and CSV/TSV → XLSX
+through a small built-in writer. The whole milestone remains open. This version
+needs its own Mac build, package, and security checks; document acceptance in
+Word and Excel remains separate from automated checks.
 
-The current implementation offers DOCX, XLSX, and PPTX output through optional
-local engines. Make common routes easier to use while preserving a small app.
+**Implemented scope:** TXT export keeps plain text, paragraphs, tabs, and Unicode.
+Spreadsheet export creates one **Sheet1** per input and stores every field as
+text, preserving identifiers without guessing numbers, dates, or formulas. Input,
+row, column, cell, and text limits are explicit in [Formats](FORMATS.md#documents-slides-and-spreadsheets).
+These routes use the existing queue and safe output handling, with no new
+package dependency or bundled engine.
 
-- Keep format names clear: Microsoft Word Document, Excel Workbook, and
-  PowerPoint Presentation. Explain an engine requirement before a job starts.
-- Evaluate built-in export for basic DOCX documents and single-sheet CSV/TSV to
-  XLSX. Define the supported formatting and data types before expanding scope.
-- Keep an optional local engine for complex Office documents and verify font,
-  table, formula, and slide behavior with representative files.
+**Next work, in order:**
+
+1. Verify representative rich documents, workbooks, and presentations through
+   the existing optional engines. Check fonts, tables, formulas, multiple
+   sheets, and slide layout, and document the routes that preserve usable output.
+2. Investigate basic native RTF → DOCX with formatting checks before expanding
+   the built-in Word route. HTML and Markdown need their own fidelity decisions;
+   keep their current engine requirements clear.
+
+RTF/HTML → DOCX, existing Office documents, workbooks, and presentations retain
+LibreOffice where already supported. Markdown → DOCX retains Pandoc. The format
+labels remain Microsoft Word Document, Microsoft Excel Workbook, and Microsoft
+PowerPoint Presentation; the app explains an optional engine requirement before
+a job starts.
+
+**Later in this milestone:**
+
 - Develop PDF-to-editable-DOCX as a separate layout-reconstruction feature.
   Follow with spreadsheet and slide export only when their outputs are usable.
 - Add slide-to-image export with explicit page selection and image dimensions.

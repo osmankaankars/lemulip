@@ -95,18 +95,58 @@ final class EngineIntegrationTests: XCTestCase {
         try require("libreoffice")
         let textInput = root.appendingPathComponent("sample.txt")
         try "Sample document\n\nThis is a generated conversion fixture.\n".write(to: textInput, atomically: true, encoding: .utf8)
-        let docx = try await engine.run(inputs: [textInput], operation: FileOperation(id: "convert.docx", title: "DOCX"))
+        // Keep explicit engine coverage now that plain-text Word export is
+        // built into the Mac app.
+        let docx = try await ExternalConverters.office([textInput], operation: FileOperation(id: "convert.docx", title: "DOCX"), directory: root)
         XCTAssertEqual(try Data(contentsOf: docx.outputs[0]).prefix(2), Data("PK".utf8))
         let markdown = try await engine.run(inputs: docx.outputs, operation: FileOperation(id: "convert.md", title: "Markdown"))
         XCTAssertTrue(try String(contentsOf: markdown.outputs[0], encoding: .utf8).contains("generated conversion fixture"))
         let csv = root.appendingPathComponent("table.csv")
         try "name,value\nAlpha,12\nBeta,34\n".write(to: csv, atomically: true, encoding: .utf8)
-        let spreadsheet = try await engine.run(inputs: [csv], operation: FileOperation(id: "convert.xlsx", title: "Excel"))
+        let spreadsheet = try await ExternalConverters.office([csv], operation: FileOperation(id: "convert.xlsx", title: "Excel"), directory: root)
         XCTAssertEqual(try Data(contentsOf: spreadsheet.outputs[0]).prefix(2), Data("PK".utf8))
         let tsv = try await engine.run(inputs: spreadsheet.outputs, operation: FileOperation(id: "convert.tsv", title: "TSV"))
         let table = try TextCodec.parseDelimited(TextCodec.read(tsv.outputs[0]), delimiter: "\t")
         XCTAssertEqual(table[1], ["Alpha", "12"])
     }
+
+    func testBuiltInSpreadsheetTextCellsOpenInLibreOffice() async throws {
+        try require("libreoffice")
+        let source = root.appendingPathComponent("literal-values.csv")
+        let original = "name,identifier,long number,expression\nİstanbul,00123,12345678901234567890,=1+2\nnote,_x0041_,12/03/2026,  Keep  \n"
+        try original.write(to: source, atomically: true, encoding: .utf8)
+        let workbook = try await engine.run(inputs: [source], operation: FileOperation(id: "convert.xlsx", title: "XLSX"))
+        let imported = try await ExternalConverters.office(workbook.outputs,
+            operation: FileOperation(id: "convert.tsv", title: "TSV"), directory: root)
+        let rows = try TextCodec.parseDelimited(TextCodec.read(imported.outputs[0]), delimiter: "\t")
+        XCTAssertEqual(rows, [
+            ["name", "identifier", "long number", "expression"],
+            ["İstanbul", "00123", "12345678901234567890", "=1+2"],
+            ["note", "_x0041_", "12/03/2026", "  Keep  "]
+        ])
+        XCTAssertEqual(try String(contentsOf: source, encoding: .utf8), original)
+    }
+
+    #if os(macOS)
+    func testNativePlainTextWordExportOpensInLibreOffice() async throws {
+        try require("libreoffice")
+        let source = root.appendingPathComponent("notes.txt")
+        let original = "Plain Text & <Symbols>\n\nİstanbul • 東京\n  Two  Spaces\tOne Tab\nFinal Paragraph\n"
+        try original.write(to: source, atomically: true, encoding: .utf8)
+        let word = try await engine.run(inputs: [source], operation: FileOperation(id: "convert.docx", title: "DOCX"))
+        let imported = try await ExternalConverters.office(word.outputs,
+            operation: FileOperation(id: "convert.txt", title: "TXT"), directory: root)
+        // Word readers may normalize paragraph terminators and the mandatory
+        // final paragraph. Interior whitespace and paragraph order must survive.
+        func paragraphs(_ text: String) -> String {
+            text.replacingOccurrences(of: "\r\n", with: "\n")
+                .replacingOccurrences(of: "\r", with: "\n")
+                .trimmingCharacters(in: .newlines)
+        }
+        XCTAssertEqual(paragraphs(try TextCodec.read(imported.outputs[0])), paragraphs(original))
+        XCTAssertEqual(try String(contentsOf: source, encoding: .utf8), original)
+    }
+    #endif
 
     private func require(_ name: String) throws {
         guard EngineLocator.isAvailable(name) else { throw XCTSkip("Optional \(name) engine is not installed") }

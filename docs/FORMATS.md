@@ -2,7 +2,7 @@
 
 Lemulip selects operations from the file extensions in your selection. A listed format is a supported route, not a promise that every codec or document feature will survive conversion.
 
-The tables below describe source **0.1.8**, which adds PDF merge preview.
+The tables below describe source **0.1.10**, which adds basic Word and Excel export.
 Check [Releases](https://github.com/osmankaankars/lemulip/releases) for available builds. Some
 features still need broader hands-on macOS testing. See [Installation](INSTALL.md)
 for optional engines and [User Guide](USER_GUIDE.md) for controls.
@@ -153,20 +153,76 @@ You do not need Microsoft Office installed to run these conversions.
 | --- | --- | --- |
 | TXT, Markdown, RTF, HTML → TXT, Markdown, RTF, HTML, PDF | Built in for basic routes | Text-focused; see exceptions below |
 | Markdown → HTML, DOCX, ODT | Pandoc | Structured conversion |
-| TXT, RTF, HTML → DOCX | LibreOffice | Creates a Word document; complex formatting may change |
+| TXT → DOCX | Built into macOS | Basic text, paragraphs, tabs, and Unicode; no rich document layout |
+| RTF, HTML → DOCX | LibreOffice | Creates a Word document; complex formatting may change |
 | EPUB input or EPUB output | Pandoc; some source formats also need LibreOffice | Reflowable document conversion |
 | DOC, DOCX, ODT and supported Pages input → configured document outputs | LibreOffice | Depends on the input document and installed fonts |
 | PPT, PPTX, ODP → PDF, PPTX, ODP | LibreOffice | Layout may change |
-| XLS, XLSX, ODS, CSV, TSV → XLSX, ODS, CSV, TSV, PDF | LibreOffice, except CSV ↔ TSV | Layout, formulas, and sheet handling depend on the output |
+| CSV, TSV → XLSX | Built in | One worksheet named Sheet1; every field is stored as text |
+| XLS, XLSX, ODS → XLSX, ODS, CSV, TSV, PDF | LibreOffice | Layout, formulas, and sheet handling depend on the output |
+| CSV, TSV → ODS, PDF | LibreOffice | Sheet layout depends on the output |
 | CSV ↔ TSV | Built in | Preserves quoted delimiters and multiline fields |
 | Word count | Built in for basic text; Pandoc or LibreOffice for other documents | Reports a count in Activity |
 
-The engine runs in the background. You choose a file format in Lemulip and
+TXT → DOCX and CSV/TSV → XLSX need no optional engine. Other routes use the
+engine shown above in the background. You choose a file format in Lemulip and
 receive that file, which can be opened in its compatible application.
 LibreOffice documents its [Microsoft Office format support](https://help.libreoffice.org/latest/en-US/text/shared/guide/ms_user.html)
 and [background conversion options](https://help.libreoffice.org/latest/en-US/text/shared/guide/start_parameters.html).
 
 Basic Markdown conversion to PDF, RTF, or TXT preserves text. It does not render a full Markdown layout. Exporting an Office document as Markdown also produces plain text in a Markdown file. EPUB → PDF currently renders extracted text, not a reproduction of the ebook's layout.
+
+### Basic Word Export
+
+Native DOCX export accepts **TXT input only**. It creates a basic document from
+the source text, including paragraph breaks, tabs, and Unicode. Plain text has
+no fonts, tables, images, or page layout to preserve. Markdown syntax remains
+literal text when it is in a TXT file; use a Markdown file with Pandoc for
+structured Markdown conversion.
+
+TXT files must be between **1 byte and 32 MiB**, encoded as UTF-8 with an optional
+byte-order mark, or UTF-16 with a byte-order mark. Line endings become logical
+paragraph breaks. Empty text and unsupported control characters receive an
+error instead of silently losing content. Native DOCX export requires macOS.
+RTF, HTML, existing Word documents, and other rich document inputs retain
+their optional-engine routes. PDF-to-editable-Word conversion is separate
+planned work.
+
+### Basic Excel Export
+
+Each CSV or TSV input produces its own XLSX workbook with one worksheet named
+**Sheet1**. Commas separate CSV fields; tabs separate TSV fields. Quoted
+delimiters, escaped quotes, and multiline fields stay within their cells.
+UTF-8, with an optional byte-order mark, and BOM-marked UTF-16 are supported.
+Blank rows remain in place; a final row separator does not create an extra row.
+An empty file creates a blank sheet.
+
+**Every cell is text.** Leading zeros, long identifiers, date-looking strings,
+and formula-looking strings keep their text values. For example, `00123`,
+`01/02/2026`, and `=SUM(A1:A2)` are not converted into numbers, dates, or formulas.
+The export does not infer a header row, add charts, or combine inputs into a
+multi-sheet workbook. You can explicitly change cell types in a spreadsheet
+application afterward when you need calculations.
+
+| Limit | Per Input Workbook |
+| --- | --- |
+| Source file | At most 32 MiB |
+| Rows | At most 100,000 |
+| Columns | At most 16,384 |
+| Input fields, including empty fields | At most 500,000 |
+| Cell text | At most 32,767 UTF-16 code units; some Unicode characters use two |
+| Line feeds in one cell | At most 253 |
+
+Files outside these limits fail with an explanation; the exporter does not
+truncate rows or cell text. Malformed quoting and characters that cannot be
+represented in XML receive an explicit error. Existing XLS, XLSX, and ODS workbooks still use
+LibreOffice, including exports that need formula or multi-sheet handling.
+See [Basic Office Exports](USER_GUIDE.md#basic-office-exports) for the app and CLI
+workflow. Opening and inspecting generated documents in Word and Excel remains
+part of release acceptance; package and automated reader checks alone do not
+establish application-level fidelity.
+
+### Other Document Routes
 
 Conversion does not fetch linked images, included local files, or remote resources. Linked content can be omitted. Office conversions run with macros disabled.
 
