@@ -327,9 +327,10 @@ struct VideoTrimView: View {
 /// AVPlayerLayer preserves the video's display transform and aspect ratio.
 /// Its only controls live in the editor, so playback cannot escape the range.
 @MainActor
-private struct VideoPlayerSurface: NSViewRepresentable {
+struct VideoPlayerSurface: NSViewRepresentable {
     let player: AVPlayer?
     let language: String
+    var onReadinessChanged: ((Bool) -> Void)?
 
     func makeNSView(context: Context) -> VideoPlayerLayerView {
         let view = VideoPlayerLayerView(frame: .zero)
@@ -338,7 +339,7 @@ private struct VideoPlayerSurface: NSViewRepresentable {
     }
 
     func updateNSView(_ view: VideoPlayerLayerView, context: Context) {
-        view.playerLayer.player = player
+        view.setPlayer(player, onReadinessChanged: onReadinessChanged)
         view.setAccessibilityLabel(language == "tr" ? "Video önizlemesi" : "Video Preview")
         view.setAccessibilityHelp(language == "tr"
             ? "Zaman çizelgesiyle bir kare seç, Oynat düğmesiyle seçtiğin aralığı izle."
@@ -346,13 +347,16 @@ private struct VideoPlayerSurface: NSViewRepresentable {
     }
 
     static func dismantleNSView(_ view: VideoPlayerLayerView, coordinator: ()) {
-        view.playerLayer.player = nil
+        view.disconnectPlayer()
     }
 }
 
 @MainActor
-private final class VideoPlayerLayerView: NSView {
-    let playerLayer = AVPlayerLayer()
+final class VideoPlayerLayerView: NSView {
+    private var playerLayer = AVPlayerLayer()
+    private var readinessObservation: NSKeyValueObservation?
+    private var readinessGeneration = UUID()
+    private var onReadinessChanged: ((Bool) -> Void)?
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -366,6 +370,43 @@ private final class VideoPlayerLayerView: NSView {
     }
 
     required init?(coder: NSCoder) { return nil }
+
+    deinit { readinessObservation?.invalidate() }
+
+    func setPlayer(_ player: AVPlayer?, onReadinessChanged: ((Bool) -> Void)?) {
+        self.onReadinessChanged = onReadinessChanged
+        guard playerLayer.player !== player else { return }
+        readinessGeneration = UUID()
+        readinessObservation?.invalidate()
+        readinessObservation = nil
+        playerLayer.player = nil
+        playerLayer.removeFromSuperlayer()
+        // A fresh layer cannot expose a frame retained from a previous player.
+        // Its readiness event confirms actual video output, not a finished or
+        // cancelled seek. The still image stays visible until that event.
+        let videoLayer = AVPlayerLayer()
+        videoLayer.videoGravity = .resizeAspect
+        videoLayer.backgroundColor = NSColor.black.cgColor
+        videoLayer.frame = bounds
+        playerLayer = videoLayer
+        layer?.addSublayer(videoLayer)
+        let generation = readinessGeneration
+        readinessObservation = videoLayer.observe(\.isReadyForDisplay, options: [.initial, .new]) { [weak self] _, _ in
+            Task { @MainActor [weak self] in
+                guard let self, self.readinessGeneration == generation else { return }
+                self.onReadinessChanged?(self.playerLayer.player != nil && self.playerLayer.isReadyForDisplay)
+            }
+        }
+        videoLayer.player = player
+    }
+
+    func disconnectPlayer() {
+        readinessGeneration = UUID()
+        readinessObservation?.invalidate()
+        readinessObservation = nil
+        onReadinessChanged = nil
+        playerLayer.player = nil
+    }
 
     override func layout() {
         super.layout()

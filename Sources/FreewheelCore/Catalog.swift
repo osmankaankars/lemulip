@@ -87,13 +87,16 @@ public enum Catalog {
             return result
         case .video:
             #if os(macOS)
-            let trim = op("media.trim", "Trim", "scissors", "Preview the range to keep")
+            let visualEdits = [
+                op("media.trim", "Trim", "scissors", "Preview the range to keep"),
+                op("media.crop", "Crop", "crop", "Choose the area to keep")
+            ]
             #else
-            let trim = op("media.trim", "Trim", "scissors", "Choose start and end time", "ffmpeg")
+            let visualEdits = [op("media.trim", "Trim", "scissors", "Choose start and end time", "ffmpeg")]
             #endif
             return [
-                op("media.compress", "Compress", "arrow.down.right.and.arrow.up.left", "H.264 · adjust quality", "ffmpeg"),
-                trim,
+                op("media.compress", "Compress", "arrow.down.right.and.arrow.up.left", "H.264 · adjust quality", "ffmpeg")
+            ] + visualEdits + [
                 op("media.resize", "Resize", "arrow.up.left.and.arrow.down.right", "Fit within a maximum dimension", "ffmpeg"),
                 op("media.mute", "Remove Audio", "speaker.slash", "Export a silent video", "ffmpeg"),
                 op("media.extractAudio", "Extract Audio", "waveform", "Save the audio track", "ffmpeg"),

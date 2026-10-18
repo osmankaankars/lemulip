@@ -161,8 +161,36 @@ parallel test suite for the feature.
 
 The [roadmap's size baseline](ROADMAP.md#keep-it-lightweight) records measured
 0.1.4 archives separately from future app-size, memory, CPU, and launch-time
-targets. Record 0.1.5 measurements only after its exact packages exist; bounded
-thumbnail storage alone does not establish a process-memory result.
+targets. Record each version's measurements only after its exact packages exist;
+bounded thumbnail storage alone does not establish a process-memory result.
+
+### Video Crop Constraints
+
+The 0.1.6 editor extends the existing crop and native video components. Keep
+the implementation within these limits and add focused coverage to the existing
+test files using small generated clips.
+
+| Constraint | Implementation Boundary |
+| --- | --- |
+| No new runtime dependency | Existing crop interaction, AVFoundation playback, and native MP4/MOV export |
+| One still preview | One upright frame, at most 1,280 pixels on the longest edge; no persistent frame cache |
+| Spatial crop only | One rectangle for the full source timeline, retaining its audio; reject combined trim/crop options |
+| Explicit frame geometry | Upright source coordinates, square pixels, full clean aperture, and standard quarter-turn rotations |
+| Bounded output | Even dimensions from 2 pixels per side, at most 40 megapixels and 16,384 pixels per side |
+| Editor-scoped resources | Pause on crop edits; cancel pending work and release player observations, frame storage, and seeks on close |
+| Safe publication | Verify rendered output dimensions, then use the existing staging and unused-name output flow |
+
+Check off-center crops, crops touching each source edge, portrait transforms,
+odd requested dimensions, and aspect-ratio changes. Compare the visible crop
+with decoded output pixels using generated regions that are easy to distinguish.
+Check that the full source timeline and audio are retained, the original bytes
+do not change, and failed or cancelled work leaves no published output.
+
+Hands-on checks should cover dragging every handle, numeric dimensions, keyboard
+movement, seeking, and playback in all three themes. Close while a still frame
+or a seek is pending, then open another video; the previous request must not
+update the new editor. A passing export test does not establish these UI results.
+The same Mac build, package, and security gates apply before publication.
 
 ## Prepare a Release
 

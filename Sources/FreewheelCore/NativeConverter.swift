@@ -64,9 +64,13 @@ public enum NativeConverter {
         do {
             try Task.checkCancellation()
             var options = options
+            if operation.id == "media.crop", options.videoCrop == nil {
+                throw FreewheelError.invalidInput("Choose a crop in the video editor before exporting.")
+            }
             if let selection = options.audioTrim {
                 guard operation.id == "media.trim", inputs.count == 1,
-                      FileFamily.detect(inputs[0]) == .audio, options.imageCrop == nil, options.videoTrim == nil else {
+                      FileFamily.detect(inputs[0]) == .audio, options.imageCrop == nil,
+                      options.videoTrim == nil, options.videoCrop == nil else {
                     throw FreewheelError.invalidInput("A waveform selection requires Trim Audio and exactly one audio file.")
                 }
                 try selection.validate()
@@ -75,7 +79,8 @@ public enum NativeConverter {
             }
             if let selection = options.videoTrim {
                 guard operation.id == "media.trim", inputs.count == 1,
-                      FileFamily.detect(inputs[0]) == .video, options.imageCrop == nil, options.audioTrim == nil else {
+                      FileFamily.detect(inputs[0]) == .video, options.imageCrop == nil,
+                      options.audioTrim == nil, options.videoCrop == nil else {
                     throw FreewheelError.invalidInput("A timeline selection requires Trim Video and exactly one video file.")
                 }
                 try selection.validate()
@@ -84,6 +89,19 @@ public enum NativeConverter {
                 }
                 options.startSeconds = selection.startSeconds
                 options.endSeconds = selection.endSeconds
+            }
+            if let crop = options.videoCrop {
+                guard operation.id == "media.crop", inputs.count == 1,
+                      FileFamily.detect(inputs[0]) == .video, options.imageCrop == nil,
+                      options.audioTrim == nil, options.videoTrim == nil else {
+                    throw FreewheelError.invalidInput("A selected video crop requires Crop Video and exactly one video, without a separate trim or image selection.")
+                }
+                try crop.validate()
+                let ext = operation.outputExtension?.lowercased() ?? "mp4"
+                guard ["mp4", "mov"].contains(ext) else {
+                    throw FreewheelError.invalidInput("Choose MP4 or MOV for the selected video crop.")
+                }
+                return try await cropVideo(inputs[0], crop: crop, ext: ext, options: options, directory: outputDirectory)
             }
             if let crop = options.imageCrop {
                 guard operation.id == "image.crop", inputs.count == 1,
@@ -1022,6 +1040,76 @@ public enum NativeConverter {
     }
 
     // MARK: - AVFoundation fallback
+
+    private static func cropVideo(_ input: URL, crop: VideoCropRegion, ext: String,
+                                  options: ConversionOptions, directory: URL) async throws -> ConversionResult {
+        let source = try await VideoCropSource.load(input)
+        let video = source.video
+        try crop.validate(sourceWidth: video.displayWidth, sourceHeight: video.displayHeight,
+                          sourceDuration: video.durationSeconds)
+        guard video.nativeOutputExtensions.contains(ext) else { throw VideoCropSource.decoderError }
+        let output = outputURL(input, suffix: "-cropped", ext: ext, directory: directory)
+        let full = CMTimeRange(start: .zero, duration: video.duration)
+        let layer = AVMutableVideoCompositionLayerInstruction(assetTrack: source.track)
+        // First apply the original display rotation, normalize its bounding
+        // origin, then move the selected upright top-left pixel to (0, 0).
+        // The render canvas clips the rest; there is no scaling transform.
+        let translation = CGAffineTransform(translationX: -source.uprightBounds.minX - CGFloat(crop.x),
+                                             y: -source.uprightBounds.minY - CGFloat(crop.y))
+        layer.setTransform(source.transform.concatenating(translation), at: .zero)
+        let instruction = AVMutableVideoCompositionInstruction()
+        instruction.timeRange = full
+        instruction.layerInstructions = [layer]
+        let composition = AVMutableVideoComposition()
+        composition.instructions = [instruction]
+        composition.renderSize = CGSize(width: crop.outputWidth, height: crop.outputHeight)
+        composition.renderScale = 1
+        composition.sourceTrackIDForFrameTiming = source.track.trackID
+        // Matching source-track timing preserves fractional/variable cadence.
+        // frameDuration only provides a bounded fallback for empty edits.
+        let fallbackRate = min(120, max(1, video.nominalFrameRate ?? 30))
+        composition.frameDuration = CMTime(seconds: 1 / fallbackRate, preferredTimescale: 600_000)
+        guard let session = AVAssetExportSession(asset: video.asset, presetName: AVAssetExportPresetHighestQuality) else {
+            throw VideoCropSource.decoderError
+        }
+        session.videoComposition = composition
+        session.outputURL = output
+        let type: AVFileType = ext == "mov" ? .mov : .mp4
+        session.outputFileType = type
+        session.timeRange = full
+        session.shouldOptimizeForNetworkUse = false
+        if options.removeMetadata { session.metadata = [] }
+        let cancellation = VideoCropExportCancellation(asset: video.asset, session: session)
+        try await withTaskCancellationHandler(operation: {
+            let formats = await session.compatibleFileTypes
+            try Task.checkCancellation()
+            guard formats.contains(type) else { throw VideoCropSource.decoderError }
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                session.exportAsynchronously { continuation.resume() }
+                if Task.isCancelled { cancellation.cancel() }
+            }
+            try Task.checkCancellation()
+            guard session.status == .completed else {
+                if session.status == .cancelled { throw FreewheelError.cancelled }
+                throw VideoCropSource.decoderError
+            }
+        }, onCancel: { cancellation.cancel() })
+
+        // Export presets may reject or adjust an unsupported encoder size.
+        // Publish only the requested dimensions and complete clip, never a
+        // silently resized result or a file that lost its original audio track.
+        let exported = try await VideoTrimSource.load(output)
+        let originalAudio = try await video.asset.loadTracks(withMediaType: .audio)
+        let exportedAudio = try await exported.asset.loadTracks(withMediaType: .audio)
+        guard exported.displayWidth == crop.outputWidth, exported.displayHeight == crop.outputHeight,
+              abs(exported.durationSeconds - video.durationSeconds) <= 0.1,
+              originalAudio.count == exportedAudio.count else {
+            throw FreewheelError.unsupported("macOS could not keep this crop's dimensions, complete duration, and audio. Choose a smaller crop or convert the source to a standard MP4 or MOV first.")
+        }
+        try Task.checkCancellation()
+        return ConversionResult(outputs: [output],
+            note: "The full video was cropped locally and re-encoded as H.264 with AAC audio where present. The selected pixels were kept without stretching; output dimensions are even. Codec timing can add a small duration difference. Original files were kept.")
+    }
 
     private static func convertMedia(_ inputs: [URL], operation: FileOperation,
                                      options: ConversionOptions, directory: URL) async throws -> ConversionResult {

@@ -290,6 +290,104 @@ final class EngineTests: XCTestCase {
         XCTAssertThrowsError(try nearEnd.validate(sourceDuration: 2.01))
     }
 
+    func testVideoCropRejectsInvalidOrOverflowingBoundsBeforeStaging() async throws {
+        let input = root.appendingPathComponent("clip.mov")
+        try Data([0]).write(to: input)
+        let invalid = [
+            VideoCropRegion(x: -1, y: 0, width: 2, height: 2, sourceWidth: 10, sourceHeight: 10, sourceDuration: 1),
+            VideoCropRegion(x: 0, y: -1, width: 2, height: 2, sourceWidth: 10, sourceHeight: 10, sourceDuration: 1),
+            VideoCropRegion(x: 0, y: 0, width: 1, height: 2, sourceWidth: 10, sourceHeight: 10, sourceDuration: 1),
+            VideoCropRegion(x: 0, y: 0, width: 2, height: 0, sourceWidth: 10, sourceHeight: 10, sourceDuration: 1),
+            VideoCropRegion(x: 9, y: 0, width: 2, height: 2, sourceWidth: 10, sourceHeight: 10, sourceDuration: 1),
+            VideoCropRegion(x: Int.max, y: 0, width: Int.max, height: 2, sourceWidth: Int.max, sourceHeight: 10, sourceDuration: 1),
+            VideoCropRegion(x: 0, y: 0, width: 2, height: 2, sourceWidth: 20_000, sourceHeight: 10, sourceDuration: 1),
+            VideoCropRegion(x: 0, y: 0, width: 8_000, height: 6_000, sourceWidth: 8_000, sourceHeight: 6_000, sourceDuration: 1),
+            VideoCropRegion(x: 0, y: 0, width: 2, height: 2, sourceWidth: 10, sourceHeight: 10, sourceDuration: .nan),
+            VideoCropRegion(x: 0, y: 0, width: 2, height: 2, sourceWidth: 10, sourceHeight: 10, sourceDuration: 0)
+        ]
+        for crop in invalid {
+            var options = ConversionOptions(); options.videoCrop = crop
+            do {
+                _ = try await ConversionEngine().run(inputs: [input],
+                    operation: FileOperation(id: "media.crop", title: "Crop Video", outputExtension: "mp4"), options: options)
+                XCTFail("An invalid video crop was accepted")
+            } catch FreewheelError.invalidInput { }
+        }
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path), ["clip.mov"])
+    }
+
+    func testVideoCropRequiresOneVideoAndExclusiveNativeCropRoute() async throws {
+        let first = root.appendingPathComponent("first.mov"), second = root.appendingPathComponent("second.mp4")
+        let audio = root.appendingPathComponent("sound.wav"), image = root.appendingPathComponent("image.png")
+        for input in [first, second, audio, image] { try Data([0]).write(to: input) }
+        var options = ConversionOptions()
+        options.videoCrop = VideoCropRegion(x: 1, y: 2, width: 4, height: 6,
+                                            sourceWidth: 10, sourceHeight: 10, sourceDuration: 1)
+        let cases: [([URL], String, String)] = [
+            ([first, second], "media.crop", "mp4"), ([audio], "media.crop", "mp4"),
+            ([image], "media.crop", "mp4"), ([first, audio], "media.crop", "mp4"),
+            ([first], "media.trim", "mp4"), ([first], "convert.mp4", "mp4"),
+            ([first], "media.crop", "wav"), ([first], "media.crop", "webm")
+        ]
+        for (inputs, id, ext) in cases {
+            do {
+                _ = try await ConversionEngine().run(inputs: inputs,
+                    operation: FileOperation(id: id, title: "Operation", outputExtension: ext), options: options)
+                XCTFail("A video crop used the wrong input, operation, or output")
+            } catch FreewheelError.invalidInput { }
+        }
+        let cropOperation = FileOperation(id: "media.crop", title: "Crop Video", outputExtension: "mp4")
+        for conflict in 0..<3 {
+            var conflicting = options
+            if conflict == 0 { conflicting.imageCrop = options.videoCrop?.imageRegion }
+            if conflict == 1 { conflicting.audioTrim = AudioTrimSelection(startSeconds: 0, endSeconds: 1, sourceDuration: 1) }
+            if conflict == 2 { conflicting.videoTrim = VideoTrimSelection(startSeconds: 0, endSeconds: 1, sourceDuration: 1) }
+            do {
+                _ = try await ConversionEngine().run(inputs: [first], operation: cropOperation, options: conflicting)
+                XCTFail("A video crop was combined with another editor selection")
+            } catch FreewheelError.invalidInput { }
+        }
+        do {
+            _ = try await ConversionEngine().run(inputs: [first], operation: cropOperation)
+            XCTFail("A missing crop selection reached a generic converter")
+        } catch FreewheelError.invalidInput { }
+        let catalogCrop = Catalog.operations(for: [first], mode: .tools).first { $0.id == "media.crop" }
+        #if os(macOS)
+        XCTAssertNil(try XCTUnwrap(catalogCrop).dependency)
+        #else
+        XCTAssertNil(catalogCrop)
+        #endif
+        XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: root.path)), ["first.mov", "second.mp4", "sound.wav", "image.png"])
+    }
+
+    func testVideoCropGeometryKeepsEvenOutputInsideTheUprightSource() throws {
+        let selected = ImageCropRegion(x: 3, y: 1, width: 7, height: 7, sourceWidth: 11, sourceHeight: 9)
+        let normalized = VideoCropGeometry.normalized(selected)
+        XCTAssertEqual(normalized, ImageCropRegion(x: 3, y: 1, width: 6, height: 6, sourceWidth: 11, sourceHeight: 9))
+        let direct = VideoCropRegion(imageRegion: selected, sourceDuration: 1)
+        XCTAssertEqual(direct.outputWidth, 6)
+        XCTAssertEqual(direct.outputHeight, 6)
+        XCTAssertNoThrow(try direct.validate())
+        XCTAssertThrowsError(try direct.validate(sourceWidth: 12, sourceHeight: 9, sourceDuration: 1))
+        XCTAssertThrowsError(try direct.validate(sourceWidth: 11, sourceHeight: 9, sourceDuration: 1.01))
+        for handle in ImageCropHandle.allCases {
+            for change in [-1_000.0, -1, 0, 1, 1_000, .nan, .infinity] {
+                let resized = ImageCropGeometry.resized(selected, handle: handle, dx: change, dy: -change,
+                                                        aspectRatio: 4.0 / 3.0)
+                let region = VideoCropGeometry.normalized(resized)
+                XCTAssertNoThrow(try VideoCropRegion(imageRegion: region, sourceDuration: 1).validate())
+                XCTAssertEqual(region.width % 2, 0)
+                XCTAssertEqual(region.height % 2, 0)
+                XCTAssertGreaterThanOrEqual(region.width, 2)
+                XCTAssertGreaterThanOrEqual(region.height, 2)
+            }
+        }
+        let oversized = ImageCropRegion(x: Int.max, y: Int.min, width: Int.max, height: Int.min,
+                                        sourceWidth: 101, sourceHeight: 99)
+        XCTAssertEqual(VideoCropGeometry.normalized(oversized),
+            ImageCropRegion(x: 1, y: 0, width: 100, height: 2, sourceWidth: 101, sourceHeight: 99))
+    }
+
     func testAudioTrimHandlesPreserveLengthAndNeverCrossOrRoundPastEOF() throws {
         for total in [0.000_5, 0.007_3, 1.000_9, 8.0, 36_000.000_9] {
             let full = AudioTrimGeometry.fullDuration(total)

@@ -4,29 +4,11 @@ import FreewheelCore
 
 @MainActor
 struct ImageCropView: View {
-    private enum Ratio: String, CaseIterable, Identifiable {
-        case free = "Free", original = "Original", square = "1:1"
-        case landscape = "4:3", portrait = "3:4", wide = "16:9", tall = "9:16"
-        var id: String { rawValue }
-
-        func value(width: Int, height: Int) -> Double? {
-            switch self {
-            case .free: return nil
-            case .original: return Double(width) / Double(height)
-            case .square: return 1
-            case .landscape: return 4 / 3
-            case .portrait: return 3 / 4
-            case .wide: return 16 / 9
-            case .tall: return 9 / 16
-            }
-        }
-    }
-
     @ObservedObject var model: AppController
     let inputs: [URL]
     @State private var preview: ImageCropPreview?
     @State private var selection: ImageCropRegion?
-    @State private var ratio = Ratio.free
+    @State private var ratio = CropAspectRatio.free
     @State private var showsGrid = true
     @State private var widthText = ""
     @State private var heightText = ""
@@ -87,7 +69,7 @@ struct ImageCropView: View {
             VStack(alignment: .leading, spacing: 9) {
                 Text(model.text("Aspect Ratio", "En boy oranı")).font(.system(size: 12, weight: .semibold))
                 Picker(model.text("Aspect Ratio", "En boy oranı"), selection: Binding(get: { ratio }, set: { changeRatio($0) })) {
-                    ForEach(Ratio.allCases) { option in
+                    ForEach(CropAspectRatio.allCases) { option in
                         Text(option == .free ? model.text("Free", "Serbest") : option == .original ? model.text("Original", "Orijinal") : option.rawValue)
                             .tag(option)
                     }
@@ -182,7 +164,7 @@ struct ImageCropView: View {
         self.selection = ImageCropGeometry.sized(selection, width: width, height: height)
     }
 
-    private func changeRatio(_ value: Ratio) {
+    private func changeRatio(_ value: CropAspectRatio) {
         ratio = value
         guard let preview, let selection else { return }
         if let aspect = value.value(width: preview.sourceWidth, height: preview.sourceHeight) {

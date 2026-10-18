@@ -219,7 +219,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
             showMainWindow(); return
         }
         if operation.id.hasPrefix("action.") { performFileAction(operation, inputs: selection); return }
-        let withOptions: Set<String> = ["image.compress", "image.resize", "image.crop", "image.rotate", "pdf.extract", "pdf.rotate", "pdf.compress", "media.compress", "media.trim", "media.resize", "media.speed", "media.volume"]
+        let withOptions: Set<String> = ["image.compress", "image.resize", "image.crop", "image.rotate", "pdf.extract", "pdf.rotate", "pdf.compress", "media.compress", "media.trim", "media.crop", "media.resize", "media.speed", "media.volume"]
         if withOptions.contains(operation.id) {
             // A second global-wheel drop must not replace the input shown by
             // an open editor, including another crop with the same operation ID.

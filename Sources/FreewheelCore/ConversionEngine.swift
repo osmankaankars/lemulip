@@ -45,6 +45,11 @@ public final class ConversionEngine: Sendable {
                     throw FreewheelError.invalidInput("A timeline selection requires exactly one video file.")
                 }
             }
+            if options.videoCrop != nil {
+                guard validated.count == 1, FileFamily.detect(validated[0]) == .video else {
+                    throw FreewheelError.invalidInput("A selected video crop requires exactly one video file.")
+                }
+            }
             let destination = (options.destinationDirectory ?? validated[0].deletingLastPathComponent()).standardizedFileURL.resolvingSymlinksInPath()
             guard destination.isFileURL else { throw FreewheelError.invalidInput("Choose a local output folder.") }
             if operation.id.hasPrefix("archive.create") {
@@ -66,6 +71,14 @@ public final class ConversionEngine: Sendable {
 
     private func convert(_ inputs: [URL], operation: FileOperation, options: ConversionOptions, stage: URL) async throws -> ConversionResult {
         let families = Set(inputs.map(FileFamily.detect))
+        if options.videoCrop != nil {
+            #if os(macOS)
+            return try await NativeConverter.convert(inputs: inputs, operation: operation,
+                                                      options: options, outputDirectory: stage)
+            #else
+            throw FreewheelError.unsupported("Selected video crops require the native macOS video editor.")
+            #endif
+        }
         if options.videoTrim != nil {
             // The editor's source-bound selection must never fall through to
             // a general conversion or an external route with different timing.
@@ -235,8 +248,11 @@ public final class ConversionEngine: Sendable {
     }
 
     private func validateOptions(_ options: ConversionOptions, operation: FileOperation) throws {
+        if operation.id == "media.crop", options.videoCrop == nil {
+            throw FreewheelError.invalidInput("Choose a crop in the video editor before exporting.")
+        }
         if let selection = options.audioTrim {
-            guard operation.id == "media.trim", options.imageCrop == nil, options.videoTrim == nil else {
+            guard operation.id == "media.trim", options.imageCrop == nil, options.videoTrim == nil, options.videoCrop == nil else {
                 throw FreewheelError.invalidInput("An audio selection can only be used with Trim Audio.")
             }
             try selection.validate()
@@ -245,12 +261,22 @@ public final class ConversionEngine: Sendable {
             }
         }
         if let selection = options.videoTrim {
-            guard operation.id == "media.trim", options.imageCrop == nil, options.audioTrim == nil else {
+            guard operation.id == "media.trim", options.imageCrop == nil, options.audioTrim == nil, options.videoCrop == nil else {
                 throw FreewheelError.invalidInput("A video selection can only be used with Trim Video.")
             }
             try selection.validate()
             if let ext = operation.outputExtension?.lowercased(), !["mp4", "mov"].contains(ext) {
                 throw FreewheelError.invalidInput("Choose MP4 or MOV for the selected video range.")
+            }
+        }
+        if let crop = options.videoCrop {
+            guard operation.id == "media.crop", options.imageCrop == nil,
+                  options.audioTrim == nil, options.videoTrim == nil else {
+                throw FreewheelError.invalidInput("A video crop can only be used with Crop Video, without a separate trim or image selection.")
+            }
+            try crop.validate()
+            if let ext = operation.outputExtension?.lowercased(), !["mp4", "mov"].contains(ext) {
+                throw FreewheelError.invalidInput("Choose MP4 or MOV for the selected video crop.")
             }
         }
         if let crop = options.imageCrop {

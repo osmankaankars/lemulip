@@ -2,9 +2,9 @@
 
 Lemulip selects operations from the file extensions in your selection. A listed format is a supported route, not a promise that every codec or document feature will survive conversion.
 
-The tables below describe source **0.1.5**, which adds native visual video trim.
-The published 0.1.4 preview uses numeric video trimming through FFmpeg; check
-[Releases](https://github.com/osmankaankars/lemulip/releases) for newer builds. Some
+The tables below describe source **0.1.6**, which adds native visual video crop.
+Native video trim starts with 0.1.5; check
+[Releases](https://github.com/osmankaankars/lemulip/releases) for available builds. Some
 features still need broader hands-on macOS testing. See [Installation](INSTALL.md)
 for optional engines and [User Guide](USER_GUIDE.md) for controls.
 
@@ -93,6 +93,25 @@ orientation. Video-frame and audio-codec boundaries may affect the exact output
 duration; the editor does not promise lossless or frame-exact trimming. It
 leaves the original untouched. See [Visual Video Trim](USER_GUIDE.md#visual-video-trim).
 
+**Visual video crop**, new in source 0.1.6, applies one rectangle to the whole
+clip and exports MP4 or MOV through native macOS tools. It keeps the clip's
+audio and full source timeline; it does not combine a time trim with the crop. The source
+file remains unchanged.
+
+The crop is defined on the upright frame in source pixels. Output dimensions
+are even numbers, at least 2 × 2 pixels. Odd requested dimensions round inward
+by at most one pixel at the right or bottom; the image is not stretched to make
+them fit. Export re-encodes H.264 video with AAC audio where present, so codec
+and color representation can change. Frame timing follows the source track;
+video-frame and audio-codec boundaries can still affect the output duration.
+
+This first crop editor uses the same one-video / at-most-one-audio input scope
+as native trim. It supports square pixels, a full clean aperture, and standard
+0°, 90°, 180°, or 270° display rotations. Non-square pixels, custom apertures,
+mirroring, and scaled or sheared display transforms need conversion to a
+standard MP4 or MOV before opening Crop. Protected files and external media
+references are not accepted. See [Visual Video Crop](USER_GUIDE.md#visual-video-crop).
+
 The other desktop media tools use FFmpeg for compression, resizing, speed and
 volume changes, audio removal, and audio extraction. Video compression produces
 H.264 MP4; audio compression produces M4A. Additional video codecs can be
@@ -166,6 +185,11 @@ There are no paid tiers or daily conversion quotas. The implementation does enfo
 - Video preview requests contain at most 24 thumbnails, each at most 192 pixels
   on its longest edge; the editor requests 12. This bounds the application's
   thumbnail cache, not AVFoundation's total decoding or playback memory.
+- Video crop keeps one preview image at most 1,280 pixels on its longest edge.
+  It does not build a thumbnail strip or a persistent decoded-frame cache.
+- Native video crop output is limited to 40 megapixels and 16,384 pixels per
+  side, with even dimensions of at least 2 × 2 pixels. A larger accepted source
+  needs a smaller crop before export.
 - The native video trim source must have a finite duration of at most 365 days,
   display dimensions of at most 16,384 pixels per side, and at most 150 megapixels
   per frame. Available codecs can impose lower limits.

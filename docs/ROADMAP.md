@@ -15,11 +15,12 @@ The app has a drag wheel, a workspace, a session queue, a floating file shelf,
 and native conversion tools with optional external engines. The published
 [0.1.4 preview](https://github.com/osmankaankars/lemulip/releases/tag/v0.1.4)
 includes three saved appearances, a native visual image crop editor, and an
-audio waveform editor with range selection and playback. The **0.1.5 source
-candidate** adds native video trim, the first part of milestone 3. Its own
+audio waveform editor with range selection and playback. Source **0.1.5** adds
+native video trim; source **0.1.6** adds visual video crop. Each version's own
 [Mac checks](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
-and release assets determine availability. Hands-on acceptance of the editor interactions remains
-separate from automated CI.
+and [release assets](https://github.com/osmankaankars/lemulip/releases) determine
+availability. Hands-on acceptance of editor interactions remains separate from
+automated CI.
 
 The [browser walkthrough](https://osmankaankars.github.io/lemulip/) demonstrates
 the wheel with sample files. It is a simulation and does not convert files.
@@ -39,12 +40,16 @@ Apple silicon also passed five optional-engine integration tests. Both runners
 verified the downloaded universal app and CLI. The DMG, app ZIP, source ZIP,
 and checksums are published under `v0.1.4`.
 
-For 0.1.4, the website had already passed its
-[deployment](https://github.com/osmankaankars/lemulip/actions/runs/39137985890)
-at `6eec00a`; its files were unchanged in `17bb81a`. The 0.1.5 website changes
-need their own deployment. Every new app candidate must pass its own Mac
-checks; the 0.1.4 result does not establish the result for 0.1.5 or complete
-hands-on editor acceptance.
+Source **0.1.5** at `26ac82d` passed its
+[Mac build and package checks](https://github.com/osmankaankars/lemulip/actions/runs/39146365216):
+85 core and native tests on each architecture, plus five optional-engine
+integration tests on Apple silicon. Its
+[website deployment](https://github.com/osmankaankars/lemulip/actions/runs/39146365294)
+also passed. Release availability remains recorded in
+[Releases](https://github.com/osmankaankars/lemulip/releases).
+
+Every new app version must pass its own Mac and security checks. These results
+do not establish a newer version's result or complete hands-on editor acceptance.
 
 - Keep the GUI and CLI build product names distinct on case-insensitive disks.
 - Correct PDF raster dimensions and rendering of annotations on rotated crops.
@@ -122,15 +127,16 @@ long recordings do not require keeping the entire decoded file in memory.
 
 Build on the editor behavior established by image crop and audio trim.
 
-**Trim Video is implemented in the 0.1.5 source candidate.** Mac verification is
-reported by that commit's Actions run. Work is proceeding one editor at a time. Video crop and PDF previews
-remain planned; image and audio hands-on acceptance remains open.
+**Trim Video is implemented in source 0.1.5; Crop Video follows in source
+0.1.6.** Mac verification is reported by each commit's Actions run. Work is
+proceeding one editor at a time. **Organize PDF is next**, followed by the merge
+preview. Hands-on acceptance of the existing editors remains open.
 
 | Editor | Experience and Status |
 | --- | --- |
 | Trim Video | Source 0.1.5: native video preview, a bounded thumbnail strip, range handles, timestamps, selected duration, and selection playback; MP4/MOV copy export |
-| Crop Video | Planned: crop controls over the video preview, with export dimensions and aspect ratio visible |
-| Organize PDF | Planned: page thumbnails with explicit reorder, rotate, remove, and extract actions |
+| Crop Video | Source 0.1.6: a movable crop over the native preview, aspect ratios, output dimensions, and full-duration MP4/MOV copy export |
+| Organize PDF | Next: page thumbnails with explicit reorder, rotate, remove, and extract actions |
 | Merge PDF | Planned: an ordered list with page counts and a clear output summary |
 
 The first video trim editor uses native macOS playback and export without new
@@ -140,6 +146,14 @@ native-decodable video track with at most one audio track. MP4 and MOV exports
 re-encode the selected source range; frame and audio-codec boundaries can affect
 the exact duration. Unsupported inputs receive an explanation before editing.
 The original remains unchanged. See [Visual Video Trim](USER_GUIDE.md#visual-video-trim).
+
+Video crop applies one spatial selection to the full clip and keeps its audio.
+The crop overlays native playback, with a single upright still frame capped at
+1,280 pixels on its longest edge while playback prepares. Output dimensions are
+even numbers for the native video encoder; the
+chosen rectangle remains within the source. MP4 and MOV output re-encodes the
+video, using the source frames rather than the preview image. Trim and Crop
+remain separate operations. See [Visual Video Crop](USER_GUIDE.md#visual-video-crop).
 
 **Ready when:** previews and final output agree, ordering is explicit, empty or
 invalid selections cannot be submitted, and long documents or clips load only
@@ -227,8 +241,8 @@ Sizes were calculated from the verified archives in the
 [tagged build](https://github.com/osmankaankars/lemulip/actions/runs/39141454481)
 and checked against the published checksums. The app payload is the sum of its
 files, not allocated filesystem blocks. These measurements include the themes,
-visual crop, and audio waveform editor. Record 0.1.5's sizes after verified
-packaging. Memory, CPU, and launch-time budgets below are still
+visual crop, and audio waveform editor. Record each newer version's sizes after
+verified packaging. Memory, CPU, and launch-time budgets below are still
 **engineering targets, not measured results**:
 
 | Metric | Initial Target | Measurement |

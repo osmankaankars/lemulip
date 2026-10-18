@@ -4,9 +4,10 @@ Lemulip has three ways to work: a wheel beside your drag, a regular workspace, a
 
 New here? [Install Lemulip](INSTALL.md) first. For specific input and output combinations, use the [format guide](FORMATS.md).
 
-This guide follows the current **0.1.5 source candidate**. Native video trim is
-new in that candidate; the published **0.1.4** preview includes visual image crop
-and audio waveform trim, with numeric video trimming through optional FFmpeg.
+This guide follows source **0.1.6**. Visual image crop and audio waveform trim
+start with 0.1.4, native video trim with 0.1.5, and visual video crop with 0.1.6.
+Check [Releases](https://github.com/osmankaankars/lemulip/releases) for available
+downloads and the notes for your installed version.
 
 ## Your First Conversion
 
@@ -76,7 +77,8 @@ Some operations run as soon as you select them. Others open a panel with relevan
 | --- | --- |
 | Compress | Quality; PDF compression also has a maximum dimension |
 | Resize | Maximum dimension in pixels; keeps the aspect ratio and does not enlarge smaller images |
-| Crop | Visual selection, aspect ratio, and exact pixel dimensions for one image |
+| Crop Image | Visual selection, aspect ratio, and exact pixel dimensions for one image |
+| Crop Video | A crop over the video preview, aspect ratio, and output dimensions for the whole clip |
 | Rotate | 90°, 180°, or 270° clockwise |
 | Trim Audio | Waveform handles, timestamps, selected-range playback, and an output format |
 | Trim Video | Native preview, thumbnail strip, range handles, timestamps, selected-range playback, and MP4/MOV output |
@@ -84,8 +86,8 @@ Some operations run as soon as you select them. Others open a panel with relevan
 | Change Speed | Playback multiplier from 0.5× to 4× |
 | Adjust Volume | Level from 0% to 300% |
 
-PDF page numbers start at 1. Crop dimensions must fit within the image. Audio
-waveform trimming and the new visual video trim use native macOS tools. Other
+PDF page numbers start at 1. Crop dimensions must fit within the source. Image
+crop, audio waveform trim, video trim, and video crop use native macOS tools. Other
 desktop media tools, such as compression, resizing, speed, and volume, require
 FFmpeg.
 
@@ -241,6 +243,61 @@ additional conversion routes.
 
 The command-line `media.trim --start … --end …` workflow remains numeric.
 Use the desktop editor to preview and adjust a range visually.
+
+### Visual Video Crop
+
+**Video crop starts with 0.1.6.** Check
+[Releases](https://github.com/osmankaankars/lemulip/releases) for downloadable
+builds. Select one video and choose **Tools → Crop**. The editor shows an
+upright frame while native playback prepares, with the crop laid over the video.
+
+| Control | Action |
+| --- | --- |
+| Drag inside the selection | Move the crop without changing its size |
+| Drag a corner or edge handle | Resize the crop inside the video frame |
+| **Aspect Ratio** | Choose Free, Original, 1:1, 4:3, 3:4, 16:9, or 9:16 |
+| **Width / Height** | Enter even output dimensions in pixels; this switches to Free |
+| **Left / Top** | Read the crop's position within the upright source frame |
+| **Show Grid** | Show or hide the thirds grid |
+| **Play Video / Pause** | Preview the full clip through the crop overlay |
+| Seek slider | Choose another moment without changing the crop |
+| **Go to Start** | Return the paused preview to the beginning |
+| **Reset Crop** | Return to the largest crop that fits the source |
+| **Save As** | Choose an available MP4 or MOV export |
+| **Cancel** or Escape | Close the editor, cancel preview work, and stop playback |
+| **Create Copy** | Queue the full clip with the selected crop |
+
+With the crop canvas focused, arrow keys move it by one source pixel; hold
+Shift for ten pixels. Space plays or pauses, and Tab moves to the other controls.
+Editing the crop pauses playback so you can check the adjustment. The visible
+selection, output dimensions, and keyboard movement use the same upright frame.
+
+The output is at least 2 × 2 pixels, with even width and height for video
+encoding. Dragging or choosing a ratio snaps to those dimensions; the fields
+show the crop that will be exported. On a source with odd dimensions, the
+largest crop leaves at most one pixel at the right or bottom. Pixels are cropped,
+not stretched to fit an encoder. Output is limited to 40 megapixels and
+16,384 pixels per side; choose a smaller crop if the full source exceeds that.
+
+**The same crop applies to the whole clip.** It keeps the source audio and
+exports a new MP4 or MOV. To shorten the clip as well, finish one operation and
+open the resulting copy in **Trim**. Crop does not silently reuse a previous
+trim selection. Export re-encodes video and can change its codec or color
+representation; codec timing can leave a small duration difference. It is not
+a lossless edit.
+
+This first crop editor accepts one complete local video file containing its own
+media, with one video track and at most one audio track. Ordinary landscape and
+portrait rotations are supported. Mirrored, scaled, or sheared display transforms,
+non-square pixels, and a custom clean aperture need conversion to a standard
+video first. The [format guide](FORMATS.md#audio-and-video) lists these limits.
+Unsupported files receive an explanation before a crop runs.
+
+The fallback still preview is capped at 1,280 pixels on its longest edge; export
+reads the original video frames. The player exists only while the editor is
+open, and closing it cancels preview work and releases playback resources. No
+persistent frame cache is created. Completed outputs use the normal unused-name
+rules, and the original file stays in place.
 
 ### PDF Compression
 

@@ -811,14 +811,25 @@ final class NativeConverterTests: XCTestCase {
     /// The first half is red and the second half blue, so an exported range can
     /// be checked by its actual decoded content as well as its duration.
     private func videoFixture(_ url: URL, width: Int = 64, height: Int = 32,
-                              frames: Int = 60, portrait: Bool = false) async throws {
+                              frames: Int = 60, portrait: Bool = false,
+                              transform: CGAffineTransform? = nil, quadrants: Bool = false,
+                              pixelAspectRatio: Int? = nil) async throws {
         let writer = try AVAssetWriter(outputURL: url, fileType: .mov)
-        let input = AVAssetWriterInput(mediaType: .video, outputSettings: [
+        var settings: [String: Any] = [
             AVVideoCodecKey: AVVideoCodecType.h264, AVVideoWidthKey: width, AVVideoHeightKey: height,
             AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: 200_000, AVVideoMaxKeyFrameIntervalKey: 30]
-        ])
+        ]
+        if let pixelAspectRatio {
+            settings[AVVideoPixelAspectRatioKey] = [
+                AVVideoPixelAspectRatioHorizontalSpacingKey: pixelAspectRatio,
+                AVVideoPixelAspectRatioVerticalSpacingKey: 1
+            ]
+        }
+        let input = AVAssetWriterInput(mediaType: .video, outputSettings: settings)
         input.expectsMediaDataInRealTime = false
-        if portrait {
+        if let transform {
+            input.transform = transform
+        } else if portrait {
             input.transform = CGAffineTransform(a: 0, b: 1, c: -1, d: 0, tx: CGFloat(height), ty: 0)
         }
         let adaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: input,
@@ -854,9 +865,16 @@ final class NativeConverterTests: XCTestCase {
                     for y in 0..<height {
                         for x in 0..<width {
                             let offset = y * stride + x * 4
-                            bytes[offset] = blue ? 255 : 0
-                            bytes[offset + 1] = 0
-                            bytes[offset + 2] = blue ? 0 : 255
+                            if quadrants {
+                                let left = x < width / 2, top = y < height / 2
+                                bytes[offset] = left && !top ? 255 : 0
+                                bytes[offset + 1] = !left ? 255 : 0
+                                bytes[offset + 2] = left == top ? 255 : 0
+                            } else {
+                                bytes[offset] = blue ? 255 : 0
+                                bytes[offset + 1] = 0
+                                bytes[offset + 2] = blue ? 0 : 255
+                            }
                             bytes[offset + 3] = 255
                         }
                     }
@@ -1065,6 +1083,176 @@ final class NativeConverterTests: XCTestCase {
                 options: options, outputDirectory: work.stage)
         }
         do { _ = try await export.value; XCTFail("Cancelled video export completed") }
+        catch FreewheelError.cancelled { }
+        XCTAssertEqual(try Data(contentsOf: input), original)
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: work.inputs.path), ["clip.mov"])
+    }
+
+    private func assertVideoColor(_ frame: CGImage, x: Int, y: Int, rgb: [Bool],
+                                  file: StaticString = #filePath, line: UInt = #line) throws {
+        let pixel = try color(frame, x: x, y: y)
+        let values = [pixel.redComponent, pixel.greenComponent, pixel.blueComponent]
+        for (actual, bright) in zip(values, rgb) {
+            if bright { XCTAssertGreaterThan(actual, 0.7, file: file, line: line) }
+            else { XCTAssertLessThan(actual, 0.3, file: file, line: line) }
+        }
+    }
+
+    func testNativeVideoCropUsesUprightPixelsForEveryQuarterTurn() async throws {
+        let work = try workspace()
+        let transforms: [CGAffineTransform] = [
+            .identity,
+            CGAffineTransform(a: 0, b: 1, c: -1, d: 0, tx: 48, ty: 0),
+            CGAffineTransform(a: -1, b: 0, c: 0, d: -1, tx: 64, ty: 48),
+            CGAffineTransform(a: 0, b: -1, c: 1, d: 0, tx: 0, ty: 64)
+        ]
+        // Raw top-left/top-right/bottom-left/bottom-right are red/green/blue/yellow.
+        // Expected colors are independent of the crop transform implementation.
+        let topLeft: [[Bool]] = [[true, false, false], [false, false, true],
+                                 [true, true, false], [false, true, false]]
+        let bottomRight: [[Bool]] = [[true, true, false], [false, true, false],
+                                     [true, false, false], [false, false, true]]
+        for turn in 0..<4 {
+            let input = work.inputs.appendingPathComponent("corners-\(turn).mov")
+            try await videoFixture(input, width: 64, height: 48, frames: 12,
+                                    transform: transforms[turn], quadrants: true)
+            let original = try Data(contentsOf: input)
+            let preview = try await NativeConverter.videoCropPreview(for: input, maxPixelSize: Int.max)
+            let width = turn % 2 == 0 ? 64 : 48
+            let height = turn % 2 == 0 ? 48 : 64
+            XCTAssertEqual(preview.sourceWidth, width)
+            XCTAssertEqual(preview.sourceHeight, height)
+            XCTAssertEqual(preview.durationSeconds, 0.4, accuracy: 0.001)
+            try assertVideoColor(preview.image, x: 4, y: 4, rgb: topLeft[turn])
+            try assertVideoColor(preview.image, x: preview.image.width - 5,
+                                 y: preview.image.height - 5, rgb: bottomRight[turn])
+            let crop = VideoCropRegion(x: width / 2 + 4, y: height / 2 + 4,
+                width: width / 2 - 8, height: height / 2 - 8,
+                sourceWidth: width, sourceHeight: height, sourceDuration: preview.durationSeconds)
+            var options = ConversionOptions(); options.videoCrop = crop
+            let result = try await NativeConverter.convert(inputs: [input], operation: operation("media.crop", ext: "mp4"),
+                options: options, outputDirectory: freshStage(work))
+            let output = try XCTUnwrap(result.outputs.first)
+            let exported = try await NativeConverter.videoCropPreview(for: output)
+            XCTAssertEqual(exported.sourceWidth, crop.outputWidth)
+            XCTAssertEqual(exported.sourceHeight, crop.outputHeight)
+            XCTAssertEqual(exported.durationSeconds, 0.4, accuracy: 0.04)
+            let frame = exported.image
+            for (x, y) in [(2, 2), (frame.width - 3, 2), (2, frame.height - 3), (frame.width - 3, frame.height - 3)] {
+                try assertVideoColor(frame, x: x, y: y, rgb: bottomRight[turn])
+            }
+            XCTAssertEqual(try Data(contentsOf: input), original)
+        }
+    }
+
+    func testNativeVideoCropKeepsFullDurationAudioAndExactEvenSize() async throws {
+        let work = try workspace()
+        let wide = work.root.appendingPathComponent("wide-preview.mov")
+        try await videoFixture(wide, width: 1_536, height: 768, frames: 1)
+        let bounded = try await NativeConverter.videoCropPreview(for: wide, maxPixelSize: Int.max)
+        XCTAssertEqual(bounded.sourceWidth, 1_536)
+        XCTAssertEqual(bounded.sourceHeight, 768)
+        XCTAssertLessThanOrEqual(bounded.image.width, 1_280)
+        XCTAssertLessThanOrEqual(bounded.image.height, 1_280)
+        let input = work.inputs.appendingPathComponent("sound-and-color.mov")
+        try await videoWithAudioFixture(input, workspace: work)
+        let original = try Data(contentsOf: input)
+        let preview = try await NativeConverter.videoCropPreview(for: input, maxPixelSize: 24)
+        XCTAssertLessThanOrEqual(preview.image.width, 24)
+        XCTAssertLessThanOrEqual(preview.image.height, 24)
+        XCTAssertEqual(preview.sourceWidth, 64)
+        XCTAssertEqual(preview.sourceHeight, 32)
+        var options = ConversionOptions()
+        // Odd programmatic dimensions round inward without a scaling transform.
+        options.videoCrop = VideoCropRegion(x: 9, y: 5, width: 33, height: 21,
+            sourceWidth: 64, sourceHeight: 32, sourceDuration: preview.durationSeconds)
+        // Spatial cropping must ignore independent legacy trim fields.
+        options.startSeconds = 0.5; options.endSeconds = 1
+        for ext in ["mp4", "mov"] {
+            let result = try await NativeConverter.convert(inputs: [input], operation: operation("media.crop", ext: ext),
+                options: options, outputDirectory: freshStage(work))
+            let output = try XCTUnwrap(result.outputs.first)
+            XCTAssertTrue(output.lastPathComponent.contains("cropped"))
+            let asset = AVURLAsset(url: output)
+            let audio = try await asset.loadTracks(withMediaType: .audio)
+            XCTAssertEqual(audio.count, 1)
+            let first = try await NativeConverter.videoCropPreview(for: output, atSeconds: 0.1)
+            let last = try await NativeConverter.videoCropPreview(for: output, atSeconds: 1.8)
+            XCTAssertEqual(first.sourceWidth, 32)
+            XCTAssertEqual(first.sourceHeight, 20)
+            XCTAssertEqual(first.durationSeconds, 2, accuracy: 0.08)
+            try assertVideoColor(first.image, x: 4, y: 4, rgb: [true, false, false])
+            try assertVideoColor(last.image, x: 4, y: 4, rgb: [false, false, true])
+            XCTAssertTrue(result.note?.contains("without stretching") == true)
+            XCTAssertTrue(result.note?.contains("H.264") == true)
+        }
+        XCTAssertEqual(try Data(contentsOf: input), original)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: work.inputs.path), ["sound-and-color.mov"])
+    }
+
+    func testNativeVideoCropRejectsMismatchedMetadataAndUnsupportedDisplayGeometry() async throws {
+        let work = try workspace()
+        let input = work.inputs.appendingPathComponent("valid.mov")
+        try await videoFixture(input, frames: 6)
+        let original = try Data(contentsOf: input)
+        let invalidTime: [Double] = [-1, .nan, .infinity, 0.2]
+        for time in invalidTime {
+            do {
+                _ = try await NativeConverter.videoCropPreview(for: input, atSeconds: time)
+                XCTFail("An invalid crop preview time was accepted")
+            } catch FreewheelError.invalidInput { }
+        }
+        do {
+            _ = try await NativeConverter.videoCropPreview(for: input, maxPixelSize: 0)
+            XCTFail("A zero-sized video crop preview was accepted")
+        } catch FreewheelError.invalidInput { }
+        for dimensionsChanged in [false, true] {
+            var options = ConversionOptions()
+            options.videoCrop = VideoCropRegion(x: 2, y: 2, width: 16, height: 16,
+                sourceWidth: dimensionsChanged ? 66 : 64, sourceHeight: 32,
+                sourceDuration: dimensionsChanged ? 0.2 : 1)
+            do {
+                _ = try await ConversionEngine().run(inputs: [input], operation: operation("media.crop", ext: "mp4"), options: options)
+                XCTFail("A crop from changed source metadata was accepted")
+            } catch FreewheelError.invalidInput(let message) { XCTAssertTrue(message.contains("changed")) }
+        }
+        let mirrored = work.inputs.appendingPathComponent("mirrored.mov")
+        try await videoFixture(mirrored, frames: 6, transform: CGAffineTransform(a: -1, b: 0, c: 0, d: 1, tx: 64, ty: 0))
+        let nonsquare = work.inputs.appendingPathComponent("nonsquare.mov")
+        try await videoFixture(nonsquare, frames: 6, pixelAspectRatio: 2)
+        for unsupported in [mirrored, nonsquare] {
+            do {
+                _ = try await NativeConverter.videoCropPreview(for: unsupported)
+                XCTFail("Unsupported display geometry was offered for cropping")
+            } catch FreewheelError.unsupported { }
+        }
+        XCTAssertEqual(try Data(contentsOf: input), original)
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+        XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: work.inputs.path)), ["valid.mov", "mirrored.mov", "nonsquare.mov"])
+    }
+
+    func testNativeVideoCropPreviewAndExportRespectCancellation() async throws {
+        let work = try workspace()
+        let input = work.inputs.appendingPathComponent("clip.mov")
+        try await videoFixture(input, frames: 6)
+        let original = try Data(contentsOf: input)
+        let preview = Task.detached {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await NativeConverter.videoCropPreview(for: input)
+        }
+        do { _ = try await preview.value; XCTFail("Cancelled crop preview completed") }
+        catch is CancellationError { }
+        let export = Task.detached {
+            withUnsafeCurrentTask { $0?.cancel() }
+            var options = ConversionOptions()
+            options.videoCrop = VideoCropRegion(x: 0, y: 0, width: 16, height: 16,
+                sourceWidth: 64, sourceHeight: 32, sourceDuration: 0.2)
+            return try await NativeConverter.convert(inputs: [input],
+                operation: FileOperation(id: "media.crop", title: "Crop Video", outputExtension: "mp4"),
+                options: options, outputDirectory: work.stage)
+        }
+        do { _ = try await export.value; XCTFail("Cancelled video crop completed") }
         catch FreewheelError.cancelled { }
         XCTAssertEqual(try Data(contentsOf: input), original)
         XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)

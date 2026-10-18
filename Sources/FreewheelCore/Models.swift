@@ -86,6 +86,8 @@ public struct ConversionOptions: Sendable {
     public var audioTrim: AudioTrimSelection? = nil
     /// A selected video range always uses the native MP4/MOV export path.
     public var videoTrim: VideoTrimSelection? = nil
+    /// A full-duration spatial crop in the upright video's source pixels.
+    public var videoCrop: VideoCropRegion? = nil
     public var startSeconds: Double = 0
     public var endSeconds: Double = 30
     public var rotationDegrees: Int = 90

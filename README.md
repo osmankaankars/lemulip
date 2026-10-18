@@ -14,13 +14,13 @@ Files are processed on your Mac. No account, subscription, uploads, or analytics
 
 **Lemulip is an early public preview for macOS 13 or later.** Finder drag compatibility and the full desktop workflow still need hands-on testing.
 
-The published [0.1.4 preview](https://github.com/osmankaankars/lemulip/releases/tag/v0.1.4) includes three themes, visual image crop, and audio waveform trim. Source **0.1.5** adds native video trim. [Releases](https://github.com/osmankaankars/lemulip/releases) lists available downloads; each new version must pass its own Mac checks before its archives are published.
+Source **0.1.6** adds visual video cropping to the native image, audio, and video editors. [Releases](https://github.com/osmankaankars/lemulip/releases) lists available downloads; each version must pass its own Mac checks before its archives are published.
 
 ### Download the App
 
 Open [Releases](https://github.com/osmankaankars/lemulip/releases) and choose the **macOS universal DMG** under **Assets**. Drag **Lemulip** into **Applications**. The app ZIP also includes the `lemulip` command-line tool. These downloads run on Apple silicon and Intel without installing Xcode or Swift.
 
-Version 0.1.4 is available as a verified universal download. Each new release must pass [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml), including checks of the exact packages on both architectures. Preview packages use ad-hoc signing, without Apple Developer ID signing or notarization; see [First Launch](docs/INSTALL.md#signing-and-first-launch).
+Each release must pass [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml), including checks of the exact packages on both architectures. Preview packages use ad-hoc signing, without Apple Developer ID signing or notarization; see [First Launch](docs/INSTALL.md#signing-and-first-launch).
 
 ### Build From Source
 
@@ -59,7 +59,7 @@ Prefer a window? Add files with **⌘O**, drop them into the workspace, or choos
 | Images | PNG, JPEG, HEIC, TIFF and BMP; visual crop, resize, rotate, remove metadata; images to PDF |
 | PDFs | Merge, split, extract pages, rotate, export pages as images, extract text, offline OCR |
 | Audio | Waveform trim with selection playback; M4A, WAV and AIFF export; more formats with optional FFmpeg |
-| Video | Native conversion; visual trim to MP4 or MOV in source 0.1.5; more tools and codecs with optional FFmpeg |
+| Video | Native conversion, visual trim and crop, MP4/MOV export; more tools and codecs with optional FFmpeg |
 | Documents and tables | Microsoft Word (DOCX), Excel (XLSX), PowerPoint (PPTX), text, CSV ↔ TSV, and subtitles; some routes need an optional local engine |
 | Archives | Create ZIP and TAR, GZIP individual files, extract supported archives into a new folder |
 | File actions | AirDrop, floating shelf, copy, move, copy path, open the containing folder in Terminal |
@@ -92,7 +92,7 @@ encoding limits.
 
 ## Watch What You Keep
 
-**New in the 0.1.5 source candidate.** Open **Tools → Trim** with one
+Open **Tools → Trim** with one
 video. Watch the native preview, use the thumbnail strip to find your range,
 and adjust its start and end handles or timestamps. **Play Selection** previews
 the chosen section; **Create Copy** saves it as MP4 or MOV.
@@ -101,6 +101,17 @@ The editor keeps a fixed number of small thumbnails and uses macOS playback
 and export without an extra conversion engine. Supported inputs depend on
 macOS codecs; export re-encodes the range and keeps the original file in place. Read
 [Visual Video Trim](docs/USER_GUIDE.md#visual-video-trim) for controls and limits.
+
+## Frame It Your Way
+
+Open **Tools → Crop** with one video. Move the crop, choose an aspect ratio,
+and check the output dimensions while you preview the clip. **Create Copy**
+applies that frame to the whole video and saves a new MP4 or MOV.
+
+Video cropping starts with source **0.1.6**. It uses native macOS tools and
+keeps the original file in place. Crop and trim are separate operations; read
+[Visual Video Crop](docs/USER_GUIDE.md#visual-video-crop) for controls and output
+limits.
 
 ## Make It Yours
 

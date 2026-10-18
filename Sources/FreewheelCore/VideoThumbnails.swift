@@ -93,13 +93,13 @@ struct VideoTrimSource {
     let nativeOutputExtensions: [String]
 
     static var decoderError: FreewheelError {
-        .unsupported("macOS cannot prepare this video for trimming. Convert it to a standard MP4 or MOV first. Protected videos and files that reference other media are not supported.")
+        .unsupported("macOS cannot prepare this video for editing. Convert it to a standard MP4 or MOV first. Protected videos and files that reference other media are not supported.")
     }
 
     static func load(_ input: URL) async throws -> VideoTrimSource {
         try Task.checkCancellation()
         guard input.isFileURL, !input.path.contains("\0"), FileFamily.detect(input) == .video else {
-            throw FreewheelError.invalidInput("Choose one local video file for timeline trimming.")
+            throw FreewheelError.invalidInput("Choose one local video file for editing.")
         }
         let values = try input.resourceValues(forKeys: [.isRegularFileKey, .isReadableKey, .fileSizeKey])
         guard values.isRegularFile == true, values.isReadable != false, (values.fileSize ?? 0) > 0 else {
@@ -136,7 +136,7 @@ struct VideoTrimSource {
         let tracks = try await asset.loadTracks(withMediaType: .video)
         let audio = try await asset.loadTracks(withMediaType: .audio)
         guard tracks.count == 1, let track = tracks.first, audio.count <= 1 else {
-            throw FreewheelError.unsupported("Trim Video supports one video track and at most one audio track. Flatten a multitrack project to MP4 or MOV first.")
+            throw FreewheelError.unsupported("Native video editing supports one video track and at most one audio track. Flatten a multitrack project to MP4 or MOV first.")
         }
         let natural = try await track.load(.naturalSize)
         let transform = try await track.load(.preferredTransform)
@@ -179,7 +179,7 @@ struct VideoTrimSource {
 
 /// Only AVFoundation's explicit cancellation methods cross task boundaries.
 /// Normal asset/generator access stays in its owning operation.
-private final class VideoPreviewCancellation: @unchecked Sendable {
+final class VideoPreviewCancellation: @unchecked Sendable {
     private let asset: AVAsset
     private let generator: AVAssetImageGenerator?
 

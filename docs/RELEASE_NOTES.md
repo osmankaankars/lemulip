@@ -6,6 +6,29 @@ Lemulip is a free, open-source file converter for macOS. Drag local files,
 tap a modifier key, and choose a format or tool from the wheel. Use the workspace
 when you need a queue, conversion options, or a closer look at the result.
 
+## 0.1.6 · Frame It Your Way
+
+- Crop one video with a movable selection over the native preview, familiar
+  aspect ratios, and visible output dimensions.
+- Apply the chosen crop to the whole clip. This operation changes the frame;
+  use Trim separately when you want to shorten the video.
+- Create a new **MP4** or **MOV** with native macOS tools, retaining the clip's
+  audio and leaving the original file in place.
+- Prepare one upright preview frame at a bounded size. Export uses the source
+  video, with no added conversion engine or package dependency.
+- Keep crop controls, keyboard movement, and the three saved appearances
+  consistent with the image editor.
+
+This source prepares public preview **0.1.6**, build **9**. Its download assets
+are published only after the required Mac build, export, package, and security
+checks pass. See [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
+for each commit's result and [Releases](https://github.com/osmankaankars/lemulip/releases)
+for available archives. Native interaction acceptance remains separate from CI.
+Existing tags and downloads are preserved.
+
+Read [Visual Video Crop](USER_GUIDE.md#visual-video-crop) for controls, supported
+inputs, and output limits. **Organize PDF** is the next editor on the roadmap.
+
 ## 0.1.5 · Watch What You Keep
 
 - Open one video in a native preview with a small thumbnail strip, start and
@@ -31,8 +54,8 @@ for available archives. Hands-on playback acceptance remains separate from CI.
 Existing tags and releases are preserved.
 
 Read [Visual Video Trim](USER_GUIDE.md#visual-video-trim) for the controls,
-supported inputs, and encoding limits. Video crop and PDF previews remain
-planned; this candidate implements video trim only.
+supported inputs, and encoding limits. Version 0.1.5 adds video trim;
+visual video crop starts with source 0.1.6. PDF previews remain planned.
 
 ## 0.1.4 · Hear What You Keep
 
