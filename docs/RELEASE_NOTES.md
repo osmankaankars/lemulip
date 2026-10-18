@@ -6,6 +6,37 @@ Lemulip is a free, open-source file converter for macOS. Drag local files,
 tap a modifier key, and choose a format or tool from the wheel. Use the workspace
 when you need a queue, conversion options, or a closer look at the result.
 
+## 0.1.12 · Keep the Formatting
+
+- Convert basic **RTF → DOCX** with native macOS tools. Keep supported font
+  families and sizes, bold and italic text, and paragraph alignment, spacing,
+  and indents without installing another engine.
+- Check native RTF eligibility before export. Images, objects, tables, lists,
+  fields, hyperlinks, headers, footers, and unsupported RTF structures retain
+  the existing LibreOffice route for the whole selection. Malformed basic RTF
+  receives an error; the optional engine validates documents assigned to it.
+- Keep a 32 MiB input limit per native Word source, preserve originals, and
+  set DOCX author and editor metadata to Lemulip. Input document metadata is
+  not copied.
+- Repair the shared relationship lookup in the workbook and presentation
+  verifiers. Read attributes by local name and namespace URI, retain the
+  document through lookup, and keep the formatting and data assertions.
+- Extend the existing test files with generated examples. Add no package
+  dependency, bundled engine, or binary fixture collection.
+
+Version **0.1.12**, build **15**, continues
+[Easier Office Conversion](ROADMAP.md#5-easier-office-conversion). Its own Mac,
+security, universal-package, and downloaded-archive checks remain required
+before download publication; see
+[Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
+and [Releases](https://github.com/osmankaankars/lemulip/releases).
+
+Read [Create a Word Document](USER_GUIDE.md#create-a-word-document) for the
+workflow and [Basic Word Export](FORMATS.md#basic-word-export) for the native
+RTF boundary. The next Office task is to inspect representative outputs in
+Word, Excel, and PowerPoint for rendering, pagination, calculations, and slide
+appearance. The full milestone remains open.
+
 ## 0.1.11 · Check the Details
 
 - Repair the Mac workbook-package verifier. It now compares directory-relative
@@ -23,15 +54,19 @@ when you need a queue, conversion options, or a closer look at the result.
 
 Version **0.1.11**, build **14**, continues
 [Easier Office Conversion](ROADMAP.md#5-easier-office-conversion). The three new
-rich Office round trips passed with LibreOffice on Linux. This version's Mac,
-package, and security checks remain required before download publication; see
-[Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
-and [Releases](https://github.com/osmankaankars/lemulip/releases).
+rich Office round trips passed with LibreOffice on Linux. Its
+[Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39170976554)
+passed all 123 built-in tests on both architectures, including the repaired
+workbook-package check. Apple silicon ran ten integrations: native TXT → DOCX
+through LibreOffice and the rich Word example passed, while workbook and
+presentation verification failed at their shared relationship lookup.
+Packaging and release publication were not reached. Source 0.1.12 repairs that
+verifier and retains its output assertions.
 
 Read [Rich Office Conversion](FORMATS.md#rich-office-conversion) and
 [Convert Existing Office Files](USER_GUIDE.md#convert-existing-office-files)
-for supported routes and output checks. Basic native RTF → DOCX is the next
-development slice.
+for supported routes and output checks. Basic native RTF → DOCX follows in
+source 0.1.12.
 
 ## 0.1.10 · Simple Files, Ready for Office
 
@@ -64,8 +99,8 @@ Source 0.1.11 repairs the verifier while retaining its assertions.
 
 Read [Basic Office Exports](USER_GUIDE.md#basic-office-exports) for the workflow
 and [Office Formats](FORMATS.md#documents-slides-and-spreadsheets) for exact limits.
-The richer Office route checks follow in 0.1.11. Basic native RTF export remains
-planned work before extending the supported formatting.
+The richer Office route checks follow in 0.1.11; basic native RTF export follows
+in 0.1.12.
 
 ## 0.1.9 · A Brighter First Impression
 

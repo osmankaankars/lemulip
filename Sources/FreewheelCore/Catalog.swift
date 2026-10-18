@@ -41,7 +41,11 @@ public enum Catalog {
             else if family == .pdf { detail = "Extract selectable text" }
             else if family == .image && ext == "pdf" && inputs.count > 1 { detail = "Combine in the order shown" }
             else if ext == "epub" { detail = "Reflowable ebook" }
-            else if ext == "docx" { detail = dependency == nil ? "Microsoft Word Document · Plain Text" : "Microsoft Word Document" }
+            else if ext == "docx", dependency == nil {
+                detail = inputs.contains { $0.pathExtension.lowercased() == "rtf" }
+                    ? "Microsoft Word Document · Basic Formatting" : "Microsoft Word Document · Plain Text"
+            }
+            else if ext == "docx" { detail = "Microsoft Word Document" }
             else if ext == "xlsx" { detail = dependency == nil ? "Microsoft Excel Workbook · Text Cells" : "Microsoft Excel Workbook" }
             else if ext == "pptx" { detail = "Microsoft PowerPoint Presentation" }
             else { detail = dependency.map { "Local \($0) engine" } ?? "Built into macOS" }
@@ -162,7 +166,7 @@ public enum Catalog {
             return "libreoffice"
         case .document:
             #if os(macOS)
-            if output == "docx", inputs.allSatisfy({ $0.pathExtension.lowercased() == "txt" }) { return nil }
+            if output == "docx", inputs.allSatisfy({ ["txt", "rtf"].contains($0.pathExtension.lowercased()) }) { return nil }
             #endif
             if output == "epub" || inputs.contains(where: { $0.pathExtension.lowercased() == "epub" }) { return "pandoc" }
             if ["html", "docx", "odt"].contains(output) && inputs.contains(where: { ["md", "markdown"].contains($0.pathExtension.lowercased()) }) { return "pandoc" }

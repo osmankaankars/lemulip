@@ -1160,7 +1160,8 @@ final class NativeConverterTests: XCTestCase {
         let work = try workspace()
         let invalidText = work.inputs.appendingPathComponent("not-utf8.txt")
         try Data([0xC3, 0x28]).write(to: invalidText)
-        for (ext, content) in [("rtf", "{\\rtf1\\ansi Rich \\b text\\b0}"), ("html", "<p>Rich <b>text</b></p>"), ("md", "# Heading")] {
+        for (ext, content) in [("rtf", #"{\rtf1\ansi {\field{\*\fldinst HYPERLINK "https://example.invalid/"}{\fldrslt Rich text}}}"#),
+                               ("html", "<p>Rich <b>text</b></p>"), ("md", "# Heading")] {
             let rich = work.inputs.appendingPathComponent("rich.\(ext)")
             let original = Data(content.utf8)
             try original.write(to: rich)
@@ -1172,6 +1173,174 @@ final class NativeConverterTests: XCTestCase {
             XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
             XCTAssertEqual(try Data(contentsOf: rich), original)
         }
+    }
+
+    func testNativeRTFWordExportPreservesInstalledFontsAndParagraphFormatting() async throws {
+        let work = try workspace()
+        let input = work.inputs.appendingPathComponent("formatted.rtf")
+        let text = "Orchard Notes\nBold Italic Both\nSecond Paragraph\tFinal"
+        let regular = try XCTUnwrap(NSFont(name: "Helvetica", size: 12))
+        let heading = try XCTUnwrap(NSFont(name: "Helvetica-Bold", size: 18))
+        let italic = try XCTUnwrap(NSFont(name: "Helvetica-Oblique", size: 12))
+        let both = try XCTUnwrap(NSFont(name: "Helvetica-BoldOblique", size: 12))
+        let attributed = NSMutableAttributedString(string: text, attributes: [.font: regular])
+        let titleStyle = NSMutableParagraphStyle()
+        titleStyle.alignment = .center
+        titleStyle.paragraphSpacingBefore = 6
+        titleStyle.paragraphSpacing = 12
+        let bodyStyle = NSMutableParagraphStyle()
+        bodyStyle.alignment = .left
+        bodyStyle.firstLineHeadIndent = 18
+        bodyStyle.headIndent = 12
+        bodyStyle.paragraphSpacing = 8
+        attributed.addAttributes([.font: heading, .paragraphStyle: titleStyle],
+            range: (text as NSString).range(of: "Orchard Notes\n"))
+        attributed.addAttribute(.font, value: try XCTUnwrap(NSFont(name: "Helvetica-Bold", size: 12)),
+            range: (text as NSString).range(of: "Bold"))
+        attributed.addAttribute(.font, value: italic, range: (text as NSString).range(of: "Italic"))
+        attributed.addAttribute(.font, value: both, range: (text as NSString).range(of: "Both"))
+        attributed.addAttribute(.foregroundColor, value: NSColor(srgbRed: 0.2, green: 0.6, blue: 0.1, alpha: 1),
+            range: (text as NSString).range(of: "Both"))
+        attributed.addAttribute(.paragraphStyle, value: bodyStyle, range: (text as NSString).range(of: "Second Paragraph\tFinal"))
+        let original = try attributed.data(from: NSRange(location: 0, length: attributed.length),
+            documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf,
+                                 .author: "Synthetic RTF Author", .editor: "Synthetic RTF Editor", .company: "Synthetic RTF Company"])
+        try original.write(to: input)
+        let result = try await NativeConverter.convert(inputs: [input], operation: operation("convert.docx"),
+            options: ConversionOptions(), outputDirectory: work.stage)
+        let output = try XCTUnwrap(result.outputs.first)
+        XCTAssertEqual(result.outputs.count, 1)
+        XCTAssertEqual(try Data(contentsOf: input), original)
+        XCTAssertTrue(result.note?.contains("basic RTF formatting") == true)
+        XCTAssertTrue(result.note?.contains("Page layout and margins are not reconstructed") == true)
+        let reopened = try NSAttributedString(data: Data(contentsOf: output),
+            options: [.documentType: NSAttributedString.DocumentType.officeOpenXML], documentAttributes: nil)
+        XCTAssertTrue(reopened.string == text || reopened.string == text + "\n")
+        for (phrase, size, bold, slanted) in [("Orchard Notes", CGFloat(18), true, false),
+                                             ("Bold", 12, true, false), ("Italic", 12, false, true), ("Both", 12, true, true)] {
+            let position = (reopened.string as NSString).range(of: phrase).location
+            XCTAssertNotEqual(position, NSNotFound)
+            guard position != NSNotFound else { continue }
+            let font = try XCTUnwrap(reopened.attribute(.font, at: position, effectiveRange: nil) as? NSFont)
+            XCTAssertEqual(font.familyName, regular.familyName)
+            XCTAssertEqual(font.pointSize, size, accuracy: 0.1)
+            XCTAssertEqual(font.fontDescriptor.symbolicTraits.contains(.bold), bold)
+            XCTAssertEqual(font.fontDescriptor.symbolicTraits.contains(.italic), slanted)
+        }
+        let titleStart = try XCTUnwrap(reopened.string.range(of: "Orchard Notes")).lowerBound
+        let titleOffset = titleStart.utf16Offset(in: reopened.string)
+        let title = try XCTUnwrap(reopened.attribute(.paragraphStyle, at: titleOffset, effectiveRange: nil) as? NSParagraphStyle)
+        XCTAssertEqual(title.alignment, .center)
+        XCTAssertEqual(title.paragraphSpacingBefore, 6, accuracy: 0.1)
+        XCTAssertEqual(title.paragraphSpacing, 12, accuracy: 0.1)
+        let bodyPosition = try XCTUnwrap(reopened.string.range(of: "Second Paragraph")).lowerBound
+        let bodyOffset = bodyPosition.utf16Offset(in: reopened.string)
+        let body = try XCTUnwrap(reopened.attribute(.paragraphStyle, at: bodyOffset, effectiveRange: nil) as? NSParagraphStyle)
+        XCTAssertEqual(body.alignment, .left)
+        XCTAssertEqual(body.firstLineHeadIndent, 18, accuracy: 0.1)
+        XCTAssertEqual(body.headIndent, 12, accuracy: 0.1)
+        XCTAssertEqual(body.paragraphSpacing, 8, accuracy: 0.1)
+        let colorStart = try XCTUnwrap(reopened.string.range(of: "Both")).lowerBound
+        let colorPosition = colorStart.utf16Offset(in: reopened.string)
+        let color = try XCTUnwrap((reopened.attribute(.foregroundColor, at: colorPosition, effectiveRange: nil) as? NSColor)?.usingColorSpace(.sRGB))
+        XCTAssertEqual(color.redComponent, 0.2, accuracy: 0.01)
+        XCTAssertEqual(color.greenComponent, 0.6, accuracy: 0.01)
+        XCTAssertEqual(color.blueComponent, 0.1, accuracy: 0.01)
+    }
+
+    func testNativeRTFWordExportPreservesUnicodeEscapesAndUsesOnlyPublicMetadataInMixedBatch() async throws {
+        let work = try workspace()
+        let input = work.inputs.appendingPathComponent("escaped.RTF")
+        let rtf = #"{\rtf1\ansi\ansicpg1252\uc1{\fonttbl{\f0\fswiss Helvetica;}}{\info{\author Synthetic RTF Author}{\operator Synthetic RTF Editor}{\company Synthetic RTF Company}}\f0\fs24 Caf\'e9 \u304?stanbul \u26481?\u20140? \u-10180?\u-8373? \{braces\} \\pict\par Final}"#
+        let original = Data(rtf.utf8)
+        let plain = work.inputs.appendingPathComponent("plain.txt")
+        try original.write(to: input)
+        try Data("Plain Text".utf8).write(to: plain)
+        let result = try await NativeConverter.convert(inputs: [plain, input], operation: operation("convert.docx"),
+            options: ConversionOptions(), outputDirectory: work.stage)
+        XCTAssertEqual(result.outputs.count, 2)
+        XCTAssertEqual(try Data(contentsOf: input), original)
+        XCTAssertEqual(try String(contentsOf: plain, encoding: .utf8), "Plain Text")
+        let output = try XCTUnwrap(result.outputs.last)
+        let reopened = try NSAttributedString(data: Data(contentsOf: output),
+            options: [.documentType: NSAttributedString.DocumentType.officeOpenXML], documentAttributes: nil)
+        let expected = "Café İstanbul 東京 🍋 {braces} \\pict\nFinal"
+        XCTAssertTrue(reopened.string == expected || reopened.string == expected + "\n")
+        let extracted = try await ExternalConverters.archives([output], operation: operation("archive.extract"), directory: freshStage(work))
+        let package = try XCTUnwrap(extracted.outputs.first)
+        let parts = try XCTUnwrap(FileManager.default.enumerator(at: package, includingPropertiesForKeys: nil))
+        for case let part as URL in parts where ["xml", "rels"].contains(part.pathExtension) {
+            let xml = try XMLDocument(contentsOf: part, options: .nodeLoadExternalEntitiesNever)
+            for field in try xml.nodes(forXPath: "//*[local-name()='creator' or local-name()='lastModifiedBy' or local-name()='Company' or local-name()='Manager']") {
+                XCTAssertTrue(["", "Lemulip"].contains(field.stringValue ?? ""))
+            }
+            XCTAssertTrue(try xml.nodes(forXPath: "//*[local-name()='Relationship' and @TargetMode='External']").isEmpty)
+            let content = try String(contentsOf: part, encoding: .utf8)
+            XCTAssertFalse(content.contains("Synthetic RTF"))
+            XCTAssertFalse(content.contains(work.root.path))
+        }
+    }
+
+    func testNativeRTFWordExportKeepsComplexDocumentsOnTheOptionalEngineRoute() async throws {
+        let work = try workspace()
+        let plain = work.inputs.appendingPathComponent("first.txt")
+        try Data("First file must not be published before the batch route is known.".utf8).write(to: plain)
+        let complex = [#"{\pict\pngblip 89504e47}"#, #"{\object\objemb{\*\objdata 00}}"#,
+                       #"\trowd\cellx2000\intbl Cell\cell\row"#, #"{\*\listtable{\list\listid1}}"#,
+                       #"{\field{\*\fldinst HYPERLINK "https://example.invalid/"}{\fldrslt Link}}"#,
+                       #"{\header Header}"#, #"{\footer Footer}"#, #"{\footnote Footnote}"#,
+                       #"{\NeXTGraphic local-image.png \width100\height100}"#, #"{\*\unknownDestination Hidden text}"#,
+                       #"\shad Styled text"#, #"\bin1 x"#]
+        for (index, content) in complex.enumerated() {
+            let input = work.inputs.appendingPathComponent("rich-\(index).rtf")
+            let original = Data(("{\\rtf1\\ansi Text " + content + "}").utf8)
+            try original.write(to: input)
+            do {
+                _ = try await NativeConverter.convert(inputs: [plain, input], operation: operation("convert.docx"),
+                    options: ConversionOptions(), outputDirectory: work.stage)
+                XCTFail("Complex RTF must not silently lose content")
+            } catch FreewheelError.unsupported(let message) { XCTAssertTrue(message.contains("LibreOffice")) }
+            XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+            XCTAssertEqual(try Data(contentsOf: input), original)
+        }
+    }
+
+    func testNativeRTFWordExportRejectsMalformedBoundedAndCancelledInputWithoutOutput() async throws {
+        let work = try workspace()
+        let input = work.inputs.appendingPathComponent("invalid.rtf")
+        let invalid = ["plain text", #"{\rtf2\ansi Text}"#, #"{\rtf1\ansi Unclosed"#,
+                       #"{\rtf1\ansi Extra}}"#, #"{\rtf1\ansi \'xz}"#, #"{\rtf1\ansi \fs- Text}"#,
+                       #"{\rtf1\ansi \fs2147483648 Text}"#, "{\\rtf1\\ansi Alpha\u{0000}Beta}", #"{\rtf1\ansi}"#,
+                       "{\\rtf1 " + String(repeating: "{", count: 128) + "Text" + String(repeating: "}", count: 128) + "}"]
+        for rtf in invalid {
+            let original = Data(rtf.utf8)
+            try original.write(to: input)
+            do {
+                _ = try await NativeConverter.convert(inputs: [input], operation: operation("convert.docx"),
+                    options: ConversionOptions(), outputDirectory: work.stage)
+                XCTFail("Malformed or unrepresentable basic RTF must not publish an output")
+            } catch FreewheelError.invalidInput { }
+            XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+            XCTAssertEqual(try Data(contentsOf: input), original)
+        }
+        try Data(#"{\rtf1\ansi Cancelled export}"#.utf8).write(to: input)
+        let cancelled = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await NativeConverter.convert(inputs: [input], operation: operation("convert.docx"),
+                options: ConversionOptions(), outputDirectory: work.stage)
+        }
+        do { _ = try await cancelled.value; XCTFail("Cancelled Word export must stop before writing") }
+        catch FreewheelError.cancelled { }
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+        let handle = try FileHandle(forWritingTo: input)
+        try handle.truncate(atOffset: 32 * 1_024 * 1_024 + 1)
+        try handle.close()
+        do {
+            _ = try await NativeConverter.convert(inputs: [input], operation: operation("convert.docx"),
+                options: ConversionOptions(), outputDirectory: work.stage)
+            XCTFail("RTF Word export must enforce the shared text input size bound")
+        } catch FreewheelError.invalidInput { }
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
     }
 
     func testSVGExternalResourcesAreRejectedBeforeRendering() async throws {

@@ -313,29 +313,45 @@ tests and source inspection do not establish these UI acceptance results.
 
 Source 0.1.10 adds two bounded routes before optional engine selection:
 **TXT → DOCX on macOS** and **CSV/TSV → XLSX on all supported core platforms**.
-Keep their scope explicit in the catalog, job notes, and format guide. Preserve
-existing LibreOffice routes for RTF, HTML, Office documents, workbooks, and
-presentations, and Pandoc for Markdown → DOCX. A built-in export failure must
-not silently select a different engine with different data semantics.
+Source 0.1.12 adds **basic RTF → DOCX on macOS**. Keep their scope explicit in
+the catalog, job notes, and format guide. Preserve existing LibreOffice routes
+for complex RTF, HTML, Office documents, workbooks, and presentations, and
+Pandoc for Markdown → DOCX. Unsupported RTF structure may select LibreOffice
+for the whole batch before native output. Malformed basic RTF, cancellation,
+and writer failures must not be hidden by trying another engine. The optional
+engine validates complex RTF assigned to its route.
 
 | Constraint | Implementation Boundary |
 | --- | --- |
 | No new runtime dependency | AppKit's DOCX writer; a small XLSX package writer using the existing archive bridge |
-| Plain Word input | TXT only, 1 byte–32 MiB; UTF-8 with an optional BOM or BOM-marked UTF-16; reject empty decoded text and unsupported controls |
-| Word content | Basic paragraphs, tabs, and Unicode; normalize CRLF/CR to logical line breaks; no rich-text, HTML, or Markdown interpretation |
+| Plain Word input | TXT, 1 byte–32 MiB; UTF-8 with an optional BOM or BOM-marked UTF-16; reject empty decoded text and unsupported controls |
+| Plain Word content | Basic paragraphs, tabs, and Unicode; normalize CRLF/CR to logical line breaks; no HTML or Markdown interpretation |
+| Formatted Word input | Basic RTF with text, 1 byte–32 MiB; inspect RTF structure before AppKit import; reject malformed basic RTF and route unsupported structure to the existing optional engine |
+| Formatted Word content | Supported font families, sizes, bold and italic traits, plus paragraph alignment, spacing, and indents; no images, objects, tables, lists, fields, hyperlinks, headers, or footers in the native route |
+| RTF parsing limits | At most 128 nested groups; reject deeper input. More than 250,000 formatting commands selects the optional-engine route |
+| Whole-batch route | Complete native eligibility checks before publishing output; do not mix partial native output with an optional-engine retry |
 | Spreadsheet input | CSV or TSV, at most 32 MiB of actual input bytes; UTF-8 or BOM-marked UTF-16; strict quoted-field parsing |
 | Spreadsheet content | One Sheet1 per input; every field stored as text, including empty fields; no inferred headers, dates, numeric types, formulas, charts, or external references |
 | Bounded worksheet | At most 100,000 rows, 16,384 columns, and 500,000 fields; at most 32,767 UTF-16 code units and 253 line feeds per cell |
 | Public metadata | Set DOCX author/editor explicitly to Lemulip and keep company/manager empty; include no user identity, device name, or source path in generated package metadata |
 | Safe publication | Preserve source bytes, build in staging, choose an unused output name, and remove unpublished output on failure or cancellation |
 
-The TXT route uses
+The native TXT and basic RTF routes use
 [`NSAttributedString.DocumentType.officeOpenXML`](https://developer.apple.com/documentation/foundation/nsattributedstring/documenttype/officeopenxml)
 and AppKit's document-data export. Apple's
 [formatted-document guide](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/AttributedStrings/Articles/HTMLFilesandAttributedStrings.html)
 describes the writer and its document attributes. API support alone is not a
-formatting guarantee; basic RTF export needs separate fidelity work before it
-can join this route.
+formatting guarantee. Basic RTF needs its own native import/export checks for
+font traits and paragraph properties, with separate acceptance of the output
+in Word. Page layout and margins are not reconstructed, and unavailable fonts
+may be substituted. Do not copy imported document attributes into DOCX metadata.
+
+RTF uses an explicit control and destination allowlist before AppKit import.
+Unknown instructions select the existing optional engine instead of being
+silently ignored by the native importer. Escaped command-looking text remains
+literal text. Inspect one bounded document at a time during batch preflight,
+then revalidate during export so a changed input cannot trigger an engine retry
+after native files have been staged.
 
 The XLSX writer stores explicit text cells and preserves whitespace. Retain
 quoted delimiters and doubled quotes, blank rows, and multiline cells. A final
@@ -351,22 +367,29 @@ while parsing and writing, before an oversized table accumulates in memory.
 Extend the existing tests using small generated documents. For DOCX, inspect
 package structure, extracted text, logical line breaks, tabs, Unicode, public
 metadata, invalid input, cancellation, and original preservation on macOS. For
+RTF, check supported formatting after reopening the output, unsupported
+structures before output, mixed TXT/RTF batches, malformed input, and limits.
+Use small inline RTF examples; keep personal documents and binary fixtures out
+of the repository. For
 XLSX, verify relationships and content types, one named sheet, explicit text
 cells, leading zeros, long identifiers, formula-looking strings, whitespace,
 OOXML escapes, malformed quoting, and boundary failures. Keep the optional
 LibreOffice integration check exercising that engine directly; a built-in
 route should not accidentally replace external-engine coverage.
 
-The existing optional-engine integration tests are configured to read generated
-DOCX and XLSX exports through LibreOffice, alongside explicit LibreOffice
-conversion cases. In the 0.1.10
-[Mac build](https://github.com/osmankaankars/lemulip/actions/runs/39167326568),
-both architectures compiled and passed all 53 native tests, including the new
-DOCX cases. One package-name assertion failed in the workbook test, so that
-run did not reach external integrations or packaging. Source 0.1.11 repairs
-the verifier using directory-relative enumeration and checks a symbolic-link
-alias. Keep the exact five-part assertion; never slice an absolute child path
-using a potentially different spelling of its parent.
+The existing optional-engine integration tests read generated DOCX and XLSX
+exports through LibreOffice, alongside explicit LibreOffice conversion cases.
+In the source 0.1.11
+[Mac build](https://github.com/osmankaankars/lemulip/actions/runs/39170976554),
+both architectures passed all **123** built-in tests, including **53** native
+tests each. The repaired workbook-package test passed on both. Apple silicon
+also passed native TXT → DOCX → LibreOffice and built-in CSV → XLSX →
+LibreOffice checks. Its two failures were in the separate rich Office verifier
+described below. Native RTF export in 0.1.12 still needs its own Mac result.
+
+Keep the workbook verifier's exact five-part assertion and symbolic-link
+case. Enumerate relative filenames from the resolved directory; never slice
+an absolute child path using a potentially different spelling of its parent.
 
 Opening generated files with an independent reader helps catch packaging and
 text interpretation errors. Release acceptance also needs real Word and Excel
@@ -390,16 +413,30 @@ bytes; do not commit binary fixtures or bundle another engine.
 | XLSX → ODS → XLSX | Budget and Summary sheets in order; text identifiers including leading zeros and 20 digits; numeric and boolean types; a two-decimal format; SUM and cross-sheet expressions with expected cached values |
 | PPTX → ODP → PPTX | Two ordered slides, titles and panel text, stored Arial name and 24-point size, widescreen dimensions, and two shape bounds per slide within 0.01 inch |
 
-These three tests passed with **LibreOfficeDev 26.8.0.0.alpha0 on Linux**. This
-is local engine evidence; source 0.1.11's Mac integration, universal package,
-downloaded-archive, and security checks remain pending.
+These three tests passed with **LibreOfficeDev 26.8.0.0.alpha0 on Linux**. The
+source 0.1.11 [Apple silicon job](https://github.com/osmankaankars/lemulip/actions/runs/39170976554/job/117803763548)
+used LibreOffice 26.8.0 and ran ten integration tests: eight passed, including
+the rich Word example. Workbook and presentation verification stopped at the
+same namespaced relationship-identifier lookup. That run did not reach
+packaging or release publication.
+
+Source 0.1.12 changes the verifier to read relationship attributes by local
+name and namespace URI, while retaining the source XML document through the
+lookup. It adds an inherited and alternate-prefix case, including a conflicting
+namespace, and retains the sheet, formula, slide, and geometry assertions.
+For source 0.1.12, **69 portable tests** and **five focused Office checks**
+passed on Linux. The Office checks include four real LibreOffice conversion
+cases and the namespace/order regression. An isolated check of the production
+RTF preflight code passed 22 valid, complex, malformed, and bounded-input cases.
+These local checks do not execute AppKit. The new native RTF tests and the
+verifier repair must pass this version's own Mac CI before release publication.
 
 Do not infer font availability, Word pagination, Excel recalculation, or
 PowerPoint rendering from stored attributes alone. The formula cases check
 two expressions and their cached results; they are not a general calculation
 suite. Macros, charts, pivot tables, embedded objects, and animations are not
-covered. Native RTF → DOCX remains separate implementation work and must earn
-its own formatting checks before the built-in route expands.
+covered. Keep native RTF formatting checks separate from these richer
+LibreOffice round trips and from hands-on target-application acceptance.
 
 ## Prepare a Release
 

@@ -1093,7 +1093,7 @@ public enum NativeConverter {
     private static func convertDocuments(_ inputs: [URL], operation: FileOperation,
                                          directory: URL) throws -> ConversionResult {
         if operation.id.hasPrefix("convert."), outputExtension(operation) == "docx" {
-            return try plainTextToWord(inputs, directory: directory)
+            return try textToWord(inputs, directory: directory)
         }
         guard operation.id.hasPrefix("convert."), let ext = outputExtension(operation),
               ["txt", "md", "rtf", "html", "pdf"].contains(ext) else {
@@ -1109,58 +1109,25 @@ public enum NativeConverter {
         return ConversionResult(outputs: outputs, note: "Native document conversion preserves text and basic RTF formatting. HTML is imported as text without loading external resources; Markdown syntax is preserved as text. Complex layout and embedded objects need a document engine.")
     }
 
-    private static func plainTextToWord(_ inputs: [URL], directory: URL) throws -> ConversionResult {
-        // Decide the route for the whole batch before writing anything. Rich
-        // documents must keep their existing engines, not become flattened text.
-        guard inputs.allSatisfy({ $0.pathExtension.lowercased() == "txt" }) else {
-            throw FreewheelError.unsupported("Built-in Word export accepts TXT files. Rich documents need their optional document engine.")
-        }
+    private static func textToWord(_ inputs: [URL], directory: URL) throws -> ConversionResult {
+        try NativeWordExporter.preflight(inputs)
         var outputs: [URL] = []
         for input in inputs {
             try Task.checkCancellation()
             let output = outputURL(input, suffix: "-converted", ext: "docx", directory: directory)
             try autoreleasepool {
-                let data = try boundedTextData(input)
-                let decoded: String?
-                if data.starts(with: [0xFF, 0xFE]) {
-                    decoded = data.count.isMultiple(of: 2) ? String(data: data.dropFirst(2), encoding: .utf16LittleEndian) : nil
-                } else if data.starts(with: [0xFE, 0xFF]) {
-                    decoded = data.count.isMultiple(of: 2) ? String(data: data.dropFirst(2), encoding: .utf16BigEndian) : nil
-                } else {
-                    decoded = String(data: data.starts(with: [0xEF, 0xBB, 0xBF]) ? data.dropFirst(3) : data,
-                                     encoding: .utf8)
+                let word: Data
+                do { word = try NativeWordExporter.wordData(input) }
+                catch FreewheelError.unsupported {
+                    // Preflight already checked every RTF. If an input changes
+                    // between passes, stop rather than retrying a mixed snapshot.
+                    throw FreewheelError.invalidInput("A document changed after the Word export check. Choose the files again and retry.")
                 }
-                guard let decoded else {
-                    throw FreewheelError.invalidInput("Save this TXT file as UTF-8 or BOM-marked UTF-16 before creating a Word document.")
-                }
-                let text = decoded.replacingOccurrences(of: "\r\n", with: "\n")
-                    .replacingOccurrences(of: "\r", with: "\n")
-                guard !text.isEmpty else {
-                    throw FreewheelError.invalidInput("This TXT file contains only an encoding marker. Add text before creating a Word document.")
-                }
-                for (index, scalar) in text.unicodeScalars.enumerated() {
-                    if index.isMultiple(of: 16_384) { try Task.checkCancellation() }
-                    let value = scalar.value
-                    guard value == 9 || value == 10 || value == 13 ||
-                            (0x20...0xD7FF).contains(value) || (0xE000...0xFFFD).contains(value) ||
-                            (0x10000...0x10FFFF).contains(value) else {
-                        throw FreewheelError.invalidInput("This TXT file contains a character that built-in Word export cannot preserve. Remove unsupported control characters or Unicode noncharacters and try again.")
-                    }
-                }
-                let attributed = NSAttributedString(string: text)
-                // AppKit owns Office Open XML packaging. Pass no input path or
-                // imported metadata, and override person/organization defaults.
-                let word = try attributed.data(from: NSRange(location: 0, length: attributed.length),
-                    documentAttributes: [.documentType: NSAttributedString.DocumentType.officeOpenXML,
-                                         .author: "Lemulip", .editor: "Lemulip", .company: "", .manager: ""])
-                try Task.checkCancellation()
-                guard !word.isEmpty else { throw FreewheelError.operationFailed("macOS did not produce a Word document.") }
                 try word.write(to: output, options: .withoutOverwriting)
             }
             outputs.append(output)
         }
-        return ConversionResult(outputs: outputs,
-            note: "Exported plain text as editable Word documents using macOS. Text, paragraph breaks, and tabs are preserved; line endings are normalized. Rich layout is not reconstructed. Author and editor metadata use Lemulip.")
+        return ConversionResult(outputs: outputs, note: NativeWordExporter.note(for: inputs))
     }
 
     private static func writeDocument(_ attributed: NSAttributedString, ext: String, output: URL) throws {

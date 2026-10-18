@@ -173,12 +173,20 @@ final class EngineTests: XCTestCase {
         #if os(macOS)
         XCTAssertNil(try operation(["one.txt"], "docx").dependency)
         XCTAssertEqual(try operation(["one.txt"], "docx").detail, "Microsoft Word Document · Plain Text")
+        for names in [["one.RTF"], ["one.txt", "two.rtf"]] {
+            XCTAssertNil(try operation(names, "docx").dependency)
+            XCTAssertEqual(try operation(names, "docx").detail, "Microsoft Word Document · Basic Formatting")
+        }
         #else
         XCTAssertEqual(try operation(["one.txt"], "docx").dependency, "libreoffice")
-        #endif
+        XCTAssertEqual(try operation(["one.RTF"], "docx").dependency, "libreoffice")
         XCTAssertEqual(try operation(["one.txt", "two.rtf"], "docx").dependency, "libreoffice")
+        #endif
+        XCTAssertEqual(try operation(["one.rtf", "two.html"], "docx").dependency, "libreoffice")
+        XCTAssertEqual(try operation(["one.rtf", "two.doc"], "docx").dependency, "libreoffice")
         XCTAssertEqual(try operation(["one.html"], "docx").dependency, "libreoffice")
         XCTAssertEqual(try operation(["one.md"], "docx").dependency, "pandoc")
+        XCTAssertEqual(try operation(["one.rtf", "two.md"], "docx").dependency, "pandoc")
     }
 
     private func unpackWorkbook(_ input: URL) async throws -> URL {

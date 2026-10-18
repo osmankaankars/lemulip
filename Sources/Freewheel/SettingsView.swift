@@ -47,7 +47,7 @@ struct SettingsContent: View {
                     Button { model.engineRefresh += 1 } label: { Label(model.text("Refresh", "Yenile"), systemImage: "arrow.clockwise") }
                         .buttonStyle(.plain).foregroundStyle(Palette.accent).font(.system(size: 11))
                 }
-                Text(model.text("Images, PDFs, OCR, archives, subtitles, and basic text tools are built in. TXT to Word and CSV/TSV to Excel need no extra engine. Excel exports keep every value as text. Add free engines for more formats; conversions stay local.", "Görsel, PDF, OCR, arşiv, altyazı ve temel metin araçları uygulamada hazır. TXT’den Word’e, CSV/TSV’den Excel’e dönüşüm için ek motor gerekmez. Excel çıktısında tüm değerler metin olarak korunur. Daha fazla biçim için ücretsiz motorlar ekleyebilirsin; dönüşümler yerelde çalışır."))
+                Text(model.text("Images, PDFs, OCR, archives, subtitles, and basic text tools are built in. TXT and basic RTF to Word need no extra engine. RTF with images, tables, or other complex content needs LibreOffice. CSV/TSV to Excel is built in and keeps every value as text. Add free engines for more formats; conversions stay local.", "Görsel, PDF, OCR, arşiv, altyazı ve temel metin araçları uygulamada hazır. TXT ve temel RTF dosyalarından Word’e dönüşüm için ek motor gerekmez. Görsel, tablo veya başka karmaşık içerik taşıyan RTF dosyaları LibreOffice gerektirir. CSV/TSV’den Excel’e dönüşüm uygulamada hazırdır ve tüm değerleri metin olarak korur. Daha fazla biçim için ücretsiz motorlar ekleyebilirsin; dönüşümler yerelde çalışır."))
                     .font(.system(size: 12)).foregroundStyle(Palette.muted).lineSpacing(4)
                 VStack(spacing: 0) {
                     ForEach(engines, id: \.0) { engine in

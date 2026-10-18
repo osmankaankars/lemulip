@@ -2,8 +2,8 @@
 
 Lemulip selects operations from the file extensions in your selection. A listed format is a supported route, not a promise that every codec or document feature will survive conversion.
 
-The tables below describe source **0.1.11**, including basic Word and Excel
-export and the first rich Office conversion checks.
+The tables below describe source **0.1.12**, including basic RTF → DOCX,
+plain-text Word export, and text-cell Excel export.
 Check [Releases](https://github.com/osmankaankars/lemulip/releases) for available builds. Some
 features still need broader hands-on macOS testing. See [Installation](INSTALL.md)
 for optional engines and [User Guide](USER_GUIDE.md) for controls.
@@ -155,7 +155,8 @@ You do not need Microsoft Office installed to run these conversions.
 | TXT, Markdown, RTF, HTML → TXT, Markdown, RTF, HTML, PDF | Built in for basic routes | Text-focused; see exceptions below |
 | Markdown → HTML, DOCX, ODT | Pandoc | Structured conversion |
 | TXT → DOCX | Built into macOS | Basic text, paragraphs, tabs, and Unicode; no rich document layout |
-| RTF, HTML → DOCX | LibreOffice | Creates a Word document; complex formatting may change |
+| Basic RTF → DOCX | Built into macOS | Supported fonts and paragraph formatting; see the basic export boundary below |
+| Complex RTF, HTML → DOCX | LibreOffice | Creates a Word document; complex formatting may change |
 | EPUB input or EPUB output | Pandoc; some source formats also need LibreOffice | Reflowable document conversion |
 | DOC, DOCX, ODT and supported Pages input → configured document outputs | LibreOffice | Depends on the input document and installed fonts |
 | PPT, PPTX, ODP → PDF, PPTX, ODP | LibreOffice | Layout may change |
@@ -165,8 +166,9 @@ You do not need Microsoft Office installed to run these conversions.
 | CSV ↔ TSV | Built in | Preserves quoted delimiters and multiline fields |
 | Word count | Built in for basic text; Pandoc or LibreOffice for other documents | Reports a count in Activity |
 
-TXT → DOCX and CSV/TSV → XLSX need no optional engine. Other routes use the
-engine shown above in the background. You choose a file format in Lemulip and
+TXT and basic RTF → DOCX need no optional engine on macOS. CSV/TSV → XLSX is
+also built in. Other routes use the engine shown above in the background.
+You choose a file format in Lemulip and
 receive that file, which can be opened in its compatible application.
 LibreOffice documents its [Microsoft Office format support](https://help.libreoffice.org/latest/en-US/text/shared/guide/ms_user.html)
 and [background conversion options](https://help.libreoffice.org/latest/en-US/text/shared/guide/start_parameters.html).
@@ -175,8 +177,10 @@ Basic Markdown conversion to PDF, RTF, or TXT preserves text. It does not render
 
 ### Basic Word Export
 
-Native DOCX export accepts **TXT input only**. It creates a basic document from
-the source text, including paragraph breaks, tabs, and Unicode. Plain text has
+Native DOCX export accepts **TXT and basic RTF** on macOS. Each input creates
+a separate document, with its source bytes unchanged.
+
+**TXT** keeps source text, paragraph breaks, tabs, and Unicode. Plain text has
 no fonts, tables, images, or page layout to preserve. Markdown syntax remains
 literal text when it is in a TXT file; use a Markdown file with Pandoc for
 structured Markdown conversion.
@@ -184,9 +188,36 @@ structured Markdown conversion.
 TXT files must be between **1 byte and 32 MiB**, encoded as UTF-8 with an optional
 byte-order mark, or UTF-16 with a byte-order mark. Line endings become logical
 paragraph breaks. Empty text and unsupported control characters receive an
-error instead of silently losing content. Native DOCX export requires macOS.
-RTF, HTML, existing Word documents, and other rich document inputs retain
-their optional-engine routes. PDF-to-editable-Word conversion is separate
+error instead of silently losing content.
+
+**Basic RTF** keeps text and supported character and paragraph formatting:
+
+| Formatting | Native Export Scope |
+| --- | --- |
+| Text | Characters, paragraph breaks, tabs, and Unicode |
+| Fonts | Font families and sizes; bold and italic traits |
+| Paragraphs | Alignment, spacing, and indents |
+| Document metadata | Author and editor set to Lemulip; company and manager empty; source metadata is not copied |
+
+RTF input must be between **1 byte and 32 MiB** and contain text. The native
+scope allows at most **128 nested groups** and **250,000 formatting commands**.
+Excessive nesting is rejected; excessive formatting complexity uses the
+optional-engine route. The file is checked before native export. Images,
+embedded objects, tables, lists, fields, hyperlinks,
+headers, footers, and other unsupported RTF structures require the existing
+LibreOffice route. If a selection includes such an RTF file, the whole batch
+uses that route before any native output is created. A missing engine is
+reported. Malformed basic RTF fails instead of being partially imported;
+LibreOffice validates documents assigned to its route.
+
+Page layout and margins are not reconstructed. Unavailable fonts may be
+substituted, and the target application's layout engine can change line breaks
+and pagination. Review the new document in Word or another compatible reader when
+appearance matters. Native export sets the public metadata above for TXT too.
+
+Native TXT and RTF → DOCX require macOS. Other core platforms retain their
+optional-engine routes. HTML, existing Word documents, and other rich document
+inputs also retain those routes. PDF-to-editable-Word conversion is separate
 planned work.
 
 ### Basic Excel Export
@@ -235,10 +266,14 @@ original Office format, then inspects their output:
 | XLSX → ODS → XLSX | Two named sheets in order; text identifiers, numbers, booleans, a number format, and two simple formulas with their cached values |
 | PPTX → ODP → PPTX | Two slides in order, their text, stored font attributes, widescreen dimensions, and the positions and sizes of two shapes per slide |
 
-All three examples passed with LibreOffice on Linux. Their source 0.1.11 Mac CI
-result remains pending. These are specific regression examples, not coverage
-of every Office feature. See [Development](DEVELOPMENT.md#rich-office-conversion-checks)
-for the verification scope.
+All three examples passed with LibreOffice on Linux. In the source 0.1.11
+[Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39170976554), the
+Word example passed; the workbook and presentation checks stopped in their
+shared relationship-identifier lookup. Source 0.1.12 repairs that verifier
+while retaining its output assertions. Its own Mac result remains required.
+These are specific regression examples, not coverage of every Office feature.
+See [Development](DEVELOPMENT.md#rich-office-conversion-checks) for the
+verification scope.
 
 A stored font name does not ensure that font is installed or that the target
 application renders identical line breaks or pagination. Formula text and

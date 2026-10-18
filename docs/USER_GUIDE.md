@@ -4,8 +4,8 @@ Lemulip has three ways to work: a wheel beside your drag, a regular workspace, a
 
 New here? [Install Lemulip](INSTALL.md) first. For specific input and output combinations, use the [format guide](FORMATS.md).
 
-This guide follows source **0.1.11**, with basic Office exports and clarified
-rich-document conversion limits. Visual image
+This guide follows source **0.1.12**, with native basic RTF → DOCX alongside
+plain-text Word and text-cell Excel exports. Visual image
 crop and audio waveform trim start with 0.1.4, native video trim with 0.1.5,
 visual video crop with 0.1.6, Organize PDF with 0.1.7, and Merge PDF preview with 0.1.8.
 Check [Releases](https://github.com/osmankaankars/lemulip/releases) for available
@@ -461,25 +461,43 @@ Turn it off to choose a destination for each job. Existing files are not replace
 
 ## Basic Office Exports
 
-Source **0.1.10** adds two everyday Office exports that work without installing
-an extra engine. Microsoft Office is not required for conversion.
+TXT → DOCX and CSV/TSV → XLSX need no extra engine on macOS. Source **0.1.12**
+adds basic RTF → DOCX with supported font and paragraph formatting. Microsoft
+Office is not required for conversion.
 
 ### Create a Word Document
 
-1. Add a **TXT** file to the workspace or start dragging it in Finder.
+1. Add a **TXT** or basic **RTF** file to the workspace, or start dragging it in
+   Finder.
 2. Choose **Convert → DOCX** in the workspace, or press **Shift** while dragging
    and drop onto **DOCX** in the wheel.
 3. When the job completes, reveal the new `.docx` file from **Activity**.
 
-This native macOS route creates a basic Word document from your text. It keeps
-paragraphs, tabs, and Unicode. Save the source as UTF-8 or BOM-marked UTF-16;
-TXT input must be between **1 byte and 32 MiB** and contain text beyond an
+For TXT, the native macOS route keeps paragraphs, tabs, and Unicode. Save the
+source as UTF-8 or BOM-marked UTF-16. TXT input must be between **1 byte and
+32 MiB** and contain text beyond an
 encoding marker. The output does not infer formatting from plain text. A heading
 written as `# Notes` stays that text.
 For formatted Markdown → DOCX, use a Markdown file with optional Pandoc.
 
-RTF, HTML, and existing Office documents continue to use the optional engines
-listed in [Formats](FORMATS.md#documents-slides-and-spreadsheets).
+For basic RTF, it keeps font families and sizes, bold and italic text, and
+paragraph alignment, spacing, and indents. Each RTF file must also be between
+**1 byte and 32 MiB** and contain text. Page layout and margins are not
+reconstructed. Unavailable fonts may be substituted, and the application
+opening the DOCX can change line breaks and pagination. Review the new document
+before sharing it.
+
+RTF with images, objects, tables, lists, fields, hyperlinks, headers, footers,
+or other unsupported structures uses optional LibreOffice. Lemulip checks the
+selection before creating native output; if any RTF needs that engine, the
+whole selection follows the optional-engine route. Install LibreOffice and
+refresh **Settings → Local Engines** if prompted. Malformed basic RTF receives
+an error; LibreOffice validates documents assigned to its route. The basic
+exporter does not silently flatten these richer features.
+
+The native DOCX author and editor are set to **Lemulip**. Input document
+metadata is not copied. HTML and existing Office documents continue to use the
+optional engines listed in [Formats](FORMATS.md#documents-slides-and-spreadsheets).
 
 ### Create an Excel Workbook
 
@@ -535,9 +553,10 @@ exact coverage. Each conversion creates a new copy and keeps its source file.
 
 A dimmed operation or a dependency message means its helper is missing. It is not a paid feature. Available input codecs also depend on macOS and the installed helper's build.
 
-TXT → DOCX and CSV/TSV → XLSX work without an extra engine on macOS. LibreOffice
-continues to handle richer Office routes; Markdown → DOCX uses Pandoc. The
-format name describes the file you receive, not an application you must install.
+TXT and basic RTF → DOCX, plus CSV/TSV → XLSX, work without an extra engine on
+macOS. LibreOffice handles complex RTF and richer Office routes; Markdown →
+DOCX uses Pandoc. The format name describes the file you receive, not an
+application you must install.
 
 The interface language can be changed between English and Turkish in **Settings → Language**.
 
@@ -558,6 +577,7 @@ From a source checkout, prefix commands with `swift run`. A local app build also
 ./dist/lemulip convert png photo.heic
 ./dist/lemulip convert vtt subtitles.srt
 ./dist/lemulip convert docx notes.txt
+./dist/lemulip convert docx letter.rtf
 ./dist/lemulip convert xlsx table.csv
 ./dist/lemulip run pdf.merge first.pdf second.pdf
 ./dist/lemulip run archive.createZip image.png notes.txt
@@ -582,9 +602,9 @@ Use `--output` with an existing destination folder. Quote paths containing space
 
 The command prints output paths. Errors and conversion notes go to standard error. Finder, shelf, and AirDrop actions are available only in the desktop app.
 
-The desktop interface and Apple framework converters, including native TXT →
-DOCX, require macOS. Portable text, CSV/TSV → XLSX, and archive operations, plus
-supported external-engine routes, can also run on Linux. The macOS helper
+The desktop interface and Apple framework converters, including native TXT
+and basic RTF → DOCX, require macOS. Portable text, CSV/TSV → XLSX, and archive
+operations, plus supported external-engine routes, can also run on Linux. The macOS helper
 sandbox is not applied on Linux.
 
 ## If Something Fails

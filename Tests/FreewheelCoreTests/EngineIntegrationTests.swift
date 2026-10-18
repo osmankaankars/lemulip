@@ -1,4 +1,7 @@
 import XCTest
+#if os(macOS)
+import AppKit
+#endif
 #if canImport(FoundationXML)
 import FoundationXML
 #endif
@@ -157,6 +160,56 @@ final class EngineIntegrationTests: XCTestCase {
         // exact Word pagination require a separate native visual review.
     }
 
+    #if os(macOS)
+    func testNativeRTFWordExportKeepsFormattingWhenOpenedInLibreOffice() async throws {
+        try require("libreoffice")
+        let source = root.appendingPathComponent("formatted-letter.rtf")
+        let original = Data(#"{\rtf1\ansi\deff0{\fonttbl{\f0\fswiss Arial;}}\pard\qc\sb120\sa240\f0\fs28\b\i Orchard Notes\b0\i0\par\pard\ql\fs22 Second Paragraph}"#.utf8)
+        try original.write(to: source)
+        let word = try await engine.run(inputs: [source], operation: FileOperation(id: "convert.docx", title: "DOCX"))
+        XCTAssertEqual(word.outputs.count, 1)
+        XCTAssertTrue(word.note?.contains("using macOS") == true)
+        let reopened = try await ExternalConverters.office(word.outputs,
+            operation: FileOperation(id: "convert.rtf", title: "RTF"), directory: root)
+        let document = try NSAttributedString(data: Data(contentsOf: XCTUnwrap(reopened.outputs.first)),
+            options: [.documentType: NSAttributedString.DocumentType.rtf], documentAttributes: nil)
+        let heading = (document.string as NSString).range(of: "Orchard Notes")
+        XCTAssertNotEqual(heading.location, NSNotFound)
+        guard heading.location != NSNotFound else { return }
+        let attributes = document.attributes(at: heading.location, effectiveRange: nil)
+        let font = try XCTUnwrap(attributes[.font] as? NSFont)
+        let traits = font.fontDescriptor.symbolicTraits
+        XCTAssertTrue(traits.contains(.bold))
+        XCTAssertTrue(traits.contains(.italic))
+        XCTAssertEqual(font.pointSize, 14, accuracy: 0.1)
+        XCTAssertEqual(font.familyName, "Arial")
+        XCTAssertEqual((attributes[.paragraphStyle] as? NSParagraphStyle)?.alignment, .center)
+        XCTAssertTrue(document.string.contains("Second Paragraph"))
+        XCTAssertEqual(try Data(contentsOf: source), original)
+    }
+    #endif
+
+    func testComplexRTFWordExportUsesTheOfficeEngineWithoutLosingItsTable() async throws {
+        try require("libreoffice")
+        let source = root.appendingPathComponent("table-letter.rtf")
+        let original = Data(#"{\rtf1\ansi\deff0{\fonttbl{\f0\fswiss Arial;}}\trowd\cellx2000\cellx4000\intbl Left Cell\cell Right Cell\cell\row\pard After Table\par}"#.utf8)
+        try original.write(to: source)
+        let plain = root.appendingPathComponent("plain-letter.txt")
+        try Data("Plain Letter".utf8).write(to: plain)
+        let word = try await engine.run(inputs: [plain, source], operation: FileOperation(id: "convert.docx", title: "DOCX"))
+        XCTAssertEqual(word.outputs.count, 2)
+        let tableOutput = try XCTUnwrap(word.outputs.first { $0.deletingPathExtension().lastPathComponent.hasPrefix("table-letter") })
+        let unpacked = try await ExternalConverters.archives([tableOutput],
+            operation: FileOperation(id: "archive.extract", title: "Extract"), directory: root)
+        let document = try officeXML(XCTUnwrap(unpacked.outputs.first), "word/document.xml")
+        let tables = try document.nodes(forXPath: "//*[local-name()='tbl']")
+        XCTAssertEqual(tables.count, 1)
+        XCTAssertEqual(try tables.first?.nodes(forXPath: ".//*[local-name()='t']").compactMap(\.stringValue), ["Left Cell", "Right Cell"])
+        XCTAssertTrue(try document.nodes(forXPath: "//*[local-name()='t']").contains { $0.stringValue == "After Table" })
+        XCTAssertEqual(try Data(contentsOf: source), original)
+        XCTAssertEqual(try Data(contentsOf: plain), Data("Plain Letter".utf8))
+    }
+
     func testLibreOfficeWorkbookRoundTripKeepsSheetsFormulasAndCellTypes() async throws {
         try require("libreoffice")
         let source = try await officeFixture("budget.xlsx", parts: spreadsheetFixtureParts())
@@ -165,7 +218,9 @@ final class EngineIntegrationTests: XCTestCase {
         let workbook = try officeXML(result, "xl/workbook.xml")
         let sheets = try workbook.nodes(forXPath: "//*[local-name()='sheet']")
         XCTAssertEqual(try sheets.map { try $0.nodes(forXPath: "./@name").first?.stringValue }, ["Budget", "Summary"])
-        let sheetParts = try relatedOfficeParts(result, mainPart: "xl/workbook.xml", elements: sheets)
+        let sheetParts = try withExtendedLifetime(workbook) {
+            try relatedOfficeParts(result, mainPart: "xl/workbook.xml", elements: sheets)
+        }
         XCTAssertEqual(sheetParts.count, 2)
         guard sheetParts.count == 2 else { throw FreewheelError.operationFailed("The converted workbook did not keep both sheets.") }
         let budget = try officeXML(result, sheetParts[0]), summary = try officeXML(result, sheetParts[1])
@@ -222,7 +277,9 @@ final class EngineIntegrationTests: XCTestCase {
             let actual = try XCTUnwrap(Double(try XCTUnwrap(presentation.nodes(forXPath: "//*[local-name()='sldSz']/@\(attribute)").first?.stringValue)))
             XCTAssertEqual(actual, expected, accuracy: 9_144)
         }
-        let slideParts = try relatedOfficeParts(result, mainPart: "ppt/presentation.xml", elements: slides)
+        let slideParts = try withExtendedLifetime(presentation) {
+            try relatedOfficeParts(result, mainPart: "ppt/presentation.xml", elements: slides)
+        }
         guard slideParts.count == 2 else { throw FreewheelError.operationFailed("The converted presentation did not keep both slides.") }
         for (index, title) in ["Orchard Overview", "Lemon Details"].enumerated() {
             let slide = try officeXML(result, slideParts[index])
@@ -246,6 +303,34 @@ final class EngineIntegrationTests: XCTestCase {
         // Stored geometry is checked, not PowerPoint's renderer or animations.
     }
 
+    func testOfficeRelationshipsResolveInheritedNamespacesAndDocumentOrder() throws {
+        let namespace = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+        let document = try XMLDocument(xmlString: """
+        <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+                  xmlns:link="\(namespace)" xmlns:other="urn:unrelated">
+          <sheets>
+            <sheet name="First" id="decoy" other:id="wrong" link:id="rSecond"/>
+            <sheet name="Second" xmlns:rel="\(namespace)" rel:id="rFirst"/>
+          </sheets>
+        </workbook>
+        """, options: .nodeLoadExternalEntitiesNever)
+        let folder = root.appendingPathComponent("xl/_rels", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        try officeRelationships([
+            ("rFirst", "worksheet", "worksheets/second.xml"),
+            ("rSecond", "worksheet", "worksheets/first.xml"),
+            ("wrong", "worksheet", "worksheets/unrelated.xml"),
+            ("decoy", "worksheet", "worksheets/unnamespaced.xml")
+        ]).write(to: folder.appendingPathComponent("workbook.xml.rels"), atomically: false, encoding: .utf8)
+        // Keep the owning document alive while resolving inherited namespace
+        // declarations from its child nodes on both Foundation implementations.
+        let parts = try withExtendedLifetime(document) {
+            try relatedOfficeParts(root, mainPart: "xl/workbook.xml",
+                elements: document.nodes(forXPath: "//*[local-name()='sheet']"))
+        }
+        XCTAssertEqual(parts, ["xl/worksheets/first.xml", "xl/worksheets/second.xml"])
+    }
+
     private func officeRoundTrip(_ source: URL, through intermediate: String) async throws -> URL {
         let middle = try await engine.run(inputs: [source], operation: FileOperation(id: "convert.\(intermediate)", title: intermediate.uppercased()))
         let result = try await engine.run(inputs: middle.outputs, operation: FileOperation(id: "convert.\(source.pathExtension)", title: source.pathExtension.uppercased()))
@@ -263,7 +348,12 @@ final class EngineIntegrationTests: XCTestCase {
         let base = main.deletingLastPathComponent().lastPathComponent
         let relationships = try officeXML(package, "\(base)/_rels/\(main.lastPathComponent).rels")
         return try elements.map { element in
-            let identifier = try XCTUnwrap(element.nodes(forXPath: "./@*[local-name()='id' and namespace-uri()='http://schemas.openxmlformats.org/officeDocument/2006/relationships']").first?.stringValue)
+            let node = try XCTUnwrap(element as? XMLElement)
+            // Match through the attribute API, independent of the prefix
+            // chosen by the writer or the XPath namespace context.
+            let identifier = try XCTUnwrap(node.attribute(forLocalName: "id",
+                uri: "http://schemas.openxmlformats.org/officeDocument/2006/relationships")?.stringValue,
+                "Missing Office relationship ID on \(node.name ?? "element"); attributes: \((node.attributes ?? []).map { "\($0.name ?? "?") [\($0.uri ?? "no namespace")]" }.joined(separator: ", "))")
             let relation = try XCTUnwrap(relationships.nodes(forXPath: "/*[local-name()='Relationships']/*[local-name()='Relationship' and @Id='\(identifier)']").first)
             XCTAssertNotEqual(try relation.nodes(forXPath: "./@TargetMode").first?.stringValue, "External")
             let target = try XCTUnwrap(relation.nodes(forXPath: "./@Target").first?.stringValue)

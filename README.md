@@ -14,7 +14,7 @@ Files are processed on your Mac. No account, subscription, uploads, or analytics
 
 **Lemulip is an early public preview for macOS 13 or later.** Finder drag compatibility and the full desktop workflow still need hands-on testing.
 
-Source **0.1.11** checks richer Word, Excel, and PowerPoint conversions and repairs the Mac workbook-package verifier. Basic TXT → DOCX and CSV/TSV → XLSX exports remain built in. [Releases](https://github.com/osmankaankars/lemulip/releases) lists available downloads; each version must pass its own Mac checks before its archives are published.
+Source **0.1.12** adds basic RTF → DOCX export through macOS, keeping text and supported formatting without an extra engine. TXT → DOCX and CSV/TSV → XLSX also remain built in. [Releases](https://github.com/osmankaankars/lemulip/releases) lists available downloads; each version must pass its own Mac checks before its archives are published.
 
 ### Download the App
 
@@ -60,7 +60,7 @@ Prefer a window? Add files with **⌘O**, drop them into the workspace, or choos
 | PDFs | Visual page organization and merge preview; reorder, rotate, remove, extract, merge, split, export pages as images, extract text, offline OCR |
 | Audio | Waveform trim with selection playback; M4A, WAV and AIFF export; more formats with optional FFmpeg |
 | Video | Native conversion, visual trim and crop, MP4/MOV export; more tools and codecs with optional FFmpeg |
-| Documents and tables | Built-in TXT → Word (DOCX) and CSV/TSV → Excel (XLSX); CSV ↔ TSV and subtitles; richer Office documents and PowerPoint through optional local engines |
+| Documents and tables | Built-in TXT and basic RTF → Word (DOCX), CSV/TSV → Excel (XLSX), CSV ↔ TSV, and subtitles; richer Office documents and PowerPoint through optional local engines |
 | Archives | Create ZIP and TAR, GZIP individual files, extract supported archives into a new folder |
 | File actions | AirDrop, floating shelf, copy, move, copy path, open the containing folder in Terminal |
 
@@ -140,13 +140,16 @@ limits.
 
 ## Turn Simple Files Into Office Documents
 
-Choose **Convert → DOCX** with a TXT file to create a basic Word document using
-macOS. Choose **Convert → XLSX** with a CSV or TSV file to create an Excel
-workbook with one worksheet, **Sheet1**. Neither route needs LibreOffice or
-Microsoft Office installed.
+Choose **Convert → DOCX** with a TXT or basic RTF file to create a Word document
+using macOS. RTF keeps supported font and paragraph formatting; TXT keeps its
+plain text. Choose **Convert → XLSX** with a CSV or TSV file to create an Excel
+workbook with one worksheet, **Sheet1**. These basic routes need no extra engine
+or Microsoft Office installation.
 
-Word export keeps plain text, paragraphs, tabs, and Unicode. Excel export keeps
-every field as text: leading zeros stay intact, dates are not guessed, and
+RTF export supports font families and sizes, bold and italic text, and paragraph
+alignment, spacing, and indents. Complex RTF documents, including images and
+tables, use optional LibreOffice. Excel export keeps every field as text:
+leading zeros stay intact, dates are not guessed, and
 `=SUM(A1:A2)` stays text instead of becoming a formula. Each input creates its
 own file. Read [Basic Office Exports](docs/USER_GUIDE.md#basic-office-exports)
 for steps and limits.
@@ -173,7 +176,8 @@ dependency. See [Design](docs/DESIGN.md) for the shared visual rules.
 ## Start With What Is Built In
 
 Common image tools, PDF tools, OCR, archives, subtitles, basic text conversion,
-TXT → DOCX, and CSV/TSV → XLSX work without extra engines on your Mac.
+TXT and basic RTF → DOCX, and CSV/TSV → XLSX work without extra engines on your
+Mac.
 
 For more formats, install only what you need:
 
@@ -187,9 +191,9 @@ These commands require [Homebrew](https://brew.sh). For Pandoc, use its [officia
 Open **Settings → Local Engines → Refresh** afterward. Lemulip does not download helpers automatically. Installing engines needs internet access; conversion runs locally.
 
 DOCX, XLSX, and PPTX are Microsoft Office file formats. LibreOffice handles
-existing Office documents, workbooks, presentations, and RTF/HTML → DOCX in the
-background. Markdown → DOCX uses Pandoc. Microsoft Office does not need to be
-installed for conversion. See [Office Formats](docs/FORMATS.md#documents-slides-and-spreadsheets)
+existing Office documents, workbooks, presentations, complex RTF, and HTML →
+DOCX in the background. Markdown → DOCX uses Pandoc. Microsoft Office does not
+need to be installed for conversion. See [Office Formats](docs/FORMATS.md#documents-slides-and-spreadsheets)
 for the supported input and output combinations.
 
 ## Your Originals Stay Yours

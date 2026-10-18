@@ -111,15 +111,17 @@ After launch, start with a small image in the workspace. Add it with **⌘O**, s
 ## Optional Engines
 
 Many image, PDF, OCR, archive, subtitle, and basic text tools are built in.
-TXT → DOCX on macOS and CSV/TSV → XLSX also need no extra engine. The XLSX
-route creates one worksheet with all values kept as text. Install only the
-extra engines required for your other formats.
+TXT and basic RTF → DOCX on macOS, plus CSV/TSV → XLSX, also need no extra
+engine. Basic RTF preserves supported font and paragraph formatting; complex
+RTF uses optional LibreOffice. The XLSX route creates one worksheet with all
+values kept as text. Install only the extra engines required for your other
+formats.
 
 | Engine | Adds | Install |
 | --- | --- | --- |
 | FFmpeg | More audio/video formats and media tools | `brew install ffmpeg` |
 | ImageMagick | WebP, AVIF, and additional image codecs | `brew install imagemagick` |
-| LibreOffice | Rich documents, existing workbooks, and slides | `brew install --cask libreoffice` |
+| LibreOffice | Complex RTF, existing Office documents, workbooks, and slides | `brew install --cask libreoffice` |
 | Pandoc | EPUB and structured document routes | [Official macOS installer](https://pandoc.org/installing.html) |
 
 The `brew` commands require [Homebrew](https://brew.sh). Each engine has its own OS requirements. Installers need internet access; Lemulip's conversions run locally.
