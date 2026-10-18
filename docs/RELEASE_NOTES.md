@@ -20,9 +20,13 @@ when you need a queue, conversion options, or a closer look at the result.
 - Upload the review ZIP as a separate GitHub Actions artifact after the Apple
   silicon integration checks pass. Keep binary examples outside the source
   repository and installed app; add no test file or runtime dependency.
+- Accept the standard starred company metadata group in basic RTF input.
+  Keep document metadata out of the exported Word copy and retain the existing
+  rejection of unknown destinations and unsupported rich content.
 
 Version **0.1.13**, build **16**, includes the native RTF export and Office
-verification repair from 0.1.12. Its conversion scope is unchanged. This step
+verification repair from 0.1.12, with a narrow RTF metadata compatibility fix.
+Its supported document-content scope is unchanged. This step
 makes [Office Review](OFFICE_REVIEW.md) ready to perform; it does not establish
 that Microsoft Office has rendered or recalculated these files correctly.
 Mac, security, and downloaded-package checks remain required before release
@@ -49,9 +53,13 @@ for installable downloads.
   dependency, bundled engine, or binary fixture collection.
 
 Version **0.1.12**, build **15**, continues
-[Easier Office Conversion](ROADMAP.md#5-easier-office-conversion). Its own Mac,
-security, universal-package, and downloaded-archive checks remain required
-before download publication; see
+[Easier Office Conversion](ROADMAP.md#5-easier-office-conversion). Its
+[Mac build](https://github.com/osmankaankars/lemulip/actions/runs/39175991662)
+compiled on both architectures; each passed 126 of 127 built-in tests. The
+AppKit-generated RTF formatting example was rejected by native preflight.
+The run stopped before external integrations and release packaging. Source
+0.1.13 repairs a valid metadata form rejected by that preflight; its own Mac
+checks must confirm the full example and Office integrations. See
 [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
 and [Releases](https://github.com/osmankaankars/lemulip/releases).
 

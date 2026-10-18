@@ -385,7 +385,7 @@ both architectures passed all **123** built-in tests, including **53** native
 tests each. The repaired workbook-package test passed on both. Apple silicon
 also passed native TXT → DOCX → LibreOffice and built-in CSV → XLSX →
 LibreOffice checks. Its two failures were in the separate rich Office verifier
-described below. Native RTF export in 0.1.12 still needs its own Mac result.
+described below.
 
 Keep the workbook verifier's exact five-part assertion and symbolic-link
 case. Enumerate relative filenames from the resolved directory; never slice
@@ -431,8 +431,28 @@ For source 0.1.12, **69 portable tests** and **five focused Office checks**
 passed on Linux. The Office checks include four real LibreOffice conversion
 cases and the namespace/order regression. An isolated check of the production
 RTF preflight code passed 22 valid, complex, malformed, and bounded-input cases.
-These local checks do not execute AppKit. The new native RTF tests and the
-verifier repair must pass this version's own Mac CI before release publication.
+These local checks do not execute AppKit.
+
+The source 0.1.12
+[Mac build](https://github.com/osmankaankars/lemulip/actions/runs/39175991662)
+compiled both architectures; each passed 126 of 127 built-in tests. The one
+failure rejected the AppKit-generated basic RTF formatting example. Its
+generic error did not identify the rejected control or imported attribute.
+External integrations, including the relationship repair, were not reached.
+
+Source 0.1.13 accepts the standard starred company destination only inside an
+opening metadata subgroup. The
+[RTF 1.9.1 specification](https://officeprotocoldoc.z19.web.core.windows.net/files/Archive_References/%5BMSFT-RTF%5D.pdf)
+uses this spelling in its information-group example. The earlier scanner
+rejected it even though company metadata was already recognized without the
+star. Keep the generated formatting test and public-output-metadata assertions;
+unknown starred metadata and rich content must still use the optional engine.
+An isolated comparison exercised 28 inputs against the exact scanner before
+and after the repair. Only the standard starred company case changed from
+unsupported to accepted; numeric, misplaced, unknown, and rich-content cases
+retained their rejection. These checks do not execute AppKit.
+The repaired full AppKit example and Office integrations need the new source's
+Mac CI result before release publication.
 
 Do not infer font availability, Word pagination, Excel recalculation, or
 PowerPoint rendering from stored attributes alone. The formula cases check

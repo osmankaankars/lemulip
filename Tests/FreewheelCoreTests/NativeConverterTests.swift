@@ -1251,7 +1251,7 @@ final class NativeConverterTests: XCTestCase {
     func testNativeRTFWordExportPreservesUnicodeEscapesAndUsesOnlyPublicMetadataInMixedBatch() async throws {
         let work = try workspace()
         let input = work.inputs.appendingPathComponent("escaped.RTF")
-        let rtf = #"{\rtf1\ansi\ansicpg1252\uc1{\fonttbl{\f0\fswiss Helvetica;}}{\info{\author Synthetic RTF Author}{\operator Synthetic RTF Editor}{\company Synthetic RTF Company}}\f0\fs24 Caf\'e9 \u304?stanbul \u26481?\u20140? \u-10180?\u-8373? \{braces\} \\pict\par Final}"#
+        let rtf = #"{\rtf1\ansi\ansicpg1252\uc1{\fonttbl{\f0\fswiss Helvetica;}}{\info{\author Synthetic RTF Author}{\operator Synthetic RTF Editor}{\*\company Synthetic RTF Company}}\f0\fs24 Caf\'e9 \u304?stanbul \u26481?\u20140? \u-10180?\u-8373? \{braces\} \\pict\par Final}"#
         let original = Data(rtf.utf8)
         let plain = work.inputs.appendingPathComponent("plain.txt")
         try original.write(to: input)
@@ -1290,6 +1290,8 @@ final class NativeConverterTests: XCTestCase {
                        #"{\field{\*\fldinst HYPERLINK "https://example.invalid/"}{\fldrslt Link}}"#,
                        #"{\header Header}"#, #"{\footer Footer}"#, #"{\footnote Footnote}"#,
                        #"{\NeXTGraphic local-image.png \width100\height100}"#, #"{\*\unknownDestination Hidden text}"#,
+                       #"{\info{\*\unknownMetadata Hidden metadata}}"#, #"{\*\company Company outside metadata}"#,
+                       #"{\info{\*\company {\pict\pngblip 00}}}"#, #"{\info{\*\company42 Hidden metadata}}"#,
                        #"\shad Styled text"#, #"\bin1 x"#]
         for (index, content) in complex.enumerated() {
             let input = work.inputs.appendingPathComponent("rich-\(index).rtf")

@@ -107,24 +107,24 @@ enum NativeWordExporter {
                 case .paragraphStyle:
                     guard let style = value as? NSParagraphStyle,
                           style.textBlocks.isEmpty, style.textLists.isEmpty else {
-                        throw FreewheelError.unsupported(richContentMessage)
+                        throw FreewheelError.unsupported(richContentMessage + " (Unsupported imported paragraph structure.)")
                     }
                 case .underlineStyle, .strikethroughStyle:
                     guard let style = value as? NSNumber, [0, NSUnderlineStyle.single.rawValue].contains(style.intValue) else {
-                        throw FreewheelError.unsupported(richContentMessage)
+                        throw FreewheelError.unsupported(richContentMessage + " (Unsupported imported underline or strikethrough style.)")
                     }
                 case .kern, .expansion, .obliqueness, .strokeWidth, .baselineOffset, .superscript:
                     guard (value as? NSNumber)?.doubleValue == 0 else {
-                        throw FreewheelError.unsupported(richContentMessage)
+                        throw FreewheelError.unsupported(richContentMessage + " (Unsupported imported typography effect.)")
                     }
                 case .ligature:
                     guard (value as? NSNumber)?.intValue == 1 else {
-                        throw FreewheelError.unsupported(richContentMessage)
+                        throw FreewheelError.unsupported(richContentMessage + " (Unsupported imported ligature setting.)")
                     }
                 default:
                     // Includes attachments and links, even if a future RTF
                     // importer exposes them through a newly supported control.
-                    throw FreewheelError.unsupported(richContentMessage)
+                    throw FreewheelError.unsupported(richContentMessage + " (Unsupported imported text attribute.)")
                 }
             }
             position = NSMaxRange(range)
@@ -221,7 +221,7 @@ enum NativeWordExporter {
                             index += 3
                         } else {
                             guard [UInt8(92), 123, 125, 126, 45, 95, 10, 13].contains(symbol) else {
-                                throw FreewheelError.unsupported(richContentMessage)
+                                throw FreewheelError.unsupported(richContentMessage + " (Unsupported RTF escape.)")
                             }
                             index += 1
                             if symbol == 13, index < bytes.count, bytes[index] == 10 { index += 1 }
@@ -258,7 +258,7 @@ enum NativeWordExporter {
                         guard !headerSeen, groups.count == 1, current.opening, !current.starred, number == 1 else { throw malformed() }
                         headerSeen = true
                     } else if current.opening, groups.count > 1, ["fonttbl", "colortbl", "expandedcolortbl", "info", "generator"].contains(word) {
-                        guard current.destination == .body else { throw FreewheelError.unsupported(richContentMessage) }
+                        guard current.destination == .body else { throw unsupportedControl(word) }
                         switch word {
                         case "fonttbl": groups[groups.count - 1].destination = .fonts
                         case "colortbl": groups[groups.count - 1].destination = .colors
@@ -266,7 +266,10 @@ enum NativeWordExporter {
                         default: groups[groups.count - 1].destination = .metadata
                         }
                     } else {
-                        guard !current.starred else { throw FreewheelError.unsupported(richContentMessage) }
+                        // RTF writers may mark company metadata as an ignorable
+                        // destination. This exception is only for a new metadata subgroup.
+                        let companyMetadata = current.opening && current.destination == .metadata && word == "company" && number == nil
+                        guard !current.starred || companyMetadata else { throw unsupportedControl(word) }
                         let supported: Bool
                         switch current.destination {
                         case .body:
@@ -277,7 +280,7 @@ enum NativeWordExporter {
                         case .expandedColors: supported = ["cssrgb", "csgenericrgb", "csgray", "cspthree", "c"].contains(word)
                         case .metadata: supported = metadataControls.contains(word)
                         }
-                        guard supported else { throw FreewheelError.unsupported(richContentMessage) }
+                        guard supported else { throw unsupportedControl(word) }
                     }
                     groups[groups.count - 1].opening = false
                     groups[groups.count - 1].starred = false
@@ -288,6 +291,11 @@ enum NativeWordExporter {
 
         private static func isLetter(_ byte: UInt8) -> Bool { (65...90).contains(byte) || (97...122).contains(byte) }
         private static func isHex(_ byte: UInt8) -> Bool { (48...57).contains(byte) || (65...70).contains(byte) || (97...102).contains(byte) }
+        private static func unsupportedControl(_ word: String) -> FreewheelError {
+            // The scanner bounds this ASCII control name to 32 letters. Do not
+            // include source text, numeric parameters, metadata values, or paths.
+            .unsupported(richContentMessage + " (Unsupported RTF control: \\" + word + ".)")
+        }
         private static func malformed() -> FreewheelError {
             .invalidInput("The RTF document has an invalid header, escape sequence, or group structure. Save a valid RTF copy before converting it.")
         }

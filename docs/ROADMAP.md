@@ -26,6 +26,7 @@ Source **0.1.12** adds basic RTF → DOCX with native font and paragraph formatt
 and repairs the rich Office checks' relationship lookup.
 Source **0.1.13** prepares six generated Office review cases, with an explicit
 Word page-break check and a guide for inspecting the files in Microsoft Office.
+It also repairs the handling of a standard RTF company metadata group.
 Each version's own
 [Mac checks](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
 and [release assets](https://github.com/osmankaankars/lemulip/releases) determine
@@ -257,7 +258,9 @@ checks slide order, text, stored font attributes, and shape positions. All three
 generated examples passed with LibreOffice on Linux. In the 0.1.11
 [Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39170976554), Word
 passed; the other two stopped in a shared verifier lookup. Source 0.1.12 repairs
-that lookup, and requires its own Mac verification. The checks do not establish
+that lookup, but its Mac run stopped earlier at a native RTF formatting example.
+Source 0.1.13 adds a narrow RTF metadata repair; the full Mac checks remain
+required. The checks do not establish
 identical rendering, font availability,
 general formula recalculation, or support for macros, charts, pivot tables, and
 animations. See [Rich Office Conversion](FORMATS.md#rich-office-conversion).
