@@ -65,7 +65,7 @@ On the first run, it checks the working source, fills the marked README demo-lin
 | --- | --- |
 | Repository | A new public `lemulip` repository |
 | Source | One initial commit containing the exact privacy-checked file list |
-| Tag | An annotated preview tag matching `Info.plist`, such as `v0.1.3` |
+| Tag | An annotated preview tag matching `Info.plist`, such as `v0.1.4` |
 | About | Description, relevant topics, Issues and Discussions enabled, Wiki disabled |
 | Website | GitHub Pages configured to use the included Actions workflow |
 | Homepage | The repository's Pages address after Pages configuration succeeds |

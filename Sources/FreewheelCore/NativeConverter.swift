@@ -63,6 +63,16 @@ public enum NativeConverter {
         try validateJob(inputs: inputs, outputDirectory: outputDirectory)
         do {
             try Task.checkCancellation()
+            var options = options
+            if let selection = options.audioTrim {
+                guard operation.id == "media.trim", inputs.count == 1,
+                      FileFamily.detect(inputs[0]) == .audio, options.imageCrop == nil else {
+                    throw FreewheelError.invalidInput("A waveform selection requires Trim Audio and exactly one audio file.")
+                }
+                try selection.validate()
+                options.startSeconds = selection.startSeconds
+                options.endSeconds = selection.endSeconds
+            }
             if let crop = options.imageCrop {
                 guard operation.id == "image.crop", inputs.count == 1,
                       FileFamily.detect(inputs[0]) == .image else {
@@ -111,7 +121,7 @@ public enum NativeConverter {
                 at: outputDirectory, includingPropertiesForKeys: nil)) ?? [] {
                 try? FileManager.default.removeItem(at: file)
             }
-            if error is CancellationError { throw FreewheelError.cancelled }
+            if error is CancellationError || Task.isCancelled { throw FreewheelError.cancelled }
             throw error
         }
     }
@@ -1017,14 +1027,24 @@ public enum NativeConverter {
             if ["media.resize", "media.mute"].contains(operation.id), !["mp4", "mov"].contains(ext) {
                 throw FreewheelError.invalidInput("Resize and mute require a video output.")
             }
-            let output = outputURL(input, suffix: "-converted", ext: ext, directory: directory)
+            let output = outputURL(input, suffix: options.audioTrim == nil ? "-converted" : "-trimmed", ext: ext, directory: directory)
             // A QuickTime container can refer to media outside its own file.
             // Restrict those references so a local conversion cannot fetch a
             // remote URL or silently read a second, unselected local file.
-            let asset = AVURLAsset(url: input, options: [
-                AVURLAssetReferenceRestrictionsKey: NSNumber(value: AVAssetReferenceRestrictions.forbidAll.rawValue),
-                AVURLAssetShouldSupportAliasDataReferencesKey: false
-            ])
+            let asset: AVURLAsset
+            if let selection = options.audioTrim {
+                let source = try await AudioTrimSource.load(input)
+                try selection.validate(sourceDuration: source.durationSeconds)
+                guard source.nativeOutputExtensions.contains(ext) || ext == "aif" else {
+                    throw FreewheelError.unsupported("The selected audio output needs FFmpeg.")
+                }
+                asset = source.asset
+            } else {
+                asset = AVURLAsset(url: input, options: [
+                    AVURLAssetReferenceRestrictionsKey: NSNumber(value: AVAssetReferenceRestrictions.forbidAll.rawValue),
+                    AVURLAssetShouldSupportAliasDataReferencesKey: false
+                ])
+            }
             let duration = try await asset.load(.duration)
             let seconds = CMTimeGetSeconds(duration)
             guard seconds.isFinite, seconds > 0 else { throw FreewheelError.invalidInput("This media file has no playable duration.") }
@@ -1035,8 +1055,9 @@ public enum NativeConverter {
                       options.endSeconds > options.startSeconds else {
                     throw FreewheelError.invalidInput("Trim times must be within the media duration, with end after start.")
                 }
-                range = CMTimeRange(start: CMTime(seconds: options.startSeconds, preferredTimescale: 600),
-                                    end: CMTime(seconds: min(seconds, options.endSeconds), preferredTimescale: 600))
+                let timescale: CMTimeScale = options.audioTrim == nil ? 600 : 1_000_000
+                range = CMTimeRange(start: CMTime(seconds: options.startSeconds, preferredTimescale: timescale),
+                                    end: CMTime(seconds: min(seconds, options.endSeconds), preferredTimescale: timescale))
             }
             if ["wav", "aiff", "aif"].contains(ext) {
                 try await exportPCM(asset, range: range, ext: ext, output: output)
@@ -1045,6 +1066,10 @@ public enum NativeConverter {
                                       options: options, output: output)
             }
             outputs.append(output)
+        }
+        if options.audioTrim != nil {
+            return ConversionResult(outputs: outputs,
+                note: "The selected audio was exported locally with AVFoundation. WAV and AIFF use 16-bit PCM at source sample boundaries; M4A re-encodes AAC and may include codec-frame padding. Original files were kept.")
         }
         return ConversionResult(outputs: outputs, note: "Converted locally with AVFoundation. Codec support depends on macOS; FFmpeg enables additional formats and media tools.")
     }
@@ -1158,34 +1183,73 @@ public enum NativeConverter {
         sink.expectsMediaDataInRealTime = false
         guard writer.canAdd(sink) else { throw FreewheelError.unsupported("The native audio writer cannot handle this format.") }
         writer.add(sink)
-        guard writer.startWriting(), reader.startReading() else {
-            reader.cancelReading(); writer.cancelWriting()
-            throw FreewheelError.unsupported("macOS cannot read or write this audio stream. Enable FFmpeg.")
-        }
-        writer.startSession(atSourceTime: range.start)
-        do {
-            while reader.status == .reading {
-                try Task.checkCancellation()
-                guard writer.status == .writing else { throw FreewheelError.operationFailed("Audio writing failed.") }
-                if sink.isReadyForMoreMediaData {
-                    guard let sample = source.copyNextSampleBuffer() else { break }
-                    guard sink.append(sample) else { throw FreewheelError.operationFailed("An audio sample could not be written.") }
-                } else {
-                    try await Task.sleep(nanoseconds: 5_000_000)
-                }
+        let cancellation = AudioReadWriteCancellation(reader: reader, writer: writer)
+        try await withTaskCancellationHandler(operation: {
+            try Task.checkCancellation()
+            guard writer.startWriting(), reader.startReading() else {
+                reader.cancelReading(); writer.cancelWriting()
+                throw FreewheelError.unsupported("macOS cannot read or write this audio stream. Enable FFmpeg.")
             }
-            guard reader.status == .completed else { throw FreewheelError.operationFailed("Audio decoding did not finish.") }
-            sink.markAsFinished()
-            await withTaskCancellationHandler(operation: {
+            writer.startSession(atSourceTime: range.start)
+            do {
+                var writtenFrames = 0
+                while reader.status == .reading {
+                    try Task.checkCancellation()
+                    guard writer.status == .writing else { throw FreewheelError.operationFailed("Audio writing failed.") }
+                    if sink.isReadyForMoreMediaData {
+                        let found = try autoreleasepool { () throws -> Bool in
+                            guard let sample = source.copyNextSampleBuffer() else { return false }
+                            // A reader may return a PCM packet crossing a trim
+                            // boundary. Retain only frames inside [start, end).
+                            guard let selected = try trimmedPCMSample(sample, range: range, sampleRate: rate) else { return true }
+                            guard sink.append(selected) else { throw FreewheelError.operationFailed("An audio sample could not be written.") }
+                            writtenFrames += CMSampleBufferGetNumSamples(selected)
+                            return true
+                        }
+                        if !found { break }
+                    } else {
+                        try await Task.sleep(nanoseconds: 5_000_000)
+                    }
+                }
+                try Task.checkCancellation()
+                guard reader.status == .completed, writtenFrames > 0 else { throw FreewheelError.operationFailed("Audio decoding did not finish or the selected range contains no samples.") }
+                writer.endSession(atSourceTime: range.end)
+                sink.markAsFinished()
                 await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
                     writer.finishWriting { continuation.resume() }
                 }
-            }, onCancel: { writer.cancelWriting() })
-            try Task.checkCancellation()
-            guard writer.status == .completed else { throw FreewheelError.operationFailed("Audio output could not be finalized.") }
-        } catch {
-            reader.cancelReading(); writer.cancelWriting(); throw error
+                try Task.checkCancellation()
+                guard writer.status == .completed else { throw FreewheelError.operationFailed("Audio output could not be finalized.") }
+            } catch {
+                reader.cancelReading(); writer.cancelWriting(); throw error
+            }
+        }, onCancel: { cancellation.cancel() })
+    }
+
+    private static func trimmedPCMSample(_ sample: CMSampleBuffer, range: CMTimeRange,
+                                         sampleRate: Double) throws -> CMSampleBuffer? {
+        let count = CMSampleBufferGetNumSamples(sample)
+        let presentation = CMTimeGetSeconds(CMSampleBufferGetPresentationTimeStamp(sample))
+        let start = CMTimeGetSeconds(range.start), end = CMTimeGetSeconds(range.end)
+        guard count >= 0, presentation.isFinite, start.isFinite, end.isFinite else {
+            throw FreewheelError.operationFailed("The decoded audio contains invalid sample timing.")
         }
+        // The tiny tolerance only absorbs floating-point error at an exact
+        // sample boundary. It is far smaller than the editor's 1 ms precision.
+        let firstValue = ceil((start - presentation) * sampleRate - 0.000_001)
+        let lastValue = ceil((end - presentation) * sampleRate - 0.000_001)
+        let first = Int(min(Double(count), max(0, firstValue)))
+        let last = Int(min(Double(count), max(0, lastValue)))
+        guard last > first else { return nil }
+        if first == 0, last == count { return sample }
+        var selected: CMSampleBuffer?
+        let status = CMSampleBufferCopySampleBufferForRange(allocator: kCFAllocatorDefault,
+            sampleBuffer: sample, sampleRange: CFRange(location: first, length: last - first),
+            sampleBufferOut: &selected)
+        guard status == noErr, let selected = selected else {
+            throw FreewheelError.operationFailed("The selected audio frames could not be read.")
+        }
+        return selected
     }
 }
 #endif

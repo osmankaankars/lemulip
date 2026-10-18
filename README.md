@@ -48,7 +48,8 @@ Prefer a window? Add files with **⌘O**, drop them into the workspace, or choos
 | --- | --- |
 | Images | PNG, JPEG, HEIC, TIFF and BMP; visual crop, resize, rotate, remove metadata; images to PDF |
 | PDFs | Merge, split, extract pages, rotate, export pages as images, extract text, offline OCR |
-| Audio and video | Native media conversion where macOS codecs allow it; more formats, trimming and compression with FFmpeg |
+| Audio | Waveform trim with selection playback; M4A, WAV and AIFF export; more formats with optional FFmpeg |
+| Video | Native media conversion where macOS codecs allow it; trimming, resizing and compression with FFmpeg |
 | Documents and tables | Microsoft Word (DOCX), Excel (XLSX), PowerPoint (PPTX), text, CSV ↔ TSV, and subtitles; some routes need an optional local engine |
 | Archives | Create ZIP and TAR, GZIP individual files, extract supported archives into a new folder |
 | File actions | AirDrop, floating shelf, copy, move, copy path, open the containing folder in Terminal |
@@ -65,8 +66,20 @@ resolution and leaves your source file in place.
 The editor prepares a bounded preview in the background. Its first version
 supports one still raster image at a time, up to 40 megapixels and 16,384 pixels
 per side. See [Visual Image Crop](docs/USER_GUIDE.md#visual-image-crop) for controls
-and format limits. Media trimming still uses start and end times; an audio
-waveform editor is [the next feature milestone](docs/ROADMAP.md#2-audio-waveform-trim).
+and format limits.
+
+## Hear What You Keep
+
+Open **Tools → Trim** with one audio file. Move the start and end handles on
+the waveform, enter precise timestamps, and use **Play Selection** to listen
+before saving. **Create Copy** exports the chosen range as M4A, WAV, or AIFF.
+
+The waveform is prepared in bounded chunks, without keeping a full decoded
+recording in memory. This editor uses native macOS decoding and playback;
+unsupported inputs receive an explanation before editing. Read
+[Audio Waveform Trim](docs/USER_GUIDE.md#audio-waveform-trim) for controls and
+encoding limits. Video trimming still uses numeric start and end times;
+video and PDF previews are [next on the roadmap](docs/ROADMAP.md#3-video-and-pdf-previews).
 
 ## Make It Yours
 

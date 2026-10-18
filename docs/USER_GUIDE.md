@@ -74,12 +74,15 @@ Some operations run as soon as you select them. Others open a panel with relevan
 | Resize | Maximum dimension in pixels; keeps the aspect ratio and does not enlarge smaller images |
 | Crop | Visual selection, aspect ratio, and exact pixel dimensions for one image |
 | Rotate | 90°, 180°, or 270° clockwise |
-| Trim | Start and end time in seconds |
+| Trim Audio | Waveform handles, timestamps, selected-range playback, and an output format |
+| Trim Video | Start and end time in seconds |
 | Extract PDF pages | Page numbers and ranges, such as `1,3-5,8` |
 | Change speed | Playback multiplier from 0.5× to 4× |
 | Adjust volume | Level from 0% to 300% |
 
-PDF page numbers start at 1. Crop dimensions must fit within the image. Media tools require FFmpeg in the desktop interface.
+PDF page numbers start at 1. Crop dimensions must fit within the image. Audio
+waveform trimming uses native macOS tools. The other desktop media tools,
+including video trimming, require FFmpeg.
 
 ### Visual Image Crop
 
@@ -119,6 +122,60 @@ to discard the request.
 
 The command-line `image.crop --width … --height …` command keeps its existing
 centered-crop behavior. Use the desktop editor to choose a different position.
+
+### Audio Waveform Trim
+
+Select one audio file and choose **Tools → Trim**. The editor reads a waveform
+summary in the background; you can cancel while it loads. Once the waveform
+appears, adjust the range and listen before making a copy.
+
+| Control | Action |
+| --- | --- |
+| Drag Start or End | Change the corresponding boundary without crossing the other handle |
+| Drag inside the selection | Move the range while keeping its duration |
+| Click outside the selection | Move the nearest boundary to that position |
+| **Start / End** | Enter seconds, `MM:SS.mmm`, or `HH:MM:SS.mmm`; a decimal comma also works |
+| **Selected Duration** | Read the amount of audio the range keeps |
+| **Play Selection** | Play from Start and stop at End |
+| **Pause** | Stop the current preview; Play Selection starts the range again |
+| **Save As** | Choose an available M4A, WAV, or AIFF encoder |
+| **Reset** | Select the full recording |
+| **Cancel** or Escape | Close the editor, cancel its preview request, and stop playback |
+| **Create Copy** | Stop playback and queue the chosen range for export |
+
+With the waveform focused, **S** selects the start handle and **E** selects the
+end handle. Left and right arrows move that handle by 0.01 seconds; hold Shift
+for one second. Space plays or pauses. Tab moves to the other controls, and
+accessible actions offer the same boundary adjustments. Invalid timestamps
+disable playback and Create Copy until corrected.
+
+Selections are at least 10 milliseconds long. A shorter recording can be kept
+in full. The fields show milliseconds, while opening a file and using Reset
+preserve its exact end even when it falls between displayed milliseconds.
+Changing the range stops playback so the next preview uses the new selection.
+
+| Output | Encoding |
+| --- | --- |
+| M4A | Re-encodes the selected audio as AAC; the encoder can add padding at its boundaries |
+| WAV | Writes uncompressed 16-bit PCM; boundaries follow decoded audio samples |
+| AIFF | Writes uncompressed 16-bit PCM in an AIFF file; boundaries follow decoded audio samples |
+
+WAV and AIFF can be larger than a compressed source. Changing an MP3 to PCM
+does not restore detail already lost in the source. For sample-oriented edits,
+use WAV or AIFF; compressed output is not a promise of sample-exact duration.
+The original file remains unchanged, and the normal unused-name output rules
+apply to every format.
+
+This first waveform editor supports one native-decodable mono or stereo audio
+track at 8–192 kHz. Multiple selected files, unsupported channel layouts, and
+unavailable codecs receive an explanation. Convert other inputs to a compatible
+WAV or M4A first; the optional FFmpeg engine can help with additional formats.
+The editor itself does not decode through FFmpeg or mix multiple tracks.
+
+The waveform is an overview, not a full-resolution audio buffer. The editor
+requests 1,200 peak values and keeps only bounded decoding chunks while reading
+the file. No temporary decoded recording or persistent waveform cache is made.
+Video and CLI trimming retain their numeric start/end workflow.
 
 ### PDF Compression
 

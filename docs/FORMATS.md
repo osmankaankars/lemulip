@@ -63,7 +63,22 @@ PDF → editable DOCX, Pages, PowerPoint, or spreadsheet output is not implement
 
 Recognized inputs include common MP3, AAC, M4A, WAV, AIFF, FLAC, OGG, Opus, WMA, MP4, MOV, M4V, MKV, WebM, AVI, and WMV files. Containers can hold different codecs; an extension alone does not establish support.
 
-The desktop media tools use FFmpeg for compression, trimming, resizing, speed and volume changes, audio removal, and audio extraction. Video compression produces H.264 MP4; audio compression produces M4A.
+**Audio waveform trim** uses native decoding, playback, and M4A/WAV/AIFF export.
+It opens one audio file with exactly one mono or stereo track at 8–192 kHz,
+provided macOS can decode it. The editor shows only available native output
+choices. Additional codecs can be converted to a compatible WAV or M4A first
+using optional FFmpeg. The waveform editor does not mix tracks or decode through
+an external engine.
+
+M4A output re-encodes AAC and can include encoder padding. WAV and AIFF output
+uses uncompressed 16-bit PCM with boundaries selected from decoded samples.
+The UI shows milliseconds and keeps the precise end of the full recording;
+its smallest editable range is 10 milliseconds, or the full file when shorter.
+Read [Audio Waveform Trim](USER_GUIDE.md#audio-waveform-trim) for the controls.
+
+The other desktop media tools use FFmpeg for video trimming, compression,
+resizing, speed and volume changes, audio removal, and audio extraction.
+Video compression produces H.264 MP4; audio compression produces M4A.
 
 Lemulip uses the first video stream and first audio stream for its FFmpeg routes. It is not an editor for multiple tracks, subtitles embedded in video, or professional media metadata. Conversions can be lossy, and a compressed output is not guaranteed to be smaller.
 
@@ -126,6 +141,10 @@ There are no paid tiers or daily conversion quotas. The implementation does enfo
 - Native PDF and image-frame operations allow up to 1,000 pages or frames, with a separate cap on output count.
 - Native image input is limited to 150 megapixels. Rendered images are limited to 40 megapixels and a maximum dimension of 16,384 pixels.
 - Native text processing is limited to 32 MiB.
+- Audio waveform summaries contain at most 4,096 peaks; the editor requests
+  1,200. Decoding uses a reusable 4,096-frame scratch buffer and rejects an
+  individual decoder buffer larger than 16 MiB. These are application buffer
+  limits, not a measurement of the process's total memory use.
 - Archive and optional-engine operations have their own size, time, and resource limits.
 
 Files that exceed a limit fail with an error. Lemulip does not silently omit pages to fit a limit. Try a smaller selection or lower image dimensions when appropriate.

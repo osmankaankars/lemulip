@@ -154,6 +154,162 @@ final class EngineTests: XCTestCase {
             sourceWidth: Int.max, sourceHeight: Int.min, aspectRatio: .nan).validateBounds())
     }
 
+    func testAudioSelectionRejectsInvalidRangesBeforeCreatingOutput() async throws {
+        let input = root.appendingPathComponent("recording.wav")
+        try Data([0]).write(to: input)
+        let invalid = [
+            AudioTrimSelection(startSeconds: -1, endSeconds: 1, sourceDuration: 5),
+            AudioTrimSelection(startSeconds: 1, endSeconds: 1, sourceDuration: 5),
+            AudioTrimSelection(startSeconds: 2, endSeconds: 1, sourceDuration: 5),
+            AudioTrimSelection(startSeconds: 0, endSeconds: 6, sourceDuration: 5),
+            AudioTrimSelection(startSeconds: .nan, endSeconds: 1, sourceDuration: 5),
+            AudioTrimSelection(startSeconds: 0, endSeconds: .infinity, sourceDuration: 5),
+            AudioTrimSelection(startSeconds: 0, endSeconds: 1, sourceDuration: .infinity),
+            AudioTrimSelection(startSeconds: 0, endSeconds: 1, sourceDuration: 0)
+        ]
+        for selection in invalid {
+            var options = ConversionOptions(); options.audioTrim = selection
+            do {
+                _ = try await ConversionEngine().run(inputs: [input],
+                    operation: FileOperation(id: "media.trim", title: "Trim", outputExtension: "wav"), options: options)
+                XCTFail("An invalid audio selection was accepted")
+            } catch FreewheelError.invalidInput { }
+        }
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path), ["recording.wav"])
+    }
+
+    func testAudioSelectionRequiresOneAudioFileAndTheTrimOperation() async throws {
+        let first = root.appendingPathComponent("first.wav"), second = root.appendingPathComponent("second.wav")
+        let video = root.appendingPathComponent("clip.mp4")
+        for input in [first, second, video] { try Data([0]).write(to: input) }
+        var options = ConversionOptions()
+        options.audioTrim = AudioTrimSelection(startSeconds: 0, endSeconds: 1, sourceDuration: 5)
+        for (inputs, id, ext) in [([first, second], "media.trim", "wav"),
+                                  ([video], "media.trim", "wav"),
+                                  ([first], "convert.wav", "wav"),
+                                  ([first], "media.trim", "mp4")] {
+            do {
+                _ = try await ConversionEngine().run(inputs: inputs,
+                    operation: FileOperation(id: id, title: "Operation", outputExtension: ext), options: options)
+                XCTFail("A waveform selection was applied to the wrong input, operation, or output")
+            } catch FreewheelError.invalidInput { }
+        }
+        XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: root.path)), ["first.wav", "second.wav", "clip.mp4"])
+        let audioTrim = try XCTUnwrap(Catalog.operations(for: [first], mode: .tools).first { $0.id == "media.trim" })
+        let videoTrim = try XCTUnwrap(Catalog.operations(for: [video], mode: .tools).first { $0.id == "media.trim" })
+        #if os(macOS)
+        XCTAssertNil(audioTrim.dependency)
+        #else
+        XCTAssertEqual(audioTrim.dependency, "ffmpeg")
+        #endif
+        XCTAssertEqual(videoTrim.dependency, "ffmpeg")
+    }
+
+    func testAudioTrimHandlesPreserveLengthAndNeverCrossOrRoundPastEOF() throws {
+        for total in [0.000_5, 0.007_3, 1.000_9, 8.0, 36_000.000_9] {
+            let full = AudioTrimGeometry.fullDuration(total)
+            XCTAssertEqual(full.endSeconds, total)
+            XCTAssertNoThrow(try full.validate())
+            for seconds in [-999.0, 0, 0.005, total / 2, total, total + 999, .nan, .infinity] {
+                XCTAssertNoThrow(try AudioTrimGeometry.startChanged(full, to: seconds).validate())
+                XCTAssertNoThrow(try AudioTrimGeometry.endChanged(full, to: seconds).validate())
+                XCTAssertNoThrow(try AudioTrimGeometry.moved(full, by: seconds).validate())
+            }
+        }
+        let selected = AudioTrimSelection(startSeconds: 1.250, endSeconds: 2.875, sourceDuration: 5.000_9)
+        let moved = AudioTrimGeometry.moved(selected, by: 100)
+        XCTAssertEqual(moved.endSeconds, selected.sourceDuration)
+        XCTAssertEqual(moved.durationSeconds, selected.durationSeconds, accuracy: 0.000_000_001)
+        XCTAssertEqual(AudioTrimGeometry.startChanged(selected, to: 99).startSeconds, 2.865, accuracy: 0.000_000_001)
+        XCTAssertEqual(AudioTrimGeometry.endChanged(selected, to: -99).endSeconds, 1.260, accuracy: 0.000_000_001)
+        XCTAssertThrowsError(try selected.validate(sourceDuration: 6))
+    }
+
+    func testAudioWaveformPeaksUseBothChannelsAndPreserveTimeGaps() throws {
+        var samples: [Float] = []
+        for frame in 0..<4_000 {
+            samples.append(contentsOf: frame < 2_000 ? [0.1, -0.8] : [0.3, -0.3])
+        }
+        var whole = try AudioWaveformAccumulator(durationSeconds: 1, bucketCount: 4)
+        try samples.withUnsafeBufferPointer { values in
+            try whole.append(values, frames: 4_000, channelCount: 2, sampleRate: 8_000, presentationSeconds: 0.25)
+        }
+        XCTAssertEqual(whole.peaks, [0, 0.8, 0.3, 0])
+        // A decoder choosing different packet sizes must produce the same peaks.
+        var chunked = try AudioWaveformAccumulator(durationSeconds: 1, bucketCount: 4)
+        for offset in stride(from: 0, to: 4_000, by: 137) {
+            let frames = min(137, 4_000 - offset)
+            try samples.withUnsafeBufferPointer { values in
+                let chunk = UnsafeBufferPointer(start: values.baseAddress! + offset * 2, count: frames * 2)
+                try chunked.append(chunk, frames: frames, channelCount: 2, sampleRate: 8_000,
+                                   presentationSeconds: 0.25 + Double(offset) / 8_000)
+            }
+        }
+        XCTAssertEqual(chunked.peaks, whole.peaks)
+        // Decimal timing gaps expose floating-point bucket-boundary drift.
+        // A peak at exactly 0.5 seconds must not leak into the preceding bucket.
+        let ramp = (0..<8_000).map { Float($0 / 800 + 1) / 10 }
+        for packetSize in [137, 1_024, 4_096] {
+            var decimal = try AudioWaveformAccumulator(durationSeconds: 1.1, bucketCount: 11)
+            for offset in stride(from: 0, to: ramp.count, by: packetSize) {
+                let frames = min(packetSize, ramp.count - offset)
+                try ramp.withUnsafeBufferPointer { values in
+                    let chunk = UnsafeBufferPointer(start: values.baseAddress! + offset, count: frames)
+                    try decimal.append(chunk, frames: frames, channelCount: 1, sampleRate: 8_000,
+                                       presentationSeconds: 0.1 + Double(offset) / 8_000)
+                }
+            }
+            XCTAssertEqual(decimal.peaks, [0] + (1...10).map { Float($0) / 10 })
+        }
+    }
+
+    func testAudioTimestampParserRejectsMalformedValuesAndFormatsFractionalEOF() throws {
+        for (text, expected) in [("1.250", 1.25), ("01:02.345", 62.345), ("01:02:03.004", 3_723.004),
+                                 (" 00:00,125 ", 0.125), ("0.000500", 0.0005), ("65:01", 3_901)] {
+            XCTAssertEqual(try XCTUnwrap(AudioTrimTime.parse(text)), expected, accuracy: 0.000_000_001)
+        }
+        for text in ["", " ", "NaN", "inf", "1e3", "+1", "-1", "1:60", "1:60:00", "1::2",
+                     "1:2:3:4", "1.2.3", "1,2.3", "01:02x", "1 :02", "1: 02", ":20", "20:", "１"] {
+            XCTAssertNil(AudioTrimTime.parse(text), "Malformed timestamp accepted: \(text)")
+        }
+        XCTAssertEqual(AudioTrimTime.string(1.0009), "00:01.001")
+        XCTAssertEqual(AudioTrimTime.string(0.0005), "00:00.000500")
+        XCTAssertEqual(AudioTrimTime.string(3_600.25), "01:00:00.250")
+        XCTAssertEqual(AudioTrimTime.string(.nan), "—")
+        XCTAssertEqual(AudioTrimTime.string(.greatestFiniteMagnitude), "—")
+        XCTAssertEqual(AudioTrimGeometry.fullDuration(1.0009).endSeconds, 1.0009)
+        for original in [AudioTrimGeometry.fullDuration(1.0009), AudioTrimGeometry.fullDuration(0.0005),
+                         AudioTrimSelection(startSeconds: 0.9909, endSeconds: 1.0009, sourceDuration: 1.0009)] {
+            XCTAssertEqual(AudioTrimTime.selection(startText: AudioTrimTime.string(original.startSeconds),
+                endText: AudioTrimTime.string(original.endSeconds), preserving: original), original)
+            XCTAssertNil(AudioTrimTime.selection(startText: "not a time", endText: AudioTrimTime.string(original.endSeconds), preserving: original))
+            XCTAssertNil(AudioTrimTime.selection(startText: AudioTrimTime.string(original.startSeconds), endText: "", preserving: original))
+        }
+        let original = AudioTrimSelection(startSeconds: 0.2, endSeconds: 0.8, sourceDuration: 1.0009)
+        XCTAssertEqual(AudioTrimTime.selection(startText: "00:00.200", endText: "00:01.001", preserving: original)?.endSeconds, 1.0009)
+        XCTAssertNil(AudioTrimTime.selection(startText: "0.8", endText: "0.2", preserving: original))
+        XCTAssertNil(AudioTrimTime.selection(startText: "0.2", endText: "0.2", preserving: original))
+    }
+
+    func testAudioWaveformSummaryStaysBoundedForLongRecordingsAndIgnoresPreroll() throws {
+        var summary = try AudioWaveformAccumulator(durationSeconds: 36_000, bucketCount: 4_096)
+        let values: [Float] = [0.5, .nan, .infinity, -0.75, 2]
+        try values.withUnsafeBufferPointer { samples in
+            try summary.append(samples, frames: values.count, channelCount: 1, sampleRate: 8_000, presentationSeconds: -1)
+            XCTAssertFalse(summary.hasSamples)
+            try summary.append(samples, frames: values.count, channelCount: 1, sampleRate: 8_000, presentationSeconds: 35_999)
+        }
+        XCTAssertEqual(summary.peaks.count, 4_096)
+        XCTAssertEqual(summary.peaks.last, 1)
+        XCTAssertEqual(summary.peaks.dropLast().reduce(0, +), 0)
+        XCTAssertThrowsError(try AudioWaveformAccumulator(durationSeconds: 1, bucketCount: 4_097))
+        XCTAssertThrowsError(try AudioWaveformAccumulator(durationSeconds: .nan, bucketCount: 4))
+        try values.withUnsafeBufferPointer { samples in
+            XCTAssertThrowsError(try summary.append(samples, frames: 5, channelCount: 2, sampleRate: 8_000, presentationSeconds: 0))
+            XCTAssertThrowsError(try summary.append(samples, frames: 5, channelCount: 1, sampleRate: .nan, presentationSeconds: 0))
+        }
+    }
+
     func testProcessDrainsBothLargePipesAndBoundsMemory() async throws {
         guard let awk = EngineLocator.find("awk") else { throw XCTSkip("awk is unavailable") }
         let program = "BEGIN { for (i=0; i<6000; i++) { print \"stdout line with enough bytes to fill a pipe\"; print \"stderr line with enough bytes to fill a pipe\" > \"/dev/stderr\" } }"

@@ -228,8 +228,9 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         } else { submit(operation, inputs: selection, options: ConversionOptions()) }
     }
 
-    func submitPending(_ options: ConversionOptions) {
-        guard let operation = pendingOperation else { return }
+    func submitPending(_ options: ConversionOptions, outputExtension: String? = nil) {
+        guard var operation = pendingOperation else { return }
+        if let outputExtension { operation.outputExtension = outputExtension }
         let selection = pendingInputs
         pendingOperation = nil; pendingInputs = []
         submit(operation, inputs: selection, options: options)

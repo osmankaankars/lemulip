@@ -6,7 +6,29 @@ Lemulip is a free, open-source file converter for macOS. Drag local files,
 tap a modifier key, and choose a format or tool from the wheel. Use the workspace
 when you need a queue, conversion options, or a closer look at the result.
 
-## 0.1.3 · Three Themes and Visual Crop
+## 0.1.4 · Hear What You Keep
+
+- Open one audio file in a native waveform editor with start and end handles,
+  editable timestamps, and the selected duration always visible.
+- Use **Play Selection** and **Pause** to listen before creating a copy. Playback
+  stops when the editor closes or the selection changes.
+- Export the selected range as **M4A**, **WAV**, or **AIFF** with native macOS
+  tools. Optional FFmpeg remains available for other conversion routes.
+- Prepare the waveform in bounded chunks in the background. Canceling the
+  editor cancels its preview request and stops playback.
+- Use the same three saved themes and keyboard controls throughout the editor.
+- Include the visual crop editor and three appearances from source 0.1.3 below.
+
+This is a public preview candidate, with source version **0.1.4**. The new
+native editors still need exact-commit Mac builds and hands-on acceptance.
+Download assets appear only after the tagged commit passes the Mac build and
+package checks. Existing tags and releases are preserved.
+
+Read [Audio Waveform Trim](USER_GUIDE.md#audio-waveform-trim) for controls,
+supported inputs, and output precision. Video trimming remains a numeric panel;
+video and PDF previews are the next feature milestone.
+
+## Included From Source 0.1.3 · Three Themes and Visual Crop
 
 - Choose **Orchard Night**, **Vivid Pistachio**, or **Lemon Drop** in Settings.
   Orchard Night stays the default; the app remembers your selection.
@@ -24,11 +46,9 @@ when you need a queue, conversion options, or a closer look at the result.
 The crop editor supports one still raster up to 40 megapixels and 16,384 pixels
 per side. Its preview is capped at 1,600 pixels on the longest edge. Read
 [Visual Image Crop](USER_GUIDE.md#visual-image-crop) for the controls and limits.
-Audio waveform trimming remains the next planned editor.
-
-This is a public preview candidate. Its source version is **0.1.3**; an existing
-tag is never reused. Download assets appear only after the exact tagged commit
-passes the Mac build and package checks described below.
+These changes are included in the 0.1.4 candidate; source 0.1.3 did not create a
+download release. Native image and audio editor acceptance remain separate
+from the previously verified naming and packaging baseline.
 
 ## Naming and Packaging Foundation
 

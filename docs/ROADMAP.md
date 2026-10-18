@@ -12,11 +12,11 @@ the default appearance.
 ## Current Product
 
 The app has a drag wheel, a workspace, a session queue, a floating file shelf,
-and native conversion tools with optional external engines. Source 0.1.3 adds
-three saved appearances and a native visual image crop editor. Media trimming
-still asks for start and end times; its waveform editor is the next feature
-milestone. Native UI acceptance for each new editor remains part of its release
-gate.
+and native conversion tools with optional external engines. Source 0.1.3 added
+three saved appearances and a native visual image crop editor. Source 0.1.4 adds
+an audio waveform editor with range selection and playback. Video trimming
+still asks for numeric start and end times. Native UI acceptance for each new
+editor remains part of its release gate.
 
 The [browser walkthrough](https://osmankaankars.github.io/lemulip/) demonstrates
 the wheel with sample files. It is a simulation and does not convert files.
@@ -85,8 +85,11 @@ cancellation produces no output; and the original file remains unchanged.
 
 Let users hear and see the range they are keeping.
 
-**Next feature milestone after visual crop acceptance.** This remains planned;
-the browser's silent waveform concept is not a native audio editor.
+**Implemented in source 0.1.4; Mac acceptance pending.** The native editor,
+bounded waveform summary, range controls, selection playback, and export route
+are in place. Exact-commit Mac builds and hands-on playback, seeking, keyboard,
+and cancellation checks are still required. The browser's silent waveform
+concept does not run the native editor.
 
 - Decode a bounded waveform summary in the background and show a loading state
   immediately. Allow cancellation while the waveform is prepared.
@@ -97,7 +100,8 @@ the browser's silent waveform concept is not a native audio editor.
 - Describe unsupported codecs or a required engine before export starts.
 - Use native decoding and export for supported media; retain FFmpeg as an optional
   route for additional formats. State when export re-encodes the selected audio.
-- Add silence detection only after manual selection and playback are reliable.
+- Keep silence detection as later work, after manual selection and playback
+  are verified.
 
 **Ready when:** preview playback uses the selected range, exported audio matches
 the documented timestamp precision, playback and export cancel cleanly, and
@@ -106,6 +110,9 @@ long recordings do not require keeping the entire decoded file in memory.
 ## 3. Video and PDF Previews
 
 Build on the editor behavior established by image crop and audio trim.
+
+**Next feature milestone after the image and audio editors pass their Mac
+acceptance checks.** These previews remain planned.
 
 | Editor | Planned Experience |
 | --- | --- |

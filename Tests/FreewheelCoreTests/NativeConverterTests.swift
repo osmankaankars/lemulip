@@ -603,6 +603,172 @@ final class NativeConverterTests: XCTestCase {
         XCTAssertTrue(result.note?.contains("3 words") == true)
     }
 
+    private func audioFixture(_ url: URL, sampleRate: Double = 44_100, channels: Int = 2,
+                              frames: Int = 44_100, sample: (Int, Int) -> Float) throws {
+        try autoreleasepool {
+            let format = try XCTUnwrap(AVAudioFormat(standardFormatWithSampleRate: sampleRate,
+                                                   channels: AVAudioChannelCount(channels)))
+            let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 4_096))
+            let data = try XCTUnwrap(buffer.floatChannelData)
+            let file = try AVAudioFile(forWriting: url, settings: [
+                AVFormatIDKey: kAudioFormatLinearPCM, AVSampleRateKey: sampleRate,
+                AVNumberOfChannelsKey: channels, AVLinearPCMBitDepthKey: 16,
+                AVLinearPCMIsFloatKey: false, AVLinearPCMIsBigEndianKey: false
+            ])
+            var position = 0
+            while position < frames {
+                let count = min(4_096, frames - position)
+                buffer.frameLength = AVAudioFrameCount(count)
+                for channel in 0..<channels {
+                    for frame in 0..<count { data[channel][frame] = sample(position + frame, channel) }
+                }
+                try file.write(from: buffer)
+                position += count
+            }
+        }
+    }
+
+    func testNativeWaveformSummarizesStereoWithoutChangingInput() async throws {
+        let work = try workspace()
+        let input = work.inputs.appendingPathComponent("levels.wav")
+        try audioFixture(input) { frame, channel in
+            let level: Float = [0.1, 0.3, 0.6, 0.9][min(3, frame * 4 / 44_100)]
+            return channel == 0 ? level : -level
+        }
+        let original = try Data(contentsOf: input)
+        let preview = try await NativeConverter.audioTrimPreview(for: input, maxSamples: 4)
+        XCTAssertEqual(preview.durationSeconds, 1, accuracy: 1 / 44_100)
+        XCTAssertEqual(preview.channelCount, 2)
+        XCTAssertEqual(preview.sampleRate, 44_100, accuracy: 0.5)
+        XCTAssertEqual(preview.peaks.count, 4)
+        for (actual, expected) in zip(preview.peaks, [Float(0.1), 0.3, 0.6, 0.9]) {
+            XCTAssertEqual(actual, expected, accuracy: 0.0001)
+        }
+        XCTAssertTrue(preview.nativeOutputExtensions.contains("wav"))
+        XCTAssertTrue(preview.nativeOutputExtensions.contains("aiff"))
+        let maximum = try await NativeConverter.audioTrimPreview(for: input, maxSamples: Int.max)
+        XCTAssertEqual(maximum.peaks.count, 4_096)
+        XCTAssertEqual(try Data(contentsOf: input), original)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: work.inputs.path), ["levels.wav"])
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+    }
+
+    func testNativeWaveformTrimKeepsSelectedPCMFramesAndOriginalBytes() async throws {
+        let work = try workspace()
+        let input = work.inputs.appendingPathComponent("ramp.wav")
+        try audioFixture(input) { frame, channel in
+            Float(frame) / 44_100 * (channel == 0 ? 0.8 : -0.8)
+        }
+        let original = try Data(contentsOf: input)
+        let preview = try await NativeConverter.audioTrimPreview(for: input, maxSamples: 32)
+        let start = 0.123, end = 0.567
+        let expectedFirstFrame = ceil(start * preview.sampleRate)
+        let expectedFrames = ceil(end * preview.sampleRate) - expectedFirstFrame
+        var options = ConversionOptions()
+        options.audioTrim = AudioTrimSelection(startSeconds: start, endSeconds: end,
+                                               sourceDuration: preview.durationSeconds)
+        // Legacy values intentionally disagree: the bound selection is decisive.
+        options.startSeconds = 0; options.endSeconds = 30
+        for ext in ["wav", "aiff"] {
+            let result = try await NativeConverter.convert(inputs: [input], operation: operation("media.trim", ext: ext),
+                options: options, outputDirectory: freshStage(work))
+            let output = try XCTUnwrap(result.outputs.first)
+            XCTAssertTrue(output.lastPathComponent.contains("trimmed"))
+            let file = try AVAudioFile(forReading: output)
+            XCTAssertEqual(file.processingFormat.channelCount, 2)
+            XCTAssertEqual(Double(file.length), expectedFrames, accuracy: 2)
+            let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: 1))
+            try file.read(into: buffer)
+            let channels = try XCTUnwrap(buffer.floatChannelData)
+            XCTAssertEqual(channels[0][0], Float(expectedFirstFrame / 44_100 * 0.8), accuracy: 0.0001)
+            XCTAssertEqual(channels[1][0], -Float(expectedFirstFrame / 44_100 * 0.8), accuracy: 0.0001)
+            file.framePosition = file.length - 1
+            try file.read(into: buffer)
+            XCTAssertEqual(channels[0][0], Float((ceil(end * 44_100) - 1) / 44_100 * 0.8), accuracy: 0.0001)
+            XCTAssertTrue(result.note?.contains("16-bit PCM") == true)
+        }
+        XCTAssertEqual(try Data(contentsOf: input), original)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: work.inputs.path), ["ramp.wav"])
+    }
+
+    func testNativeWaveformTrimReencodesM4AWithCodecPrecisionNotice() async throws {
+        let work = try workspace()
+        let input = work.inputs.appendingPathComponent("tone.wav")
+        try audioFixture(input, channels: 1) { frame, _ in Float(sin(Double(frame) * 2 * .pi * 440 / 44_100)) * 0.2 }
+        let preview = try await NativeConverter.audioTrimPreview(for: input, maxSamples: 32)
+        guard preview.nativeOutputExtensions.contains("m4a") else { throw XCTSkip("This macOS codec set does not export M4A") }
+        var options = ConversionOptions()
+        options.audioTrim = AudioTrimSelection(startSeconds: 0.210, endSeconds: 0.710,
+                                               sourceDuration: preview.durationSeconds)
+        let result = try await NativeConverter.convert(inputs: [input], operation: operation("media.trim", ext: "m4a"),
+            options: options, outputDirectory: work.stage)
+        let asset = AVURLAsset(url: try XCTUnwrap(result.outputs.first))
+        let duration = try await asset.load(.duration)
+        XCTAssertEqual(CMTimeGetSeconds(duration), 0.5, accuracy: 0.08)
+        XCTAssertTrue(result.note?.contains("M4A re-encodes AAC") == true)
+        XCTAssertTrue(result.note?.contains("padding") == true)
+    }
+
+    func testNativeWaveformRejectsInvalidSourcesAndStaleDurationWithoutOutput() async throws {
+        let work = try workspace()
+        let valid = work.inputs.appendingPathComponent("valid.wav")
+        try audioFixture(valid, frames: 4_410) { _, _ in 0.1 }
+        let empty = work.inputs.appendingPathComponent("empty.wav")
+        try Data().write(to: empty)
+        let text = work.inputs.appendingPathComponent("text.txt")
+        try Data("Not audio".utf8).write(to: text)
+        for input in [empty, text, URL(string: "https://example.invalid/recording.wav")!] {
+            do {
+                _ = try await NativeConverter.audioTrimPreview(for: input)
+                XCTFail("An invalid waveform source was accepted")
+            } catch FreewheelError.invalidInput { }
+        }
+        do {
+            _ = try await NativeConverter.audioTrimPreview(for: valid, maxSamples: 0)
+            XCTFail("An empty waveform size was accepted")
+        } catch FreewheelError.invalidInput { }
+        var options = ConversionOptions()
+        options.audioTrim = AudioTrimSelection(startSeconds: 0, endSeconds: 0.05, sourceDuration: 1)
+        do {
+            _ = try await NativeConverter.convert(inputs: [valid], operation: operation("media.trim", ext: "wav"),
+                options: options, outputDirectory: work.stage)
+            XCTFail("A stale source duration was accepted")
+        } catch FreewheelError.invalidInput(let message) { XCTAssertTrue(message.contains("changed")) }
+        // The FFmpeg route must run the same stale-source check before fallback.
+        do {
+            _ = try await ConversionEngine().run(inputs: [valid], operation: operation("media.trim", ext: "mp3"), options: options)
+            XCTFail("A stale waveform was passed to FFmpeg")
+        } catch FreewheelError.invalidInput(let message) { XCTAssertTrue(message.contains("changed")) }
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+        XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: work.inputs.path)), ["valid.wav", "empty.wav", "text.txt"])
+    }
+
+    func testNativeWaveformAndSelectedExportRespectCancellation() async throws {
+        let work = try workspace()
+        let input = work.inputs.appendingPathComponent("recording.wav")
+        try audioFixture(input, frames: 4_410) { _, _ in 0.1 }
+        let original = try Data(contentsOf: input)
+        let waveform = Task.detached {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await NativeConverter.audioTrimPreview(for: input)
+        }
+        do { _ = try await waveform.value; XCTFail("Cancelled waveform preparation completed") }
+        catch is CancellationError { }
+        let export = Task.detached {
+            withUnsafeCurrentTask { $0?.cancel() }
+            var options = ConversionOptions()
+            options.audioTrim = AudioTrimSelection(startSeconds: 0, endSeconds: 0.05, sourceDuration: 0.1)
+            return try await NativeConverter.convert(inputs: [input],
+                operation: FileOperation(id: "media.trim", title: "Trim", outputExtension: "wav"),
+                options: options, outputDirectory: work.stage)
+        }
+        do { _ = try await export.value; XCTFail("Cancelled audio export completed") }
+        catch FreewheelError.cancelled { }
+        XCTAssertEqual(try Data(contentsOf: input), original)
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: work.inputs.path), ["recording.wav"])
+    }
+
     func testNativeAudioExportWritesDecodableAIFF() async throws {
         let work = try workspace()
         let input = work.inputs.appendingPathComponent("tone.wav")

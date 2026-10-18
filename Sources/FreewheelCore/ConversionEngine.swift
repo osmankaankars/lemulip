@@ -9,6 +9,11 @@ public final class ConversionEngine: Sendable {
         do {
             try Task.checkCancellation()
             guard !inputs.isEmpty, inputs.count <= 1_000 else { throw FreewheelError.invalidInput("Select between 1 and 1,000 local files.") }
+            var options = options
+            if let selection = options.audioTrim {
+                options.startSeconds = selection.startSeconds
+                options.endSeconds = selection.endSeconds
+            }
             try validateOptions(options, operation: operation)
             var seen = Set<String>()
             let validated = try inputs.map { input -> URL in
@@ -24,6 +29,11 @@ public final class ConversionEngine: Sendable {
             if options.imageCrop != nil {
                 guard validated.count == 1, FileFamily.detect(validated[0]) == .image else {
                     throw FreewheelError.invalidInput("A selected crop requires exactly one still image.")
+                }
+            }
+            if options.audioTrim != nil {
+                guard validated.count == 1, FileFamily.detect(validated[0]) == .audio else {
+                    throw FreewheelError.invalidInput("A waveform selection requires exactly one audio file.")
                 }
             }
             let destination = (options.destinationDirectory ?? validated[0].deletingLastPathComponent()).standardizedFileURL.resolvingSymlinksInPath()
@@ -47,6 +57,30 @@ public final class ConversionEngine: Sendable {
 
     private func convert(_ inputs: [URL], operation: FileOperation, options: ConversionOptions, stage: URL) async throws -> ConversionResult {
         let families = Set(inputs.map(FileFamily.detect))
+        if let selection = options.audioTrim {
+            #if os(macOS)
+            let ext = operation.outputExtension?.lowercased() ?? "m4a"
+            try await NativeConverter.validateAudioTrimExport(for: inputs[0], selection: selection,
+                                                              outputExtension: ext)
+            if ["m4a", "wav", "aiff", "aif"].contains(ext) {
+                do {
+                    return try await NativeConverter.convert(inputs: inputs, operation: operation,
+                                                              options: options, outputDirectory: stage)
+                } catch FreewheelError.unsupported {
+                    // Both engines receive the exact selected range. The native
+                    // converter removes its partial output before this retry.
+                }
+            }
+            guard EngineLocator.isAvailable("ffmpeg") else { throw FreewheelError.missingDependency("FFmpeg") }
+            var export = operation
+            export.outputExtension = ext
+            let result = try await ExternalConverters.media(inputs, operation: export, options: options, directory: stage)
+            return ConversionResult(outputs: result.outputs,
+                note: "The selected audio was re-encoded locally with FFmpeg. Compressed formats may include codec-frame padding; original files were kept.")
+            #else
+            throw FreewheelError.unsupported("Waveform selections require the native macOS audio editor. The command-line tool accepts start and end times with FFmpeg.")
+            #endif
+        }
         if operation.id.hasPrefix("archive.") { return try await ExternalConverters.archives(inputs, operation: operation, directory: stage) }
         if operation.id == "document.wordCount", inputs.allSatisfy({ ["txt", "md", "markdown", "csv", "tsv", "srt", "vtt"].contains($0.pathExtension.lowercased()) }) {
             let notes = try inputs.map { "\($0.lastPathComponent): \(TextCodec.wordCount(try TextCodec.read($0)))" }
@@ -182,6 +216,15 @@ public final class ConversionEngine: Sendable {
     }
 
     private func validateOptions(_ options: ConversionOptions, operation: FileOperation) throws {
+        if let selection = options.audioTrim {
+            guard operation.id == "media.trim", options.imageCrop == nil else {
+                throw FreewheelError.invalidInput("An audio selection can only be used with Trim Audio.")
+            }
+            try selection.validate()
+            if let ext = operation.outputExtension?.lowercased(), !ExternalConverters.audioExtensions.contains(ext) {
+                throw FreewheelError.invalidInput("Choose an audio output for the selected range.")
+            }
+        }
         if let crop = options.imageCrop {
             guard operation.id == "image.crop" else {
                 throw FreewheelError.invalidInput("An image selection can only be used with Crop Image.")

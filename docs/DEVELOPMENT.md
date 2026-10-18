@@ -115,6 +115,21 @@ wheel paging, dropping into the safe center, menu-bar behavior, keyboard access,
 quitting during a job, and installing a quarantined download on a clean Mac.
 A process that launches successfully is not proof of those interactions.
 
+For audio trimming, verify the selected range against audible playback and
+exported PCM samples. Include mono and opposite-phase stereo, silence, very
+short clips, a nonzero selection, and a full recording whose duration is not an
+exact millisecond. Cancel during waveform preparation, change the range during
+playback, close while seeking, and reopen with a different file. None of those
+steps should resume an old player or apply a stale selection.
+
+`AudioTrim.swift` holds portable selection and waveform reduction logic.
+`AudioWaveform.swift` streams native sample buffers into the bounded summary.
+The UI keeps playback separate from export, shares the selection between
+handles and numeric fields, and passes the selected output format through the
+existing queued operation. The waveform path is cached until its view size
+changes. Playback observations must be removed when playback stops; see Apple's
+[playback progress guidance](https://developer.apple.com/documentation/avfoundation/monitoring-playback-progress-in-your-app).
+
 ## Prepare a Release
 
 ```bash

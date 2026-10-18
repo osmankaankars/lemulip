@@ -81,6 +81,9 @@ public struct ConversionOptions: Sendable {
     public var height: Int = 1200
     /// Nil keeps the command-line tool's centered width/height crop.
     public var imageCrop: ImageCropRegion? = nil
+    /// The visual audio editor binds its range to one recording's duration.
+    /// Nil keeps the command-line tool's independent start/end options.
+    public var audioTrim: AudioTrimSelection? = nil
     public var startSeconds: Double = 0
     public var endSeconds: Double = 30
     public var rotationDegrees: Int = 90

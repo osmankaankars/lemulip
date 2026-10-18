@@ -70,7 +70,7 @@ public enum Catalog {
             return [
                 op("image.compress", "Compress", "arrow.down.right.and.arrow.up.left", "Adjust image quality"),
                 op("image.resize", "Resize", "arrow.up.left.and.arrow.down.right", "Keep the original aspect ratio"),
-                op("image.crop", "Crop", "crop", "Center crop to exact dimensions"),
+                op("image.crop", "Crop", "crop", "Choose the area to keep"),
                 op("image.rotate", "Rotate", "rotate.right", "Rotate in 90° steps"),
                 op("image.flip", "Flip", "arrow.left.and.right.righttriangle.left.righttriangle.right", "Mirror horizontally"),
                 op("image.stripMetadata", "Remove Metadata", "eye.slash", "Create a clean copy")
@@ -96,9 +96,14 @@ public enum Catalog {
                 op("media.volume", "Adjust Volume", "speaker.wave.2", "Change audio volume", "ffmpeg")
             ]
         case .audio:
+            #if os(macOS)
+            let trim = op("media.trim", "Trim", "scissors", "See and hear the range to keep")
+            #else
+            let trim = op("media.trim", "Trim", "scissors", "Choose start and end time", "ffmpeg")
+            #endif
             return [
                 op("media.compress", "Compress", "arrow.down.right.and.arrow.up.left", "Reduce audio bitrate", "ffmpeg"),
-                op("media.trim", "Trim", "scissors", "Choose start and end time", "ffmpeg"),
+                trim,
                 op("media.speed", "Change Speed", "speedometer", "Change playback speed", "ffmpeg"),
                 op("media.volume", "Adjust Volume", "speaker.wave.2", "Change audio volume", "ffmpeg")
             ]
