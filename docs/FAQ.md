@@ -64,6 +64,16 @@ Keep Lemulip running and make sure **Drag Wheel Enabled** is checked in the menu
 
 If the source application does not work with the wheel, add the files to the workspace and choose an operation there. You can also use **Open Wheel** for the clickable version.
 
+## Can I Change the Theme?
+
+Yes. Open **Settings → Appearance → Theme** and choose **Orchard Night**, **Vivid
+Pistachio**, or **Lemon Drop**. Orchard Night is the default. The app remembers
+your selection and applies it across its windows, wheel, and controls.
+
+The two light themes are available even when macOS uses Dark Mode. Changing
+theme keeps your selected files and current jobs in place. See
+[Choose a Theme](USER_GUIDE.md#choose-a-theme).
+
 ## Do I Have to Hold the Modifier Key?
 
 No. Tap the key after the drag begins. The wheel stays open while you continue dragging. Drop onto an operation to select it. Dropping in the center or outside the wheel submits no conversion.
@@ -99,6 +109,11 @@ The app and CLI do not offer PDF password entry. Open a protected PDF with its p
 ## Is the Browser Demo the Real App?
 
 The browser walkthrough uses sample data to explain the interaction. It does not run the macOS conversion engine. Open `site/index.html` from a downloaded checkout to try it locally.
+
+Its **Appearance** selector offers the same three themes. It remembers only the
+selected theme locally when browser storage is available; sample files and
+activity history are not saved. With storage blocked, theme selection still
+works for the current page.
 
 ## How Can I Report a Problem?
 

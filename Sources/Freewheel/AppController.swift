@@ -26,6 +26,13 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
     @Published var language = UserDefaults.standard.string(forKey: "language") ?? (Locale.preferredLanguages.first?.hasPrefix("tr") == true ? "tr" : "en") {
         didSet { UserDefaults.standard.set(language, forKey: "language"); rebuildStatusMenu() }
     }
+    @Published var theme = AppTheme.saved {
+        didSet {
+            guard theme != oldValue else { return }
+            UserDefaults.standard.set(theme.rawValue, forKey: AppTheme.preferenceKey)
+            applyThemeAppearance()
+        }
+    }
     @Published var wheelEnabled = UserDefaults.standard.object(forKey: "wheelEnabled") as? Bool ?? true {
         didSet { UserDefaults.standard.set(wheelEnabled, forKey: "wheelEnabled"); wheel.enabled = wheelEnabled; rebuildStatusMenu() }
     }
@@ -52,10 +59,13 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
     var operations: [FileOperation] { Catalog.operations(for: files, mode: mode) }
     var isBusy: Bool { activity.contains { $0.state == .running || $0.state == .waiting } }
     var completedCount: Int { activity.filter { $0.state == .succeeded }.count }
+    var pendingInputURLs: [URL] { pendingInputs }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
-        NSApp.appearance = NSAppearance(named: Palette.appearanceName)
+        // Normalize missing or unknown preferences to the default theme.
+        UserDefaults.standard.set(theme.rawValue, forKey: AppTheme.preferenceKey)
+        applyThemeAppearance()
         buildWindow()
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         statusItem?.button?.image = NSImage(systemSymbolName: "circle.hexagongrid", accessibilityDescription: "Lemulip")
@@ -102,11 +112,23 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         addFiles(filenames.map { URL(fileURLWithPath: $0) }); showMainWindow(); sender.reply(toOpenOrPrint: .success)
     }
 
+    private func applyThemeAppearance() {
+        // AppKit derives the high-contrast appearance from Aqua or Dark Aqua.
+        NSApp.appearance = NSAppearance(named: theme.appearanceName)
+        for window in [mainWindow].compactMap({ $0 }) + shelfWindows {
+            window.backgroundColor = Palette.canvasColor
+            window.contentView?.needsDisplay = true
+        }
+        // The light themes share Aqua, so redraw the wheel explicitly as well.
+        wheel.refreshAppearance()
+    }
+
     private func buildWindow() {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1050, height: 720), styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
         window.title = "Lemulip"
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
+        window.backgroundColor = Palette.canvasColor
         window.isMovableByWindowBackground = true
         window.isReleasedWhenClosed = false
         window.minSize = NSSize(width: 850, height: 620)
@@ -335,6 +357,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         shelfWindows.removeAll { !$0.isVisible }
         let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 330, height: min(400, 110 + urls.count * 58)), styleMask: [.titled, .closable, .resizable, .utilityWindow], backing: .buffered, defer: false)
         panel.title = text("File Shelf", "Dosya rafı")
+        panel.backgroundColor = Palette.canvasColor
         panel.level = .floating; panel.isReleasedWhenClosed = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.contentView = NSHostingView(rootView: FileShelfView(urls: urls, model: self))

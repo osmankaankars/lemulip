@@ -1,32 +1,42 @@
 # Design
 
-Lemulip should feel lively, useful, and at home on a Mac. **Orchard Night** is
-the selected default: deep orchard-green surfaces, vivid pistachio and lime
-accents, warm white text, and a dimensional folded-ribbon icon. Photos, pages,
-and waveforms keep their own colors.
+Lemulip should feel lively, useful, and at home on a Mac. Choose from **Orchard
+Night**, **Vivid Pistachio**, and **Lemon Drop**. Orchard Night is the default:
+deep orchard-green surfaces, vivid lime accents, and warm white text. All three
+themes share the dimensional folded-ribbon icon. Photos, pages, and waveforms
+keep their own colors.
 
 ## Color System
 
-| Role | Light Appearance | Dark Appearance |
-| --- | --- | --- |
-| Canvas | `#FFF9EB` | `#14251D` |
-| Content Surface | `#FFFEF6` | `#1C3024` |
-| Raised Surface | `#EDF1DC` | `#2C4331` |
-| Main Text | `#173C2A` | `#F2F7E9` |
-| Supporting Text | `#526448` | `#B5C7A5` |
-| Links and Symbols | `#27591F` | `#BDF620` |
-| Primary Action Fill | `#BDF620` | `#BDF620` |
-| Text on Primary Actions | `#173C2A` | `#173C2A` |
-| Warm Accent | `#FF9C45` | `#FF9C45` |
+| Role | Orchard Night | Vivid Pistachio | Lemon Drop |
+| --- | --- | --- | --- |
+| Canvas | `#14251D` | `#FFF9EB` | `#FFFAED` |
+| Content Surface | `#1C3024` | `#FFFEF6` | `#FFFEF7` |
+| Raised Surface | `#2C4331` | `#EDF1DC` | `#FFF0C0` |
+| Main Text | `#F2F7E9` | `#173C2A` | `#3C3318` |
+| Supporting Text | `#B5C7A5` | `#526448` | `#6E6040` |
+| Links and Symbols | `#BDF620` | `#27591F` | `#76551C` |
+| Primary Action Fill | `#BDF620` | `#BDF620` | `#FFDB23` |
+| Text on Primary Actions | `#173C2A` | `#173C2A` | `#3C3318` |
+| Borders | `#42583D` | `#D2DEC5` | `#E7D9B5` |
+| Warm Accent | `#FF9C45` | `#FF9C45` | `#FF9C45` |
 
-Use the bright fill for selection and the main action. Use the darker functional
-green for small text on light surfaces. A bright brand color is not automatically
-a readable text color.
+Use the bright fill for selection and the main action. Use each theme's
+functional color for links and symbols, including the darker green and warm
+brown on light surfaces. A bright brand color is not automatically a readable
+text color.
 
-The native app and website use Orchard Night by default, including when the
-system uses a light appearance. The light tokens remain available for a future
-appearance preference. The web walkthrough is an illustrated simulation, not
-a native app screenshot.
+Choose a native theme in **Settings → Appearance → Theme**. Selection applies
+across the workspace, option panels, drag wheel, file shelves, and native
+controls, and is remembered between launches. Orchard Night uses a dark system
+appearance; Vivid Pistachio and Lemon Drop use a light one. Selection follows
+the app preference rather than switching automatically with macOS. Missing or
+unknown preferences use Orchard Night.
+
+The website has a separate **Appearance** selector and remembers only that
+selection locally when browser storage is available. Sample files and activity
+are not saved. The web walkthrough is an illustrated simulation, not a native
+app screenshot.
 
 ## Materials and Depth
 

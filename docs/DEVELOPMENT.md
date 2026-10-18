@@ -50,6 +50,34 @@ are not public product names and should not be changed as a cosmetic cleanup.
 Apple documents this relationship in
 [The Application Domain](https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/UserDefaults/AboutPreferenceDomains/AboutPreferenceDomains.html).
 
+## Appearance State
+
+The native theme definitions live in `Sources/Freewheel/Theme.swift`. **Orchard
+Night** is the default, with **Vivid Pistachio** and **Lemon Drop** available in
+**Settings → Appearance → Theme**. The existing preferences domain stores the
+selection under `theme`, with only `orchard`, `pistachio`, or `lemonade` accepted.
+Missing or unknown values fall back to Orchard Night. Existing preference keys
+and saved-window state stay compatible.
+
+`AppController.theme` publishes selection changes. `Palette` returns current
+color values instead of caching them by system appearance, since both light
+themes use Aqua. Use `Palette.primaryAction` and `Palette.onPrimary` for primary
+buttons, and `Palette.ink`, `muted`, `accent`, `background`, and `panel` for their
+respective roles. Exact tokens are listed in [Design](DESIGN.md#color-system).
+
+Native views must redraw when the theme changes, including when switching
+between the two light themes. Pass the theme into an `NSViewRepresentable` as an
+explicit value and invalidate its drawing in `updateNSView`. Preserve view
+identity, selected files, pending editor state, and running jobs during a theme
+change. AppKit derives the accessibility appearance from Aqua or Dark Aqua;
+the navigation material uses an opaque fallback for Reduce Transparency and
+Increase Contrast.
+
+The website stores the same three finite values under the local browser key
+`lemulip.appearance`. Its selection is independent of the native app. Invalid
+values use Orchard Night, and unavailable browser storage leaves theme selection
+working for the current page. Sample files and activity history are not saved.
+
 ## Verification in CI
 
 The current commit's [Build and Verify run](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)

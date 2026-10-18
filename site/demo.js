@@ -1,6 +1,6 @@
 "use strict";
 
-// A local, fictional workflow preview. No file access, uploads, storage, or telemetry.
+// A local, fictional workflow preview. No file access, uploads, or telemetry. Only the chosen appearance is saved locally.
 (() => {
   const $ = (id) => document.getElementById(id);
   const demo = $("demo");
@@ -9,6 +9,28 @@
   const ns = "http://www.w3.org/2000/svg";
   const sample = "morning-light.heic";
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
+  const appearanceKey = "lemulip.appearance";
+  const appearances = { orchard: ["Orchard Night", "#14251D"], pistachio: ["Vivid Pistachio", "#FFF9EB"], lemonade: ["Lemon Drop", "#FFFAED"] };
+  const knownAppearance = value => Object.prototype.hasOwnProperty.call(appearances, value);
+  function savedAppearance() {
+    try { const saved = localStorage.getItem(appearanceKey); return knownAppearance(saved) ? saved : "orchard"; }
+    catch { return "orchard"; }
+  }
+  function applyAppearance(value, persist = true) {
+    const key = knownAppearance(value) ? value : "orchard";
+    document.documentElement.dataset.theme = key;
+    document.querySelector('meta[name="theme-color"]').content = appearances[key][1];
+    $("appearance").value = key;
+    if (persist) {
+      try { localStorage.setItem(appearanceKey, key); } catch { /* Appearance still works when storage is unavailable. */ }
+      announce(appearances[key][0] + " appearance selected.");
+    }
+  }
+  applyAppearance(savedAppearance(), false);
+  $("appearance").addEventListener("change", event => applyAppearance(event.target.value));
+  window.addEventListener("storage", event => {
+    if (event.key === appearanceKey || event.key === null) applyAppearance(savedAppearance(), false);
+  });
   const operations = {
     convert: [
       { title: "PNG", extension: "png" }, { title: "JPG", extension: "jpg" },
@@ -79,15 +101,15 @@
     const definitions = svgElement("defs", {});
     const surface = svgElement("linearGradient", { id: "wheel-surface", x1: "0", y1: "0", x2: "0.7", y2: "1" });
     surface.append(
-      svgElement("stop", { offset: "0", "stop-color": "#3C5745" }),
-      svgElement("stop", { offset: "0.55", "stop-color": "#2A4131" }),
-      svgElement("stop", { offset: "1", "stop-color": "#1C3024" })
+      svgElement("stop", { offset: "0", "stop-color": "var(--wheel-stop-1)" }),
+      svgElement("stop", { offset: "0.55", "stop-color": "var(--wheel-stop-2)" }),
+      svgElement("stop", { offset: "1", "stop-color": "var(--wheel-stop-3)" })
     );
     const active = svgElement("linearGradient", { id: "wheel-active", x1: "0", y1: "0", x2: "0.7", y2: "1" });
     active.append(
-      svgElement("stop", { offset: "0", "stop-color": "#E2FF98" }),
-      svgElement("stop", { offset: "0.45", "stop-color": "#BDF620" }),
-      svgElement("stop", { offset: "1", "stop-color": "#A7E817" })
+      svgElement("stop", { offset: "0", "stop-color": "var(--wheel-active-1)" }),
+      svgElement("stop", { offset: "0.45", "stop-color": "var(--accent)" }),
+      svgElement("stop", { offset: "1", "stop-color": "var(--wheel-active-3)" })
     );
     definitions.append(surface, active); wheelSVG.append(definitions);
     operations[mode].forEach((operation, index, all) => {

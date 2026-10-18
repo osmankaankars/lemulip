@@ -45,6 +45,11 @@ final class DragWheelController {
 
     func stop() { timer?.invalidate(); timer = nil; dismiss(); resetDrag() }
 
+    func refreshAppearance() {
+        wheelView?.needsDisplay = true
+        panel?.invalidateShadow()
+    }
+
     func show(files: [URL], mode: WheelMode = .convert) {
         let local = files.filter(\.isFileURL)
         guard !local.isEmpty else { onShowMain?(); return }
@@ -175,8 +180,8 @@ private final class DragWheelView: NSView {
     private var acceptedSequence: Int?
     private var acceptedURLs: [URL] = []
     private var lastScroll = TimeInterval.zero
-    private let accent = Palette.accentColor
-    private let muted = Palette.mutedColor
+    private var accent: NSColor { Palette.accentColor }
+    private var muted: NSColor { Palette.mutedColor }
     private var center: NSPoint { NSPoint(x: 210, y: 210) }
 
     init(frame: NSRect, controller: DragWheelController) {

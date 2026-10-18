@@ -48,6 +48,22 @@ For jobs where order matters, use the up and down arrows beside each file. The d
 | Page Up / Page Down | Change the menu page |
 | Escape | Close the wheel |
 
+## Choose a Theme
+
+Open **Settings → Appearance → Theme** and select a named swatch:
+
+- **Orchard Night:** deep green with vivid lime accents; the default.
+- **Vivid Pistachio:** warm ivory with bright pistachio accents.
+- **Lemon Drop:** warm cream with lemon-yellow accents.
+
+The theme updates the workspace, option panels, wheel, file shelves, and native
+controls, and is remembered the next time you open Lemulip. Your current file
+selection and job progress stay in place when you change it.
+
+The browser walkthrough has its own **Appearance** selector. Its selection is
+saved locally when browser storage is available. Sample files and demo activity
+are kept only for the current page session.
+
 ## Set Options Before a Job
 
 Some operations run as soon as you select them. Others open a panel with relevant settings and a **Create Copy** button.

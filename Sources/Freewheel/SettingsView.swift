@@ -20,11 +20,8 @@ struct SettingsContent: View {
                 Text(model.text("No account, subscription, or conversion limits.", "Hesap, abonelik ya da dönüşüm sınırı yok."))
                     .font(.system(size: 12)).foregroundStyle(Palette.muted)
             }
+            appearanceSettings
             VStack(spacing: 0) {
-                settingRow(model.text("Theme", "Tema"), subtitle: model.text("Vivid lime on deep orchard green", "Koyu orman yeşili üzerinde canlı lime")) {
-                    Text(Palette.themeName).font(.system(size: 12, weight: .medium)).foregroundStyle(Palette.accent)
-                }
-                divider
                 settingRow(model.text("Language", "Dil"), subtitle: model.text("App interface language", "Uygulama arayüzünün dili")) {
                     Picker("", selection: $model.language) { Text("English").tag("en"); Text("Türkçe").tag("tr") }.labelsHidden().frame(width: 132)
                 }
@@ -94,6 +91,46 @@ struct SettingsContent: View {
             }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.accent.opacity(0.04), in: RoundedRectangle(cornerRadius: 13))
         }
     }
+
+    private var appearanceSettings: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(model.text("Appearance", "Görünüm")).font(.system(size: 16, weight: .semibold))
+            Text(model.text("Theme", "Tema")).font(.system(size: 11)).foregroundStyle(Palette.muted)
+            HStack(spacing: 10) {
+                ForEach(AppTheme.allCases) { theme in
+                    Button { model.theme = theme } label: {
+                        VStack(alignment: .leading, spacing: 11) {
+                            HStack(spacing: 6) {
+                                RoundedRectangle(cornerRadius: 5).fill(Palette.color(theme.colors.panel)).frame(width: 23)
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Capsule().fill(Palette.color(theme.colors.ink)).frame(width: 41, height: 4)
+                                    Capsule().fill(Palette.color(theme.colors.muted)).frame(width: 56, height: 3)
+                                    Capsule().fill(Palette.color(theme.colors.primary)).frame(width: 34, height: 12)
+                                }
+                                Spacer(minLength: 0)
+                            }.padding(10).frame(height: 67)
+                                .background(Palette.color(theme.colors.canvas), in: RoundedRectangle(cornerRadius: 9))
+                                .overlay(RoundedRectangle(cornerRadius: 9).stroke(Palette.color(theme.colors.line), lineWidth: 1))
+                                .accessibilityHidden(true)
+                            HStack(spacing: 5) {
+                                Text(theme.name).font(.system(size: 11, weight: .medium)).lineLimit(1).minimumScaleFactor(0.9)
+                                Spacer(minLength: 0)
+                                Image(systemName: model.theme == theme ? "checkmark.circle.fill" : "circle")
+                                    .foregroundStyle(model.theme == theme ? Palette.accent : Palette.muted)
+                                    .font(.system(size: 12))
+                            }.foregroundStyle(Palette.ink)
+                        }.padding(10).frame(maxWidth: .infinity)
+                            .background(Palette.panel, in: RoundedRectangle(cornerRadius: 13))
+                            .overlay(RoundedRectangle(cornerRadius: 13).stroke(model.theme == theme ? Palette.accent : Palette.line, lineWidth: model.theme == theme ? 2 : 1))
+                    }.buttonStyle(.plain)
+                        .accessibilityLabel(theme.name)
+                        .accessibilityValue(model.theme == theme ? model.text("Selected", "Seçili") : model.text("Not Selected", "Seçili değil"))
+                        .accessibilityHint(model.text("Apply This Theme", "Bu temayı uygula"))
+                }
+            }
+        }
+    }
+
     private var divider: some View { Rectangle().fill(Palette.line).frame(height: 1).padding(.horizontal, 17) }
     private func settingRow<Control: View>(_ title: String, subtitle: String, @ViewBuilder control: () -> Control) -> some View {
         HStack(spacing: 16) {
