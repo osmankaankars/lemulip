@@ -12,7 +12,7 @@ Files are processed on your Mac. No account, subscription, uploads, or analytics
 
 ## Get Started
 
-**Lemulip is an early source preview.** A downloadable Mac release is not available yet. Check [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml) for the current build result. Finder drag compatibility and the full desktop workflow still need hands-on testing. Preview packages use ad-hoc signing, without Apple Developer ID signing or notarization.
+**Lemulip is an early public preview.** Check [Releases](https://github.com/osmankaankars/lemulip/releases) for verified Mac downloads. If the current release has no app assets, build from source below. [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml) tests Apple silicon and Intel and checks the exact universal packages before publishing. Finder drag compatibility and the full desktop workflow still need hands-on testing. Preview packages use ad-hoc signing, without Apple Developer ID signing or notarization.
 
 You need **macOS 13 or later** and **Swift 5.9 or later** from Xcode or Command Line Tools.
 
@@ -32,7 +32,7 @@ Missing developer tools? Run `xcode-select --install` first. For full Xcode sele
 2. Tap **⇧ Shift** for formats, **⌘ Command** for tools, or **⌃ Control** for file actions.
 3. Drop onto the operation you want.
 
-You can release the modifier key while you keep dragging. The center cancels; a drop outside the wheel submits no conversion. Tools with options, such as crop or trim, open a small settings panel before the job starts.
+You can release the modifier key while you keep dragging. The center cancels; a drop outside the wheel submits no conversion. Tools with options open an editor or settings panel before the job starts.
 
 ![Interactive browser preview with a sample file and conversion wheel.](docs/assets/demo-preview.png)
 
@@ -46,7 +46,7 @@ Prefer a window? Add files with **⌘O**, drop them into the workspace, or choos
 
 | Work With | Examples |
 | --- | --- |
-| Images | PNG, JPEG, HEIC, TIFF and BMP; resize, crop, rotate, remove metadata; images to PDF |
+| Images | PNG, JPEG, HEIC, TIFF and BMP; visual crop, resize, rotate, remove metadata; images to PDF |
 | PDFs | Merge, split, extract pages, rotate, export pages as images, extract text, offline OCR |
 | Audio and video | Native media conversion where macOS codecs allow it; more formats, trimming and compression with FFmpeg |
 | Documents and tables | Microsoft Word (DOCX), Excel (XLSX), PowerPoint (PPTX), text, CSV ↔ TSV, and subtitles; some routes need an optional local engine |
@@ -55,7 +55,27 @@ Prefer a window? Add files with **⌘O**, drop them into the workspace, or choos
 
 Formats depend on the input, installed engines, and available codecs. [The format guide](docs/FORMATS.md) lists supported routes and fidelity limits.
 
-Image cropping currently uses centered dimensions, and media trimming uses start and end times. Visual crop handles and an audio waveform editor are [planned next](docs/ROADMAP.md#1-visual-image-crop); the browser walkthrough does not include those editors.
+## See What You Keep
+
+Open **Tools → Crop** with a single image. Move the selection, drag any of its
+eight handles, or choose an aspect ratio. Exact pixel dimensions and keyboard
+movement help with the last adjustment. **Create Copy** crops the original
+resolution and leaves your source file in place.
+
+The editor prepares a bounded preview in the background. Its first version
+supports one still raster image at a time, up to 40 megapixels and 16,384 pixels
+per side. See [Visual Image Crop](docs/USER_GUIDE.md#visual-image-crop) for controls
+and format limits. Media trimming still uses start and end times; an audio
+waveform editor is [the next feature milestone](docs/ROADMAP.md#2-audio-waveform-trim).
+
+## Make It Yours
+
+Choose **Orchard Night**, **Vivid Pistachio**, or **Lemon Drop** in
+**Settings → Appearance → Theme**. Orchard Night is the default. Lemulip remembers
+your choice and applies it across the workspace, wheel, and editors.
+
+Try the same three appearances in the browser walkthrough. The walkthrough
+uses sample files; it does not perform conversions or run the native crop editor.
 
 ## Start With What Is Built In
 

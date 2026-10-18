@@ -29,7 +29,11 @@ struct DashboardView: View {
         .tint(Palette.accent)
         .frame(minWidth: 850, minHeight: 620)
         .sheet(item: $model.pendingOperation, onDismiss: { model.cancelPending() }) { operation in
-            OperationOptionsView(model: model, operation: operation)
+            if operation.id == "image.crop" {
+                ImageCropView(model: model, inputs: model.pendingInputURLs)
+            } else {
+                OperationOptionsView(model: model, operation: operation)
+            }
         }
         .alert(model.text("Lemulip", "Lemulip"), isPresented: Binding(get: { model.alertMessage != nil }, set: { if !$0 { model.alertMessage = nil } })) {
             Button(model.text("OK", "Tamam"), role: .cancel) { model.alertMessage = nil }

@@ -41,7 +41,7 @@
     tools: [
       { title: "Compress", detail: "The Mac app asks for image quality before creating a new copy." },
       { title: "Resize", detail: "The Mac app asks for new dimensions and keeps the image's aspect ratio." },
-      { title: "Crop", detail: "The Mac app asks for a width and height for a centered crop." },
+      { title: "Crop", detail: "The Mac app opens a visual crop editor for one image, with handles, aspect ratios, and exact pixel dimensions. This walkthrough does not run that editor." },
       { title: "Rotate", detail: "The Mac app lets you rotate in 90-degree steps." },
       { title: "Flip", detail: "The Mac app creates a horizontally mirrored copy." },
       { title: "Remove Metadata", detail: "The Mac app creates a copy with metadata removed." }

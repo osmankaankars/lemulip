@@ -6,7 +6,31 @@ Lemulip is a free, open-source file converter for macOS. Drag local files,
 tap a modifier key, and choose a format or tool from the wheel. Use the workspace
 when you need a queue, conversion options, or a closer look at the result.
 
-## Lemulip Naming Update · Unreleased
+## 0.1.3 · Three Themes and Visual Crop
+
+- Choose **Orchard Night**, **Vivid Pistachio**, or **Lemon Drop** in Settings.
+  Orchard Night stays the default; the app remembers your selection.
+- Change appearance across the workspace, wheel, editors, and file shelf while
+  keeping the current selection and job state.
+- Crop one image on a native canvas with eight handles, preset aspect ratios,
+  exact pixel dimensions, an optional thirds grid, and keyboard movement.
+- Preview images in the background at a bounded resolution. Export the selected
+  area from the original pixels with matching image orientation.
+- Explain unsupported multi-file, animated, SVG, or codec inputs before a crop
+  runs. The CLI keeps its existing centered-crop behavior.
+- Try all three appearances in the browser walkthrough. The page remembers
+  only the selected appearance when local storage is available.
+
+The crop editor supports one still raster up to 40 megapixels and 16,384 pixels
+per side. Its preview is capped at 1,600 pixels on the longest edge. Read
+[Visual Image Crop](USER_GUIDE.md#visual-image-crop) for the controls and limits.
+Audio waveform trimming remains the next planned editor.
+
+This is a public preview candidate. Its source version is **0.1.3**; an existing
+tag is never reused. Download assets appear only after the exact tagged commit
+passes the Mac build and package checks described below.
+
+## Naming and Packaging Foundation
 
 - Lemulip is the product name across the app, CLI, website, guides, and packaging.
 - Orchard Night remains the default appearance, with the approved green and
@@ -19,9 +43,9 @@ when you need a queue, conversion options, or a closer look at the result.
 - Universal packaging passes the input binary before `lipo -verify_arch`, fixing
   the argument-order error that stopped architecture verification.
 
-The current source version remains **0.1.2**. This naming update does not
-replace an existing tag or claim a completed Mac build. The first Lemulip
-download release needs a new version and tag after the Mac checks pass.
+The previous naming update at `46cb4dc` passed both Mac test jobs, universal
+packaging, both downloaded-package verification jobs, and CodeQL. That baseline
+does not establish the result for a newer commit.
 
 ## In This Preview
 

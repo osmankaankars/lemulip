@@ -7,8 +7,6 @@ struct OperationOptionsView: View {
     let operation: FileOperation
     @State private var quality = 0.82
     @State private var maxDimension = "1920"
-    @State private var width = "1200"
-    @State private var height = "1200"
     @State private var start = "0"
     @State private var end = "30"
     @State private var pageRange = "1"
@@ -35,11 +33,6 @@ struct OperationOptionsView: View {
                 if operation.id.hasSuffix("resize") || operation.id == "pdf.compress" {
                     field(model.text("Maximum Dimension (px)", "En büyük kenar (piksel)"), value: $maxDimension)
                     Text(model.text("Keeps the aspect ratio and never enlarges smaller images.", "En boy oranını korur; küçük görselleri büyütmez."))
-                        .font(.system(size: 10)).foregroundStyle(Palette.muted)
-                }
-                if operation.id == "image.crop" {
-                    HStack(spacing: 18) { field(model.text("Width (px)", "Genişlik (piksel)"), value: $width); field(model.text("Height (px)", "Yükseklik (piksel)"), value: $height) }
-                    Text(model.text("The crop is centered. Dimensions larger than the image are rejected.", "Kırpma merkezden yapılır. Görselden büyük ölçüler kabul edilmez."))
                         .font(.system(size: 10)).foregroundStyle(Palette.muted)
                 }
                 if operation.id == "media.trim" {
@@ -85,9 +78,6 @@ struct OperationOptionsView: View {
         if operation.id.hasSuffix("resize") || operation.id == "pdf.compress" {
             guard let dimension = Int(maxDimension), (16...16000).contains(dimension) else { return model.text("Enter a dimension between 16 and 16000 pixels.", "16 ile 16000 piksel arasında bir ölçü gir.") }
         }
-        if operation.id == "image.crop" {
-            guard let w = Int(width), let h = Int(height), (1...16000).contains(w), (1...16000).contains(h) else { return model.text("Enter positive dimensions up to 16000 pixels.", "16000 piksele kadar pozitif ölçüler gir.") }
-        }
         if operation.id == "media.trim" {
             guard let s = Double(start.replacingOccurrences(of: ",", with: ".")), let e = Double(end.replacingOccurrences(of: ",", with: ".")), s.isFinite, e.isFinite, s >= 0, e > s else { return model.text("End time must be after the non-negative start time.", "Bitiş başlangıçtan sonra olmalı; süreler negatif olamaz.") }
         }
@@ -97,7 +87,6 @@ struct OperationOptionsView: View {
     private func submit() {
         var options = ConversionOptions()
         options.quality = quality; options.maxDimension = Int(maxDimension) ?? 1920
-        options.width = Int(width) ?? 1200; options.height = Int(height) ?? 1200
         options.startSeconds = Double(start.replacingOccurrences(of: ",", with: ".")) ?? 0
         options.endSeconds = Double(end.replacingOccurrences(of: ",", with: ".")) ?? 30
         options.pageRange = pageRange; options.rotationDegrees = rotation; options.speedMultiplier = speed; options.volumeMultiplier = volume

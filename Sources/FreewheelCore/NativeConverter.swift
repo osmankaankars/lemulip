@@ -8,6 +8,14 @@ import ImageIO
 import PDFKit
 import Vision
 
+/// ImageIO creates an immutable CGImage. This value crosses from a background
+/// decode task to the editor; neither the pixels nor the dimensions are mutated.
+public struct ImageCropPreview: @unchecked Sendable {
+    public let image: CGImage
+    public let sourceWidth: Int
+    public let sourceHeight: Int
+}
+
 /// Local Apple-framework conversions. The caller owns a fresh, private staging
 /// directory and publishes the returned files only after the whole job succeeds.
 public enum NativeConverter {
@@ -17,6 +25,36 @@ public enum NativeConverter {
     private static let maximumPages = 1_000
     private static let maximumOutputs = 10_000
     private static let maximumTextBytes = 32 * 1_024 * 1_024
+    private static let maximumCropPreviewEdge = 1_600
+
+    /// A bounded, orientation-correct preview. Crop coordinates always refer to
+    /// sourceWidth/sourceHeight, not to this smaller image's pixel dimensions.
+    public static func imageCropPreview(for input: URL, maxPixelSize: Int = 1_600) throws -> ImageCropPreview {
+        try Task.checkCancellation()
+        guard maxPixelSize > 0 else {
+            throw FreewheelError.invalidInput("The crop preview size must be positive.")
+        }
+        return try autoreleasepool {
+            let original = try cropImageSource(input)
+            // The editor saves in the source format. Check that encoder before
+            // offering a selection the user would be unable to export.
+            do { _ = try imageDestinationType(input.pathExtension.lowercased()) }
+            catch FreewheelError.unsupported {
+                throw FreewheelError.unsupported("macOS cannot save a visual crop in this image's format. Convert it to PNG or JPEG first, then open the crop editor.")
+            }
+            let edge = min(maxPixelSize, maximumCropPreviewEdge)
+            let frame: ImageFrame
+            do { frame = try decodeImage(original.source, index: 0, longEdge: edge) }
+            catch FreewheelError.unsupported {
+                throw FreewheelError.unsupported("macOS cannot preview this image for cropping. Convert it to PNG or JPEG first.")
+            }
+            try Task.checkCancellation()
+            guard frame.image.width <= edge, frame.image.height <= edge else {
+                throw FreewheelError.operationFailed("The image decoder exceeded the crop preview size limit.")
+            }
+            return ImageCropPreview(image: frame.image, sourceWidth: original.width, sourceHeight: original.height)
+        }
+    }
 
     public static func convert(
         inputs: [URL], operation: FileOperation, options: ConversionOptions,
@@ -25,6 +63,21 @@ public enum NativeConverter {
         try validateJob(inputs: inputs, outputDirectory: outputDirectory)
         do {
             try Task.checkCancellation()
+            if let crop = options.imageCrop {
+                guard operation.id == "image.crop", inputs.count == 1,
+                      FileFamily.detect(inputs[0]) == .image else {
+                    throw FreewheelError.invalidInput("A selected crop requires Crop Image and exactly one still image.")
+                }
+                try crop.validateBounds()
+                try validateDimensions(width: crop.sourceWidth, height: crop.sourceHeight)
+                guard inputs[0].pathExtension.lowercased() != "svg" else {
+                    throw FreewheelError.unsupported("Visual cropping needs a still raster image. Convert SVG to PNG first.")
+                }
+                // This route also rejects non-raster output types rather than
+                // accidentally entering imagesToPDF and discarding the selection.
+                return try await convertImages(inputs, operation: operation, options: options,
+                                               directory: outputDirectory)
+            }
             if operation.id == "pdf.merge" {
                 return try mergePDFs(inputs, options: options, directory: outputDirectory)
             }
@@ -145,8 +198,50 @@ public enum NativeConverter {
         return source
     }
 
+    private static func cropImageSource(_ input: URL) throws -> (source: CGImageSource, width: Int, height: Int) {
+        try Task.checkCancellation()
+        guard input.isFileURL, !input.path.contains("\0") else {
+            throw FreewheelError.invalidInput("Choose a local image to crop.")
+        }
+        guard FileFamily.detect(input) == .image, input.pathExtension.lowercased() != "svg" else {
+            throw FreewheelError.unsupported("Visual cropping needs a still raster image. Convert SVG or other documents to PNG first.")
+        }
+        let values = try input.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey])
+        guard values.isRegularFile == true, FileManager.default.isReadableFile(atPath: input.path),
+              (values.fileSize ?? 0) > 0 else {
+            throw FreewheelError.invalidInput("Choose a nonempty, readable image file to crop.")
+        }
+        let source: CGImageSource
+        do { source = try imageSource(input) }
+        catch FreewheelError.unsupported {
+            throw FreewheelError.unsupported("macOS cannot read this image for cropping. Convert it to PNG or JPEG first.")
+        }
+        guard CGImageSourceGetCount(source) == 1 else {
+            throw FreewheelError.unsupported("Visual cropping supports one still image. Export animated or multipage images to PNG first.")
+        }
+        guard let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [String: Any],
+              let rawWidth = (properties[kCGImagePropertyPixelWidth as String] as? NSNumber)?.doubleValue,
+              let rawHeight = (properties[kCGImagePropertyPixelHeight as String] as? NSNumber)?.doubleValue,
+              rawWidth.isFinite, rawHeight.isFinite, rawWidth >= 1, rawHeight >= 1,
+              rawWidth <= Double(maximumDimension), rawHeight <= Double(maximumDimension),
+              rawWidth.rounded(.towardZero) == rawWidth, rawHeight.rounded(.towardZero) == rawHeight else {
+            throw FreewheelError.invalidInput("Visual cropping supports original images up to 16,384 pixels per edge and 40 megapixels.")
+        }
+        let width = Int(rawWidth), height = Int(rawHeight)
+        // Reject an oversized original before requesting even a tiny thumbnail:
+        // the same original must be safe to decode when the selection is saved.
+        try validateDimensions(width: width, height: height)
+        let orientation = (properties[kCGImagePropertyOrientation as String] as? NSNumber)?.intValue ?? 1
+        guard (1...8).contains(orientation) else {
+            throw FreewheelError.invalidInput("This image has an invalid orientation. Export a new PNG or JPEG before cropping.")
+        }
+        try Task.checkCancellation()
+        return (source, orientation >= 5 ? height : width, orientation >= 5 ? width : height)
+    }
+
     private static func decodeImage(_ source: CGImageSource, index: Int,
                                     longEdge: Int? = nil) throws -> ImageFrame {
+        try Task.checkCancellation()
         guard let properties = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [String: Any],
               let width = (properties[kCGImagePropertyPixelWidth as String] as? NSNumber)?.intValue,
               let height = (properties[kCGImagePropertyPixelHeight as String] as? NSNumber)?.intValue,
@@ -168,6 +263,7 @@ public enum NativeConverter {
         guard let image = CGImageSourceCreateThumbnailAtIndex(source, index, decodeOptions as CFDictionary) else {
             throw FreewheelError.unsupported("macOS could not decode an image frame. Try the optional image engine.")
         }
+        try Task.checkCancellation()
         try validateDimensions(width: image.width, height: image.height)
         return ImageFrame(image: image, properties: properties)
     }
@@ -181,13 +277,22 @@ public enum NativeConverter {
         }
         let quality = try checkedQuality(options.quality)
         let longEdge = operation.id == "image.resize" ? try checkedLongEdge(options.maxDimension) : nil
-        if operation.id == "image.crop" { try validateDimensions(width: options.width, height: options.height) }
+        if operation.id == "image.crop", options.imageCrop == nil {
+            try validateDimensions(width: options.width, height: options.height)
+        }
         var outputs: [URL] = []
         var notes = Set<String>()
         for input in inputs {
             try Task.checkCancellation()
             let ext = outputExtension(operation) ?? (input.pathExtension.lowercased() == "svg" ? "png" : input.pathExtension.lowercased())
-            let type = try imageDestinationType(ext)
+            let type: String
+            do { type = try imageDestinationType(ext) }
+            catch FreewheelError.unsupported {
+                guard options.imageCrop == nil else {
+                    throw FreewheelError.unsupported("macOS cannot save the selected crop as \(ext.uppercased()). Convert the source to PNG or JPEG first, then make a new selection.")
+                }
+                throw FreewheelError.unsupported("macOS cannot encode \(ext.uppercased()) on this system. Enable the optional image engine.")
+            }
             let suffix = operation.id.hasPrefix("image.") ? "-" + String(operation.id.dropFirst(6)) : "-converted"
             if input.pathExtension.lowercased() == "svg" {
                 let frame = try await rasterizeSVG(input, longEdge: longEdge)
@@ -197,7 +302,14 @@ public enum NativeConverter {
                 outputs.append(output)
                 notes.insert("SVG output is rasterized. External SVG resources are not loaded.")
             } else {
-                let source = try imageSource(input)
+                let source: CGImageSource
+                if let crop = options.imageCrop {
+                    let original = try cropImageSource(input)
+                    guard crop.sourceWidth == original.width, crop.sourceHeight == original.height else {
+                        throw FreewheelError.invalidInput("The image dimensions changed after the crop was selected. Open the crop editor again.")
+                    }
+                    source = original.source
+                } else { source = try imageSource(input) }
                 let count = CGImageSourceGetCount(source)
                 guard count <= maximumOutputs - outputs.count else {
                     throw FreewheelError.invalidInput("A batch can produce at most \(maximumOutputs) image files. Split this selection into smaller batches.")
@@ -208,9 +320,16 @@ public enum NativeConverter {
                     let output = outputURL(input, suffix: String(suffix) + (count > 1 ? String(format: "-frame-%03d", index + 1) : ""),
                                            ext: ext, directory: directory)
                     try autoreleasepool {
-                        let frame = try decodeImage(source, index: index, longEdge: longEdge)
-                        try processImage(frame, operation: operation, options: options, quality: quality,
-                                         type: type, destination: output)
+                        do {
+                            let frame = try decodeImage(source, index: index, longEdge: longEdge)
+                            try processImage(frame, operation: operation, options: options, quality: quality,
+                                             type: type, destination: output)
+                        } catch FreewheelError.unsupported(let message) {
+                            guard options.imageCrop == nil else {
+                                throw FreewheelError.unsupported("macOS could not finish this selected crop in \(ext.uppercased()). Convert the source to PNG or JPEG first, then make a new selection.")
+                            }
+                            throw FreewheelError.unsupported(message)
+                        }
                     }
                     outputs.append(output)
                 }
@@ -219,23 +338,34 @@ public enum NativeConverter {
                 notes.insert("This format uses lossless image encoding; the quality slider affects JPEG and HEIC. A smaller file is not guaranteed.")
             }
         }
+        try Task.checkCancellation()
         return ConversionResult(outputs: outputs, note: notes.isEmpty ? nil : notes.sorted().joined(separator: " "))
     }
 
     private static func processImage(_ frame: ImageFrame, operation: FileOperation,
                                      options: ConversionOptions, quality: Double,
                                      type: String, destination: URL) throws {
+        try Task.checkCancellation()
         var image = frame.image
         switch operation.id {
         case "image.crop":
-            guard options.width <= image.width, options.height <= image.height else {
-                throw FreewheelError.invalidInput("Crop dimensions exceed this image's \(image.width) × \(image.height) pixels. Choose a smaller crop.")
+            let rect: CGRect
+            if let crop = options.imageCrop {
+                try crop.validateBounds()
+                guard crop.sourceWidth == image.width, crop.sourceHeight == image.height else {
+                    throw FreewheelError.invalidInput("The decoded image no longer matches the crop preview. Open the crop editor again.")
+                }
+                // CGImage crops use the first pixel of the top row as (0, 0).
+                rect = CGRect(x: crop.x, y: crop.y, width: crop.width, height: crop.height)
+            } else {
+                guard options.width <= image.width, options.height <= image.height else {
+                    throw FreewheelError.invalidInput("Crop dimensions exceed this image's \(image.width) × \(image.height) pixels. Choose a smaller crop.")
+                }
+                rect = CGRect(x: (image.width - options.width) / 2, y: (image.height - options.height) / 2,
+                              width: options.width, height: options.height)
             }
-            let width = options.width, height = options.height
-            let rect = CGRect(x: (image.width - width) / 2, y: (image.height - height) / 2,
-                              width: width, height: height)
             guard let cropped = image.cropping(to: rect) else {
-                throw FreewheelError.operationFailed("The centered crop could not be created.")
+                throw FreewheelError.operationFailed("The crop could not be created.")
             }
             image = cropped
         case "image.rotate": image = try rotatedImage(image, degrees: options.rotationDegrees)
@@ -249,6 +379,7 @@ public enum NativeConverter {
         let strip = options.removeMetadata || operation.id == "image.stripMetadata"
         try writeImage(image, type: type, quality: quality,
                        properties: strip ? [:] : frame.properties, destination: destination)
+        try Task.checkCancellation()
     }
 
     private static func bitmap(width: Int, height: Int, opaque: Bool = false) throws -> CGContext {

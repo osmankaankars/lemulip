@@ -72,7 +72,7 @@ Some operations run as soon as you select them. Others open a panel with relevan
 | --- | --- |
 | Compress | Quality; PDF compression also has a maximum dimension |
 | Resize | Maximum dimension in pixels; keeps the aspect ratio and does not enlarge smaller images |
-| Crop | Exact width and height; the crop is centered |
+| Crop | Visual selection, aspect ratio, and exact pixel dimensions for one image |
 | Rotate | 90°, 180°, or 270° clockwise |
 | Trim | Start and end time in seconds |
 | Extract PDF pages | Page numbers and ranges, such as `1,3-5,8` |
@@ -80,6 +80,45 @@ Some operations run as soon as you select them. Others open a panel with relevan
 | Adjust volume | Level from 0% to 300% |
 
 PDF page numbers start at 1. Crop dimensions must fit within the image. Media tools require FFmpeg in the desktop interface.
+
+### Visual Image Crop
+
+Select one image, choose **Tools → Crop**, and wait for its preview to appear.
+The original dimensions are shown above the canvas. Nothing is written while
+you adjust the selection.
+
+| Control | Action |
+| --- | --- |
+| Drag inside the selection | Move the crop without changing its size |
+| Drag a corner or edge handle | Resize the crop; all eight handles stay inside the image |
+| Drag in the dimmed area | Draw a new selection |
+| **Aspect Ratio** | Choose Free, Original, 1:1, 4:3, 3:4, 16:9, or 9:16 |
+| **Width / Height** | Enter exact output dimensions in pixels; this switches to Free |
+| Arrow keys with the canvas focused | Move by one pixel; hold Shift for ten pixels |
+| **Show Grid** | Show or hide the thirds grid |
+| **Reset** | Select the full image and return to Free |
+| **Cancel** or Escape | Close the editor without creating a file |
+| **Create Copy** | Queue the crop through the normal output workflow |
+
+Tab moves between the canvas and the controls. The canvas shows a focus border,
+announces the crop dimensions and position to assistive technology, and offers
+accessible move actions. Fixed ratios round to whole pixels.
+
+The preview is limited to 1,600 pixels on its longest edge. Export reads the
+original image and applies the selection at its full resolution, with the same
+orientation as the preview. Transparent areas use a checkerboard in the editor;
+output transparency depends on the image format. JPEG, for example, has none.
+
+This first editor supports a single still raster that macOS can decode and
+write. Multiple files, animated or other multi-frame images, SVG, and unavailable
+codecs show an explanation instead of choosing an arbitrary frame or changing
+the selected region. Convert an unsupported input to a still PNG first when
+that is appropriate for your task. The original raster must fit within
+40 megapixels and 16,384 pixels per side. Cancel while the preview is loading
+to discard the request.
+
+The command-line `image.crop --width … --height …` command keeps its existing
+centered-crop behavior. Use the desktop editor to choose a different position.
 
 ### PDF Compression
 

@@ -185,7 +185,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
     @objc func showSettings() { section = "settings"; engineRefresh += 1; showMainWindow() }
     @objc private func toggleWheel() { wheelEnabled.toggle() }
     @objc private func showAbout() {
-        NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Lemulip", .applicationVersion: "0.1.2", .credits: NSAttributedString(string: "Free, open-source file conversion.\nCreated by Kaan Kars · MIT licensed\nAll processing happens on this Mac.")])
+        NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Lemulip", .applicationVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Source Preview", .credits: NSAttributedString(string: "Free, open-source file conversion.\nCreated by Kaan Kars · MIT licensed\nAll processing happens on this Mac.")])
     }
 
     @objc func chooseFiles() {
@@ -221,6 +221,9 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         if operation.id.hasPrefix("action.") { performFileAction(operation, inputs: selection); return }
         let withOptions: Set<String> = ["image.compress", "image.resize", "image.crop", "image.rotate", "pdf.extract", "pdf.rotate", "pdf.compress", "media.compress", "media.trim", "media.resize", "media.speed", "media.volume"]
         if withOptions.contains(operation.id) {
+            // A second global-wheel drop must not replace the input shown by
+            // an open editor, including another crop with the same operation ID.
+            guard pendingOperation == nil else { showMainWindow(); return }
             pendingInputs = selection; pendingOperation = operation; showMainWindow()
         } else { submit(operation, inputs: selection, options: ConversionOptions()) }
     }

@@ -11,12 +11,25 @@ The tables below describe the current implementation. Some features still need b
 | Images → PNG, JPEG, HEIC, TIFF, BMP | macOS ImageIO; ImageMagick fallback | Input decoding and output codecs depend on the installed system |
 | Images → WebP, AVIF | ImageMagick | Requires an ImageMagick build with the relevant codec |
 | Images → PDF | Built in | Multiple images become pages in the displayed order |
-| Compress, resize, center crop, rotate, horizontal flip, remove metadata | Built in; ImageMagick fallback | Creates a new copy |
+| Compress, resize, rotate, horizontal flip, remove metadata | Built in; ImageMagick fallback | Creates a new copy |
+| Visual image crop | macOS ImageIO | One still raster; exports the selected area from the original resolution |
+| CLI centered crop | Built in; ImageMagick fallback | Uses `--width` and `--height`; creates a new copy |
 | SVG → raster image | Restricted native rendering; ImageMagick fallback | Self-contained SVG only; scripts and external content are rejected |
 
 Recognized image extensions include PNG, JPEG, HEIC/HEIF, TIFF, BMP, WebP, AVIF, GIF, ICO, and SVG. Recognition alone does not guarantee that a particular file can be decoded.
 
-The native converter exports every frame of a multi-frame image as separate still files. Animation timing is not preserved. The ImageMagick fallback uses the first frame only. For animated GIF output, use a video input with FFmpeg.
+For ordinary image conversion, the native converter exports every frame of a
+multi-frame image as separate still files. Animation timing is not preserved.
+The ImageMagick fallback uses the first frame only. For animated GIF output,
+use a video input with FFmpeg.
+
+The visual crop editor requires one still raster image that macOS can decode
+and encode in its output format. Its preview is at most 1,600 pixels on the
+longest edge; the original must fit within 40 megapixels and 16,384 pixels per
+side. Preview and export apply image orientation consistently. SVG, multiple
+inputs, multi-frame images, and unsupported codecs receive an explicit error.
+A selected crop never falls back to a centered crop or exports the preview
+bitmap. [The user guide](USER_GUIDE.md#visual-image-crop) describes its controls.
 
 Transparency is flattened onto white for formats such as JPEG and BMP. Image conversions remove metadata by default.
 

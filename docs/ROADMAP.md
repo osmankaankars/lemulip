@@ -12,9 +12,11 @@ the default appearance.
 ## Current Product
 
 The app has a drag wheel, a workspace, a session queue, a floating file shelf,
-and native conversion tools with optional external engines. Its current image
-crop asks for centered dimensions. Media trimming asks for start and end times.
-Neither dialog provides an image selection canvas or an audio waveform.
+and native conversion tools with optional external engines. Source 0.1.3 adds
+three saved appearances and a native visual image crop editor. Media trimming
+still asks for start and end times; its waveform editor is the next feature
+milestone. Native UI acceptance for each new editor remains part of its release
+gate.
 
 The [browser walkthrough](https://osmankaankars.github.io/lemulip/) demonstrates
 the wheel with sample files. It is a simulation and does not convert files.
@@ -24,6 +26,14 @@ Read [Formats](FORMATS.md) for the actual conversion routes and their limits.
 
 Make the first downloadable preview dependable before expanding the feature
 list.
+
+**Verified baseline:** the Lemulip naming and universal packaging update at
+`46cb4dc` passed [both Mac test jobs and exact downloaded-package checks](https://github.com/osmankaankars/lemulip/actions/runs/39127334291),
+[CodeQL](https://github.com/osmankaankars/lemulip/actions/runs/39127334294), and
+[Pages deployment](https://github.com/osmankaankars/lemulip/actions/runs/39127338673)
+on October 18, 2026. Both Mac runners launched the downloaded app briefly and
+verified the packaged CLI. New source changes must pass these gates again;
+the baseline does not verify the new themes or crop editor.
 
 - Keep the GUI and CLI build product names distinct on case-insensitive disks.
 - Correct PDF raster dimensions and rendering of annotations on rotated crops.
@@ -44,6 +54,11 @@ satisfy this gate. The current result is visible in [Build and Verify](https://g
 
 Show the actual image and make the selected output area obvious.
 
+**Implemented in source 0.1.3; Mac acceptance pending.** The editor, crop geometry,
+bounded image preview, original-resolution export, and regression cases are now
+in place. Complete the exact-commit Mac build and hands-on pointer, keyboard,
+orientation, and cancellation checks before marking this milestone ready.
+
 - Open a downsampled preview with a movable crop rectangle, eight resize handles,
   a dimmed outer area, and an optional thirds grid.
 - Offer Free, Original, 1:1, 4:3, 3:4, 16:9, and 9:16 ratios. Keep pixel width and
@@ -56,6 +71,12 @@ Show the actual image and make the selected output area obvious.
 - Start with one image at a time. For a multiple-file selection, explain that
   interactive cropping requires a single image instead of silently choosing one.
 
+The first implementation supports a single still raster image that macOS can
+decode and write. It caps the preview at 1,600 pixels on its longest edge and
+the original at 40 megapixels / 16,384 pixels per side. SVG, multi-frame images,
+and unavailable codecs receive an explicit explanation. The command-line crop
+keeps its centered width/height behavior.
+
 **Ready when:** the chosen rectangle matches the output for landscape, portrait,
 rotated, transparent, and large images; keyboard and pointer controls agree;
 cancellation produces no output; and the original file remains unchanged.
@@ -63,6 +84,9 @@ cancellation produces no output; and the original file remains unchanged.
 ## 2. Audio Waveform Trim
 
 Let users hear and see the range they are keeping.
+
+**Next feature milestone after visual crop acceptance.** This remains planned;
+the browser's silent waveform concept is not a native audio editor.
 
 - Decode a bounded waveform summary in the background and show a loading state
   immediately. Allow cancellation while the waveform is prepared.
@@ -97,8 +121,8 @@ the preview data needed for the visible editor.
 ## 4. Warm Visual Identity
 
 The first visual foundation is implemented in source: **Lemulip** branding,
-**Orchard Night** as the
-default, vivid pistachio and lime accents, a dimensional folded-ribbon icon,
+**Orchard Night** as the default, **Vivid Pistachio** and **Lemon Drop** as saved
+appearance choices, a dimensional folded-ribbon icon,
 and navigation materials with an older-system fallback. The wheel stands on its
 own without an enclosing rectangular panel or repeated footer instruction. See the shared
 [Design guide](DESIGN.md). Native build and appearance verification are still
@@ -112,8 +136,9 @@ main content.
   a layered Icon Composer variant.
 - Share color, spacing, typography, focus, and control states across the wheel,
   workspace, editors, website, and documentation.
-- Keep Orchard Night consistent across windows and editors. Add an appearance
-  preference later; preserve reduced motion, transparency options, and keyboard access.
+- Keep the three appearances consistent across windows and editors. The saved
+  appearance preference is implemented; preserve reduced motion, transparency
+  options, contrast, and keyboard access as more editors are added.
 - Use Title Case for English headings and actions; keep explanatory text direct.
 - Replace promotional concepts with actual app screenshots as each editor ships.
   Label any interactive simulation clearly.
@@ -162,8 +187,21 @@ third-party Swift package dependencies. Optional conversion engines remain
 separate installations, so users choose the capabilities and disk cost they need.
 The website and test sources are not bundled into the installed app.
 
-Measure the first passing universal build before making public size or speed
-claims. These are **initial engineering targets, not measured results**:
+The first passing universal build provides a size baseline. The exact CI
+archives from `46cb4dc` contained:
+
+| Artifact | Measured Payload |
+| --- | --- |
+| Installed app files | 7,532,916 bytes, about 7.53 MB |
+| Universal download ZIP, including CLI and notices | 4,317,627 bytes, about 4.32 MB |
+| Universal DMG | 4,023,401 bytes, about 4.02 MB |
+
+Sizes were calculated from the verified archives in the
+[baseline build](https://github.com/osmankaankars/lemulip/actions/runs/39127334291).
+The app payload is the sum of its files, not allocated filesystem blocks. These
+measurements precede the theme and crop changes. Record the new release's sizes
+after packaging. Memory, CPU, and launch-time budgets below are still
+**engineering targets, not measured results**:
 
 | Metric | Initial Target | Measurement |
 | --- | --- | --- |

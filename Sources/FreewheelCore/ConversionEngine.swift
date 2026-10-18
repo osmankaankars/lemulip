@@ -21,6 +21,11 @@ public final class ConversionEngine: Sendable {
                 guard seen.insert(resolved.path).inserted else { throw FreewheelError.invalidInput("The same input was selected more than once.") }
                 return resolved
             }
+            if options.imageCrop != nil {
+                guard validated.count == 1, FileFamily.detect(validated[0]) == .image else {
+                    throw FreewheelError.invalidInput("A selected crop requires exactly one still image.")
+                }
+            }
             let destination = (options.destinationDirectory ?? validated[0].deletingLastPathComponent()).standardizedFileURL.resolvingSymlinksInPath()
             guard destination.isFileURL else { throw FreewheelError.invalidInput("Choose a local output folder.") }
             if operation.id.hasPrefix("archive.create") {
@@ -69,6 +74,14 @@ public final class ConversionEngine: Sendable {
             #endif
         }
         if families == [.image] {
+            if options.imageCrop != nil {
+                // A centered external crop cannot reproduce an editor selection.
+                #if os(macOS)
+                return try await NativeConverter.convert(inputs: inputs, operation: operation, options: options, outputDirectory: stage)
+                #else
+                throw FreewheelError.unsupported("Selected image crops require the native macOS image engine.")
+                #endif
+            }
             #if os(macOS)
             do { return try await NativeConverter.convert(inputs: inputs, operation: operation, options: options, outputDirectory: stage) }
             catch FreewheelError.unsupported { /* Try an optional local image codec below. */ }
@@ -169,6 +182,16 @@ public final class ConversionEngine: Sendable {
     }
 
     private func validateOptions(_ options: ConversionOptions, operation: FileOperation) throws {
+        if let crop = options.imageCrop {
+            guard operation.id == "image.crop" else {
+                throw FreewheelError.invalidInput("An image selection can only be used with Crop Image.")
+            }
+            try crop.validateBounds()
+            guard crop.sourceWidth <= 16_384, crop.sourceHeight <= 16_384,
+                  crop.sourceWidth <= 40_000_000 / crop.sourceHeight else {
+                throw FreewheelError.invalidInput("Visual cropping supports original images up to 16,384 pixels per edge and 40 megapixels.")
+            }
+        }
         if let ext = operation.outputExtension {
             guard !ext.isEmpty, ext.count <= 12, ext.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber) }) else {
                 throw FreewheelError.invalidInput("The requested output extension is invalid.")

@@ -51,6 +51,109 @@ final class EngineTests: XCTestCase {
         } catch { XCTAssertTrue(error is FreewheelError) }
     }
 
+    func testSelectedCropRejectsInvalidAndOverflowingBoundsBeforeStaging() async throws {
+        let input = root.appendingPathComponent("input.png")
+        try Data([0]).write(to: input) // Bounds must fail before any image decoder runs.
+        let regions = [
+            ImageCropRegion(x: -1, y: 0, width: 1, height: 1, sourceWidth: 10, sourceHeight: 10),
+            ImageCropRegion(x: 0, y: -1, width: 1, height: 1, sourceWidth: 10, sourceHeight: 10),
+            ImageCropRegion(x: 0, y: 0, width: 0, height: 1, sourceWidth: 10, sourceHeight: 10),
+            ImageCropRegion(x: 0, y: 0, width: 1, height: Int.min, sourceWidth: 10, sourceHeight: 10),
+            ImageCropRegion(x: 10, y: 0, width: 1, height: 1, sourceWidth: 10, sourceHeight: 10),
+            ImageCropRegion(x: Int.max, y: 0, width: Int.max, height: 1, sourceWidth: Int.max, sourceHeight: 10),
+            ImageCropRegion(x: 0, y: Int.max, width: 1, height: Int.max, sourceWidth: 10, sourceHeight: Int.max),
+            ImageCropRegion(x: 0, y: 0, width: 1, height: 1, sourceWidth: Int.min, sourceHeight: 10),
+            ImageCropRegion(x: 0, y: 0, width: 1, height: 1, sourceWidth: 20_000, sourceHeight: 1),
+            ImageCropRegion(x: 0, y: 0, width: 1, height: 1, sourceWidth: 8_000, sourceHeight: 6_000)
+        ]
+        for region in regions {
+            var options = ConversionOptions(); options.imageCrop = region
+            do {
+                _ = try await ConversionEngine().run(inputs: [input], operation: FileOperation(id: "image.crop", title: "Crop"), options: options)
+                XCTFail("Invalid crop bounds were accepted: \(region)")
+            } catch FreewheelError.invalidInput { }
+        }
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path), ["input.png"])
+    }
+
+    func testSelectedCropRequiresOneImageAndTheCropOperation() async throws {
+        let first = root.appendingPathComponent("first.png"), second = root.appendingPathComponent("second.png")
+        let text = root.appendingPathComponent("document.txt")
+        for file in [first, second, text] { try Data([0]).write(to: file) }
+        var options = ConversionOptions()
+        options.imageCrop = ImageCropRegion(x: 0, y: 0, width: 2, height: 2, sourceWidth: 10, sourceHeight: 10)
+        for (inputs, id) in [([first], "convert.png"), ([first, second], "image.crop"), ([text], "image.crop")] {
+            do {
+                _ = try await ConversionEngine().run(inputs: inputs, operation: FileOperation(id: id, title: "Operation"), options: options)
+                XCTFail("A selection must not be applied to another operation or several files")
+            } catch FreewheelError.invalidInput { }
+        }
+        XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: root.path)), ["first.png", "second.png", "document.txt"])
+    }
+
+    func testUnsupportedSelectedCropNeverFallsBackToACenteredExternalCrop() async throws {
+        let input = root.appendingPathComponent("vector.svg")
+        let content = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"10\" height=\"10\"><rect width=\"10\" height=\"10\"/></svg>"
+        try content.write(to: input, atomically: true, encoding: .utf8)
+        var options = ConversionOptions()
+        options.imageCrop = ImageCropRegion(x: 0, y: 0, width: 2, height: 2, sourceWidth: 10, sourceHeight: 10)
+        do {
+            _ = try await ConversionEngine().run(inputs: [input], operation: FileOperation(id: "image.crop", title: "Crop", outputExtension: "png"), options: options)
+            XCTFail("A selected region must not become a centered ImageMagick crop")
+        } catch FreewheelError.unsupported(let message) {
+            #if os(macOS)
+            XCTAssertTrue(message.contains("SVG"))
+            #else
+            XCTAssertTrue(message.contains("native macOS"))
+            #endif
+        }
+        XCTAssertEqual(try String(contentsOf: input, encoding: .utf8), content)
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path), ["vector.svg"])
+    }
+
+    func testCropMovementAndAllHandlesStayInsideTheImageWithoutCrossing() throws {
+        let region = ImageCropRegion(x: 20, y: 10, width: 100, height: 80, sourceWidth: 200, sourceHeight: 120)
+        XCTAssertEqual(ImageCropGeometry.moved(region, dx: 999, dy: -999),
+            ImageCropRegion(x: 100, y: 0, width: 100, height: 80, sourceWidth: 200, sourceHeight: 120))
+        XCTAssertEqual(ImageCropGeometry.resized(region, handle: .left, dx: 999, dy: 0),
+            ImageCropRegion(x: 119, y: 10, width: 1, height: 80, sourceWidth: 200, sourceHeight: 120))
+        for handle in ImageCropHandle.allCases {
+            for (dx, dy) in [(-999.0, -999.0), (-999, 999), (999, -999), (999, 999)] {
+                let resized = ImageCropGeometry.resized(region, handle: handle, dx: dx, dy: dy)
+                XCTAssertNoThrow(try resized.validateBounds(), "Handle \(handle) crossed its opposite edge or the image boundary")
+                XCTAssertEqual(resized.sourceWidth, 200); XCTAssertEqual(resized.sourceHeight, 120)
+            }
+        }
+    }
+
+    func testFixedRatioCropKeepsItsAnchorWhenShrinkingOrResizingAnEdge() throws {
+        let square = ImageCropRegion(x: 20, y: 20, width: 100, height: 100, sourceWidth: 200, sourceHeight: 200)
+        XCTAssertEqual(ImageCropGeometry.resized(square, handle: .bottomRight, dx: -40, dy: 0, aspectRatio: 1),
+            ImageCropRegion(x: 20, y: 20, width: 60, height: 60, sourceWidth: 200, sourceHeight: 200))
+        XCTAssertEqual(ImageCropGeometry.resized(square, handle: .topLeft, dx: 40, dy: 0, aspectRatio: 1),
+            ImageCropRegion(x: 60, y: 60, width: 60, height: 60, sourceWidth: 200, sourceHeight: 200))
+        let wide = ImageCropRegion(x: 20, y: 40, width: 80, height: 40, sourceWidth: 200, sourceHeight: 120)
+        XCTAssertEqual(ImageCropGeometry.resized(wide, handle: .right, dx: 40, dy: 0, aspectRatio: 2),
+            ImageCropRegion(x: 20, y: 30, width: 120, height: 60, sourceWidth: 200, sourceHeight: 120))
+        let box = ImageCropRegion(x: 10, y: 20, width: 100, height: 80, sourceWidth: 200, sourceHeight: 200)
+        XCTAssertEqual(ImageCropGeometry.fitted(box, aspectRatio: 2),
+            ImageCropRegion(x: 10, y: 35, width: 100, height: 50, sourceWidth: 200, sourceHeight: 200))
+    }
+
+    func testCropSelectionHandlesEveryDragQuadrantAndNonfiniteInputs() throws {
+        for (x, y) in [(30.0, 20.0), (70, 20), (30, 80), (70, 80)] {
+            XCTAssertEqual(ImageCropGeometry.selected(fromX: 50, fromY: 50, toX: x, toY: y, sourceWidth: 200, sourceHeight: 200),
+                ImageCropRegion(x: Int(min(50, x)), y: Int(min(50, y)), width: 20, height: 30, sourceWidth: 200, sourceHeight: 200))
+        }
+        let region = ImageCropRegion(x: 20, y: 10, width: 100, height: 80, sourceWidth: 200, sourceHeight: 120)
+        XCTAssertEqual(ImageCropGeometry.moved(region, dx: .nan, dy: .infinity), region)
+        for handle in ImageCropHandle.allCases {
+            XCTAssertNoThrow(try ImageCropGeometry.resized(region, handle: handle, dx: -.infinity, dy: .nan, aspectRatio: .infinity).validateBounds())
+        }
+        XCTAssertNoThrow(try ImageCropGeometry.selected(fromX: .nan, fromY: .infinity, toX: -.infinity, toY: .nan,
+            sourceWidth: Int.max, sourceHeight: Int.min, aspectRatio: .nan).validateBounds())
+    }
+
     func testProcessDrainsBothLargePipesAndBoundsMemory() async throws {
         guard let awk = EngineLocator.find("awk") else { throw XCTSkip("awk is unavailable") }
         let program = "BEGIN { for (i=0; i<6000; i++) { print \"stdout line with enough bytes to fill a pipe\"; print \"stderr line with enough bytes to fill a pipe\" > \"/dev/stderr\" } }"

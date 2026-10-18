@@ -47,11 +47,40 @@ public struct FileOperation: Identifiable, Hashable, Sendable {
     }
 }
 
+/// Integer pixels measured from the top-left of the original image after its
+/// EXIF orientation is applied. The source dimensions bind a selection to the
+/// full-size raster, independently of the editor's smaller preview.
+public struct ImageCropRegion: Equatable, Sendable {
+    public var x: Int
+    public var y: Int
+    public var width: Int
+    public var height: Int
+    public var sourceWidth: Int
+    public var sourceHeight: Int
+
+    public init(x: Int, y: Int, width: Int, height: Int, sourceWidth: Int, sourceHeight: Int) {
+        self.x = x; self.y = y; self.width = width; self.height = height
+        self.sourceWidth = sourceWidth; self.sourceHeight = sourceHeight
+    }
+
+    func validateBounds() throws {
+        // Subtract only after checking sizes. Adding x + width (or y + height)
+        // could overflow for invalid values supplied by another caller.
+        guard sourceWidth > 0, sourceHeight > 0, width > 0, height > 0,
+              x >= 0, y >= 0, width <= sourceWidth, height <= sourceHeight,
+              x <= sourceWidth - width, y <= sourceHeight - height else {
+            throw FreewheelError.invalidInput("Choose a crop with positive dimensions entirely inside the image.")
+        }
+    }
+}
+
 public struct ConversionOptions: Sendable {
     public var quality: Double = 0.82
     public var maxDimension: Int = 1920
     public var width: Int = 1200
     public var height: Int = 1200
+    /// Nil keeps the command-line tool's centered width/height crop.
+    public var imageCrop: ImageCropRegion? = nil
     public var startSeconds: Double = 0
     public var endSeconds: Double = 30
     public var rotationDegrees: Int = 90

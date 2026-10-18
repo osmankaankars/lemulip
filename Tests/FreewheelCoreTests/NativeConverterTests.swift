@@ -71,6 +71,37 @@ final class NativeConverterTests: XCTestCase {
         try XCTUnwrap(NSBitmapImageRep(cgImage: image).colorAt(x: x, y: y)?.usingColorSpace(.sRGB))
     }
 
+    /// Explicit top-to-bottom rows avoid relying on CGContext's drawing axes.
+    private func pixelFile(_ url: URL, width: Int, height: Int, rgba: [UInt8],
+                           type: String = "public.png", orientation: Int = 1, frames: Int = 1) throws -> URL {
+        XCTAssertEqual(rgba.count, width * height * 4)
+        let provider = try XCTUnwrap(CGDataProvider(data: Data(rgba) as CFData))
+        let pixels = try XCTUnwrap(CGImage(width: width, height: height, bitsPerComponent: 8,
+            bitsPerPixel: 32, bytesPerRow: width * 4, space: CGColorSpace(name: CGColorSpace.sRGB)!,
+            bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue),
+            provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent))
+        let writer = try XCTUnwrap(CGImageDestinationCreateWithURL(url as CFURL, type as CFString, frames, nil))
+        for _ in 0..<frames {
+            CGImageDestinationAddImage(writer, pixels, [
+                kCGImagePropertyOrientation: orientation,
+                kCGImagePropertyTIFFDictionary: [kCGImagePropertyTIFFOrientation: orientation]
+            ] as CFDictionary)
+        }
+        XCTAssertTrue(CGImageDestinationFinalize(writer))
+        return url
+    }
+
+    private func assertPixel(_ image: CGImage, x: Int, y: Int, rgba: [UInt8],
+                             file: StaticString = #filePath, line: UInt = #line) throws {
+        let pixel = try color(image, x: x, y: y)
+        XCTAssertEqual(pixel.alphaComponent, CGFloat(rgba[3]) / 255, accuracy: 0.02, file: file, line: line)
+        if rgba[3] > 0 {
+            XCTAssertEqual(pixel.redComponent, CGFloat(rgba[0]) / 255, accuracy: 0.02, file: file, line: line)
+            XCTAssertEqual(pixel.greenComponent, CGFloat(rgba[1]) / 255, accuracy: 0.02, file: file, line: line)
+            XCTAssertEqual(pixel.blueComponent, CGFloat(rgba[2]) / 255, accuracy: 0.02, file: file, line: line)
+        }
+    }
+
     @discardableResult
     private func pdf(_ url: URL, pages: [(CGSize, String)]) throws -> URL {
         let context = try XCTUnwrap(CGContext(url as CFURL, mediaBox: nil, nil))
@@ -173,6 +204,170 @@ final class NativeConverterTests: XCTestCase {
             options: options, outputDirectory: work.stage)
         let pixels = try decodedImage(XCTUnwrap(result.outputs.first))
         XCTAssertEqual(pixels.width, 30); XCTAssertEqual(pixels.height, 60)
+    }
+
+    func testSelectedCropUsesTopLeftPixelsAndPreservesTransparencyAndOriginal() async throws {
+        let work = try workspace()
+        let yellow: [UInt8] = [255, 255, 0, 255], clear: [UInt8] = [0, 0, 0, 0]
+        let red: [UInt8] = [255, 0, 0, 255], green: [UInt8] = [0, 255, 0, 255], blue: [UInt8] = [0, 0, 255, 255]
+        let rows = [yellow, clear, red, yellow, yellow, green, blue, yellow, yellow, yellow, yellow, yellow]
+        let source = try pixelFile(work.inputs.appendingPathComponent("selection.png"), width: 4, height: 3,
+                                   rgba: rows.flatMap { $0 })
+        let original = try Data(contentsOf: source)
+        var options = ConversionOptions()
+        options.imageCrop = ImageCropRegion(x: 1, y: 0, width: 2, height: 2, sourceWidth: 4, sourceHeight: 3)
+        let result = try await NativeConverter.convert(inputs: [source], operation: operation("image.crop"),
+            options: options, outputDirectory: work.stage)
+        let pixels = try decodedImage(XCTUnwrap(result.outputs.first))
+        XCTAssertEqual(pixels.width, 2); XCTAssertEqual(pixels.height, 2)
+        try assertPixel(pixels, x: 0, y: 0, rgba: clear)
+        try assertPixel(pixels, x: 1, y: 0, rgba: red)
+        try assertPixel(pixels, x: 0, y: 1, rgba: green)
+        try assertPixel(pixels, x: 1, y: 1, rgba: blue)
+        XCTAssertEqual(try Data(contentsOf: source), original)
+    }
+
+    func testCropPreviewAndSelectionFollowAllEightEXIFOrientations() async throws {
+        let work = try workspace()
+        let palette: [[UInt8]] = [
+            [255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255],
+            [255, 255, 0, 255], [255, 0, 255, 255], [0, 255, 255, 255]
+        ]
+        // A two-column, three-row lossless raster, including every mirrored case.
+        let expected = [
+            [0, 1, 2, 3, 4, 5], [1, 0, 3, 2, 5, 4],
+            [5, 4, 3, 2, 1, 0], [4, 5, 2, 3, 0, 1],
+            [0, 2, 4, 1, 3, 5], [4, 2, 0, 5, 3, 1],
+            [5, 3, 1, 4, 2, 0], [1, 3, 5, 0, 2, 4]
+        ]
+        for orientation in 1...8 {
+            let source = try pixelFile(work.inputs.appendingPathComponent("orientation-\(orientation).tiff"),
+                width: 2, height: 3, rgba: palette.flatMap { $0 }, type: "public.tiff", orientation: orientation)
+            let original = try Data(contentsOf: source)
+            let raw = try XCTUnwrap(CGImageSourceCreateWithURL(source as CFURL, nil))
+            let metadata = try XCTUnwrap(CGImageSourceCopyPropertiesAtIndex(raw, 0, nil) as? [String: Any])
+            XCTAssertEqual((metadata[kCGImagePropertyOrientation as String] as? NSNumber)?.intValue, orientation)
+            let preview = try NativeConverter.imageCropPreview(for: source)
+            let width = orientation >= 5 ? 3 : 2, height = orientation >= 5 ? 2 : 3
+            XCTAssertEqual(preview.sourceWidth, width); XCTAssertEqual(preview.sourceHeight, height)
+            XCTAssertEqual(preview.image.width, width); XCTAssertEqual(preview.image.height, height)
+            for y in 0..<height {
+                for x in 0..<width {
+                    try assertPixel(preview.image, x: x, y: y, rgba: palette[expected[orientation - 1][y * width + x]])
+                }
+            }
+            var options = ConversionOptions(); options.removeMetadata = false
+            options.imageCrop = ImageCropRegion(x: 0, y: 0, width: 1, height: 1, sourceWidth: width, sourceHeight: height)
+            let result = try await NativeConverter.convert(inputs: [source], operation: operation("image.crop", ext: "png"),
+                options: options, outputDirectory: freshStage(work))
+            let output = try XCTUnwrap(result.outputs.first)
+            let pixels = try decodedImage(output)
+            XCTAssertEqual(pixels.width, 1); XCTAssertEqual(pixels.height, 1)
+            try assertPixel(pixels, x: 0, y: 0, rgba: palette[expected[orientation - 1][0]])
+            let roundTrip = try NativeConverter.imageCropPreview(for: output)
+            XCTAssertEqual(roundTrip.sourceWidth, 1); XCTAssertEqual(roundTrip.sourceHeight, 1)
+            try assertPixel(roundTrip.image, x: 0, y: 0, rgba: palette[expected[orientation - 1][0]])
+            XCTAssertEqual(try Data(contentsOf: source), original)
+        }
+    }
+
+    func testCropPreviewIsBoundedButExportUsesFullResolution() async throws {
+        let work = try workspace()
+        let source = try image(work.inputs.appendingPathComponent("original.png"), width: 320, height: 160)
+        let original = try Data(contentsOf: source)
+        let preview = try NativeConverter.imageCropPreview(for: source, maxPixelSize: 32)
+        XCTAssertEqual(preview.image.width, 32); XCTAssertEqual(preview.image.height, 16)
+        XCTAssertEqual(preview.sourceWidth, 320); XCTAssertEqual(preview.sourceHeight, 160)
+        var options = ConversionOptions()
+        options.imageCrop = ImageCropRegion(x: 64, y: 32, width: 128, height: 64, sourceWidth: 320, sourceHeight: 160)
+        let result = try await NativeConverter.convert(inputs: [source], operation: operation("image.crop"),
+            options: options, outputDirectory: work.stage)
+        let pixels = try decodedImage(XCTUnwrap(result.outputs.first))
+        XCTAssertEqual(pixels.width, 128); XCTAssertEqual(pixels.height, 64)
+        XCTAssertEqual(try Data(contentsOf: source), original)
+        let larger = try image(work.inputs.appendingPathComponent("bounded.png"), width: 2_000, height: 1_000)
+        let capped = try NativeConverter.imageCropPreview(for: larger, maxPixelSize: Int.max)
+        XCTAssertEqual(capped.image.width, 1_600); XCTAssertEqual(capped.image.height, 800)
+        XCTAssertThrowsError(try NativeConverter.imageCropPreview(for: source, maxPixelSize: 0))
+        XCTAssertThrowsError(try NativeConverter.imageCropPreview(for: source, maxPixelSize: Int.min))
+        // A narrow fixture exceeds the edge limit without allocating a huge raster.
+        let tooWide = try image(work.inputs.appendingPathComponent("too-wide.png"), width: 20_000, height: 1)
+        XCTAssertThrowsError(try NativeConverter.imageCropPreview(for: tooWide, maxPixelSize: 16)) { error in
+            guard case FreewheelError.invalidInput = error else { return XCTFail("An oversized original must fail before preview decoding") }
+        }
+    }
+
+    func testSelectedCropRejectsChangedSourceSVGAndMultipleFramesWithoutOutput() async throws {
+        let work = try workspace()
+        let source = try image(work.inputs.appendingPathComponent("changed.png"), width: 10, height: 8)
+        let original = try Data(contentsOf: source)
+        var options = ConversionOptions()
+        options.imageCrop = ImageCropRegion(x: 0, y: 0, width: 2, height: 2, sourceWidth: 9, sourceHeight: 8)
+        do {
+            _ = try await NativeConverter.convert(inputs: [source], operation: operation("image.crop"),
+                options: options, outputDirectory: work.stage)
+            XCTFail("A stale selection must not be applied to different dimensions")
+        } catch FreewheelError.invalidInput(let message) { XCTAssertTrue(message.contains("dimensions changed")) }
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+        let svg = work.inputs.appendingPathComponent("vector.svg")
+        try "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"10\" height=\"8\"><rect width=\"10\" height=\"8\"/></svg>".write(to: svg, atomically: true, encoding: .utf8)
+        let multi = try pixelFile(work.inputs.appendingPathComponent("frames.tiff"), width: 1, height: 1,
+            rgba: [255, 0, 0, 255], type: "public.tiff", frames: 2)
+        for input in [svg, multi] {
+            XCTAssertThrowsError(try NativeConverter.imageCropPreview(for: input)) { error in
+                guard case FreewheelError.unsupported = error else { return XCTFail("Expected a clear still-image limitation") }
+            }
+            options.imageCrop = ImageCropRegion(x: 0, y: 0, width: 1, height: 1, sourceWidth: 1, sourceHeight: 1)
+            do {
+                _ = try await NativeConverter.convert(inputs: [input], operation: operation("image.crop", ext: "png"),
+                    options: options, outputDirectory: work.stage)
+                XCTFail("Visual crop must not silently flatten SVG or choose one frame")
+            } catch FreewheelError.unsupported { }
+            XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+        }
+        let stillGIF = try pixelFile(work.inputs.appendingPathComponent("still.gif"), width: 1, height: 1,
+            rgba: [255, 0, 0, 255], type: "com.compuserve.gif")
+        XCTAssertThrowsError(try NativeConverter.imageCropPreview(for: stillGIF)) { error in
+            guard case FreewheelError.unsupported(let message) = error else {
+                return XCTFail("The preview must check its output encoder before editing begins")
+            }
+            XCTAssertTrue(message.contains("PNG or JPEG"))
+            XCTAssertTrue(message.contains("save a visual crop"))
+        }
+        options.imageCrop = ImageCropRegion(x: 0, y: 0, width: 2, height: 2, sourceWidth: 10, sourceHeight: 8)
+        do {
+            _ = try await NativeConverter.convert(inputs: [source], operation: operation("image.crop", ext: "pdf"),
+                options: options, outputDirectory: work.stage)
+            XCTFail("Image-to-PDF routing must never discard a selected crop")
+        } catch FreewheelError.unsupported { }
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+        XCTAssertEqual(try Data(contentsOf: source), original)
+    }
+
+    func testCancelledCropPreviewAndExportLeaveTheOriginalAndStageAlone() async throws {
+        let work = try workspace()
+        let source = try image(work.inputs.appendingPathComponent("cancelled.png"), width: 10, height: 8)
+        let original = try Data(contentsOf: source)
+        let preview = Task {
+            while !Task.isCancelled { await Task.yield() }
+            return try NativeConverter.imageCropPreview(for: source)
+        }
+        preview.cancel()
+        do { _ = try await preview.value; XCTFail("Cancelled preview should not decode") }
+        catch is CancellationError { }
+        var options = ConversionOptions()
+        options.imageCrop = ImageCropRegion(x: 0, y: 0, width: 2, height: 2, sourceWidth: 10, sourceHeight: 8)
+        let selected = options
+        let export = Task {
+            while !Task.isCancelled { await Task.yield() }
+            return try await NativeConverter.convert(inputs: [source], operation: FileOperation(id: "image.crop", title: "Crop"),
+                options: selected, outputDirectory: work.stage)
+        }
+        export.cancel()
+        do { _ = try await export.value; XCTFail("Cancelled crop should not export") }
+        catch FreewheelError.cancelled { }
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: work.stage.path).isEmpty)
+        XCTAssertEqual(try Data(contentsOf: source), original)
     }
 
     func testCropRejectsDimensionsLargerThanTheSource() async throws {
