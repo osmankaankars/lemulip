@@ -27,6 +27,8 @@ CASES = {
     "word-text": ("macOS TXT → DOCX", ["source.txt", "converted.docx"]),
     "word-rtf": ("macOS Basic RTF → DOCX", ["source.rtf", "converted.docx"]),
     "word-layout": ("LibreOffice DOCX → ODT → DOCX", ["source.docx", "intermediate.odt", "converted.docx"]),
+    "word-html": ("LibreOffice HTML → DOCX", ["source.html", "converted.docx"]),
+    "word-markdown": ("Pandoc Markdown → DOCX", ["source.md", "converted.docx"]),
     "excel-text": ("Built-In CSV → XLSX", ["source.csv", "converted.xlsx"]),
     "excel-formulas": ("LibreOffice XLSX → ODS → XLSX", ["source.xlsx", "intermediate.ods", "converted.xlsx"]),
     "powerpoint-layout": ("LibreOffice PPTX → ODP → PPTX", ["source.pptx", "intermediate.odp", "converted.pptx"]),
@@ -107,7 +109,7 @@ def check_thumbnail(data: bytes) -> None:
 
 def check_document(name: str, data: bytes) -> None:
     suffix = PurePosixPath(name).suffix
-    if suffix in {".txt", ".rtf", ".csv"}:
+    if suffix in {".txt", ".rtf", ".csv", ".html", ".md"}:
         check_text(data)
         return
     with zipfile.ZipFile(io.BytesIO(data)) as archive:
@@ -166,7 +168,7 @@ def collect_samples(directory: Path, source_commit: str) -> dict[str, bytes]:
     require(directory.is_absolute() and not directory.is_symlink() and directory.is_dir(),
             "Use the absolute generated review directory, not a link.")
     require({entry.name for entry in directory.iterdir()} == set(CASES) | {"source-commit.txt"},
-            "The review directory must contain all six Mac cases and no extra files.")
+            "The review directory must contain all expected Mac cases and no extra files.")
     require(read_file(directory / "source-commit.txt") == (source_commit + "\n").encode(),
             "The captured examples belong to a different source commit. Generate a new review directory.")
     files = {}
@@ -255,9 +257,9 @@ def main() -> int:
         files = review_files(collect_samples(options.directory, source["commit"]), source)
         write_archive(options.output, files)
     except (OSError, ValueError, zipfile.BadZipFile, ET.ParseError):
-        print("Office review packaging stopped. Require clean Mac source, all six generated cases, public metadata, and a new output filename.", file=sys.stderr)
+        print("Office review packaging stopped. Require clean Mac source, all expected generated cases, public metadata, and a new output filename.", file=sys.stderr)
         return 1
-    print("Prepared 6 Office review cases. Microsoft Word, Excel, and PowerPoint acceptance: Not Reviewed.")
+    print(f"Prepared {len(CASES)} Office review cases. Microsoft Word, Excel, and PowerPoint acceptance: Not Reviewed.")
     return 0
 
 

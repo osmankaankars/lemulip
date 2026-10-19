@@ -2,8 +2,10 @@
 
 Lemulip selects operations from the file extensions in your selection. A listed format is a supported route, not a promise that every codec or document feature will survive conversion.
 
-The tables below describe source **0.1.12**, including basic RTF → DOCX,
-plain-text Word export, and text-cell Excel export.
+The tables below describe source **0.1.14**, including basic RTF → DOCX,
+plain-text Word export, text-cell Excel export, and the HTML → DOCX repair.
+HTML and Markdown have separate conversion checks and keep their existing
+optional engines.
 Check [Releases](https://github.com/osmankaankars/lemulip/releases) for available builds. Some
 features still need broader hands-on macOS testing. See [Installation](INSTALL.md)
 for optional engines and [User Guide](USER_GUIDE.md) for controls.
@@ -153,10 +155,11 @@ You do not need Microsoft Office installed to run these conversions.
 | Route | Engine | Fidelity |
 | --- | --- | --- |
 | TXT, Markdown, RTF, HTML → TXT, Markdown, RTF, HTML, PDF | Built in for basic routes | Text-focused; see exceptions below |
-| Markdown → HTML, DOCX, ODT | Pandoc | Structured conversion |
+| Markdown → HTML, DOCX, ODT | Pandoc | Uses Pandoc's Markdown dialect; see the Word export assessment below |
 | TXT → DOCX | Built into macOS | Basic text, paragraphs, tabs, and Unicode; no rich document layout |
 | Basic RTF → DOCX | Built into macOS | Supported fonts and paragraph formatting; see the basic export boundary below |
-| Complex RTF, HTML → DOCX | LibreOffice | Creates a Word document; complex formatting may change |
+| Complex RTF → DOCX | LibreOffice | Creates a Word document; complex formatting may change |
+| HTML, HTM → DOCX | LibreOffice | Structured document conversion; does not reproduce a browser page |
 | EPUB input or EPUB output | Pandoc; some source formats also need LibreOffice | Reflowable document conversion |
 | DOC, DOCX, ODT and supported Pages input → configured document outputs | LibreOffice | Depends on the input document and installed fonts |
 | PPT, PPTX, ODP → PDF, PPTX, ODP | LibreOffice | Layout may change |
@@ -220,6 +223,41 @@ optional-engine routes. HTML, existing Word documents, and other rich document
 inputs also retain those routes. PDF-to-editable-Word conversion is separate
 planned work.
 
+### HTML and Markdown Word Export
+
+HTML and Markdown use different optional engines. Source **0.1.14** adds
+separate generated examples for these routes and fixes an HTML/HTM → DOCX
+failure when LibreOffice opens the source as a web document. This does not add
+a native HTML or Markdown Word exporter.
+
+| Input | Engine | Scope of the Generated Example |
+| --- | --- | --- |
+| HTML or HTM | LibreOffice | A level-one heading, paragraphs, bold and italic spans, Unicode and character entities, and a two-by-two table in document order |
+| MD or MARKDOWN | Pandoc, using its `markdown` reader | The same heading, emphasis, Unicode, and table structure, plus bulleted and numbered lists and a fenced code block with significant spaces and line breaks |
+
+The HTML example is self-contained and uses basic document elements. It has no
+CSS, scripts, images, or linked resources. The Markdown example uses a simple
+pipe table and a plain code block. Neither example contains hyperlinks or
+tests hyperlink preservation. Automated checks inspect the generated DOCX
+structure; they do not establish identical appearance in Microsoft Word.
+This source version still needs its own Mac checks and
+[Office Review](OFFICE_REVIEW.md).
+
+**HTML Limits:** complex CSS, responsive layouts, scripts, web fonts, and linked
+media are outside this assessment. Basic native HTML conversion to text remains
+text-only and does not use a web renderer. Apple documents external-resource
+and threading constraints for its
+[HTML text importer](https://developer.apple.com/documentation/foundation/nsattributedstring/init(fileurl:options:documentattributes:));
+that API is not used to broaden this route.
+
+**Markdown Limits:** this route uses
+[Pandoc's Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown). Other
+Markdown dialects and extensions can behave differently. The example does not
+cover raw HTML, metadata extensions, footnotes, mathematics, or embedded media.
+Pandoc's sandbox stays enabled; linked resources are not fetched. Its document
+model preserves supported structure but cannot reproduce every source-format
+layout. Review the output when typography or pagination matters.
+
 ### Basic Excel Export
 
 Each CSV or TSV input produces its own XLSX workbook with one worksheet named
@@ -266,12 +304,15 @@ original Office format, then inspects their output:
 | XLSX → ODS → XLSX | Two named sheets in order; text identifiers, numbers, booleans, a number format, and two simple formulas with their cached values |
 | PPTX → ODP → PPTX | Two slides in order, their text, stored font attributes, widescreen dimensions, and the positions and sizes of two shapes per slide |
 
-All three examples passed with LibreOffice on Linux. In the source 0.1.11
-[Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39170976554), the
-Word example passed; the workbook and presentation checks stopped in their
-shared relationship-identifier lookup. Source 0.1.12 repairs that verifier
-while retaining its output assertions. Its own Mac result remains required.
-These are specific regression examples, not coverage of every Office feature.
+The verified **0.1.13**
+[Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39230109601)
+passed all **127 built-in tests on both Apple silicon and Intel** and all
+**14 integration cases on Apple silicon**, including these rich Office
+examples. Its
+[tagged build and package checks](https://github.com/osmankaankars/lemulip/actions/runs/39232673004)
+also passed. Those results establish the 0.1.13 baseline; they do not verify
+the new HTML and Markdown cases in source 0.1.14. These are specific regression
+examples, not coverage of every Office feature.
 See [Development](DEVELOPMENT.md#rich-office-conversion-checks) for the
 verification scope.
 

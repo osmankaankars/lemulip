@@ -480,7 +480,7 @@ identical text by page: table on page one, new heading and following paragraph
 on page two. This is local LibreOffice evidence, not Mac Foundation execution
 or Microsoft Word acceptance.
 
-The current repair enumerates Word body elements directly, matches the joined
+The 0.1.13 page-boundary repair enumerates Word body elements directly, matches the joined
 heading text exactly, and requires unique heading and table positions in the
 correct order. It retains the XML document and resolves element and attribute
 namespaces explicitly. Only the existing two boundary forms are accepted:
@@ -491,8 +491,13 @@ qualify. Disabled properties, line or column breaks, duplicate headings, and
 a heading inside the table are covered in the existing integration test file.
 If the real conversion still fails, the assertion includes its generated Word
 body for diagnosis. All table, font, Unicode, and source-preservation checks
-remain required. The converter and release prerequisites are unchanged; the
-repaired Swift tests and complete Mac package path still need their own CI run.
+remain required. Its [source build](https://github.com/osmankaankars/lemulip/actions/runs/39230109601)
+passed all **127 built-in tests on both Mac architectures** and **14 external
+integration cases on Apple silicon**. [CodeQL](https://github.com/osmankaankars/lemulip/actions/runs/39230109655)
+and the [tagged package build](https://github.com/osmankaankars/lemulip/actions/runs/39232673004)
+also passed; [v0.1.13](https://github.com/osmankaankars/lemulip/releases/tag/v0.1.13)
+has the four expected release assets. These results belong to 0.1.13, not to a
+later source commit.
 
 Do not infer font availability, Word pagination, Excel recalculation, or
 PowerPoint rendering from stored attributes alone. The formula cases check
@@ -501,12 +506,48 @@ suite. Macros, charts, pivot tables, embedded objects, and animations are not
 covered. Keep native RTF formatting checks separate from these richer
 LibreOffice round trips and from hands-on target-application acceptance.
 
+### HTML and Markdown Word Checks
+
+Source 0.1.14 assesses HTML and Markdown separately in the existing integration
+test file. Both fixtures check a real first-level heading, inline bold and
+italic, Unicode text, a two-by-two table, body order, and unchanged source
+bytes. The Markdown fixture also checks bullet and numbered list definitions,
+numbering from one, and exact code-block spaces and line breaks. These small
+inline examples contain no images, hyperlinks, or personal content.
+
+The public-engine HTML test first failed with LibreOffice's automatic filter:
+Writer/Web could not select a DOCX export filter. The repair supplies
+`--infilter=HTML (StarWriter)` and `docx:Office Open XML Text` only for HTML or
+HTM input with a DOCX target. Selecting only the export filter produced a file
+in the local probe but did not retain the required heading outline level.
+Both lowercase HTML and uppercase HTM now pass through the normal engine.
+The [LibreOffice filter guide](https://help.libreoffice.org/latest/en-US/text/shared/guide/convertfilters.html)
+documents the input and output filter arguments. Other routes retain their
+existing selection, including Pandoc for Markdown.
+
+The fixture verifier reads actual WordprocessingML namespaces, paragraph and
+character styles, and numbering definitions. Keep direct formatting overrides,
+inherited styles, XML object lifetimes, document order, and code whitespace
+checks intact. Thirteen corruptions exercise missing or disabled formatting,
+wrong namespaces, invalid numbering, moved content, and lost whitespace. This
+is a verifier for these examples, not a general Word renderer.
+
+The complete available Linux suite passed **84 tests with zero failures** using
+Swift 6.1.2, official Pandoc 3.12.1, and LibreOfficeDev 26.8.0.0.alpha0. This
+includes the real HTML and Markdown conversions and the negative verifier
+cases. The generated source and DOCX files for both new comparisons also passed
+the review packager's content and metadata checks. The 0.1.14 Mac builds, full
+eight-case review artifact, and Microsoft Office acceptance still need their
+own results. Keep Office acceptance **Not Reviewed** until observed in the
+target applications.
+
 ### Prepare the Office Review
 
-The existing integration cases can retain six small generated input/output
+The existing integration cases can retain eight small generated input/output
 comparisons for the [Office Review](OFFICE_REVIEW.md). Capture is opt-in through
 `LEMULIP_OFFICE_REVIEW_DIR`; ordinary test runs keep their temporary-file cleanup.
 The review files are not bundled with the app or committed as binary fixtures.
+The 0.1.13 artifact has six cases; 0.1.14 adds `word-html` and `word-markdown`.
 
 On a Mac, start in the repository with a working Xcode selection and the
 optional integration engines installed. Use a clean checkout of the commit

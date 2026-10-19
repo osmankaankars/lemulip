@@ -14,7 +14,7 @@ Files are processed on your Mac. No account, subscription, uploads, or analytics
 
 **Lemulip is an early public preview for macOS 13 or later.** Finder drag compatibility and the full desktop workflow still need hands-on testing.
 
-Source **0.1.12** adds basic RTF → DOCX export through macOS, keeping text and supported formatting without an extra engine. TXT → DOCX and CSV/TSV → XLSX also remain built in. [Releases](https://github.com/osmankaankars/lemulip/releases) lists available downloads; each version must pass its own Mac checks before its archives are published.
+Source **0.1.14** repairs HTML → Word export and adds separate checks for HTML and Markdown documents. TXT and basic RTF → DOCX, plus CSV/TSV → XLSX, remain built in. [Releases](https://github.com/osmankaankars/lemulip/releases) lists available downloads; each version must pass its own Mac checks before its archives are published.
 
 ### Download the App
 
@@ -153,6 +153,13 @@ leading zeros stay intact, dates are not guessed, and
 `=SUM(A1:A2)` stays text instead of becoming a formula. Each input creates its
 own file. Read [Basic Office Exports](docs/USER_GUIDE.md#basic-office-exports)
 for steps and limits.
+
+Turn an HTML or Markdown note into a Word document with **Convert → DOCX**.
+HTML uses optional LibreOffice; Markdown uses optional Pandoc. The checked
+examples retain headings, emphasis, Unicode, and a simple table; Markdown also
+retains lists and code whitespace. Read
+[HTML and Markdown to Word](docs/USER_GUIDE.md#convert-html-or-markdown-to-word)
+for setup and the limits on layout.
 
 For existing Word documents, Excel workbooks, and PowerPoint presentations,
 optional LibreOffice handles richer conversion routes. Read

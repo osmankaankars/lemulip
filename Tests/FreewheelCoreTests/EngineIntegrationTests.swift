@@ -101,6 +101,250 @@ final class EngineIntegrationTests: XCTestCase {
         }
     }
 
+    func testHTMLWordExportKeepsHeadingEmphasisAndTable() async throws {
+        try require("libreoffice")
+        let html = """
+        <!doctype html>
+        <html><head><meta charset="utf-8"><title>Orchard Notes</title></head><body>
+        <h1>Orchard Notes</h1>
+        <p>A <strong>bold phrase</strong>, an <em>italic phrase</em>, and symbols: İstanbul · 東京 &amp; &lt; &gt;.</p>
+        <table><tr><th>Fruit</th><th>Count</th></tr><tr><td>Lemon</td><td>12</td></tr></table>
+        <p>After the Table</p>
+        </body></html>
+        """
+        // HTML and the case-insensitive HTM alias must take the same Writer route.
+        for ext in ["html", "HTM"] {
+            try await checkMarkupWordExport("orchard.\(ext)", text: html, markdown: false,
+                                            reviewCase: ext == "html" ? "word-html" : nil)
+        }
+    }
+
+    func testMarkdownWordExportKeepsListsCodeAndTable() async throws {
+        try require("pandoc")
+        let markdown = """
+        # Orchard Notes
+
+        A **bold phrase**, an *italic phrase*, and symbols: İstanbul · 東京 & < >.
+
+        - Lemon
+        - Pistachio
+
+        1. First Step
+        2. Second Step
+
+        ```text
+          keep  two spaces
+            four spaces
+        **literal** <tag> & end
+        ```
+
+        | Fruit | Count |
+        | --- | --- |
+        | Lemon | 12 |
+
+        After the Table
+        """
+        try await checkMarkupWordExport("orchard.md", text: markdown, markdown: true, reviewCase: "word-markdown")
+    }
+
+    private func checkMarkupWordExport(_ name: String, text: String, markdown: Bool,
+                                       reviewCase: String?) async throws {
+        let source = root.appendingPathComponent(name), original = Data(text.utf8)
+        try original.write(to: source)
+        let result = try await engine.run(inputs: [source], operation: FileOperation(id: "convert.docx", title: "DOCX"))
+        XCTAssertEqual(result.outputs.count, 1)
+        let output = try XCTUnwrap(result.outputs.first)
+        let extracted = try await ExternalConverters.archives([output],
+            operation: FileOperation(id: "archive.extract", title: "Extract"), directory: root)
+        let package = try XCTUnwrap(extracted.outputs.first)
+        let document = try officeXML(package, "word/document.xml")
+        let issues = markupWordIssues(document, styles: try officeXML(package, "word/styles.xml"),
+            numbering: markdown ? try officeXML(package, "word/numbering.xml") : nil, markdown: markdown)
+        XCTAssertTrue(issues.isEmpty, "Markup Word export: \(issues.joined(separator: "; ")). Generated body: \(document.rootElement()?.xmlString ?? "missing")")
+        XCTAssertEqual(try Data(contentsOf: source), original)
+        if let reviewCase {
+            try captureOfficeReview(reviewCase, files: [("source.\(markdown ? "md" : "html")", source), ("converted.docx", output)])
+        }
+    }
+
+    func testMarkupWordVerificationRejectsLostStructureAndFormatting() throws {
+        func run(_ text: String, _ style: String = "") -> String {
+            "<w:r>\(style.isEmpty ? "" : "<w:rPr><w:rStyle w:val=\"\(style)\"/></w:rPr>")<w:t xml:space=\"preserve\">\(text)</w:t></w:r>"
+        }
+        func paragraph(_ text: String, _ properties: String = "") -> String {
+            "<w:p><w:pPr>\(properties)</w:pPr>\(run(text))</w:p>"
+        }
+        let table = "<w:tbl>" + [["Fruit", "Count"], ["Lemon", "12"]].map { row in
+            "<w:tr>" + row.map { "<w:tc>\(paragraph($0))</w:tc>" }.joined() + "</w:tr>"
+        }.joined() + "</w:tbl>"
+        let list = [("Lemon", "7"), ("Pistachio", "7"), ("First Step", "8"), ("Second Step", "8")].map {
+            paragraph($0.0, "<w:numPr><w:ilvl w:val=\"0\"/><w:numId w:val=\"\($0.1)\"/></w:numPr>")
+        }.joined()
+        let body = paragraph("Orchard Notes", "<w:pStyle w:val=\"LeafHeading\"/>")
+            + "<w:p>" + run("A ") + run("bold ", "LeafBold") + run("phrase", "LeafBold")
+            + run(", an ") + run("italic phrase", "LeafItalic") + run(", and symbols: İstanbul · 東京 &amp; &lt; &gt;.") + "</w:p>"
+            + list + "<w:p>" + run("  keep  two spaces") + "<w:r><w:br/></w:r>"
+            + run("    four spaces") + "<w:r><w:br/></w:r>" + run("**literal** &lt;tag&gt; &amp; end") + "</w:p>"
+            + table + paragraph("After the Table")
+        let styles = """
+        <w:styles xmlns:w="\(wordNamespace)">
+        <w:style w:type="paragraph" w:styleId="LeafHeading"><w:basedOn w:val="OutlineBase"/></w:style>
+        <w:style w:type="paragraph" w:styleId="OutlineBase"><w:pPr><w:outlineLvl w:val="0"/></w:pPr></w:style>
+        <w:style w:type="character" w:styleId="LeafBold"><w:basedOn w:val="WeightBase"/></w:style>
+        <w:style w:type="character" w:styleId="WeightBase"><w:rPr><w:b/></w:rPr></w:style>
+        <w:style w:type="character" w:styleId="LeafItalic"><w:basedOn w:val="SlantBase"/></w:style>
+        <w:style w:type="character" w:styleId="SlantBase"><w:rPr><w:i/></w:rPr></w:style>
+        </w:styles>
+        """
+        let numbering = """
+        <w:numbering xmlns:w="\(wordNamespace)">
+        <w:abstractNum w:abstractNumId="21"><w:lvl w:ilvl="0"><w:numFmt w:val="bullet"/><w:lvlText w:val="•"/></w:lvl></w:abstractNum>
+        <w:abstractNum w:abstractNumId="22"><w:lvl w:ilvl="0"><w:start w:val="1"/><w:numFmt w:val="decimal"/><w:lvlText w:val="%1."/></w:lvl></w:abstractNum>
+        <w:num w:numId="7"><w:abstractNumId w:val="21"/></w:num>
+        <w:num w:numId="8"><w:abstractNumId w:val="22"/><w:lvlOverride w:ilvl="0"><w:startOverride w:val="1"/></w:lvlOverride></w:num>
+        </w:numbering>
+        """
+        func issues(_ body: String, _ styles: String, _ numbering: String, prefix: String = "w") throws -> [String] {
+            let document = "<w:document xmlns:w=\"\(wordNamespace)\" xmlns:other=\"urn:unrelated\"><w:body>\(body)</w:body></w:document>"
+            func xml(_ text: String) throws -> XMLDocument {
+                try XMLDocument(xmlString: text.replacingOccurrences(of: "w:", with: "\(prefix):")
+                    .replacingOccurrences(of: "xmlns:w=", with: "xmlns:\(prefix)="), options: .nodeLoadExternalEntitiesNever)
+            }
+            return try markupWordIssues(xml(document), styles: xml(styles), numbering: xml(numbering), markdown: true)
+        }
+        XCTAssertTrue(try issues(body, styles, numbering).isEmpty)
+        XCTAssertTrue(try issues(body, styles, numbering, prefix: "word").isEmpty)
+        let mutations: [(String, String, String, String)] = [
+            ("wrong heading level", body, styles.replacingOccurrences(of: "outlineLvl w:val=\"0\"", with: "outlineLvl w:val=\"1\""), numbering),
+            ("style cycle", body, styles.replacingOccurrences(of: "w:val=\"OutlineBase\"", with: "w:val=\"LeafHeading\""), numbering),
+            ("foreign attribute", body, styles.replacingOccurrences(of: "<w:outlineLvl w:val=\"0\"/>", with: "<w:outlineLvl xmlns:other=\"urn:unrelated\" other:val=\"0\"/>"), numbering),
+            ("partly missing bold", body.replacingOccurrences(of: run("phrase", "LeafBold"), with: run("phrase")), styles, numbering),
+            ("missing italic", body, styles.replacingOccurrences(of: "<w:i/>", with: "<w:i w:val=\"0\"/>"), numbering),
+            ("table order", table + body.replacingOccurrences(of: table, with: ""), styles, numbering),
+            ("table value", body.replacingOccurrences(of: run("12"), with: run("13")), styles, numbering),
+            ("bullet definition", body, styles, numbering.replacingOccurrences(of: "w:val=\"bullet\"", with: "w:val=\"decimal\"")),
+            ("numbered start", body, styles, numbering.replacingOccurrences(of: "startOverride w:val=\"1\"", with: "startOverride w:val=\"4\"")),
+            ("missing numbered start", body, styles, numbering.replacingOccurrences(of: "<w:start w:val=\"1\"/>", with: "").replacingOccurrences(of: "<w:startOverride w:val=\"1\"/>", with: "")),
+            ("code spaces", body.replacingOccurrences(of: "  keep  two spaces", with: "keep two spaces"), styles, numbering),
+            ("code whitespace marker", body.replacingOccurrences(of: "xml:space=\"preserve\">  keep", with: ">  keep"), styles, numbering),
+            ("code line breaks", body.replacingOccurrences(of: "<w:r><w:br/></w:r>", with: ""), styles, numbering)
+        ]
+        for (name, changedBody, changedStyles, changedNumbers) in mutations {
+            XCTAssertFalse(try issues(changedBody, changedStyles, changedNumbers).isEmpty, "Accepted \(name)")
+        }
+    }
+
+    // A focused semantic check for these two generated documents, not a general
+    // Word renderer. Keep each XML owner alive while resolving inherited namespaces.
+    private func markupWordIssues(_ document: XMLDocument, styles: XMLDocument,
+                                  numbering: XMLDocument?, markdown: Bool) -> [String] {
+        withExtendedLifetime((document, styles, numbering)) {
+            func children(_ node: XMLElement?, _ name: String) -> [XMLElement] {
+                node?.elements(forLocalName: name, uri: wordNamespace) ?? []
+            }
+            func at(_ node: XMLElement?, _ path: String...) -> XMLElement? {
+                var result = node
+                for name in path { let matches = children(result, name); guard matches.count == 1 else { return nil }; result = matches[0] }
+                return result
+            }
+            func value(_ node: XMLElement?, _ name: String = "val") -> String? {
+                node?.attribute(forLocalName: name, uri: wordNamespace)?.stringValue
+            }
+            func text(_ node: XMLElement) -> String {
+                guard node.uri == wordNamespace else { return "" }
+                switch node.localName {
+                case "t": return node.stringValue ?? ""
+                case "tab": return "\t"
+                case "br", "cr": return [nil, "textWrapping"].contains(value(node, "type")) ? "\n" : "\u{000C}"
+                default: return (node.children ?? []).compactMap { $0 as? XMLElement }.map(text).joined()
+                }
+            }
+            func chain(_ id: String?, type: String) -> [XMLElement]? {
+                var next = id, seen = Set<String>(), result: [XMLElement] = []
+                while let identifier = next {
+                    guard seen.insert(identifier).inserted else { return nil }
+                    let matches = children(styles.rootElement(), "style").filter { value($0, "styleId") == identifier && value($0, "type") == type }
+                    guard matches.count == 1 else { return nil }
+                    result.append(matches[0]); next = value(at(matches[0], "basedOn"))
+                }
+                return result
+            }
+            func paragraphSources(_ paragraph: XMLElement) -> [XMLElement] {
+                guard let inherited = chain(value(at(paragraph, "pPr", "pStyle")), type: "paragraph") else { return [] }
+                return [paragraph] + inherited
+            }
+            func enabled(_ run: XMLElement, paragraph: XMLElement, property: String) -> Bool {
+                guard let inherited = chain(value(at(run, "rPr", "rStyle")), type: "character") else { return false }
+                let paragraphs = paragraphSources(paragraph); guard !paragraphs.isEmpty else { return false }
+                let defaults = at(styles.rootElement(), "docDefaults", "rPrDefault", "rPr", property)
+                var on = defaults.map { ["1", "true", "on"].contains(value($0) ?? "1") } ?? false
+                // Bold and italic toggle within styles; direct run formatting overrides them.
+                for style in Array(paragraphs.dropFirst().reversed()) + inherited.reversed() {
+                    if let flag = at(style, "rPr", property), ["1", "true", "on"].contains(value(flag) ?? "1") { on.toggle() }
+                }
+                if let direct = at(run, "rPr", property) { on = ["1", "true", "on"].contains(value(direct) ?? "1") }
+                return on
+            }
+            func formatted(_ phrase: String, property: String, paragraph: XMLElement) -> Bool {
+                let whole = text(paragraph) as NSString, range = (text(paragraph) as NSString).range(of: phrase)
+                guard range.location != NSNotFound else { return false }
+                var offset = 0, covered = 0
+                for run in children(paragraph, "r") {
+                    let length = (text(run) as NSString).length
+                    let overlap = NSIntersectionRange(range, NSRange(location: offset, length: length)).length
+                    if overlap > 0 { guard enabled(run, paragraph: paragraph, property: property) else { return false }; covered += overlap }
+                    offset += length
+                }
+                return offset == whole.length && covered == range.length
+            }
+            func listID(_ paragraph: XMLElement, format: String) -> String? {
+                let properties = paragraphSources(paragraph).compactMap { at($0, "pPr", "numPr") }.first
+                guard let id = value(at(properties, "numId")), id != "0", value(at(properties, "ilvl")) == "0" else { return nil }
+                let instances = children(numbering?.rootElement(), "num").filter { value($0, "numId") == id }
+                guard instances.count == 1, let abstractID = value(at(instances[0], "abstractNumId")) else { return nil }
+                let definitions = children(numbering?.rootElement(), "abstractNum").filter { value($0, "abstractNumId") == abstractID }
+                guard definitions.count == 1 else { return nil }
+                let levels = children(definitions[0], "lvl").filter { value($0, "ilvl") == "0" }
+                let overrides = children(instances[0], "lvlOverride").filter { value($0, "ilvl") == "0" }
+                guard levels.count == 1, overrides.count <= 1 else { return nil }
+                let level = at(overrides.first, "lvl") ?? levels[0]
+                guard value(at(level, "numFmt")) == format, let marker = value(at(level, "lvlText")), !marker.trimmingCharacters(in: .whitespaces).isEmpty else { return nil }
+                if format == "decimal" {
+                    guard marker == "%1.", (value(at(overrides.first, "startOverride")) ?? value(at(level, "start"))) == "1" else { return nil }
+                }
+                return id
+            }
+            guard document.rootElement()?.uri == wordNamespace, document.rootElement()?.localName == "document",
+                  styles.rootElement()?.uri == wordNamespace, let body = at(document.rootElement(), "body") else { return ["Missing Word document or styles"] }
+            let blocks = (body.children ?? []).compactMap { $0 as? XMLElement }.filter { $0.uri == wordNamespace && ["p", "tbl"].contains($0.localName ?? "") }
+            let code = "  keep  two spaces\n    four spaces\n**literal** <tag> & end"
+            let expected = ["Orchard Notes", "A bold phrase, an italic phrase, and symbols: İstanbul · 東京 & < >."]
+                + (markdown ? ["Lemon", "Pistachio", "First Step", "Second Step", code] : []) + ["[Table]", "After the Table"]
+            guard blocks.map({ $0.localName == "tbl" ? "[Table]" : text($0) }) == expected else { return ["Body text, code whitespace, or table order changed"] }
+            var issues: [String] = []
+            let outline = paragraphSources(blocks[0]).compactMap { at($0, "pPr", "outlineLvl") }.first
+            if value(outline) != "0" { issues.append("Level-one heading lost its resolved outline level") }
+            for (phrase, property) in [("bold phrase", "b"), ("italic phrase", "i")] {
+                if !formatted(phrase, property: property, paragraph: blocks[1]) { issues.append("Formatting lost from \(phrase)") }
+            }
+            let table = blocks[blocks.count - 2]
+            let cells = children(table, "tr").map { row in children(row, "tc").map { cell in children(cell, "p").map(text).joined(separator: "\n") } }
+            if cells != [["Fruit", "Count"], ["Lemon", "12"]] { issues.append("Table cells changed") }
+            if markdown {
+                for (start, format) in [(2, "bullet"), (4, "decimal")] {
+                    if let first = listID(blocks[start], format: format), listID(blocks[start + 1], format: format) == first { }
+                    else { issues.append("\(format) list definition or numbering changed") }
+                }
+                for run in children(blocks[6], "r") {
+                    for item in children(run, "t") where (item.stringValue ?? "").first?.isWhitespace == true {
+                        if item.attribute(forLocalName: "space", uri: "http://www.w3.org/XML/1998/namespace")?.stringValue != "preserve" { issues.append("Code spaces lack XML preservation") }
+                    }
+                }
+            }
+            return issues
+        }
+    }
+
     func testLibreOfficeDocumentAndSpreadsheetConversions() async throws {
         try require("libreoffice")
         let textInput = root.appendingPathComponent("sample.txt")

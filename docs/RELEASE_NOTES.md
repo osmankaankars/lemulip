@@ -6,6 +6,29 @@ Lemulip is a free, open-source file converter for macOS. Drag local files,
 tap a modifier key, and choose a format or tool from the wheel. Use the workspace
 when you need a queue, conversion options, or a closer look at the result.
 
+## 0.1.14 · HTML Notes, Ready for Word
+
+- Fix HTML and HTM → DOCX when LibreOffice opens the input as a web document
+  and cannot choose a Word export filter. Import these files as Writer
+  documents and explicitly select the Word document exporter.
+- Check real HTML and Markdown conversions separately. Verify a heading,
+  bold and italic text, Unicode, and a small table in document order. Markdown
+  also checks bulleted and numbered lists and literal code spacing.
+- Resolve Word formatting through its styles and numbering definitions so
+  the checks do not depend on a particular engine's style names or text-run
+  boundaries. Include deliberate damaged-output cases in the existing test file.
+- Extend the separate Office review artifact from six to eight generated
+  comparisons, with HTML and Markdown sources and a matching review guide.
+- Keep the existing local engines, source-preservation behavior, and file
+  sandbox. Add no app dependency, test file, or committed binary sample.
+
+Version **0.1.14**, build **17**, continues
+[Easier Office Conversion](ROADMAP.md#5-easier-office-conversion). HTML → DOCX
+uses LibreOffice; Markdown → DOCX uses Pandoc. This version needs its own
+Mac, security, and downloaded-package checks before its release is available.
+Microsoft Office rendering acceptance remains **Not Reviewed**; see
+[Office Review](OFFICE_REVIEW.md) for the eight examples.
+
 ## 0.1.13 · Ready for an Office Review
 
 - Prepare six small sets of actual conversion outputs for inspection in
@@ -35,15 +58,12 @@ verification repair from 0.1.12, with a narrow RTF metadata compatibility fix.
 Its supported document-content scope is unchanged. This step
 makes [Office Review](OFFICE_REVIEW.md) ready to perform; it does not establish
 that Microsoft Office has rendered or recalculated these files correctly.
-Mac, security, and downloaded-package checks remain required before release
-publication. The [alignment repair's Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39223770087)
-passed all 127 built-in tests on both architectures, confirming the native RTF
-repair. Apple silicon passed 12 of 13 external integration cases, including
-native Word exports and rich Excel and PowerPoint round trips. The rich Word
-page-boundary check failed at its heading and table-order assertions. This
-repair makes that check's paragraph selection explicit without changing the
-converter or accepting additional break types. Its complete Mac integration
-and packaging path still needs a passing run.
+The completed [source Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39230109601)
+passed all 127 built-in tests on both architectures and all 14 integration
+cases on Apple silicon. [CodeQL](https://github.com/osmankaankars/lemulip/actions/runs/39230109655)
+and the [tagged build and package checks](https://github.com/osmankaankars/lemulip/actions/runs/39232673004)
+also passed. The four expected release assets are published under
+[`v0.1.13`](https://github.com/osmankaankars/lemulip/releases/tag/v0.1.13).
 See [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
 for the review artifact and [Releases](https://github.com/osmankaankars/lemulip/releases)
 for installable downloads.

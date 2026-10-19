@@ -27,6 +27,8 @@ and repairs the rich Office checks' relationship lookup.
 Source **0.1.13** prepares six generated Office review cases, with an explicit
 Word page-break check and a guide for inspecting the files in Microsoft Office.
 It also repairs the handling of a standard RTF company metadata group.
+Source **0.1.14** fixes HTML → DOCX import/export selection and adds separate
+HTML and Markdown structure checks, with two more generated Office review cases.
 Each version's own
 [Mac checks](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
 and [release assets](https://github.com/osmankaankars/lemulip/releases) determine
@@ -231,15 +233,15 @@ and keep historical tags and downloads intact.
 
 ## 5. Easier Office Conversion
 
-**Partially implemented through source 0.1.13.** The first slice adds basic Office
+**Partially implemented through source 0.1.14.** The first slice adds basic Office
 exports without an extra engine: TXT → DOCX through macOS and CSV/TSV → XLSX
 through a small built-in writer. The second slice checks representative rich
 documents, workbooks, and presentations through the existing optional engine.
 The third slice adds basic RTF → DOCX through macOS, preserving supported font
 and paragraph formatting.
-The whole milestone remains open. Source 0.1.13 needs its own Mac build, package,
-and security checks; acceptance in Word, Excel, and PowerPoint remains separate
-from automated checks.
+The whole milestone remains open. Published 0.1.13 passed its Mac, package,
+and security checks. Source 0.1.14 needs its own results; acceptance in Word,
+Excel, and PowerPoint remains separate from automated checks.
 
 **Implemented Scope:** TXT export keeps plain text, paragraphs, tabs, and Unicode.
 Basic RTF export adds font families and sizes, bold and italic traits, and
@@ -255,39 +257,42 @@ package dependency or bundled engine.
 paragraphs, and stored font formatting; XLSX → ODS → XLSX checks two ordered
 sheets, cell types, simple formulas and their cached results; PPTX → ODP → PPTX
 checks slide order, text, stored font attributes, and shape positions. All three
-generated examples passed with LibreOffice on Linux. In the 0.1.11
-[Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39170976554), Word
-passed; the other two stopped in a shared verifier lookup. Source 0.1.12 repairs
-that lookup, but its Mac run stopped earlier at a native RTF formatting example.
-Source 0.1.13 adds a narrow RTF metadata repair. Its first Mac run reached the
-formatting assertions and exposed an alignment-representation mismatch; the
-repair accepts equivalent left alignment only for the fixed Latin example.
-The alignment repair's [Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39223770087)
-passed all 127 built-in tests on both architectures and 12 of 13 Apple silicon
-integration cases. Native Word exports and rich Excel and PowerPoint checks
-passed. The rich Word page-boundary verification failed; its repair now reads
-the heading, table order, and explicit break through direct body traversal.
-The full Mac integration and package path remains required. The checks do not establish
-identical rendering, font availability,
+generated examples passed in the verified 0.1.13
+[Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39230109601):
+127 built-in tests passed on each architecture, with all 14 integration cases
+passing on Apple silicon. Its [CodeQL run](https://github.com/osmankaankars/lemulip/actions/runs/39230109655)
+and [tagged build and package checks](https://github.com/osmankaankars/lemulip/actions/runs/39232673004)
+also passed. The checks do not establish identical rendering, font availability,
 general formula recalculation, or support for macros, charts, pivot tables, and
 animations. See [Rich Office Conversion](FORMATS.md#rich-office-conversion).
 
-**Review Preparation Implemented in Source 0.1.13:** the existing integration cases can retain
-six generated source/output comparisons as a separate Actions artifact. The
+**Review Preparation:** source 0.1.13 retains six generated source/output
+comparisons as a separate Actions artifact. Source 0.1.14 adds HTML and
+Markdown comparisons, bringing the planned artifact to eight cases. The
 [Office Review](OFFICE_REVIEW.md) guide covers Word fonts and two-page layout,
 literal Excel cells, an edit-and-recalculate check, and PowerPoint appearance.
 The artifact records its source commit; it adds no app dependency or release
 asset. Preparing it does not complete manual acceptance.
 
+**HTML and Markdown Assessment Implemented in Source 0.1.14:** separate cases
+check semantic headings, emphasis, Unicode, and table order in generated DOCX.
+Markdown also checks list definitions and literal code spacing. The HTML case
+exposed a Writer/Web export-selection failure; HTML and HTM now explicitly
+use Writer's HTML importer and Word exporter. Both formats keep their existing
+optional engines. The app gains no web renderer or Markdown package.
+See [HTML and Markdown Word Export](FORMATS.md#html-and-markdown-word-export)
+for the precise boundary and each version's CI for verified results.
+
 **Next Work, in Order:**
 
-1. Complete the six-case [Office Review](OFFICE_REVIEW.md) in Word, Excel, and
+1. Complete the expanded [Office Review](OFFICE_REVIEW.md) in Word, Excel, and
    PowerPoint, recording the actual app versions and observations. All manual
    results remain **Not Reviewed** until inspected. Check font rendering,
    pagination, recalculation, and slide appearance before broadening the claims.
-2. Assess HTML and Markdown fidelity separately before extending their native
-   routes. Keep their current optional engines and documented limits until
-   those routes have suitable conversion checks.
+2. Define and implement a bounded native Markdown → DOCX route using the
+   assessed heading, list, and code behavior as acceptance criteria. Route
+   unsupported structures to Pandoc before output instead of flattening them.
+   Keep HTML on LibreOffice until its own safe native subset is defined.
 
 Complex RTF and HTML → DOCX, existing Office documents, workbooks, and
 presentations retain LibreOffice where already supported. Markdown → DOCX

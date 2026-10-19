@@ -4,8 +4,9 @@ Lemulip has three ways to work: a wheel beside your drag, a regular workspace, a
 
 New here? [Install Lemulip](INSTALL.md) first. For specific input and output combinations, use the [format guide](FORMATS.md).
 
-This guide follows source **0.1.12**, with native basic RTF → DOCX alongside
-plain-text Word and text-cell Excel exports. Visual image
+This guide follows source **0.1.14**, including the HTML → Word repair and
+separate HTML and Markdown checks, alongside native basic RTF, plain-text Word,
+and text-cell Excel exports. Visual image
 crop and audio waveform trim start with 0.1.4, native video trim with 0.1.5,
 visual video crop with 0.1.6, Organize PDF with 0.1.7, and Merge PDF preview with 0.1.8.
 Check [Releases](https://github.com/osmankaankars/lemulip/releases) for available
@@ -526,6 +527,28 @@ text. See [Basic Excel Export](FORMATS.md#basic-excel-export) for the full scope
 
 Both exports use the normal output-folder preference and choose an unused name.
 Your source files stay in place.
+
+## Convert HTML or Markdown to Word
+
+1. Install **LibreOffice** for HTML (`.html` or `.htm`) or **Pandoc** for
+   Markdown (`.md` or `.markdown`). Open **Settings → Local Engines → Refresh**.
+2. Add your local file, then choose **Convert → DOCX**. Lemulip creates a Word
+   document using the available engine and keeps your original file.
+3. Open the output from **Activity**. Check its structure and appearance in
+   the application where you plan to use it.
+
+Source **0.1.14** fixes an HTML conversion failure that could prevent the Word
+file from being created. Separate generated examples check an actual heading,
+bold and italic text, Unicode, and a simple two-by-two table. Markdown also
+checks bullet and numbered lists, plus spacing and line breaks in a code block.
+
+These are document conversions. A saved web page's CSS, scripts, images, and
+browser layout are outside the checked HTML example. Markdown uses Pandoc's
+Markdown dialect; extensions and embedded HTML have not been assessed here.
+The examples contain no images or hyperlinks. Check those elements separately
+when your document depends on them. See
+[HTML and Markdown Word Export](FORMATS.md#html-and-markdown-word-export) for
+the exact scope.
 
 ## Convert Existing Office Files
 

@@ -1,6 +1,6 @@
 # Office Review
 
-Use this ten-minute review to inspect Lemulip's generated files in desktop
+Use this short review to inspect Lemulip's generated files in desktop
 Microsoft Word, Excel, and PowerPoint on a Mac. The archive contains actual
 conversion outputs from the existing integration cases, alongside their small
 generated inputs. Every manual result starts as **Not Reviewed**.
@@ -14,11 +14,16 @@ enclosed ZIP and open the `Lemulip-Office-Review` folder. If the artifact is
 missing, check that run's integration and preparation steps; a successful
 release coordinator alone does not establish that these files exist.
 
-The folder contains six cases, this guide, `REVIEW_RESULTS.md`, `manifest.json`,
-and `SHA256SUMS.txt`. Check the manifest's Lemulip version and source commit
+The source 0.1.14 review folder contains eight cases, this guide,
+`REVIEW_RESULTS.md`, `manifest.json`, and `SHA256SUMS.txt`. Check the manifest's
+Lemulip version and source commit
 against the run you intended to review. Keep the originals together as the
 record of that exact conversion. This is a separate Actions artifact; it does
 not add a fifth release asset or update the installed app.
+
+The 0.1.13 archive contains the original six cases. The HTML and Markdown
+comparisons are added in source 0.1.14; use that version's artifact for this
+expanded review.
 
 ## Review in the Target Apps
 
@@ -28,13 +33,13 @@ Reviewed**. A browser preview, another reader, or a passing automated test does
 not complete this review.
 
 Open the source and converted files side by side where both are supported.
-All six outputs should open without a file-repair prompt. Record any prompt
+All eight outputs should open without a file-repair prompt. Record any prompt
 before accepting a repair. For edits, duplicate the converted file into a
 separate working folder; keep the captured copies unchanged.
 
 ### Word: Text, Formatting, and Pages
 
-Allow about four minutes for these three cases. Use **View → Print Layout**
+Allow about seven minutes for these five cases. Use **View → Print Layout**
 and the same zoom for the source and converted documents. If Word hides the
 page margins, its [margin-display instructions](https://support.microsoft.com/en-us/word/my-top-margin-is-missing)
 explain how to show the white space again.
@@ -44,10 +49,38 @@ explain how to show the white space again.
 | `word-text` | `source.txt` → `converted.docx` | Paragraph and blank-line order, tabs, repeated spaces, literal `&` and `<Symbols>`, and readable `İstanbul • 東京`. This route adds no rich layout. |
 | `word-rtf` | `source.rtf` → `converted.docx` | “Orchard Notes” stays centered, bold and italic in Arial 14 pt. “Second Paragraph” remains left-aligned in Arial 11 pt. Compare paragraph spacing and note any font substitution. Native RTF export does not reconstruct page layout or margins. |
 | `word-layout` | `source.docx` → `intermediate.odt` → `converted.docx` | The source and converted Word documents both show two pages, with the explicit page break retained. Compare the heading, Unicode paragraph, two-by-two table, page margins, and second-page content. Nothing should be clipped, missing, or unexpectedly moved onto a third page. |
+| `word-html` | `source.html` → `converted.docx` | “Orchard Notes” is a level-one heading. “bold phrase” and “italic phrase” retain their emphasis. `İstanbul · 東京 & < >` remains readable. The table has headers “Fruit” and “Count”, then “Lemon” and “12”; “After the Table” follows it. |
+| `word-markdown` | `source.md` → `converted.docx` | Check the same heading, emphasis, Unicode, and table as the HTML case. “Lemon” and “Pistachio” form a bulleted list; “First Step” and “Second Step” form a numbered list. The three-line code block keeps its literal text and spacing, as shown below. |
 
-For the last case, inspect the source and final DOCX first. The intermediate
+For `word-layout`, inspect the source and final DOCX first. The intermediate
 ODT is included to help locate a difference if one appears. An installed-font
 name in the file is only part of the check; look at the rendered text too.
+
+For `word-html` and `word-markdown`, open the source in a text editor and inspect
+the converted document in Word. Check that the title uses a heading style and
+that lists remain lists, rather than text with manually typed markers. The HTML
+source uses character entities; the Word output should show the decoded `&`,
+`<`, and `>` characters, rather than their entity names.
+
+The Markdown code block should appear on three lines exactly as follows:
+
+```text
+  keep  two spaces
+    four spaces
+**literal** <tag> & end
+```
+
+The first line begins with two spaces and also has two spaces between “keep”
+and “two”. The second line begins with four spaces. The asterisks and angle
+brackets on the last line remain literal code; they must not become emphasis
+or disappear as markup. Check the table's two rows and two columns, then confirm
+that “After the Table” is outside the table and follows it.
+
+These two sources contain no images, stylesheets, scripts, hyperlinks, or
+external resources. They assess basic document structure through LibreOffice
+for HTML and Pandoc for Markdown. Do not infer browser-layout reproduction or
+support for every Markdown extension from these cases. Their manual results
+remain **Not Reviewed** until inspected in Word.
 
 ### Excel: Literal Values and Recalculation
 
@@ -103,6 +136,6 @@ or local file paths. If a screenshot helps, crop it to the generated document
 content. Local capture and packaging collect no telemetry and do not upload
 files; sharing a completed report is a separate action.
 
-Keep all six cases open until inspected in their target applications. Passing
+Keep all eight cases open until inspected in their target applications. Passing
 results apply to these examples and recorded app versions; they do not establish
 support for macros, charts, pivot tables, embedded objects, or animations.

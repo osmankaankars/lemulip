@@ -240,10 +240,12 @@ enum ExternalConverters {
             // Isolate names so Office's output naming cannot turn an input name into an option or overwrite a sibling.
             let copiedInput = job.appendingPathComponent("input.\(input.pathExtension.lowercased())")
             try FileManager.default.copyItem(at: input, to: copiedInput)
+            let htmlWordExport = target == "docx" && ["html", "htm"].contains(input.pathExtension.lowercased())
             let filter: String
             switch target {
             case "csv": filter = "csv:Text - txt - csv (StarCalc):44,34,76,1"
             case "tsv": filter = "csv:Text - txt - csv (StarCalc):9,34,76,1"
+            case "docx" where htmlWordExport: filter = "docx:Office Open XML Text"
             default: filter = target
             }
             let profileURL = try officeProfileURL(profile)
@@ -251,7 +253,14 @@ enum ExternalConverters {
             #if os(macOS)
             ipcSockets = try officeIPCSockets(profileURL: profileURL)
             #endif
-            _ = try await ProcessRunner.checked(executable: office, arguments: ["-env:UserInstallation=\(profileURL)", "--headless", "--norestore", "--nodefault", "--nolockcheck", "--nofirststartwizard", "--convert-to", filter, "--outdir", out.path, copiedInput.path], currentDirectory: job, timeout: 180, allowedUnixSockets: ipcSockets)
+            var arguments = ["-env:UserInstallation=\(profileURL)", "--headless", "--norestore", "--nodefault", "--nolockcheck", "--nofirststartwizard"]
+            if htmlWordExport {
+                // Writer/Web has no automatic DOCX filter. Import as a Writer
+                // document to retain heading semantics, then select Word export.
+                arguments.append("--infilter=HTML (StarWriter)")
+            }
+            arguments += ["--convert-to", filter, "--outdir", out.path, copiedInput.path]
+            _ = try await ProcessRunner.checked(executable: office, arguments: arguments, currentDirectory: job, timeout: 180, allowedUnixSockets: ipcSockets)
             let expected = out.appendingPathComponent("input.\(target == "tsv" ? "csv" : target)")
             try requireFile(expected)
             if target == "html", try FileManager.default.contentsOfDirectory(atPath: out.path).count > 1 {
