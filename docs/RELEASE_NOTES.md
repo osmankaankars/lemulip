@@ -26,6 +26,9 @@ when you need a queue, conversion options, or a closer look at the result.
 - Correct the Mac RTF alignment check for the fixed left-to-right example.
   Accept AppKit's equivalent natural alignment while checking paragraph and
   character writing direction. Keep the font, spacing, indent, and color checks.
+- Read the rich Word example's page boundary from its ordered body elements.
+  Require one matching heading after its table and an explicit page break;
+  cover disabled, misplaced, and wrong-type breaks in the existing test file.
 
 Version **0.1.13**, build **16**, includes the native RTF export and Office
 verification repair from 0.1.12, with a narrow RTF metadata compatibility fix.
@@ -33,11 +36,14 @@ Its supported document-content scope is unchanged. This step
 makes [Office Review](OFFICE_REVIEW.md) ready to perform; it does not establish
 that Microsoft Office has rendered or recalculated these files correctly.
 Mac, security, and downloaded-package checks remain required before release
-publication. The initial [0.1.13 Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39219132871)
-compiled both architectures and passed 126 of 127 built-in tests on each.
-The RTF conversion completed; its one failure compared natural alignment with
-explicit left alignment. This repair corrects that comparison without changing
-the converter. External integrations and packaging still require a passing run.
+publication. The [alignment repair's Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39223770087)
+passed all 127 built-in tests on both architectures, confirming the native RTF
+repair. Apple silicon passed 12 of 13 external integration cases, including
+native Word exports and rich Excel and PowerPoint round trips. The rich Word
+page-boundary check failed at its heading and table-order assertions. This
+repair makes that check's paragraph selection explicit without changing the
+converter or accepting additional break types. Its complete Mac integration
+and packaging path still needs a passing run.
 See [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
 for the review artifact and [Releases](https://github.com/osmankaankars/lemulip/releases)
 for installable downloads.

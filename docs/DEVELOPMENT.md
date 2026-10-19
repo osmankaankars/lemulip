@@ -462,9 +462,37 @@ left alignment only for that exact Latin body and rejects RTL paragraph or
 character direction. Apple documents
 [natural paragraph alignment](https://developer.apple.com/documentation/appkit/nsparagraphstyle/alignment)
 and the supported [writing-direction attributes](https://developer.apple.com/documentation/foundation/nsattributedstring/key/writingdirection).
-This changes the verifier, not the conversion engine. External integrations,
-including the relationship repair, and release packaging were not reached;
-the repaired source still needs its own Mac CI result.
+That initial run did not reach external integrations or packaging.
+
+The alignment repair's [Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39223770087)
+passed all **127 built-in tests on both architectures**. Apple silicon passed
+12 of 13 external integration cases, including native TXT and RTF Word exports,
+complex RTF fallback, rich Excel and PowerPoint round trips, and the repaired
+relationship lookup. The rich Word case failed two assertions: an explicit
+page boundary before its second-page heading and one preceding table. The
+log did not include the selected paragraph or converted document, so it does
+not establish a Mac-specific XPath defect or a loss of pagination.
+
+Repeating the exact generated Word fixture with LibreOfficeDev
+26.8.0.0.alpha0 on Linux retained a leading inline page break and the table's
+position. The source and returned DOCX both rendered as two A4 pages with
+identical text by page: table on page one, new heading and following paragraph
+on page two. This is local LibreOffice evidence, not Mac Foundation execution
+or Microsoft Word acceptance.
+
+The current repair enumerates Word body elements directly, matches the joined
+heading text exactly, and requires unique heading and table positions in the
+correct order. It retains the XML document and resolves element and attribute
+namespaces explicitly. Only the existing two boundary forms are accepted:
+an enabled [paragraph page break](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.pagebreakbefore)
+or a leading [inline page break](https://learn.microsoft.com/en-us/dotnet/api/documentformat.openxml.wordprocessing.break).
+Visible text, a tab, a drawing, or a hyperlink before a later break cannot
+qualify. Disabled properties, line or column breaks, duplicate headings, and
+a heading inside the table are covered in the existing integration test file.
+If the real conversion still fails, the assertion includes its generated Word
+body for diagnosis. All table, font, Unicode, and source-preservation checks
+remain required. The converter and release prerequisites are unchanged; the
+repaired Swift tests and complete Mac package path still need their own CI run.
 
 Do not infer font availability, Word pagination, Excel recalculation, or
 PowerPoint rendering from stored attributes alone. The formula cases check

@@ -14,6 +14,7 @@ import FoundationXML
 final class EngineIntegrationTests: XCTestCase {
     private var root: URL!
     private let engine = ConversionEngine()
+    private let wordNamespace = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
     override func setUpWithError() throws {
         root = FileManager.default.temporaryDirectory.appendingPathComponent("freewheel-integration-tests-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
@@ -161,17 +162,8 @@ final class EngineIntegrationTests: XCTestCase {
         XCTAssertTrue(try heading.nodes(forXPath: ".//*[local-name()='rFonts']/@*[local-name()='ascii']").contains { $0.stringValue == "Arial" })
         XCTAssertEqual(try heading.nodes(forXPath: ".//*[local-name()='sz']/@*[local-name()='val']").first?.stringValue, "28")
         XCTAssertTrue(try document.nodes(forXPath: "//*[local-name()='t']").contains { $0.stringValue == "A second paragraph with Unicode: İstanbul." })
-        let secondPage = try XCTUnwrap(document.nodes(forXPath: "//*[local-name()='p'][.//*[local-name()='t']='A Fresh Page']").first)
-        let pageBreak = try secondPage.nodes(forXPath: "./*[local-name()='pPr']/*[local-name()='pageBreakBefore']").first
-        let pageBreakValue = try pageBreak?.nodes(forXPath: "./@*[local-name()='val']").first?.stringValue ?? "1"
-        let paragraphStartsPage = pageBreak != nil && ["1", "true", "on"].contains(pageBreakValue)
-        // LibreOffice can write the equivalent page break as the first inline
-        // item. A break after heading text, or an ordinary line break, is not enough.
-        let firstInline = try secondPage.nodes(forXPath: ".//*[local-name()='r']/*[not(local-name()='rPr')]").first
-        let inlineBreakType = try firstInline?.nodes(forXPath: "./@*[local-name()='type']").first?.stringValue
-        let startsWithPageBreak = firstInline?.localName == "br" && inlineBreakType == "page"
-        XCTAssertTrue(paragraphStartsPage || startsWithPageBreak, "The second-page heading must follow an explicit page boundary.")
-        XCTAssertEqual(try secondPage.nodes(forXPath: "preceding::*[local-name()='tbl']").count, 1)
+        XCTAssertTrue(wordPageBoundaryIsPreserved(document),
+                      "The unique second-page heading must follow the table and an explicit page boundary. Generated Word body: \(document.rootElement()?.xmlString ?? "missing")")
         XCTAssertTrue(try document.nodes(forXPath: "//*[local-name()='t']").contains {
             $0.stringValue == "This paragraph follows an explicit page break. The table stays on the first page."
         })
@@ -352,6 +344,90 @@ final class EngineIntegrationTests: XCTestCase {
                 elements: document.nodes(forXPath: "//*[local-name()='sheet']"))
         }
         XCTAssertEqual(parts, ["xl/worksheets/first.xml", "xl/worksheets/second.xml"])
+    }
+
+    func testWordPageBoundaryRequiresTheRightParagraphAndBreak() throws {
+        let table = "<w:tbl><w:tr><w:tc><w:p><w:r><w:t>Table Cell</w:t></w:r></w:p></w:tc></w:tr></w:tbl>"
+        let title = "<w:r><w:t>A Fresh Page</w:t></w:r>"
+        let page = "<w:r><w:br w:type=\"page\"/></w:r>"
+        let explicit = "<w:p><w:pPr><w:pageBreakBefore/></w:pPr>\(title)</w:p>"
+        let inline = "<w:p>\(page)\(title)</w:p>"
+        func check(_ content: String) throws -> Bool {
+            let document = try XMLDocument(xmlString:
+                "<w:document xmlns:w=\"\(wordNamespace)\" xmlns:other=\"urn:unrelated\"><w:body>\(content)</w:body></w:document>",
+                options: .nodeLoadExternalEntitiesNever)
+            return wordPageBoundaryIsPreserved(document)
+        }
+        XCTAssertTrue(try check(table + explicit))
+        XCTAssertTrue(try check(table + inline))
+        XCTAssertTrue(try check(table + "<w:p>\(page)<w:r><w:t>A Fresh </w:t></w:r><w:r><w:t>Page</w:t></w:r></w:p>"))
+        XCTAssertTrue(try check(table + "<w:p><w:pPr><w:pageBreakBefore w:val=\"true\"/></w:pPr>\(title)</w:p>"))
+        // Reusing a local name in another namespace must not replace a Word attribute.
+        XCTAssertTrue(try check(table + "<w:p><w:r><w:br other:type=\"line\" w:type=\"page\"/></w:r>\(title)</w:p>"))
+        for disabled in ["0", "false", "off"] {
+            XCTAssertFalse(try check(table + "<w:p><w:pPr><w:pageBreakBefore w:val=\"\(disabled)\"/></w:pPr>\(title)</w:p>"))
+        }
+        for invalid in [
+            explicit, explicit + table, table + table + explicit, table + explicit + inline,
+            "<w:tbl><w:tr><w:tc>\(explicit)</w:tc></w:tr></w:tbl>",
+            table + "<w:p>\(title)\(page)</w:p>",
+            table + "<w:p><w:r><w:br/></w:r>\(title)</w:p>",
+            table + "<w:p><w:r><w:br w:type=\"column\"/></w:r>\(title)</w:p>",
+            table + "<w:p><w:r><w:br other:type=\"page\"/></w:r>\(title)</w:p>",
+            table + "<w:p><w:r><w:tab/></w:r>\(page)\(title)</w:p>",
+            table + "<w:p><w:hyperlink>\(title)</w:hyperlink>\(page)</w:p>",
+            table + "<w:p><w:r><w:drawing/></w:r>\(page)\(title)</w:p>"
+        ] {
+            XCTAssertFalse(try check(invalid), "Accepted an invalid Word page boundary: \(invalid)")
+        }
+        let alternate = try XMLDocument(xmlString:
+            "<document xmlns=\"\(wordNamespace)\" xmlns:word=\"\(wordNamespace)\"><body><tbl/><p><r><br word:type=\"page\"/></r><r><t>A Fresh Page</t></r></p></body></document>",
+            options: .nodeLoadExternalEntitiesNever)
+        XCTAssertTrue(wordPageBoundaryIsPreserved(alternate))
+    }
+
+    private func wordPageBoundaryIsPreserved(_ document: XMLDocument) -> Bool {
+        withExtendedLifetime(document) {
+            guard let rootElement = document.rootElement(), rootElement.localName == "document",
+                  rootElement.uri == wordNamespace else { return false }
+            let bodies = rootElement.elements(forLocalName: "body", uri: wordNamespace)
+            guard bodies.count == 1 else { return false }
+            let blocks = (bodies[0].children ?? []).compactMap { $0 as? XMLElement }
+            let tables = blocks.indices.filter { blocks[$0].uri == wordNamespace && blocks[$0].localName == "tbl" }
+            let headings = blocks.indices.filter {
+                blocks[$0].uri == wordNamespace && blocks[$0].localName == "p"
+                    && wordText(blocks[$0]) == "A Fresh Page"
+            }
+            // Select the exact body paragraph and compare document order directly.
+            // A matching heading inside a table or a duplicate heading is invalid.
+            guard tables.count == 1, headings.count == 1, tables[0] < headings[0] else { return false }
+            let paragraph = blocks[headings[0]]
+            let properties = paragraph.elements(forLocalName: "pPr", uri: wordNamespace)
+            guard properties.count <= 1 else { return false }
+            let breaks = properties.first?.elements(forLocalName: "pageBreakBefore", uri: wordNamespace) ?? []
+            guard breaks.count <= 1 else { return false }
+            if let pageBreak = breaks.first {
+                let value = pageBreak.attribute(forLocalName: "val", uri: wordNamespace)?.stringValue ?? "1"
+                if ["1", "true", "on"].contains(value) { return true }
+            }
+            // Keep the same two accepted forms: a paragraph property or a leading
+            // inline page break. Never skip visible content to find a later break.
+            let content = (paragraph.children ?? []).compactMap { $0 as? XMLElement }.flatMap { child -> [XMLElement] in
+                if child.uri == wordNamespace && ["pPr", "bookmarkStart", "bookmarkEnd", "proofErr"].contains(child.localName ?? "") {
+                    return []
+                }
+                guard child.uri == wordNamespace && child.localName == "r" else { return [child] }
+                return (child.children ?? []).compactMap { $0 as? XMLElement }
+                    .filter { !($0.uri == wordNamespace && $0.localName == "rPr") }
+            }
+            guard let first = content.first, first.uri == wordNamespace, first.localName == "br" else { return false }
+            return first.attribute(forLocalName: "type", uri: wordNamespace)?.stringValue == "page"
+        }
+    }
+
+    private func wordText(_ element: XMLElement) -> String {
+        if element.uri == wordNamespace && element.localName == "t" { return element.stringValue ?? "" }
+        return (element.children ?? []).compactMap { $0 as? XMLElement }.map { wordText($0) }.joined()
     }
 
     private func officeRoundTrip(_ source: URL, through intermediate: String, reviewCase: String? = nil) async throws -> URL {
