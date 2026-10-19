@@ -29,6 +29,16 @@ Mac, security, and downloaded-package checks before its release is available.
 Microsoft Office rendering acceptance remains **Not Reviewed**; see
 [Office Review](OFFICE_REVIEW.md) for the eight examples.
 
+The initial [0.1.14 Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39241783897)
+passed 127 built-in tests on each architecture and 16 of 17 Apple silicon
+integration cases. HTML Word export passed; the Markdown verifier reported
+missing single-space text runs. Its repair promotes significant whitespace
+when reading Office XML and checks separate word-separator and code-indentation
+runs through the same loader. Actual missing spaces still fail the checks.
+[CodeQL](https://github.com/osmankaankars/lemulip/actions/runs/39241784028)
+passed for the initial source. The repaired commit needs its own Mac,
+security, and package results; no 0.1.14 download is claimed from the failed run.
+
 ## 0.1.13 · Ready for an Office Review
 
 - Prepare six small sets of actual conversion outputs for inspection in

@@ -157,10 +157,11 @@ final class EngineIntegrationTests: XCTestCase {
         let extracted = try await ExternalConverters.archives([output],
             operation: FileOperation(id: "archive.extract", title: "Extract"), directory: root)
         let package = try XCTUnwrap(extracted.outputs.first)
+        let documentSource = try Data(contentsOf: package.appendingPathComponent("word/document.xml"))
         let document = try officeXML(package, "word/document.xml")
         let issues = markupWordIssues(document, styles: try officeXML(package, "word/styles.xml"),
             numbering: markdown ? try officeXML(package, "word/numbering.xml") : nil, markdown: markdown)
-        XCTAssertTrue(issues.isEmpty, "Markup Word export: \(issues.joined(separator: "; ")). Generated body: \(document.rootElement()?.xmlString ?? "missing")")
+        XCTAssertTrue(issues.isEmpty, "Markup Word export: \(issues.joined(separator: "; ")). Generated document XML: \(String(decoding: documentSource, as: UTF8.self))")
         XCTAssertEqual(try Data(contentsOf: source), original)
         if let reviewCase {
             try captureOfficeReview(reviewCase, files: [("source.\(markdown ? "md" : "html")", source), ("converted.docx", output)])
@@ -207,13 +208,31 @@ final class EngineIntegrationTests: XCTestCase {
         func issues(_ body: String, _ styles: String, _ numbering: String, prefix: String = "w") throws -> [String] {
             let document = "<w:document xmlns:w=\"\(wordNamespace)\" xmlns:other=\"urn:unrelated\"><w:body>\(body)</w:body></w:document>"
             func xml(_ text: String) throws -> XMLDocument {
-                try XMLDocument(xmlString: text.replacingOccurrences(of: "w:", with: "\(prefix):")
-                    .replacingOccurrences(of: "xmlns:w=", with: "xmlns:\(prefix)="), options: .nodeLoadExternalEntitiesNever)
+                let part = "markup-\(UUID().uuidString).xml"
+                let file = root.appendingPathComponent(part)
+                let source = text.replacingOccurrences(of: "w:", with: "\(prefix):")
+                    .replacingOccurrences(of: "xmlns:w=", with: "xmlns:\(prefix)=")
+                try Data(source.utf8).write(to: file, options: .withoutOverwriting)
+                defer { try? FileManager.default.removeItem(at: file) }
+                return try officeXML(root, part)
             }
             return try markupWordIssues(xml(document), styles: xml(styles), numbering: xml(numbering), markdown: true)
         }
         XCTAssertTrue(try issues(body, styles, numbering).isEmpty)
         XCTAssertTrue(try issues(body, styles, numbering, prefix: "word").isEmpty)
+        // Pandoc can put separators and code indentation in their own text runs.
+        // Exercise the same file loader used for real Office package parts.
+        let splitBody = body
+            .replacingOccurrences(of: run("A "), with: run("A") + run(" "))
+            .replacingOccurrences(of: run(", an "), with: run(", an") + run(" "))
+            .replacingOccurrences(of: run("  keep  two spaces"), with: run("  ") + run("keep") + run("  ") + run("two spaces"))
+            .replacingOccurrences(of: run("    four spaces"), with: run("    ") + run("four spaces"))
+        XCTAssertTrue(try issues(splitBody, styles, numbering).isEmpty)
+        XCTAssertTrue(try issues(splitBody, styles, numbering, prefix: "word").isEmpty)
+        XCTAssertFalse(try issues(splitBody.replacingOccurrences(of: run(" "), with: ""), styles, numbering).isEmpty,
+                       "Accepted missing word separators")
+        XCTAssertFalse(try issues(splitBody.replacingOccurrences(of: run("  "), with: run(" ")), styles, numbering).isEmpty,
+                       "Accepted shortened code whitespace")
         let mutations: [(String, String, String, String)] = [
             ("wrong heading level", body, styles.replacingOccurrences(of: "outlineLvl w:val=\"0\"", with: "outlineLvl w:val=\"1\""), numbering),
             ("style cycle", body, styles.replacingOccurrences(of: "w:val=\"OutlineBase\"", with: "w:val=\"LeafHeading\""), numbering),
@@ -743,7 +762,10 @@ final class EngineIntegrationTests: XCTestCase {
     }
 
     private func officeXML(_ package: URL, _ part: String) throws -> XMLDocument {
-        try XMLDocument(contentsOf: package.appendingPathComponent(part), options: .nodeLoadExternalEntitiesNever)
+        // Word text can consist only of spaces. Make them visible text nodes on
+        // macOS; nodePreserveWhitespace would suppress this promotion option.
+        try XMLDocument(contentsOf: package.appendingPathComponent(part),
+                        options: [.nodeLoadExternalEntitiesNever, .nodePromoteSignificantWhitespace])
     }
 
     private func relatedOfficeParts(_ package: URL, mainPart: String, elements: [XMLNode]) throws -> [String] {
