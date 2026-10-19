@@ -206,6 +206,26 @@ def small_file(path: Path, limit: int) -> bytes:
 
 
 def public_notes(notes: str, tag: str) -> str:
+    if not re.fullmatch(r"v(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)", tag):
+        raise ReleaseError("Release notes require a tag in vMAJOR.MINOR.PATCH format.")
+    headings = list(re.finditer(r"^##[ \t]+([^\r\n]+)\r?$", notes, re.MULTILINE))
+
+    def section(pattern: str, description: str) -> tuple[str, str]:
+        matches = [(index, heading) for index, heading in enumerate(headings)
+                   if re.fullmatch(pattern, heading[1].strip())]
+        if len(matches) != 1:
+            raise ReleaseError(f"Release notes require exactly one {description}.")
+        index, heading = matches[0]
+        end = headings[index + 1].start() if index + 1 < len(headings) else len(notes)
+        body = notes[heading.end():end].strip()
+        if not body:
+            raise ReleaseError(f"The release notes {description} is empty.")
+        return heading[1].strip(), body
+
+    title, body = section(re.escape(tag[1:]) + r"(?: · .+)?", f"section for {tag}")
+    _, installation = section(r"Installation", "Installation section")
+    notes = f"## {title}\n\n{body}\n\n### Installation\n\n{installation}\n"
+
     def tagged_link(match):
         target = urlsplit(match[1])
         if target.scheme or target.netloc or target.path.startswith("/"):

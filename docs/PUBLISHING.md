@@ -58,6 +58,29 @@ If the version tag belongs to a different commit, update the app version and
 release notes for a new release. Do not delete or move the existing tag to make
 the automation pass.
 
+## Write Release Notes
+
+Keep the public changelog in [Release Notes](RELEASE_NOTES.md). Add one section
+headed `## MAJOR.MINOR.PATCH · Title`, with a few short bullets about that
+release's changes and any relevant guide links. Use Title Case for headings.
+When several development versions never produced downloads, summarize their
+new features in the next published release.
+
+The publisher selects only the section matching the release tag and appends
+the shared `## Installation` section. It converts relative documentation links
+to links at that exact tag. Missing, repeated, or empty sections stop publication;
+the full changelog is never used as a fallback release description.
+
+Keep CI logs, repair chronology, implementation details, and future plans out of
+release descriptions. Link to the guides or development history when needed.
+The full source changelog still travels with the download, and the publisher
+still requires it to match the tagged source byte for byte.
+
+Editing a published release description changes its text only. Preserve its
+tag, title, preview status, download files, and checksums. An old publisher retry
+deliberately refuses metadata that has since been edited; do not rerun a
+successful old release just to update its description.
+
 ## Publish a Fresh Repository
 
 The included `Publish-to-GitHub.command` is a legacy initialization helper. It
