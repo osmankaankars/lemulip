@@ -1236,7 +1236,26 @@ final class NativeConverterTests: XCTestCase {
         let bodyPosition = try XCTUnwrap(reopened.string.range(of: "Second Paragraph")).lowerBound
         let bodyOffset = bodyPosition.utf16Offset(in: reopened.string)
         let body = try XCTUnwrap(reopened.attribute(.paragraphStyle, at: bodyOffset, effectiveRange: nil) as? NSParagraphStyle)
-        XCTAssertEqual(body.alignment, .left)
+        // AppKit may reopen left alignment as natural. It resolves left for
+        // this exact Latin paragraph, provided no RTL direction overrides it.
+        let leftToRight = body.baseWritingDirection == .natural || body.baseWritingDirection == .leftToRight
+        XCTAssertTrue(leftToRight, "The Latin body must keep its writing direction.")
+        XCTAssertTrue(body.alignment == .left || (body.alignment == .natural && leftToRight),
+                      "The Latin body must remain left-aligned.")
+        let bodyRange = (reopened.string as NSString).range(of: "Second Paragraph\tFinal")
+        XCTAssertNotEqual(bodyRange.location, NSNotFound)
+        var directionOffset = bodyRange.location
+        while directionOffset != NSNotFound && directionOffset < NSMaxRange(bodyRange) {
+            var directionRange = NSRange(location: 0, length: 0)
+            if let value = reopened.attribute(.writingDirection, at: directionOffset,
+                                              longestEffectiveRange: &directionRange, in: bodyRange) {
+                let directions = try XCTUnwrap(value as? [NSNumber])
+                // Apple defines 0/2 as LTR embedding/override and 1/3 as RTL.
+                XCTAssertTrue(directions.allSatisfy { [0.0, 2.0].contains($0.doubleValue) },
+                              "The Latin body must not acquire an RTL character override.")
+            }
+            directionOffset = NSMaxRange(directionRange)
+        }
         XCTAssertEqual(body.firstLineHeadIndent, 18, accuracy: 0.1)
         XCTAssertEqual(body.headIndent, 12, accuracy: 0.1)
         XCTAssertEqual(body.paragraphSpacing, 8, accuracy: 0.1)

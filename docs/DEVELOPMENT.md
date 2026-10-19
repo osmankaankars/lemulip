@@ -451,8 +451,20 @@ An isolated comparison exercised 28 inputs against the exact scanner before
 and after the repair. Only the standard starred company case changed from
 unsupported to accepted; numeric, misplaced, unknown, and rich-content cases
 retained their rejection. These checks do not execute AppKit.
-The repaired full AppKit example and Office integrations need the new source's
-Mac CI result before release publication.
+
+The initial source 0.1.13
+[Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39219132871)
+compiled both architectures and passed 126 of 127 built-in tests on each.
+The RTF example converted successfully. Its remaining failure compared
+`NSTextAlignment.natural` with `.left`; the other text, font, centered-heading,
+indentation, spacing, and color checks passed. The repair checks equivalent
+left alignment only for that exact Latin body and rejects RTL paragraph or
+character direction. Apple documents
+[natural paragraph alignment](https://developer.apple.com/documentation/appkit/nsparagraphstyle/alignment)
+and the supported [writing-direction attributes](https://developer.apple.com/documentation/foundation/nsattributedstring/key/writingdirection).
+This changes the verifier, not the conversion engine. External integrations,
+including the relationship repair, and release packaging were not reached;
+the repaired source still needs its own Mac CI result.
 
 Do not infer font availability, Word pagination, Excel recalculation, or
 PowerPoint rendering from stored attributes alone. The formula cases check

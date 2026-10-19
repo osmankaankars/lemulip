@@ -23,6 +23,9 @@ when you need a queue, conversion options, or a closer look at the result.
 - Accept the standard starred company metadata group in basic RTF input.
   Keep document metadata out of the exported Word copy and retain the existing
   rejection of unknown destinations and unsupported rich content.
+- Correct the Mac RTF alignment check for the fixed left-to-right example.
+  Accept AppKit's equivalent natural alignment while checking paragraph and
+  character writing direction. Keep the font, spacing, indent, and color checks.
 
 Version **0.1.13**, build **16**, includes the native RTF export and Office
 verification repair from 0.1.12, with a narrow RTF metadata compatibility fix.
@@ -30,7 +33,12 @@ Its supported document-content scope is unchanged. This step
 makes [Office Review](OFFICE_REVIEW.md) ready to perform; it does not establish
 that Microsoft Office has rendered or recalculated these files correctly.
 Mac, security, and downloaded-package checks remain required before release
-publication. See [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
+publication. The initial [0.1.13 Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39219132871)
+compiled both architectures and passed 126 of 127 built-in tests on each.
+The RTF conversion completed; its one failure compared natural alignment with
+explicit left alignment. This repair corrects that comparison without changing
+the converter. External integrations and packaging still require a passing run.
+See [Build and Verify](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
 for the review artifact and [Releases](https://github.com/osmankaankars/lemulip/releases)
 for installable downloads.
 

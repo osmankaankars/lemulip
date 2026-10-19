@@ -259,8 +259,10 @@ generated examples passed with LibreOffice on Linux. In the 0.1.11
 [Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39170976554), Word
 passed; the other two stopped in a shared verifier lookup. Source 0.1.12 repairs
 that lookup, but its Mac run stopped earlier at a native RTF formatting example.
-Source 0.1.13 adds a narrow RTF metadata repair; the full Mac checks remain
-required. The checks do not establish
+Source 0.1.13 adds a narrow RTF metadata repair. Its first Mac run reached the
+formatting assertions and exposed an alignment-representation mismatch; the
+repair accepts equivalent left alignment only for the fixed Latin example.
+The full Mac checks remain required. The checks do not establish
 identical rendering, font availability,
 general formula recalculation, or support for macros, charts, pivot tables, and
 animations. See [Rich Office Conversion](FORMATS.md#rich-office-conversion).
