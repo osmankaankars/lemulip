@@ -1,29 +1,21 @@
 # Office Review
 
-Use this short review to inspect Lemulip's generated files in desktop
-Microsoft Word, Excel, and PowerPoint on a Mac. The archive contains actual
-conversion outputs from the existing integration cases, alongside their small
-generated inputs. Every manual result starts as **Not Reviewed**.
+Inspect Lemulip's generated files in desktop Microsoft Word, Excel, and
+PowerPoint on a Mac. The review archive contains eight actual conversion
+outputs with small synthetic inputs. **Microsoft Office acceptance remains
+Not Reviewed** until these comparisons are completed in the target apps.
 
 ## Get the Review Archive
 
 Open the relevant **Build and Verify** run on
 [GitHub Actions](https://github.com/osmankaankars/lemulip/actions/workflows/build.yml)
 and download **Lemulip-Office-Review-arm64** from its artifacts. Extract the
-enclosed ZIP and open the `Lemulip-Office-Review` folder. If the artifact is
-missing, check that run's integration and preparation steps; a successful
-release coordinator alone does not establish that these files exist.
+enclosed ZIP and open the `Lemulip-Office-Review` folder. Use a completed run
+whose artifact includes all eight cases.
 
-The source 0.1.14 review folder contains eight cases, this guide,
-`REVIEW_RESULTS.md`, `manifest.json`, and `SHA256SUMS.txt`. Check the manifest's
-Lemulip version and source commit
-against the run you intended to review. Keep the originals together as the
-record of that exact conversion. This is a separate Actions artifact; it does
-not add a fifth release asset or update the installed app.
-
-The 0.1.13 archive contains the original six cases. The HTML and Markdown
-comparisons are added in source 0.1.14; use that version's artifact for this
-expanded review.
+The folder also contains this guide, `REVIEW_RESULTS.md`, `manifest.json`, and
+`SHA256SUMS.txt`. Check the manifest's version and commit against the run you
+intend to review. Keep the captured files together and unchanged.
 
 ## Review in the Target Apps
 
@@ -39,9 +31,9 @@ separate working folder; keep the captured copies unchanged.
 
 ### Word: Text, Formatting, and Pages
 
-Allow about seven minutes for these five cases. Use **View → Print Layout**
-and the same zoom for the source and converted documents. If Word hides the
-page margins, its [margin-display instructions](https://support.microsoft.com/en-us/word/my-top-margin-is-missing)
+Use **View → Print Layout** and the same zoom for the source and converted
+documents. If Word hides the page margins, its
+[margin-display instructions](https://support.microsoft.com/en-us/word/my-top-margin-is-missing)
 explain how to show the white space again.
 
 | Case | Files in `cases/` | What to Inspect |
@@ -76,15 +68,14 @@ brackets on the last line remain literal code; they must not become emphasis
 or disappear as markup. Check the table's two rows and two columns, then confirm
 that “After the Table” is outside the table and follows it.
 
-These two sources contain no images, stylesheets, scripts, hyperlinks, or
-external resources. They assess basic document structure through LibreOffice
-for HTML and Pandoc for Markdown. Do not infer browser-layout reproduction or
-support for every Markdown extension from these cases. Their manual results
-remain **Not Reviewed** until inspected in Word.
+The HTML and Markdown sources contain no images, stylesheets, scripts,
+hyperlinks, or external resources. They assess basic structure through
+LibreOffice and Pandoc, respectively. Browser layout and other Markdown
+extensions are outside these comparisons.
 
 ### Excel: Literal Values and Recalculation
 
-Allow about three minutes. In `excel-text/converted.xlsx`, confirm there is one
+In `excel-text/converted.xlsx`, confirm there is one
 **Sheet1**. Inspect the formula bar as well as the cells: `00123`, the complete
 `12345678901234567890`, `_x0041_`, and `12/03/2026` remain literal text.
 `=1+2` must display as text, rather than calculate to `3`. Compare the generated
@@ -112,8 +103,8 @@ compatibility.
 
 ### PowerPoint: Order and Appearance
 
-Allow about two minutes for `powerpoint-layout/source.pptx` and
-`converted.pptx`. Both contain two widescreen slides: **Orchard Overview**,
+Open `powerpoint-layout/source.pptx` and `converted.pptx`. Both contain two
+widescreen slides: **Orchard Overview**,
 then **Lemon Details**. Check Arial 24 pt text, complete titles, and the green
 panel's size and position. The second slide's panel sits farther to the right.
 Compare the source and converted presentation in editing view, then choose
@@ -123,19 +114,16 @@ for the Mac controls. Look for clipped text, shifted shapes, and changed colors.
 
 ## Record the Outcome
 
-Use the final minute to fill in `REVIEW_RESULTS.md`. Mark each case **Pass**
+Fill in `REVIEW_RESULTS.md`. Mark each case **Pass**
 when its stated observations agree, **Needs Review** when an observed
 difference needs explanation, or **Fail** when a repair prompt, lost
 content, incorrect calculation, or clear layout defect appears. Add a short
 observation and the affected page, cell, or slide for every non-passing result.
 Leave cases you could not inspect as **Not Reviewed**.
 
-Record the manifest commit, the Microsoft app versions, and optionally the
-macOS version. Reports need no account identity, computer name, device details,
-or local file paths. If a screenshot helps, crop it to the generated document
-content. Local capture and packaging collect no telemetry and do not upload
-files; sharing a completed report is a separate action.
+Record the manifest commit and Microsoft app versions; macOS version is optional.
+Omit account details, computer names, and local paths. Crop screenshots to the
+generated document content. Capture and packaging do not upload the report.
 
-Keep all eight cases open until inspected in their target applications. Passing
-results apply to these examples and recorded app versions; they do not establish
+Passing results apply to these examples and app versions. They do not establish
 support for macros, charts, pivot tables, embedded objects, or animations.

@@ -2,7 +2,7 @@
 
 ## Is Lemulip Free?
 
-Yes. The source is released under the [MIT license](../LICENSE). There is no subscription, account requirement, or paid conversion tier. Optional engines are separate open-source tools with their own licenses.
+Yes. Lemulip is [MIT licensed](../LICENSE), with no subscription, account, or paid conversion tier. Optional engines are separate tools with their own licenses.
 
 ## Does It Upload My Files?
 
@@ -12,21 +12,17 @@ AirDrop is a separate action that shares files when you choose it. Installing op
 
 ## Which Macs Can Run It?
 
-The app targets macOS 13 or later and supports building for Apple silicon and Intel. Source builds require Swift 5.9 or later from compatible Xcode or Command Line Tools.
+Lemulip requires **macOS 13 or later**. Release downloads include both Apple Silicon and Intel binaries. Source builds require Swift 5.9 or later from compatible Xcode or Command Line Tools.
 
-An Apple silicon source build has completed on macOS. That does not establish compatibility with every supported OS or Intel Mac. The current release is an early preview, and Finder drag behavior still needs broader hands-on testing.
+This is a public preview. Compatibility and Finder drag behavior still need broader hands-on testing across supported Macs.
 
 ## Is There a Ready-to-Use Download?
 
-Release packaging is configured to produce a universal app, ZIP, and DMG. Use only assets attached to a release or a successful workflow run; a source checkout by itself is not a built app.
-
-If a release has no binary assets, [build from source](INSTALL.md#build-from-source). Current packages are ad-hoc signed and are not Apple Developer ID signed or notarized.
+Yes. Download the universal DMG or app ZIP from [Releases](https://github.com/osmankaankars/lemulip/releases). You do not need Xcode or Swift to run it. See [Installation](INSTALL.md) for download verification, first launch, and source builds.
 
 ## Why Does macOS Show a Warning When Opening a Download?
 
-The current distribution does not have Developer ID signing and notarization. macOS may block a downloaded app on first launch.
-
-Review the source and release origin before opening it. Apple's [guide to safely opening apps](https://support.apple.com/en-us/102445) explains the available controls. Lemulip does not disable Gatekeeper or change the Mac's security settings.
+Current packages are **ad hoc signed**, without Apple Developer ID signing or notarization. macOS may block first launch. Follow [Signing and First Launch](INSTALL.md#signing-and-first-launch) after checking the download's source.
 
 ## Why Does an Operation Ask for FFmpeg or Another Engine?
 
@@ -36,30 +32,16 @@ See [Optional Engines](INSTALL.md#optional-engines), then click **Refresh** unde
 
 ## Can I Create Word, Excel, and PowerPoint Files?
 
-Yes. Supported routes can create **DOCX** documents, **XLSX** workbooks, and
-**PPTX** presentations. These are Microsoft Office file formats, and the results
-can be opened in Word, Excel, and PowerPoint.
+Yes. Supported routes create **DOCX**, **XLSX**, and **PPTX** files. Microsoft Office is not required for conversion.
 
-LibreOffice is the optional local conversion engine for many of these routes.
-Lemulip calls it in the background without opening its editor. Microsoft Office
-does not need to be installed. Markdown-to-DOCX uses Pandoc instead.
+| Input → Output | Engine |
+| --- | --- |
+| TXT and basic RTF → DOCX | Built into macOS |
+| CSV/TSV → XLSX | Built in; one worksheet, with every cell stored as text |
+| Markdown → DOCX | Pandoc |
+| HTML, complex RTF, and existing Office files → supported Office formats | LibreOffice |
 
-Basic exports need no extra engine: **TXT and basic RTF → DOCX** on macOS,
-and **CSV/TSV → XLSX**. TXT keeps plain text, paragraphs, and tabs. Basic RTF
-also keeps supported font families and sizes, bold and italic text, and
-paragraph alignment, spacing, and indents. Complex RTF uses LibreOffice;
-see [Basic Word Export](FORMATS.md#basic-word-export) for that boundary.
-Each Excel export has one worksheet and stores every value as text, so identifiers
-keep their leading zeros and formula-looking strings stay literal. Convert
-numeric columns in your spreadsheet app when you need calculations.
-
-Installing LibreOffice adds a separate application to your Mac. It is optional
-and is not bundled into Lemulip. Common image, PDF, archive, subtitle, and
-basic text tools work without it.
-
-Complex formatting can change between formats. PDF-to-editable-Office conversion
-is planned, not currently implemented. See [Formats](FORMATS.md#documents-slides-and-spreadsheets)
-for the exact routes.
+LibreOffice runs in the background and is installed separately. It is not an output format. Rich formatting can change during conversion, and visual acceptance in Microsoft Office remains **Not Reviewed**. PDF → editable Office conversion is not implemented. See [Formats](FORMATS.md#documents-slides-and-spreadsheets) for the exact routes and limits.
 
 ## Why Is Pandoc Reporting a Missing Template?
 
@@ -79,9 +61,7 @@ Yes. Open **Settings → Appearance → Theme** and choose **Orchard Night**, **
 Pistachio**, or **Lemon Drop**. Orchard Night is the default. The app remembers
 your selection and applies it across its windows, wheel, and controls.
 
-The two light themes are available even when macOS uses Dark Mode. Changing
-theme keeps your selected files and current jobs in place. See
-[Choose a Theme](USER_GUIDE.md#choose-a-theme).
+The light themes also work when macOS uses Dark Mode. See [Choose a Theme](USER_GUIDE.md#choose-a-theme).
 
 ## Do I Have to Hold the Modifier Key?
 
@@ -117,12 +97,9 @@ The app and CLI do not offer PDF password entry. Open a protected PDF with its p
 
 ## Is the Browser Demo the Real App?
 
-The browser walkthrough uses sample data to explain the interaction. It does not run the macOS conversion engine. Open `site/index.html` from a downloaded checkout to try it locally.
+The [interactive walkthrough](https://osmankaankars.github.io/lemulip/) uses sample data to explain the interaction; it does not convert files. You can also open `site/index.html` from a downloaded checkout.
 
-Its **Appearance** selector offers the same three themes. It remembers only the
-selected theme locally when browser storage is available; sample files and
-activity history are not saved. With storage blocked, theme selection still
-works for the current page.
+It remembers the selected theme when browser storage is available. Sample files and activity last only for the current page session.
 
 ## How Can I Report a Problem?
 

@@ -78,14 +78,9 @@ space. Native views use `AppMark` with original image rendering; drop highlights
 belong behind the artwork and controls. The website favicon is a simplified
 vector companion with the same white tile and green/cream fold.
 
-The released icon is static. `Resources/Lemulip.icon` is a separate Icon Composer
-design source: one transparent ribbon layer over an opaque `#FCFCF8` fill, with
-a neutral shadow and no additional glass tint. It follows
-[Apple's Icon Composer guidance](https://developer.apple.com/documentation/xcode/creating-your-app-icon-using-icon-composer).
-The source is not added to the application bundle. Run the explicit
-[compiler check](DEVELOPMENT.md#icon-and-wordmark-sources) and inspect the result
-on a Mac before enabling a layered runtime icon or claiming system appearance
-effects. Keep the macOS 13 ICNS fallback.
+The released icon is static. A future layered variant needs an Apple compiler
+check and a Finder/Dock review before activation; retain the macOS 13 ICNS
+fallback. The current master already supplies the icon's dimensional appearance.
 
 ## Wordmark and Spacing
 
@@ -111,8 +106,8 @@ custom-font dependency to the app.
 
 ## Contrast and Accessibility
 
-Source 0.1.9 restores full text contrast for the **Choose Files** keyboard hint
-and moves its drop highlight behind the controls. The site keeps visible focus,
+Keep the **Choose Files** keyboard hint readable and its drop highlight behind
+the controls. The site provides visible focus,
 a distinct Appearance control, and a text fallback when forced colors remove
 decorative masks.
 

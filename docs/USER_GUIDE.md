@@ -4,14 +4,6 @@ Lemulip has three ways to work: a wheel beside your drag, a regular workspace, a
 
 New here? [Install Lemulip](INSTALL.md) first. For specific input and output combinations, use the [format guide](FORMATS.md).
 
-This guide follows source **0.1.14**, including the HTML → Word repair and
-separate HTML and Markdown checks, alongside native basic RTF, plain-text Word,
-and text-cell Excel exports. Visual image
-crop and audio waveform trim start with 0.1.4, native video trim with 0.1.5,
-visual video crop with 0.1.6, Organize PDF with 0.1.7, and Merge PDF preview with 0.1.8.
-Check [Releases](https://github.com/osmankaankars/lemulip/releases) for available
-downloads and the notes for your installed version.
-
 ## Your First Conversion
 
 Open Lemulip and add a small image with **⌘O**. Choose **Convert**, then a different format, such as PNG for a JPEG input. When the job finishes, open **Activity** and click its output to reveal it in Finder.
@@ -71,9 +63,10 @@ The theme updates the workspace, option panels, wheel, file shelves, and native
 controls, and is remembered the next time you open Lemulip. Your current file
 selection and job progress stay in place when you change it.
 
-The browser walkthrough has its own **Appearance** selector. Its selection is
-saved locally when browser storage is available. Sample files and demo activity
-are kept only for the current page session.
+The browser walkthrough has a separate **Appearance** selector and uses sample
+files. It demonstrates the interaction without converting files.
+
+Choose English or Turkish in **Settings → Language**.
 
 ## Set Options Before a Job
 
@@ -122,18 +115,15 @@ Tab moves between the canvas and the controls. The canvas shows a focus border,
 announces the crop dimensions and position to assistive technology, and offers
 accessible move actions. Fixed ratios round to whole pixels.
 
-The preview is limited to 1,600 pixels on its longest edge. Export reads the
-original image and applies the selection at its full resolution, with the same
-orientation as the preview. Transparent areas use a checkerboard in the editor;
-output transparency depends on the image format. JPEG, for example, has none.
+Export uses the original image's full resolution and the orientation shown in
+the preview. Transparent areas use a checkerboard; output transparency depends
+on the format. JPEG has none.
 
-This first editor supports a single still raster that macOS can decode and
-write. Multiple files, animated or other multi-frame images, SVG, and unavailable
-codecs show an explanation instead of choosing an arbitrary frame or changing
-the selected region. Convert an unsupported input to a still PNG first when
-that is appropriate for your task. The original raster must fit within
-40 megapixels and 16,384 pixels per side. Cancel while the preview is loading
-to discard the request.
+Choose one still raster image that macOS can decode and write, up to
+**40 megapixels** and **16,384 pixels per side**. Animated or multi-frame images,
+SVG, multiple files, and unsupported codecs receive an explanation. Convert
+an unsupported input to a still PNG first when appropriate. You can cancel
+while the preview loads.
 
 The command-line `image.crop --width … --height …` command keeps its existing
 centered-crop behavior. Use the desktop editor to choose a different position.
@@ -178,24 +168,16 @@ Changing the range stops playback so the next preview uses the new selection.
 WAV and AIFF can be larger than a compressed source. Changing an MP3 to PCM
 does not restore detail already lost in the source. For sample-oriented edits,
 use WAV or AIFF; compressed output is not a promise of sample-exact duration.
-The original file remains unchanged, and the normal unused-name output rules
-apply to every format.
 
-This first waveform editor supports one native-decodable mono or stereo audio
-track at 8–192 kHz. Multiple selected files, unsupported channel layouts, and
-unavailable codecs receive an explanation. Convert other inputs to a compatible
-WAV or M4A first; the optional FFmpeg engine can help with additional formats.
-The editor itself does not decode through FFmpeg or mix multiple tracks.
-
-The waveform is an overview, not a full-resolution audio buffer. The editor
-requests 1,200 peak values and keeps only bounded decoding chunks while reading
-the file. No temporary decoded recording or persistent waveform cache is made.
-CLI trimming retains its numeric start/end workflow.
+The editor supports one native-decodable mono or stereo audio track at
+**8–192 kHz**. Convert unsupported inputs to a compatible WAV or M4A first;
+optional FFmpeg can help with additional formats. The editor does not mix
+tracks. Its waveform is an overview, and CLI trimming uses numeric start/end
+times.
 
 ### Visual Video Trim
 
-**Native video trim starts with 0.1.5.** Check [Releases](https://github.com/osmankaankars/lemulip/releases)
-for downloadable builds. Select one video and choose **Tools → Trim**. The editor opens a native player and
+Select one video and choose **Tools → Trim**. The editor opens a native player and
 prepares a small thumbnail strip in the background. Nothing is written while
 you choose a range.
 
@@ -229,23 +211,17 @@ included frame while the selected end time stays unchanged.
 The native preview respects the source's display orientation and fits it within
 the editor instead of stretching it.
 
-The editor requests 12 thumbnails at most 192 pixels on their longest edge.
-They provide a navigation overview, not a frame-by-frame editing track. The
-preview worker is cancelled when the editor closes; thumbnails are not saved
-as a persistent cache.
-
 MP4 and MOV export re-encode the chosen range using the native presets available
 for the source. Video-frame and audio-codec boundaries can affect the exact
 output duration. This is not a lossless or frame-exact editing guarantee.
-The output keeps the source orientation. The original remains unchanged and
-the normal unused-name output rules apply.
+The output keeps the source orientation.
 
-This first editor accepts one complete local file containing one native-decodable
+The editor accepts one complete local file containing one native-decodable
 video track and at most one audio track. The file must contain its own media;
 external media references are rejected. Multiple files, unsupported codecs, and
 protected or live media also receive an explanation. The editor does not mix
-tracks or silently switch to FFmpeg. Subtitle and professional media metadata
-preservation are outside this first editor's scope. Convert an unsupported input
+tracks or switch to FFmpeg. Subtitle and professional media metadata
+preservation are outside its scope. Convert an unsupported input
 to a compatible MP4 or MOV first when appropriate; optional FFmpeg provides
 additional conversion routes.
 
@@ -254,9 +230,7 @@ Use the desktop editor to preview and adjust a range visually.
 
 ### Visual Video Crop
 
-**Video crop starts with 0.1.6.** Check
-[Releases](https://github.com/osmankaankars/lemulip/releases) for downloadable
-builds. Select one video and choose **Tools → Crop**. The editor shows an
+Select one video and choose **Tools → Crop**. The editor shows an
 upright frame while native playback prepares, with the crop laid over the video.
 
 | Control | Action |
@@ -288,28 +262,24 @@ not stretched to fit an encoder. Output is limited to 40 megapixels and
 16,384 pixels per side; choose a smaller crop if the full source exceeds that.
 
 **The same crop applies to the whole clip.** It keeps the source audio and
-exports a new MP4 or MOV. To shorten the clip as well, finish one operation and
-open the resulting copy in **Trim**. Crop does not silently reuse a previous
-trim selection. Export re-encodes video and can change its codec or color
+exports a new MP4 or MOV. To shorten the clip as well, open the resulting copy
+in **Trim**. Export re-encodes video and can change its codec or color
 representation; codec timing can leave a small duration difference. It is not
 a lossless edit.
 
-This first crop editor accepts one complete local video file containing its own
+The crop editor accepts one complete local video file containing its own
 media, with one video track and at most one audio track. Ordinary landscape and
 portrait rotations are supported. Mirrored, scaled, or sheared display transforms,
 non-square pixels, and a custom clean aperture need conversion to a standard
 video first. The [format guide](FORMATS.md#audio-and-video) lists these limits.
 Unsupported files receive an explanation before a crop runs.
 
-The fallback still preview is capped at 1,280 pixels on its longest edge; export
-reads the original video frames. The player exists only while the editor is
-open, and closing it cancels preview work and releases playback resources. No
-persistent frame cache is created. Completed outputs use the normal unused-name
-rules, and the original file stays in place.
+Export reads the original video frames. Closing the editor stops playback and
+cancels unfinished preview work.
 
 ### Organize PDF
 
-**Organize PDF starts with 0.1.7.** Select one PDF and choose
+Select one PDF and choose
 **Tools → Organize**. Pages appear as small previews. Each card shows its current
 position and **Original Page** number so you can identify it after reordering.
 
@@ -340,12 +310,11 @@ from the original file. The editor keeps at least one page; select pages before
 using a selection action. Rotations apply to the page's current orientation,
 including pages that were already rotated in the source.
 
-The new PDF uses the original pages, keeping their text, vector content, and
-page annotations. It is not made from the thumbnails. Document-level features such as bookmarks,
-links between pages, form relationships, signatures, and accessibility structure
-are not guaranteed to remain valid after pages are moved or removed. Use the
-original for work that depends on those features. The ordinary **Extract Pages**
-tool remains available for entering page numbers and ranges directly.
+The new PDF uses the original pages, retaining text, vector content, and page
+annotations. Bookmarks, links between pages, forms, signatures, and accessibility
+structure may no longer be valid after pages move or are removed. Keep the
+original when those features matter. Use **Extract Pages** to enter page
+numbers and ranges directly.
 
 There is no password field. Locked PDFs and documents that do not permit
 copying and page organization receive an explanation. An encrypted PDF that
@@ -354,16 +323,12 @@ the editor explains before export that **the new copy will not be password
 protected**. The original keeps its existing protection.
 
 The editor supports one local PDF with up to **1,000 pages** and a source size
-of **512 MiB**. Previews load as pages come into view; the thumbnail cache holds
-at most 24 images, each at most 320 pixels on its longest edge. A temporary
-source copy keeps the preview consistent while you work and is removed when the
-editor closes. If the source changes before export, reopen the editor to use
-the updated document. Completed PDFs follow the normal output-folder and
-unused-name rules.
+of **512 MiB**. Previews load as pages come into view. If the source changes
+before export, reopen the editor to use the updated document.
 
 ### Merge PDF
 
-**Merge PDF preview starts with 0.1.8.** Select two or more PDFs and choose
+Select two or more PDFs and choose
 **Tools → Merge PDFs**. The editor inspects the documents with visible progress,
 then shows them in the order you selected in the workspace.
 
@@ -397,11 +362,9 @@ leaves files on disk untouched. Every page within a document keeps its source
 order and orientation. To rotate, remove, or extract individual pages, use
 [Organize PDF](#organize-pdf) on that document first, then merge the saved copy.
 
-The resulting PDF uses actual source pages, retaining text, vector content,
-and page annotations. First-page images are only previews. Document-level
-bookmarks, links between pages, form relationships, signatures, and accessibility
-structure may not remain valid after files are combined; keep the originals
-when those features matter.
+The resulting PDF retains source pages with their text, vector content, and
+annotations. The document-level limitations described under
+[Organize PDF](#organize-pdf) also apply to merged files.
 
 The preview requires readable local PDFs with permission to assemble and copy
 pages. There is no password field. Locked or restricted documents receive an
@@ -414,13 +377,8 @@ Start with **2–100 PDFs**, each with up to **1,000 pages**, and no more than
 **1,000 pages**. If the initial page total is higher, remove whole documents
 until the arrangement fits; at least two documents must still remain.
 
-Previews use a shared cache of at most 24 small images, each at most 320 pixels
-on its longest edge. Documents are inspected sequentially, and each temporary
-source copy is removed after its inspection or preview work ends. Export makes
-its own temporary source copies and checks that the retained documents still
-match their previews. If one has changed, reopen the editor to use the updated
-files. Export copies are removed on completion, failure, or cancellation.
-These limits bound Lemulip's cache and source copies, not PDFKit's total memory.
+If a source document changes before export, reopen the editor to use the updated
+file.
 
 With **Settings → Save in the First File's Folder** enabled, the completed PDF
 is saved beside the first retained document in the displayed arrangement.
@@ -462,9 +420,8 @@ Turn it off to choose a destination for each job. Existing files are not replace
 
 ## Basic Office Exports
 
-TXT → DOCX and CSV/TSV → XLSX need no extra engine on macOS. Source **0.1.12**
-adds basic RTF → DOCX with supported font and paragraph formatting. Microsoft
-Office is not required for conversion.
+TXT and basic RTF → DOCX, plus CSV/TSV → XLSX, need no extra engine on macOS.
+Microsoft Office is not required for conversion.
 
 ### Create a Word Document
 
@@ -474,31 +431,22 @@ Office is not required for conversion.
    and drop onto **DOCX** in the wheel.
 3. When the job completes, reveal the new `.docx` file from **Activity**.
 
-For TXT, the native macOS route keeps paragraphs, tabs, and Unicode. Save the
-source as UTF-8 or BOM-marked UTF-16. TXT input must be between **1 byte and
-32 MiB** and contain text beyond an
-encoding marker. The output does not infer formatting from plain text. A heading
-written as `# Notes` stays that text.
-For formatted Markdown → DOCX, use a Markdown file with optional Pandoc.
+For TXT, paragraphs, tabs, and Unicode are preserved. Save the source as UTF-8
+or BOM-marked UTF-16. A heading written as `# Notes` stays literal text; use a
+Markdown file with Pandoc for formatted Markdown conversion.
 
-For basic RTF, it keeps font families and sizes, bold and italic text, and
-paragraph alignment, spacing, and indents. Each RTF file must also be between
-**1 byte and 32 MiB** and contain text. Page layout and margins are not
-reconstructed. Unavailable fonts may be substituted, and the application
-opening the DOCX can change line breaks and pagination. Review the new document
-before sharing it.
+Basic RTF keeps supported fonts, bold and italic text, and paragraph alignment,
+spacing, and indents. Page layout and margins are not reconstructed. Unavailable
+fonts may be substituted, and line breaks or pagination can change. Both TXT
+and RTF inputs must contain text and be between **1 byte and 32 MiB**.
 
 RTF with images, objects, tables, lists, fields, hyperlinks, headers, footers,
-or other unsupported structures uses optional LibreOffice. Lemulip checks the
-selection before creating native output; if any RTF needs that engine, the
-whole selection follows the optional-engine route. Install LibreOffice and
-refresh **Settings → Local Engines** if prompted. Malformed basic RTF receives
-an error; LibreOffice validates documents assigned to its route. The basic
-exporter does not silently flatten these richer features.
+or other unsupported structures uses optional LibreOffice. If any RTF requires
+it, the whole selection uses that engine. Install LibreOffice and refresh
+**Settings → Local Engines** if prompted. Malformed basic RTF receives an error.
 
-The native DOCX author and editor are set to **Lemulip**. Input document
-metadata is not copied. HTML and existing Office documents continue to use the
-optional engines listed in [Formats](FORMATS.md#documents-slides-and-spreadsheets).
+Native DOCX author and editor metadata use **Lemulip**. Source metadata is not
+copied. See [Basic Word Export](FORMATS.md#basic-word-export) for the full scope.
 
 ### Create an Excel Workbook
 
@@ -519,11 +467,9 @@ Use a spreadsheet application to deliberately change cell types when you need
 numeric calculations. Existing XLS, XLSX, and ODS files still use LibreOffice
 for supported conversions.
 
-An input can contain at most **32 MiB**, **100,000 rows**, **16,384 columns**, and
-**500,000 fields**, including empty fields. One cell can hold at most **32,767
-UTF-16 code units** and **253 line feeds**; some Unicode characters use two code
-units. Oversized input fails with an explanation instead of losing rows or
-text. See [Basic Excel Export](FORMATS.md#basic-excel-export) for the full scope.
+Inputs are limited to **32 MiB**, **100,000 rows**, **16,384 columns**, and
+**500,000 fields**. See [Basic Excel Export](FORMATS.md#basic-excel-export) for
+cell limits. Oversized input receives an error without dropping rows or text.
 
 Both exports use the normal output-folder preference and choose an unused name.
 Your source files stay in place.
@@ -537,16 +483,10 @@ Your source files stay in place.
 3. Open the output from **Activity**. Check its structure and appearance in
    the application where you plan to use it.
 
-Source **0.1.14** fixes an HTML conversion failure that could prevent the Word
-file from being created. Separate generated examples check an actual heading,
-bold and italic text, Unicode, and a simple two-by-two table. Markdown also
-checks bullet and numbered lists, plus spacing and line breaks in a code block.
-
-These are document conversions. A saved web page's CSS, scripts, images, and
-browser layout are outside the checked HTML example. Markdown uses Pandoc's
-Markdown dialect; extensions and embedded HTML have not been assessed here.
-The examples contain no images or hyperlinks. Check those elements separately
-when your document depends on them. See
+These routes preserve supported document structure, including headings,
+emphasis, and simple tables. Markdown uses Pandoc's dialect and also supports
+lists and code blocks. Complex web layouts, linked media, Markdown extensions,
+and embedded HTML are outside the generated review examples. See
 [HTML and Markdown Word Export](FORMATS.md#html-and-markdown-word-export) for
 the exact scope.
 
@@ -564,8 +504,8 @@ workbooks, keep XLSX or ODS when you need multiple sheets, typed cells, and
 formulas. CSV or TSV output contains the active sheet and loses formulas and
 formatting. For presentations, inspect slide order, text, and shape placement.
 
-The initial rich Office checks cover small examples of those structures. They
-do not guarantee identical rendering or general formula recalculation. Complex
+The generated Office examples cover a small set of these structures. They do
+not guarantee identical rendering or general formula recalculation. Complex
 charts, pivot tables, macros, embedded objects, and animations need separate
 review. See [Rich Office Conversion](FORMATS.md#rich-office-conversion) for
 exact coverage. Each conversion creates a new copy and keeps its source file.
@@ -575,13 +515,6 @@ exact coverage. Each conversion creates a new copy and keeps its source file.
 **Settings → Local Engines** shows which helpers Lemulip can find. Install the engines you need, then click **Refresh**. Installation instructions are in [Installation](INSTALL.md#optional-engines).
 
 A dimmed operation or a dependency message means its helper is missing. It is not a paid feature. Available input codecs also depend on macOS and the installed helper's build.
-
-TXT and basic RTF → DOCX, plus CSV/TSV → XLSX, work without an extra engine on
-macOS. LibreOffice handles complex RTF and richer Office routes; Markdown →
-DOCX uses Pandoc. The format name describes the file you receive, not an
-application you must install.
-
-The interface language can be changed between English and Turkish in **Settings → Language**.
 
 ## Command-Line Use
 

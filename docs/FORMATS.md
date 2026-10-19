@@ -2,13 +2,9 @@
 
 Lemulip selects operations from the file extensions in your selection. A listed format is a supported route, not a promise that every codec or document feature will survive conversion.
 
-The tables below describe source **0.1.14**, including basic RTF → DOCX,
-plain-text Word export, text-cell Excel export, and the HTML → DOCX repair.
-HTML and Markdown have separate conversion checks and keep their existing
-optional engines.
-Check [Releases](https://github.com/osmankaankars/lemulip/releases) for available builds. Some
-features still need broader hands-on macOS testing. See [Installation](INSTALL.md)
-for optional engines and [User Guide](USER_GUIDE.md) for controls.
+See [Installation](INSTALL.md#optional-engines) for optional engines and
+[User Guide](USER_GUIDE.md) for controls. Broader hands-on macOS testing and
+[Microsoft Office review](OFFICE_REVIEW.md) remain open.
 
 ## Images
 
@@ -29,13 +25,11 @@ multi-frame image as separate still files. Animation timing is not preserved.
 The ImageMagick fallback uses the first frame only. For animated GIF output,
 use a video input with FFmpeg.
 
-The visual crop editor requires one still raster image that macOS can decode
-and encode in its output format. Its preview is at most 1,600 pixels on the
-longest edge; the original must fit within 40 megapixels and 16,384 pixels per
-side. Preview and export apply image orientation consistently. SVG, multiple
-inputs, multi-frame images, and unsupported codecs receive an explicit error.
-A selected crop never falls back to a centered crop or exports the preview
-bitmap. [The user guide](USER_GUIDE.md#visual-image-crop) describes its controls.
+Visual crop requires one still raster image that macOS can decode and encode,
+up to **40 megapixels** and **16,384 pixels per side**. It uses the original
+resolution and the orientation shown in the preview. SVG, multi-frame images,
+multiple inputs, and unsupported codecs receive an error. See
+[Visual Image Crop](USER_GUIDE.md#visual-image-crop).
 
 Transparency is flattened onto white for formats such as JPEG and BMP. Image conversions remove metadata by default.
 
@@ -106,7 +100,7 @@ The UI shows milliseconds and keeps the precise end of the full recording;
 its smallest editable range is 10 milliseconds, or the full file when shorter.
 Read [Audio Waveform Trim](USER_GUIDE.md#audio-waveform-trim) for the controls.
 
-**Visual video trim**, new in source 0.1.5, uses native macOS preview and export
+**Visual video trim** uses native macOS preview and export
 to MP4 or MOV. It accepts one local video file with one decodable video track
 and at most one audio track. The file must contain its own media. The editor
 offers only available native outputs.
@@ -119,7 +113,7 @@ orientation. Video-frame and audio-codec boundaries may affect the exact output
 duration; the editor does not promise lossless or frame-exact trimming. It
 leaves the original untouched. See [Visual Video Trim](USER_GUIDE.md#visual-video-trim).
 
-**Visual video crop**, new in source 0.1.6, applies one rectangle to the whole
+**Visual video crop** applies one rectangle to the whole
 clip and exports MP4 or MOV through native macOS tools. It keeps the clip's
 audio and full source timeline; it does not combine a time trim with the crop. The source
 file remains unchanged.
@@ -131,7 +125,7 @@ them fit. Export re-encodes H.264 video with AAC audio where present, so codec
 and color representation can change. Frame timing follows the source track;
 video-frame and audio-codec boundaries can still affect the output duration.
 
-This first crop editor uses the same one-video / at-most-one-audio input scope
+The crop editor uses the same one-video / at-most-one-audio input scope
 as native trim. It supports square pixels, a full clean aperture, and standard
 0°, 90°, 180°, or 270° display rotations. Non-square pixels, custom apertures,
 mirroring, and scaled or sheared display transforms need conversion to a
@@ -169,10 +163,6 @@ You do not need Microsoft Office installed to run these conversions.
 | CSV ↔ TSV | Built in | Preserves quoted delimiters and multiline fields |
 | Word count | Built in for basic text; Pandoc or LibreOffice for other documents | Reports a count in Activity |
 
-TXT and basic RTF → DOCX need no optional engine on macOS. CSV/TSV → XLSX is
-also built in. Other routes use the engine shown above in the background.
-You choose a file format in Lemulip and
-receive that file, which can be opened in its compatible application.
 LibreOffice documents its [Microsoft Office format support](https://help.libreoffice.org/latest/en-US/text/shared/guide/ms_user.html)
 and [background conversion options](https://help.libreoffice.org/latest/en-US/text/shared/guide/start_parameters.html).
 
@@ -207,7 +197,7 @@ scope allows at most **128 nested groups** and **250,000 formatting commands**.
 Excessive nesting is rejected; excessive formatting complexity uses the
 optional-engine route. The file is checked before native export. Images,
 embedded objects, tables, lists, fields, hyperlinks,
-headers, footers, and other unsupported RTF structures require the existing
+headers, footers, and other unsupported RTF structures require the
 LibreOffice route. If a selection includes such an RTF file, the whole batch
 uses that route before any native output is created. A missing engine is
 reported. Malformed basic RTF fails instead of being partially imported;
@@ -218,37 +208,27 @@ substituted, and the target application's layout engine can change line breaks
 and pagination. Review the new document in Word or another compatible reader when
 appearance matters. Native export sets the public metadata above for TXT too.
 
-Native TXT and RTF → DOCX require macOS. Other core platforms retain their
-optional-engine routes. HTML, existing Word documents, and other rich document
-inputs also retain those routes. PDF-to-editable-Word conversion is separate
-planned work.
+On other core platforms, TXT and RTF → DOCX use optional engines. PDF-to-editable-Word
+conversion is not implemented.
 
 ### HTML and Markdown Word Export
 
-HTML and Markdown use different optional engines. Source **0.1.14** adds
-separate generated examples for these routes and fixes an HTML/HTM → DOCX
-failure when LibreOffice opens the source as a web document. This does not add
-a native HTML or Markdown Word exporter.
+HTML → DOCX uses LibreOffice; Markdown → DOCX uses Pandoc. Neither route has a
+built-in Word exporter.
 
 | Input | Engine | Scope of the Generated Example |
 | --- | --- | --- |
 | HTML or HTM | LibreOffice | A level-one heading, paragraphs, bold and italic spans, Unicode and character entities, and a two-by-two table in document order |
 | MD or MARKDOWN | Pandoc, using its `markdown` reader | The same heading, emphasis, Unicode, and table structure, plus bulleted and numbered lists and a fenced code block with significant spaces and line breaks |
 
-The HTML example is self-contained and uses basic document elements. It has no
-CSS, scripts, images, or linked resources. The Markdown example uses a simple
-pipe table and a plain code block. Neither example contains hyperlinks or
-tests hyperlink preservation. Automated checks inspect the generated DOCX
-structure; they do not establish identical appearance in Microsoft Word.
-This source version still needs its own Mac checks and
-[Office Review](OFFICE_REVIEW.md).
+The generated examples cover basic document structure without images,
+hyperlinks, or external resources. Automated checks inspect the returned DOCX;
+visual acceptance in Microsoft Word remains **Not Reviewed**. See
+[Office Review](OFFICE_REVIEW.md) for the comparisons.
 
 **HTML Limits:** complex CSS, responsive layouts, scripts, web fonts, and linked
-media are outside this assessment. Basic native HTML conversion to text remains
-text-only and does not use a web renderer. Apple documents external-resource
-and threading constraints for its
-[HTML text importer](https://developer.apple.com/documentation/foundation/nsattributedstring/init(fileurl:options:documentattributes:));
-that API is not used to broaden this route.
+media are outside this assessment. Basic native HTML conversion to text is
+text-only and does not use a web renderer.
 
 **Markdown Limits:** this route uses
 [Pandoc's Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown). Other
@@ -288,15 +268,12 @@ truncate rows or cell text. Malformed quoting and characters that cannot be
 represented in XML receive an explicit error. Existing XLS, XLSX, and ODS workbooks still use
 LibreOffice, including exports that need formula or multi-sheet handling.
 See [Basic Office Exports](USER_GUIDE.md#basic-office-exports) for the app and CLI
-workflow. Opening and inspecting generated documents in Word and Excel remains
-part of release acceptance; package and automated reader checks alone do not
-establish application-level fidelity.
+workflow.
 
 ### Rich Office Conversion
 
-Existing Office files retain the optional LibreOffice routes. Source 0.1.11
-adds three generated examples that pass through OpenDocument and back to the
-original Office format, then inspects their output:
+Existing Office files use optional LibreOffice. Three generated examples pass
+through OpenDocument and back to their original Office format:
 
 | Route | Checked in the Returned Office File |
 | --- | --- |
@@ -304,24 +281,14 @@ original Office format, then inspects their output:
 | XLSX → ODS → XLSX | Two named sheets in order; text identifiers, numbers, booleans, a number format, and two simple formulas with their cached values |
 | PPTX → ODP → PPTX | Two slides in order, their text, stored font attributes, widescreen dimensions, and the positions and sizes of two shapes per slide |
 
-The verified **0.1.13**
-[Mac run](https://github.com/osmankaankars/lemulip/actions/runs/39230109601)
-passed all **127 built-in tests on both Apple silicon and Intel** and all
-**14 integration cases on Apple silicon**, including these rich Office
-examples. Its
-[tagged build and package checks](https://github.com/osmankaankars/lemulip/actions/runs/39232673004)
-also passed. Those results establish the 0.1.13 baseline; they do not verify
-the new HTML and Markdown cases in source 0.1.14. These are specific regression
-examples, not coverage of every Office feature.
-See [Development](DEVELOPMENT.md#rich-office-conversion-checks) for the
-verification scope.
-
 A stored font name does not ensure that font is installed or that the target
 application renders identical line breaks or pagination. Formula text and
 cached values in these examples do not establish general recalculation support.
 Charts, pivot tables, macros, embedded objects, and presentation animations are
 outside this coverage. Review the result in its target application before
-relying on complex formatting or calculations. Originals remain unchanged.
+relying on complex formatting or calculations. [Office Review](OFFICE_REVIEW.md)
+provides the manual checklist; [Development](DEVELOPMENT.md#rich-office-conversion-checks)
+describes automated coverage.
 
 ### Other Document Routes
 
@@ -352,40 +319,25 @@ Archives are limited to 10,000 entries, 64 path levels, and 2 GiB of expanded co
 
 ## File and Resource Limits
 
-There are no paid tiers or daily conversion quotas. The implementation does enforce limits to keep jobs bounded:
+There are no paid tiers or daily quotas. These limits keep individual jobs bounded:
 
-- Up to 1,000 input files per conversion job.
-- Native PDF and image-frame operations allow up to 1,000 pages or frames, with a separate cap on output count.
-- The PDF organizer accepts one PDF with up to 1,000 pages and a source size of
-  512 MiB. Preview and export use temporary streamed copies to keep page edits
-  tied to the same source bytes; these copies are removed when their work ends.
-- PDF organization keeps at most 24 cached thumbnails, each at most 320 pixels
-  on its longest edge. The UI retains only visible and nearby page previews;
-  PDFKit may use additional memory to parse and render a document.
-- Visual PDF merge accepts 2–100 source PDFs totaling at most 512 MiB, with up
-  to 1,000 pages in each source. The retained arrangement must contain at least
-  two documents and at most 1,000 pages in total before export.
-- Merge preview inspects one source at a time and keeps at most 24 first-page
-  thumbnails, each at most 320 pixels on its longest edge. Preview snapshots
-  are removed after each source operation; export retains its bounded source
-  snapshots until the PDF has been written, then removes them.
-- Native image input is limited to 150 megapixels. Rendered images are limited to 40 megapixels and a maximum dimension of 16,384 pixels.
-- Native text processing is limited to 32 MiB.
-- Audio waveform summaries contain at most 4,096 peaks; the editor requests
-  1,200. Decoding uses a reusable 4,096-frame scratch buffer and rejects an
-  individual decoder buffer larger than 16 MiB. These are application buffer
-  limits, not a measurement of the process's total memory use.
-- Video preview requests contain at most 24 thumbnails, each at most 192 pixels
-  on its longest edge; the editor requests 12. This bounds the application's
-  thumbnail cache, not AVFoundation's total decoding or playback memory.
-- Video crop keeps one preview image at most 1,280 pixels on its longest edge.
-  It does not build a thumbnail strip or a persistent decoded-frame cache.
-- Native video crop output is limited to 40 megapixels and 16,384 pixels per
-  side, with even dimensions of at least 2 × 2 pixels. A larger accepted source
-  needs a smaller crop before export.
-- The native video trim source must have a finite duration of at most 365 days,
-  display dimensions of at most 16,384 pixels per side, and at most 150 megapixels
-  per frame. Available codecs can impose lower limits.
-- Archive and optional-engine operations have their own size, time, and resource limits.
+| Operation | Limit |
+| --- | --- |
+| Conversion job | 1,000 input files |
+| Native PDF and image-frame operations | 1,000 pages or frames, with a separate output-count cap |
+| PDF organizer | One PDF; 1,000 pages; 512 MiB |
+| Visual PDF merge | 2–100 source PDFs; 512 MiB total; 1,000 pages per source. The final arrangement must retain at least two documents and at most 1,000 pages. |
+| Native image input | 150 megapixels; visual crop has the lower limit listed above |
+| Rendered images | 40 megapixels; 16,384 pixels per side |
+| Native text processing | 32 MiB |
+| Native video trim source | Finite duration up to 365 days; 16,384 pixels per side; 150 megapixels per frame |
+| Native video crop output | 40 megapixels; 16,384 pixels per side; even dimensions of at least 2 × 2 |
 
-Files that exceed a limit fail with an error. Lemulip does not silently omit pages to fit a limit. Try a smaller selection or lower image dimensions when appropriate.
+Preview storage is also bounded. PDF editors cache at most 24 thumbnails, audio
+waveforms use a summary rather than a full decoded recording, and video editors
+keep small preview images. Temporary PDF source copies are removed after their
+work ends. These bounds do not measure the total memory used by macOS frameworks.
+
+Archive and optional-engine operations have additional limits. Files that
+exceed a limit receive an error without silently omitting content. Try a smaller
+selection or lower image dimensions when appropriate.

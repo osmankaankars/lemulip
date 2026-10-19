@@ -22,7 +22,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 DIRECTORIES = {"Sources", "Tests", "Resources", "script", "docs", ".github", "site"}
 ROOT_FILES = {"Package.swift", "Package.resolved", "LICENSE", "README.md",
               "THIRD_PARTY_NOTICES.md", "SECURITY.md", "CONTRIBUTING.md", ".gitignore",
-              "Build-and-Install.command", "Publish-to-GitHub.command"}
+              "Build-and-Install.command"}
 FORBIDDEN_PARTS = {
     "private", "secrets", "credentials", "passwords", "node_modules", "__pycache__", "dist",
     "build", "test-output", "xcuserdata", "deriveddata", "venv", "logs", "backups",
@@ -57,7 +57,6 @@ ALLOWED_EMAILS = {
 # Update a digest only after reviewing the new image and its metadata.
 PUBLIC_IMAGES = {
     "Resources/AppIcon.png": "f68b17dc79d0e13246fc425218031a3bc35db2d1e27d845ee657f17f423d8a45",
-    "Resources/Lemulip.icon/Assets/01-Ribbon.png": "a2ac8dce0c6728b717b8f060ee7db647f3ec6bb2e218d5f87c86f2244e6e7167",
     "docs/assets/demo-preview.png": "8872c6e65528bf47bdf95e64b5313cd6ce6c25f8e22c111ac05574f0701f5870",
 }
 TEXT_SIZE_LIMIT = 2_000_000
@@ -84,7 +83,7 @@ def image_is_public(name: str, data: bytes) -> bool:
         allowed_chunks = {
             b"IHDR", b"PLTE", b"tRNS", b"IDAT", b"IEND", b"sRGB", b"gAMA", b"cHRM",
         }
-        if name in {"Resources/AppIcon.png", "Resources/Lemulip.icon/Assets/01-Ribbon.png"}:
+        if name == "Resources/AppIcon.png":
             allowed_chunks.add(b"caBX")  # Reviewed C2PA origin provenance, covered by the digest.
         if end > len(data) or kind not in allowed_chunks:
             return False
