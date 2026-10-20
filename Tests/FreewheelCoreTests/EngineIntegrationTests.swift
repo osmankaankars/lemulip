@@ -15,6 +15,7 @@ final class EngineIntegrationTests: XCTestCase {
     private var root: URL!
     private let engine = ConversionEngine()
     private let wordNamespace = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+    private let packageRelationshipNamespace = "http://schemas.openxmlformats.org/package/2006/relationships"
     override func setUpWithError() throws {
         root = FileManager.default.temporaryDirectory.appendingPathComponent("freewheel-integration-tests-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
@@ -189,27 +190,39 @@ final class EngineIntegrationTests: XCTestCase {
         let relationships = try officeXML(package, "word/_rels/document.xml.rels")
         let styles = try officeXML(package, "word/styles.xml")
         try withExtendedLifetime((document, relationships, styles)) {
-            func text(_ node: XMLNode) throws -> String {
-                try node.nodes(forXPath: ".//*[local-name()='t' and namespace-uri()='\(wordNamespace)']").compactMap(\.stringValue).joined()
-            }
-            let hyperlink = try XCTUnwrap(try document.nodes(forXPath: "//*[local-name()='hyperlink' and namespace-uri()='\(wordNamespace)']").first as? XMLElement)
-            XCTAssertEqual(try text(hyperlink), "the guide")
+            let relationshipRoot = try XCTUnwrap(relationships.rootElement())
+            XCTAssertEqual(relationshipRoot.localName, "Relationships")
+            XCTAssertEqual(relationshipRoot.uri, packageRelationshipNamespace)
+            let styleRoot = try XCTUnwrap(styles.rootElement())
+            XCTAssertEqual(styleRoot.localName, "styles")
+            XCTAssertEqual(styleRoot.uri, wordNamespace)
+            let body = try XCTUnwrap(wordChild(document.rootElement(), "body"), "Missing Word body in Pandoc output")
+            let paragraphs = body.elements(forLocalName: "p", uri: wordNamespace)
+            let hyperlinks = paragraphs.flatMap { $0.elements(forLocalName: "hyperlink", uri: wordNamespace) }
+            XCTAssertEqual(hyperlinks.count, 1)
+            let hyperlink = try XCTUnwrap(hyperlinks.first, "Missing Word hyperlink in Pandoc output")
+            XCTAssertEqual(wordText(hyperlink), "the guide")
             let relationshipID = try XCTUnwrap(hyperlink.attribute(forLocalName: "id",
                 uri: "http://schemas.openxmlformats.org/officeDocument/2006/relationships")?.stringValue)
-            let relationship = try XCTUnwrap(try relationships.nodes(forXPath: "/*[local-name()='Relationships']/*[local-name()='Relationship' and @Id='\(relationshipID)']").first as? XMLElement)
-            XCTAssertEqual(try relationship.nodes(forXPath: "./@*[local-name()='Target' and namespace-uri()='']").first?.stringValue,
-                           "https://example.com/guide")
-            XCTAssertEqual(try relationship.nodes(forXPath: "./@*[local-name()='TargetMode' and namespace-uri()='']").first?.stringValue,
-                           "External")
-            let paragraphs = try document.nodes(forXPath: "//*[local-name()='body']/*[local-name()='p' and namespace-uri()='\(wordNamespace)']")
-            let quoted = try XCTUnwrap(try paragraphs.first { try text($0) == "Quoted citrus." })
-            let styleID = try XCTUnwrap(try quoted.nodes(forXPath: "./*[local-name()='pPr']/*[local-name()='pStyle']/@*[local-name()='val']").first?.stringValue)
-            let quoteStyle = try XCTUnwrap(try styles.nodes(forXPath: "/*[local-name()='styles']/*[local-name()='style' and @*[local-name()='styleId']='\(styleID)']").first)
-            let quoteIndentText = try quoteStyle.nodes(forXPath: "./*[local-name()='pPr']/*[local-name()='ind']/@*[local-name()='left']").first?.stringValue
+            let matchingRelationships = relationshipRoot
+                .elements(forLocalName: "Relationship", uri: packageRelationshipNamespace)
+                .filter { unqualifiedAttribute($0, "Id") == relationshipID }
+            XCTAssertEqual(matchingRelationships.count, 1)
+            let relationship = try XCTUnwrap(matchingRelationships.first)
+            XCTAssertEqual(unqualifiedAttribute(relationship, "Target"), "https://example.com/guide")
+            XCTAssertEqual(unqualifiedAttribute(relationship, "TargetMode"), "External")
+            let quoted = try XCTUnwrap(paragraphs.first { wordText($0) == "Quoted citrus." })
+            let styleID = try XCTUnwrap(wordChild(quoted, "pPr", "pStyle")?
+                .attribute(forLocalName: "val", uri: wordNamespace)?.stringValue)
+            let quoteStyle = try XCTUnwrap(styleRoot.elements(forLocalName: "style", uri: wordNamespace)
+                .first { $0.attribute(forLocalName: "styleId", uri: wordNamespace)?.stringValue == styleID })
+            let quoteIndentText = wordChild(quoteStyle, "pPr", "ind")?
+                .attribute(forLocalName: "left", uri: wordNamespace)?.stringValue
             let quoteIndent = quoteIndentText.flatMap(Int.init)
             XCTAssertGreaterThan(try XCTUnwrap(quoteIndent), 0, "The quotation lost its paragraph indentation")
-            let nested = try XCTUnwrap(try paragraphs.first { try text($0) == "Nested Item" })
-            XCTAssertEqual(try nested.nodes(forXPath: "./*[local-name()='pPr']/*[local-name()='numPr']/*[local-name()='ilvl']/@*[local-name()='val']").first?.stringValue, "1")
+            let nested = try XCTUnwrap(paragraphs.first { wordText($0) == "Nested Item" })
+            XCTAssertEqual(wordChild(nested, "pPr", "numPr", "ilvl")?
+                .attribute(forLocalName: "val", uri: wordNamespace)?.stringValue, "1")
         }
         XCTAssertEqual(try Data(contentsOf: basic), Data(basicText.utf8))
         XCTAssertEqual(try Data(contentsOf: advanced), Data(advancedText.utf8))
@@ -262,16 +275,52 @@ final class EngineIntegrationTests: XCTestCase {
         for package in extracted.outputs {
             let document = try officeXML(package, "word/document.xml")
             try withExtendedLifetime(document) {
-                let heading = try XCTUnwrap(try document.nodes(forXPath:
-                    "//*[local-name()='body' and namespace-uri()='\(wordNamespace)']/*[local-name()='p'][1]").first)
-                XCTAssertEqual(try heading.nodes(forXPath:
-                    ".//*[local-name()='t' and namespace-uri()='\(wordNamespace)']").compactMap(\.stringValue).joined(), title)
-                XCTAssertEqual(try heading.nodes(forXPath:
-                    "./*[local-name()='pPr']/*[local-name()='pStyle']/@*[local-name()='val' and namespace-uri()='\(wordNamespace)']").first?.stringValue,
-                               "Heading1")
+                let heading = try XCTUnwrap(wordChild(document.rootElement(), "body")?
+                    .elements(forLocalName: "p", uri: wordNamespace).first, "Missing Word heading in Pandoc output")
+                XCTAssertEqual(wordText(heading), title)
+                XCTAssertEqual(wordChild(heading, "pPr", "pStyle")?
+                    .attribute(forLocalName: "val", uri: wordNamespace)?.stringValue, "Heading1")
             }
         }
         for (input, bytes) in sources { XCTAssertEqual(try Data(contentsOf: input), bytes) }
+    }
+
+    func testAdvancedMarkdownWordXMLReaderKeepsNamespacesAndScope() throws {
+        for prefix in ["w", "word"] {
+            let source = """
+            <\(prefix):document xmlns:\(prefix)="\(wordNamespace)" xmlns:other="urn:unrelated"><other:body/>
+            <\(prefix):body><other:p/><\(prefix):p><\(prefix):pPr>
+            <other:pStyle other:val="Wrong"/><\(prefix):pStyle other:val="Wrong" \(prefix):val="Heading1"/>
+            </\(prefix):pPr><\(prefix):r><\(prefix):t>İstanbul 東京 😀</\(prefix):t><other:t>Ignore</other:t></\(prefix):r></\(prefix):p>
+            <\(prefix):p><\(prefix):r><\(prefix):t>Next Paragraph</\(prefix):t></\(prefix):r></\(prefix):p></\(prefix):body></\(prefix):document>
+            """
+            try Data(source.utf8).write(to: root.appendingPathComponent("document.xml"))
+            let document = try officeXML(root, "document.xml")
+            try withExtendedLifetime(document) {
+                let body = try XCTUnwrap(wordChild(document.rootElement(), "body"))
+                let paragraphs = body.elements(forLocalName: "p", uri: wordNamespace)
+                XCTAssertEqual(paragraphs.map { wordText($0) }, ["İstanbul 東京 😀", "Next Paragraph"])
+                let style = try XCTUnwrap(wordChild(paragraphs.first, "pPr", "pStyle"))
+                XCTAssertEqual(style.attribute(forLocalName: "val", uri: wordNamespace)?.stringValue, "Heading1")
+                XCTAssertNil(wordChild(body, "p"), "A single-child lookup must reject duplicate paragraphs")
+            }
+        }
+        let source = """
+        <Relationships xmlns="\(packageRelationshipNamespace)" xmlns:other="urn:unrelated">
+        <other:Relationship Id="rId1" Target="Wrong"/><Relationship Id="rId1" other:Target="Wrong" Target="https://example.com/guide" TargetMode="External"/>
+        <Relationship Id="rId2" other:Target="https://example.com/guide"/>
+        </Relationships>
+        """
+        try Data(source.utf8).write(to: root.appendingPathComponent("document.xml.rels"))
+        let relationships = try officeXML(root, "document.xml.rels")
+        try withExtendedLifetime(relationships) {
+            let entries = try XCTUnwrap(relationships.rootElement()).elements(forLocalName: "Relationship", uri: packageRelationshipNamespace)
+            XCTAssertEqual(entries.count, 2)
+            let link = try XCTUnwrap(entries.first { unqualifiedAttribute($0, "Id") == "rId1" })
+            XCTAssertEqual(unqualifiedAttribute(link, "Target"), "https://example.com/guide")
+            XCTAssertEqual(unqualifiedAttribute(link, "TargetMode"), "External")
+            XCTAssertNil(unqualifiedAttribute(try XCTUnwrap(entries.last), "Target"), "A foreign attribute must not replace an unqualified target")
+        }
     }
 
     private func checkMarkupWordExport(_ name: String, text: String, markdown: Bool,
@@ -817,6 +866,26 @@ final class EngineIntegrationTests: XCTestCase {
             guard let first = content.first, first.uri == wordNamespace, first.localName == "br" else { return false }
             return first.attribute(forLocalName: "type", uri: wordNamespace)?.stringValue == "page"
         }
+    }
+
+    // Namespace-filtered XPath lookups missed Pandoc nodes on macOS. Use
+    // direct children and explicit namespace identities throughout these checks.
+    private func wordChild(_ parent: XMLElement?, _ names: String...) -> XMLElement? {
+        var current = parent
+        for name in names {
+            let matches = current?.elements(forLocalName: name, uri: wordNamespace) ?? []
+            guard matches.count == 1 else { return nil }
+            current = matches[0]
+        }
+        return current
+    }
+
+    private func unqualifiedAttribute(_ element: XMLElement, _ name: String) -> String? {
+        // In parsed XML, unprefixed attributes have no namespace. Matching the
+        // full name rejects foreign prefixes without reading an attribute URI.
+        guard !name.contains(":") else { return nil }
+        let matches = (element.attributes ?? []).filter { $0.name == name }
+        return matches.count == 1 ? matches[0].stringValue : nil
     }
 
     private func wordText(_ element: XMLElement) -> String {
