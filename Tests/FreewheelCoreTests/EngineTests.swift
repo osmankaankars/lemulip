@@ -81,7 +81,7 @@ final class EngineTests: XCTestCase {
         let package = try await unpackWorkbook(result.outputs[0])
         let document = try XMLDocument(contentsOf: package.appendingPathComponent("word/document.xml"),
                                       options: [.nodePreserveWhitespace, .nodePromoteSignificantWhitespace])
-        let paragraphs = try document.nodes(forXPath: "//*[local-name()='p']").map { try wordText($0) }
+        let paragraphs = try document.nodes(forXPath: "//*[local-name()='p']").map { wordText($0) }
         XCTAssertEqual(paragraphs.first, "İstanbul 🍋 東京")
         XCTAssertTrue(paragraphs.joined(separator: "\n").contains(code), paragraphs.joined(separator: "\n"))
         XCTAssertEqual(try Data(contentsOf: input), original)
@@ -90,7 +90,7 @@ final class EngineTests: XCTestCase {
         let blank = try await ConversionEngine().run(inputs: [empty], operation: FileOperation(id: "convert.docx", title: "DOCX"))
         let blankPackage = try await unpackWorkbook(blank.outputs[0])
         let blankDocument = try XMLDocument(contentsOf: blankPackage.appendingPathComponent("word/document.xml"))
-        XCTAssertEqual(try wordText(blankDocument), "")
+        XCTAssertEqual(wordText(blankDocument), "")
         XCTAssertFalse(try blankDocument.nodes(forXPath: "//*[local-name()='body']/*[local-name()='p']").isEmpty)
     }
 
@@ -129,12 +129,12 @@ final class EngineTests: XCTestCase {
         let expected = [["Fruit", "Note", "Count"], ["Lemon", "Fresh", "12"], ["Pistachio", "00123", "7"]]
         for (row, values) in zip(rows, expected) {
             let cells = try row.nodes(forXPath: "./*[local-name()='tc']")
-            XCTAssertEqual(try cells.map { try wordText($0) }, values)
+            XCTAssertEqual(cells.map { wordText($0) }, values)
             for (cell, alignment) in zip(cells, ["left", "center", "right"]) {
                 XCTAssertEqual(try cell.nodes(forXPath: ".//*[local-name()='jc']/@*[local-name()='val']").first?.stringValue, alignment)
             }
         }
-        let paragraphs = try document.nodes(forXPath: "//*[local-name()='p']").map { try wordText($0) }
+        let paragraphs = try document.nodes(forXPath: "//*[local-name()='p']").map { wordText($0) }
         XCTAssertEqual(paragraphs.last, "After the Table")
         XCTAssertEqual(try String(contentsOf: input, encoding: .utf8), source)
     }
@@ -211,14 +211,48 @@ final class EngineTests: XCTestCase {
         XCTAssertFalse(before.contains { $0.hasPrefix(".freewheel-") })
     }
 
-    private func wordText(_ node: XMLNode) throws -> String {
-        try node.nodes(forXPath: ".//*[local-name()='t' or local-name()='tab' or local-name()='br']").map {
-            switch $0.localName {
+    func testWordTextReaderRespectsSubtreeAndWordNamespace() throws {
+        let namespace = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+        let document = try XMLDocument(xmlString: """
+        <w:document xmlns:w="\(namespace)" xmlns:other="urn:lemulip:verification"><w:body>
+        <w:p><w:r><w:t>Before the Table</w:t></w:r></w:p>
+        <w:tbl><w:tr>
+        <w:tc><w:p><w:r><w:t>First</w:t></w:r></w:p></w:tc>
+        <w:tc><w:p><w:r><w:t xml:space="preserve">  Last</w:t><w:tab/><w:t>Cell</w:t><w:br/><w:t xml:space="preserve">End  </w:t><other:t>Ignore</other:t><other:tab/><other:br/></w:r></w:p></w:tc>
+        </w:tr></w:tbl>
+        <w:p><w:r><w:t>After the Table</w:t></w:r></w:p>
+        </w:body></w:document>
+        """, options: [.nodePreserveWhitespace, .nodePromoteSignificantWhitespace])
+        let body = try XCTUnwrap(document.rootElement()?.elements(forLocalName: "body", uri: namespace).first)
+        let blocks = (body.children ?? []).compactMap { $0 as? XMLElement }
+        XCTAssertEqual(blocks.map(\.localName), ["p", "tbl", "p"])
+        let table = try XCTUnwrap(body.elements(forLocalName: "tbl", uri: namespace).first)
+        let row = try XCTUnwrap(table.elements(forLocalName: "tr", uri: namespace).first)
+        let cells = row.elements(forLocalName: "tc", uri: namespace)
+        XCTAssertEqual(cells.count, 2)
+        XCTAssertEqual(cells.map { wordText($0) }, ["First", "  Last\tCell\nEnd  "])
+        XCTAssertEqual(wordText(try XCTUnwrap(blocks.first)), "Before the Table")
+        XCTAssertEqual(wordText(try XCTUnwrap(blocks.last)), "After the Table")
+        let lastCell = try XCTUnwrap(cells.last)
+        let paragraph = try XCTUnwrap(lastCell.elements(forLocalName: "p", uri: namespace).first)
+        let run = try XCTUnwrap(paragraph.elements(forLocalName: "r", uri: namespace).first)
+        let text = try XCTUnwrap(run.elements(forLocalName: "t", uri: namespace).first)
+        XCTAssertEqual(wordText(text), "  Last")
+    }
+
+    private func wordText(_ node: XMLNode) -> String {
+        // An attached-cell XPath included the following body paragraph on macOS.
+        // Walk only this subtree and recognize Word elements by namespace.
+        if let element = node as? XMLElement,
+           element.uri == "http://schemas.openxmlformats.org/wordprocessingml/2006/main" {
+            switch element.localName {
+            case "t": return element.stringValue ?? ""
             case "tab": return "\t"
             case "br": return "\n"
-            default: return $0.stringValue ?? ""
+            default: break
             }
-        }.joined()
+        }
+        return (node.children ?? []).map { wordText($0) }.joined()
     }
 
     func testBuiltInWorkbookPreservesTextValuesAndHasOnlyLocalRequiredParts() async throws {
