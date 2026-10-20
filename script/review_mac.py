@@ -221,14 +221,29 @@ def choose_process(pid, executable: Path) -> tuple[int, dict]:
         found = command(["/usr/bin/pgrep", "-U", str(os.getuid()), "-x", "Lemulip"])
         require(found is not None and found.returncode in {0, 1}, "The running app could not be located.")
         candidates = found.stdout.split()
-        require(len(candidates) == 1 and candidates[0].isdigit(),
-                "Open the selected Lemulip app first. If several copies are running, specify its PID with --pid.")
-        pid = int(candidates[0])
+        require(all(value.isdigit() and 0 < int(value) <= 2147483647 for value in candidates),
+                "The running app process list could not be read.")
+        require(bool(candidates),
+                "No Lemulip process is running for the current user. Open the selected app, wait for its workspace, then retry.")
+        matching = []
+        for candidate in sorted({int(value) for value in candidates}):
+            try:
+                actual = process_path(candidate)
+            except (ReviewError, OSError):
+                raise ReviewError("A running Lemulip process could not be verified. Wait for the app to finish opening and retry, or use --pid for the selected instance.") from None
+            if actual == executable.resolve():
+                matching.append(candidate)
+        require(bool(matching),
+                "Lemulip is running from a different app bundle. Open the selected app, or use --app to select the running bundle.")
+        require(len(matching) == 1,
+                "Multiple instances of the selected app are running. Finish any work and quit the other instances, or use --pid to select one.")
+        pid = matching[0]
     return pid, process_snapshot(pid, executable)
 
 
 def measure_idle(executable: Path, pid=None) -> dict:
     require(sys.stdin.isatty(), "Idle measurement requires an interactive Terminal for confirmation.")
+    pid, initial = choose_process(pid, executable)
     print("Keep the workspace visible and the drag wheel enabled. Close editors and finish all jobs and playback.")
     print("Do not use Lemulip or drag files during the next two minutes. The app will stay open.")
     try:
@@ -238,7 +253,8 @@ def measure_idle(executable: Path, pid=None) -> dict:
     if answer != "IDLE":
         return {"status": "Not Measured", "reason": "Idle Conditions Not Confirmed",
                 "wakeups": "Not Measured", "warm_interactive_launch": "Not Measured"}
-    pid, initial = choose_process(pid, executable)
+    current = process_snapshot(pid, executable)
+    require(current["identity"] == initial["identity"], "The app process or executable changed before measurement.")
     print(f"Settling: {SETTLE_SECONDS} Seconds", flush=True)
     settle_start = time.monotonic()
     for second in range(1, SETTLE_SECONDS + 1):
@@ -376,12 +392,27 @@ def main() -> int:
               "app": app_summary, "system": baseline, "signature": signature,
               "developer_id_identity_count": signing_identity_count(),
               "idle": {"status": "Not Measured", "wakeups": "Not Measured", "warm_interactive_launch": "Not Measured"}}
+    exit_status = 0
     if arguments.measure_idle:
-        report["idle"] = measure_idle(executable, arguments.pid)
+        try:
+            report["idle"] = measure_idle(executable, arguments.pid)
+        except ReviewError as error:
+            report["idle"]["reason"] = "Idle Measurement Could Not Be Completed"
+            print(f"Lemulip: {error}", file=sys.stderr)
+            exit_status = 1
+        except KeyboardInterrupt:
+            report["idle"]["reason"] = "Idle Measurement Stopped by Operator"
+            print("Lemulip: Idle measurement stopped. The running app was left untouched.", file=sys.stderr)
+            exit_status = 130
+        except (OSError, ValueError, TypeError):
+            report["idle"]["reason"] = "Idle Process Data Unavailable"
+            print("Lemulip: Idle process data could not be collected. The running app was left untouched.", file=sys.stderr)
+            exit_status = 1
+        print("Idle Measurement: " + report["idle"]["status"], flush=True)
     write_reports(directory, report)
     print("Saved: " + " and ".join(REPORT_NAMES))
     print("Readiness was recorded. Hands-on acceptance, warm launch, and wakeups remain unverified.")
-    return 0
+    return exit_status
 
 
 if __name__ == "__main__":
