@@ -122,7 +122,7 @@ Use native frameworks for supported formats and keep external engines optional.
 Document input limits in [Formats](FORMATS.md); controls belong in the
 [User Guide](USER_GUIDE.md). Shared invariants are:
 
-- Preflight the whole batch before output. Unsupported RTF may select the
+- Preflight the whole batch before output. Unsupported RTF or Markdown may select the
   optional route, but malformed input, cancellation, or a failed native writer
   must not be hidden by an engine retry after partial output.
 - Stage outputs privately, use unused final names, and clean temporary output on
@@ -168,6 +168,14 @@ remove temporary snapshots on success, failure, and cancellation.
 TXT and supported basic RTF use AppKit's DOCX writer. CSV/TSV use the built-in
 XLSX writer and archive bridge. Native Word metadata identifies Lemulip and
 clears imported company/manager fields; never copy user or source-path metadata.
+
+Basic Markdown uses a portable OOXML writer and the same archive bridge. Its
+preflight validates every file before choosing the native writer or Pandoc for
+the whole Markdown selection. Invalid text and XML controls fail directly;
+unsupported syntax may select Pandoc only before native export starts. Keep
+real numbering, local package relationships, and fixed Lemulip metadata. The
+existing `word-markdown` review case covers this writer; external-engine checks
+continue to exercise Pandoc independently.
 
 RTF uses an explicit control/destination allowlist before AppKit import.
 Unsupported rich structures select LibreOffice before output. Retain bounds for

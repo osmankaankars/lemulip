@@ -149,7 +149,8 @@ You do not need Microsoft Office installed to run these conversions.
 | Route | Engine | Fidelity |
 | --- | --- | --- |
 | TXT, Markdown, RTF, HTML → TXT, Markdown, RTF, HTML, PDF | Built in for basic routes | Text-focused; see exceptions below |
-| Markdown → HTML, DOCX, ODT | Pandoc | Uses Pandoc's Markdown dialect; see the Word export assessment below |
+| Basic Markdown → DOCX | Built in; Pandoc fallback | Headings, simple lists, emphasis, code, and pipe tables within the subset below |
+| Markdown → HTML, ODT | Pandoc | Uses Pandoc's Markdown dialect |
 | TXT → DOCX | Built into macOS | Basic text, paragraphs, tabs, and Unicode; no rich document layout |
 | Basic RTF → DOCX | Built into macOS | Supported fonts and paragraph formatting; see the basic export boundary below |
 | Complex RTF → DOCX | LibreOffice | Creates a Word document; complex formatting may change |
@@ -175,7 +176,7 @@ a separate document, with its source bytes unchanged.
 
 **TXT** keeps source text, paragraph breaks, tabs, and Unicode. Plain text has
 no fonts, tables, images, or page layout to preserve. Markdown syntax remains
-literal text when it is in a TXT file; use a Markdown file with Pandoc for
+literal text when it is in a TXT file; use a `.md` or `.markdown` file for
 structured Markdown conversion.
 
 TXT files must be between **1 byte and 32 MiB**, encoded as UTF-8 with an optional
@@ -213,30 +214,64 @@ conversion is not implemented.
 
 ### HTML and Markdown Word Export
 
-HTML → DOCX uses LibreOffice; Markdown → DOCX uses Pandoc. Neither route has a
-built-in Word exporter.
+Markdown (`.md` or `.markdown`) has a small built-in DOCX writer. HTML (`.html`
+or `.htm`) uses LibreOffice.
 
-| Input | Engine | Scope of the Generated Example |
-| --- | --- | --- |
-| HTML or HTM | LibreOffice | A level-one heading, paragraphs, bold and italic spans, Unicode and character entities, and a two-by-two table in document order |
-| MD or MARKDOWN | Pandoc, using its `markdown` reader | The same heading, emphasis, Unicode, and table structure, plus bulleted and numbered lists and a fenced code block with significant spaces and line breaks |
+#### Built-In Markdown
 
-The generated examples cover basic document structure without images,
-hyperlinks, or external resources. Automated checks inspect the returned DOCX;
-visual acceptance in Microsoft Word remains **Not Reviewed**. See
-[Office Review](OFFICE_REVIEW.md) for the comparisons.
+| Content | Supported Syntax |
+| --- | --- |
+| Headings | Unindented ATX headings, using one to six `#` characters |
+| Text | Paragraphs, Unicode, simple nonnested bold and italic text |
+| Inline code | One pair of backticks on a single line |
+| Lists | Flat, one-line items with `-`, `+`, or `*` bullets, or decimal numbering with `.` or `)`; the starting number is retained |
+| Code blocks | Backtick or tilde fences with an optional simple language name; literal spaces, tabs, blank lines, and symbols are preserved without syntax highlighting |
+| Tables | Pipe tables with a header, matching column counts, and left, center, or right column alignment |
 
-**HTML Limits:** complex CSS, responsive layouts, scripts, web fonts, and linked
-media are outside this assessment. Basic native HTML conversion to text is
-text-only and does not use a web renderer.
+Save Markdown as valid UTF-8 or BOM-marked UTF-16. An empty input creates a
+blank Word document. The writer sets creator and editor metadata to **Lemulip**
+and adds no external resources or source paths to the package.
 
-**Markdown Limits:** this route uses
-[Pandoc's Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown). Other
-Markdown dialects and extensions can behave differently. The example does not
-cover raw HTML, metadata extensions, footnotes, mathematics, or embedded media.
-Pandoc's sandbox stays enabled; linked resources are not fetched. Its document
-model preserves supported structure but cannot reproduce every source-format
-layout. Review the output when typography or pagination matters.
+| Native Limit | Per Input |
+| --- | --- |
+| Size | 4 MiB for both encoded source bytes and decoded UTF-8 text |
+| Lines | 50,000 normalized lines; 16 KiB of UTF-8 per line |
+| Paragraph | 64 KiB of UTF-8 text |
+| Structure | 10,000 blocks or list items; 100,000 text runs |
+| Tables | 32 columns per table; 10,000 cells across all tables |
+
+Links, images, raw HTML or entities, nested or multiline lists, blank lines
+between list items, alphabetic, Roman, or parenthesized numbering such as `(1)`,
+block quotes, Setext headings, rules, front matter, math, footnotes, complex
+emphasis, explicit hard breaks, and escaped or uneven tables
+use **Pandoc**. Inputs exceeding a native limit also use that route. If any
+Markdown input needs it, the whole Markdown batch selects Pandoc before output
+is created. Mixing Markdown with other document types retains the Pandoc route.
+
+For batches containing only Markdown, Lemulip prepares accepted UTF-16 input as
+UTF-8 for Pandoc automatically and keeps the originals. Use UTF-8 Markdown when
+combining document types.
+
+Pandoc must be installed for those conversions. Invalid encoding, unsupported
+XML control characters, and files larger than the existing **32 MiB** input
+limit receive an error. A file that changes beyond native support during export
+also fails; start a new conversion to select its appropriate route.
+
+The fallback uses [Pandoc's Markdown](https://pandoc.org/MANUAL.html#pandocs-markdown)
+with its sandbox enabled. Linked resources are not fetched, and supported
+formatting can differ across Markdown dialects. Neither route guarantees an
+identical page layout in Word.
+
+#### HTML and Visual Review
+
+The HTML example checks a heading, paragraphs, emphasis, Unicode, character
+entities, and a simple table. Complex CSS, responsive layouts, scripts, web
+fonts, and linked media are outside its scope. Basic native HTML conversion to
+text remains text-only.
+
+The HTML and native Markdown examples contain no images or hyperlinks.
+Automated checks inspect DOCX structure; visual acceptance in Microsoft Word
+remains **Not Reviewed**. See [Office Review](OFFICE_REVIEW.md) for the comparisons.
 
 ### Basic Excel Export
 

@@ -15,6 +15,212 @@ final class EngineTests: XCTestCase {
     }
     override func tearDownWithError() throws { if let root { try FileManager.default.removeItem(at: root) } }
 
+    func testBuiltInMarkdownWordCreatesEditableHeadingAndEmphasis() async throws {
+        let input = root.appendingPathComponent("orchard.md")
+        let original = Data("# Orchard Notes\n\nA **bold phrase** and an *italic phrase*. R&D.\n\n\u{00A0}Keep These Spaces\u{00A0}\n".utf8)
+        try original.write(to: input)
+        let result = try await ConversionEngine().run(inputs: [input], operation: FileOperation(id: "convert.docx", title: "DOCX"))
+        let output = try XCTUnwrap(result.outputs.first)
+        XCTAssertEqual(result.outputs.count, 1)
+        let package = try await unpackWorkbook(output)
+        let document = try XMLDocument(contentsOf: package.appendingPathComponent("word/document.xml"), options: [.nodePreserveWhitespace, .nodePromoteSignificantWhitespace])
+        let texts = try document.nodes(forXPath: "//*[local-name()='t']").compactMap(\.stringValue).joined()
+        XCTAssertEqual(texts, "Orchard NotesA bold phrase and an italic phrase. R&D.\u{00A0}Keep These Spaces\u{00A0}")
+        let core = try XMLDocument(contentsOf: package.appendingPathComponent("docProps/core.xml"))
+        XCTAssertEqual(try core.nodes(forXPath: "//*[local-name()='creator']").first?.stringValue, "Lemulip")
+        XCTAssertFalse(try document.nodes(forXPath: "//*[local-name()='pStyle']").isEmpty)
+        XCTAssertFalse(try document.nodes(forXPath: "//*[local-name()='rPr']/*[local-name()='b']").isEmpty)
+        XCTAssertFalse(try document.nodes(forXPath: "//*[local-name()='rPr']/*[local-name()='i']").isEmpty)
+        XCTAssertEqual(try Data(contentsOf: input), original)
+    }
+
+    func testBuiltInMarkdownWordPackageHasOnlyLocalRelationshipsAndPublicMetadata() async throws {
+        let input = root.appendingPathComponent("orchard.markdown")
+        try "# Notes\n\nA simple paragraph.\n".write(to: input, atomically: true, encoding: .utf8)
+        let result = try await ConversionEngine().run(inputs: [input], operation: FileOperation(id: "convert.docx", title: "DOCX"))
+        let package = try await unpackWorkbook(result.outputs[0])
+        let files = try XCTUnwrap(FileManager.default.enumerator(atPath: package.path))
+            .compactMap { $0 as? String }.filter {
+                (try? package.appendingPathComponent($0).resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
+            }
+        let required: Set<String> = ["[Content_Types].xml", "_rels/.rels", "word/document.xml",
+            "word/styles.xml", "word/numbering.xml", "word/_rels/document.xml.rels", "docProps/core.xml"]
+        XCTAssertEqual(Set(files), required)
+        for name in files {
+            let data = try Data(contentsOf: package.appendingPathComponent(name))
+            let xml = try workbookXML(package.appendingPathComponent(name))
+            let text = String(decoding: data, as: UTF8.self)
+            XCTAssertFalse(text.contains(root.path), name)
+            XCTAssertFalse(text.contains(input.lastPathComponent), name)
+            XCTAssertFalse(text.contains("file://"), name)
+            for relationship in xml.elements["Relationship"] ?? [] {
+                XCTAssertNil(relationship["TargetMode"], name)
+                let target = try XCTUnwrap(relationship["Target"])
+                XCTAssertFalse(target.contains(":"), target)
+                XCTAssertFalse(target.hasPrefix("/"), target)
+                XCTAssertFalse(target.split(separator: "/").contains(".."), target)
+                let base = name == "_rels/.rels" ? package : package.appendingPathComponent("word")
+                XCTAssertTrue(FileManager.default.fileExists(atPath: base.appendingPathComponent(target).path), target)
+            }
+        }
+        let core = try XMLDocument(contentsOf: package.appendingPathComponent("docProps/core.xml"))
+        for field in ["creator", "lastModifiedBy"] {
+            XCTAssertEqual(try core.nodes(forXPath: "//*[local-name()='\(field)']").first?.stringValue, "Lemulip")
+        }
+        let document = try XMLDocument(contentsOf: package.appendingPathComponent("word/document.xml"))
+        XCTAssertEqual(document.rootElement()?.uri, "http://schemas.openxmlformats.org/wordprocessingml/2006/main")
+    }
+
+    func testBuiltInMarkdownWordKeepsUTF16UnicodeAndCodeWhitespace() async throws {
+        let input = root.appendingPathComponent("notes.MARKDOWN")
+        let code = "  keep  two spaces\n\n\tfour\tcolumns\n**literal** <tag> & end"
+        let source = "# İstanbul 🍋 東京\r\n\r\n```text\r\n" + code.replacingOccurrences(of: "\n", with: "\r\n") + "\r\n```\r\n"
+        let original = try XCTUnwrap(source.data(using: .utf16))
+        try original.write(to: input)
+        let result = try await ConversionEngine().run(inputs: [input], operation: FileOperation(id: "convert.docx", title: "DOCX"))
+        let package = try await unpackWorkbook(result.outputs[0])
+        let document = try XMLDocument(contentsOf: package.appendingPathComponent("word/document.xml"),
+                                      options: [.nodePreserveWhitespace, .nodePromoteSignificantWhitespace])
+        let paragraphs = try document.nodes(forXPath: "//*[local-name()='p']").map { try wordText($0) }
+        XCTAssertEqual(paragraphs.first, "İstanbul 🍋 東京")
+        XCTAssertTrue(paragraphs.joined(separator: "\n").contains(code), paragraphs.joined(separator: "\n"))
+        XCTAssertEqual(try Data(contentsOf: input), original)
+        let empty = root.appendingPathComponent("empty.md")
+        try Data().write(to: empty)
+        let blank = try await ConversionEngine().run(inputs: [empty], operation: FileOperation(id: "convert.docx", title: "DOCX"))
+        let blankPackage = try await unpackWorkbook(blank.outputs[0])
+        let blankDocument = try XMLDocument(contentsOf: blankPackage.appendingPathComponent("word/document.xml"))
+        XCTAssertEqual(try wordText(blankDocument), "")
+        XCTAssertFalse(try blankDocument.nodes(forXPath: "//*[local-name()='body']/*[local-name()='p']").isEmpty)
+    }
+
+    func testBuiltInMarkdownWordPreservesNumberedListStartAndTableAlignment() async throws {
+        let input = root.appendingPathComponent("lists.md")
+        let source = """
+        # Orchard
+
+        3. Third Step
+        4. Fourth Step
+
+        - Lemon
+        - Pistachio
+
+        | Fruit | Note | Count |
+        | :--- | :---: | ---: |
+        | Lemon | **Fresh** | 12 |
+        | Pistachio | `00123` | 7 |
+
+        After the Table
+        """
+        try source.write(to: input, atomically: true, encoding: .utf8)
+        let result = try await ConversionEngine().run(inputs: [input], operation: FileOperation(id: "convert.docx", title: "DOCX"))
+        let package = try await unpackWorkbook(result.outputs[0])
+        let document = try XMLDocument(contentsOf: package.appendingPathComponent("word/document.xml"),
+                                      options: [.nodePreserveWhitespace, .nodePromoteSignificantWhitespace])
+        let numbering = try XMLDocument(contentsOf: package.appendingPathComponent("word/numbering.xml"))
+        let starts = try numbering.nodes(forXPath: "//*[local-name()='start' or local-name()='startOverride']/@*[local-name()='val']").compactMap(\.stringValue)
+        XCTAssertTrue(starts.contains("3"))
+        XCTAssertEqual(try document.nodes(forXPath: "//*[local-name()='pPr']/*[local-name()='numPr']").count, 4)
+        let tables = try document.nodes(forXPath: "//*[local-name()='tbl']")
+        XCTAssertEqual(tables.count, 1)
+        let table = try XCTUnwrap(tables.first)
+        let rows = try table.nodes(forXPath: "./*[local-name()='tr']")
+        XCTAssertEqual(rows.count, 3)
+        let expected = [["Fruit", "Note", "Count"], ["Lemon", "Fresh", "12"], ["Pistachio", "00123", "7"]]
+        for (row, values) in zip(rows, expected) {
+            let cells = try row.nodes(forXPath: "./*[local-name()='tc']")
+            XCTAssertEqual(try cells.map { try wordText($0) }, values)
+            for (cell, alignment) in zip(cells, ["left", "center", "right"]) {
+                XCTAssertEqual(try cell.nodes(forXPath: ".//*[local-name()='jc']/@*[local-name()='val']").first?.stringValue, alignment)
+            }
+        }
+        let paragraphs = try document.nodes(forXPath: "//*[local-name()='p']").map { try wordText($0) }
+        XCTAssertEqual(paragraphs.last, "After the Table")
+        XCTAssertEqual(try String(contentsOf: input, encoding: .utf8), source)
+    }
+
+    func testMarkdownPreflightDeclinesAdvancedSyntaxAndNativeLimitsWithoutOutput() throws {
+        let cases = ["[Link](https://example.com)", "![Image](photo.png)", "> A Quote",
+            "- Parent\n  - Nested", "---\ntitle: Notes\n---\nBody", "<div>HTML</div>",
+            "A footnote[^1].\n\n[^1]: Extra text", "$$x^2$$", "**Bold and *nested emphasis***",
+            "` a \nb `",
+            "Named &amp; entity", "Decimal &#160; entity", "Hexadecimal &#xA0; entity",
+            "a. Lemon\nb. Pistachio", "i. Lemon\nii. Pistachio", "(1) Lemon\n(2) Pistachio",
+            "#. Lemon\n#. Pistachio", "(@) Lemon\n(@) Pistachio", "(@citrus) Lemon\n(@nut) Pistachio",
+            "Title\n=====", "Title\n--", "Title\n=", "| A | B |\n| --- | --- |\n| Too | Many | Cells |",
+            String(repeating: "a", count: 16_385), String(repeating: "Paragraph\n\n", count: 10_001)]
+        let input = root.appendingPathComponent("advanced.md")
+        for (index, source) in cases.enumerated() {
+            try source.write(to: input, atomically: true, encoding: .utf8)
+            XCTAssertThrowsError(try MarkdownWordWriter.preflight([input]), "Case \(index)") { error in
+                guard case FreewheelError.unsupported = error else { return XCTFail("Expected Pandoc fallback for case \(index): \(error)") }
+            }
+            XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: root.path)), ["advanced.md"])
+            XCTAssertEqual(try String(contentsOf: input, encoding: .utf8), source)
+        }
+    }
+
+    func testMarkdownInvalidTextAndChangedCapabilityCannotPublishPartialOutput() async throws {
+        let valid = root.appendingPathComponent("valid.md"), invalid = root.appendingPathComponent("invalid.md")
+        let original = Data("# Notes\n\nKeep this source.\n".utf8)
+        try original.write(to: valid)
+        let invalidData = [Data([0xC3, 0x28]), Data([0xFF, 0xFE, 0x00, 0xD8]),
+            Data("Bad\u{0000}Text".utf8), Data("Bad\u{000B}Text".utf8), Data("Bad\u{FFFF}Text".utf8)]
+        for data in invalidData {
+            try data.write(to: invalid)
+            do {
+                _ = try await ConversionEngine().run(inputs: [valid, invalid], operation: FileOperation(id: "convert.docx", title: "DOCX"))
+                XCTFail("Invalid Markdown produced a file")
+            } catch FreewheelError.invalidInput { }
+            XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: root.path)), ["valid.md", "invalid.md"])
+            XCTAssertEqual(try Data(contentsOf: valid), original)
+            XCTAssertEqual(try Data(contentsOf: invalid), data)
+        }
+        try original.write(to: invalid)
+        try MarkdownWordWriter.preflight([valid, invalid])
+        try "[Changed](https://example.com)".write(to: invalid, atomically: true, encoding: .utf8)
+        let destination = root.appendingPathComponent("native-stage")
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: false)
+        do {
+            _ = try await MarkdownWordWriter.convert(inputs: [valid, invalid], directory: destination)
+            XCTFail("A changed source selected a fallback after native export began")
+        } catch FreewheelError.invalidInput { }
+        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: destination.path).isEmpty)
+    }
+
+    func testMarkdownConcurrentCopiesAndCancellationPreserveExistingFiles() async throws {
+        let input = root.appendingPathComponent("notes.md"), existing = root.appendingPathComponent("notes.docx")
+        let original = Data("# Notes\n\nA small file.\n".utf8)
+        try original.write(to: input)
+        try "Keep This File".write(to: existing, atomically: true, encoding: .utf8)
+        let engine = ConversionEngine(), operation = FileOperation(id: "convert.docx", title: "DOCX")
+        async let first = engine.run(inputs: [input], operation: operation)
+        async let second = engine.run(inputs: [input], operation: operation)
+        let results = try await [first, second]
+        XCTAssertEqual(Set(results.flatMap(\.outputs)).count, 2)
+        XCTAssertEqual(try String(contentsOf: existing, encoding: .utf8), "Keep This File")
+        XCTAssertEqual(try Data(contentsOf: input), original)
+        let before = Set(try FileManager.default.contentsOfDirectory(atPath: root.path))
+        let cancelled = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            return try await engine.run(inputs: [input], operation: operation)
+        }
+        do { _ = try await cancelled.value; XCTFail("Cancelled Markdown produced a file") }
+        catch FreewheelError.cancelled { }
+        XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: root.path)), before)
+        XCTAssertFalse(before.contains { $0.hasPrefix(".freewheel-") })
+    }
+
+    private func wordText(_ node: XMLNode) throws -> String {
+        try node.nodes(forXPath: ".//*[local-name()='t' or local-name()='tab' or local-name()='br']").map {
+            switch $0.localName {
+            case "tab": return "\t"
+            case "br": return "\n"
+            default: return $0.stringValue ?? ""
+            }
+        }.joined()
+    }
+
     func testBuiltInWorkbookPreservesTextValuesAndHasOnlyLocalRequiredParts() async throws {
         let rows = [["Name", "Value", "Note", ""],
             ["İstanbul 🍋", "00123", "A&B <tag> > \"quoted\"", ""],
@@ -185,7 +391,13 @@ final class EngineTests: XCTestCase {
         XCTAssertEqual(try operation(["one.rtf", "two.html"], "docx").dependency, "libreoffice")
         XCTAssertEqual(try operation(["one.rtf", "two.doc"], "docx").dependency, "libreoffice")
         XCTAssertEqual(try operation(["one.html"], "docx").dependency, "libreoffice")
-        XCTAssertEqual(try operation(["one.md"], "docx").dependency, "pandoc")
+        for names in [["one.md"], ["one.MD", "two.MARKDOWN"]] {
+            XCTAssertNil(try operation(names, "docx").dependency)
+            XCTAssertEqual(try operation(names, "docx").detail, "Microsoft Word Document · Basic Markdown")
+        }
+        XCTAssertEqual(try operation(["one.md", "two.txt"], "docx").dependency, "pandoc")
+        XCTAssertEqual(try operation(["one.md"], "html").dependency, "pandoc")
+        XCTAssertEqual(try operation(["one.md"], "odt").dependency, "pandoc")
         XCTAssertEqual(try operation(["one.rtf", "two.md"], "docx").dependency, "pandoc")
     }
 

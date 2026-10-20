@@ -99,7 +99,8 @@ After launch, start with a small image in the workspace. Add it with **⌘O**, s
 ## Optional Engines
 
 Image, PDF, OCR, archive, subtitle, and basic text tools cover many tasks without
-extra software. TXT and basic RTF → DOCX, plus CSV/TSV → XLSX, are also built in.
+extra software. TXT, basic RTF, and basic Markdown → DOCX, plus CSV/TSV → XLSX,
+are also built in.
 Install only the engines needed for your other [formats](FORMATS.md).
 
 | Engine | Adds | Install |
@@ -107,7 +108,7 @@ Install only the engines needed for your other [formats](FORMATS.md).
 | FFmpeg | More audio/video formats and media tools | `brew install ffmpeg` |
 | ImageMagick | WebP, AVIF, and additional image codecs | `brew install imagemagick` |
 | LibreOffice | HTML → DOCX, complex RTF, existing Office documents, workbooks, and slides | `brew install --cask libreoffice` |
-| Pandoc | EPUB and structured document routes | [Official macOS installer](https://pandoc.org/installing.html) |
+| Pandoc | Richer Markdown → DOCX, Markdown → HTML/ODT, and EPUB | [Official macOS installer](https://pandoc.org/installing.html) |
 
 The `brew` commands require [Homebrew](https://brew.sh). Each engine has its own OS requirements. Installers need internet access; Lemulip's conversions run locally.
 

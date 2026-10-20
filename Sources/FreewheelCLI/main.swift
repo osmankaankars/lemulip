@@ -27,6 +27,7 @@ Examples:
   lemulip convert png photo.heic
   lemulip convert docx notes.txt
   lemulip convert docx letter.rtf
+  lemulip convert docx notes.md
   lemulip convert xlsx table.csv
   lemulip run pdf.merge first.pdf second.pdf
   lemulip run media.trim video.mp4 --start 5 --end 25
@@ -34,6 +35,7 @@ Examples:
 
 Conversions never replace the original. No files are uploaded.
 TXT and basic RTF to DOCX are built into macOS. Complex RTF needs LibreOffice.
+Basic Markdown to DOCX is built in on both platforms. Advanced Markdown needs Pandoc.
 CSV/TSV to XLSX is built in on both platforms:
 one worksheet per file, with every value kept as text (no formula or date inference).
 Image/PDF/native media operations require macOS; portable text/archive and

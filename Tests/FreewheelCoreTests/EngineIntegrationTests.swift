@@ -92,9 +92,10 @@ final class EngineIntegrationTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: epub.outputs[0]).prefix(2), Data("PK".utf8))
         let plain = try await engine.run(inputs: epub.outputs, operation: FileOperation(id: "convert.txt", title: "Text"))
         XCTAssertTrue(try String(contentsOf: plain.outputs[0], encoding: .utf8).contains("İstanbul"))
-        // These formats need Pandoc's embedded reference data while --sandbox remains enabled.
+        // Keep explicit Pandoc coverage now that basic Markdown Word export is
+        // built in. Its embedded reference data is still needed with --sandbox.
         for fileExtension in ["docx", "odt"] {
-            let document = try await engine.run(inputs: [input], operation: FileOperation(id: "convert.\(fileExtension)", title: fileExtension.uppercased()))
+            let document = try await ExternalConverters.document([input], operation: FileOperation(id: "convert.\(fileExtension)", title: fileExtension.uppercased()), directory: root)
             XCTAssertEqual(try Data(contentsOf: document.outputs[0]).prefix(2), Data("PK".utf8))
             let roundTrip = try await ExternalConverters.document(document.outputs, operation: FileOperation(id: "convert.txt", title: "Text"), directory: root)
             XCTAssertTrue(try String(contentsOf: roundTrip.outputs[0], encoding: .utf8).contains("İstanbul"))
@@ -120,7 +121,6 @@ final class EngineIntegrationTests: XCTestCase {
     }
 
     func testMarkdownWordExportKeepsListsCodeAndTable() async throws {
-        try require("pandoc")
         let markdown = """
         # Orchard Notes
 
@@ -147,11 +147,142 @@ final class EngineIntegrationTests: XCTestCase {
         try await checkMarkupWordExport("orchard.md", text: markdown, markdown: true, reviewCase: "word-markdown")
     }
 
+    func testAdvancedMarkdownWordUsesPandocForTheWholeBatch() async throws {
+        try require("pandoc")
+        let basic = root.appendingPathComponent("basic.md")
+        let advanced = root.appendingPathComponent("advanced.MARKDOWN")
+        let basicText = "# Basic Notes\n\nA **bold** sentence.\n"
+        let advancedText = """
+        # Advanced Notes
+
+        Read [the guide](https://example.com/guide).
+
+        > Quoted citrus.
+
+        - Parent Item
+            - Nested Item
+        """
+        try Data(basicText.utf8).write(to: basic)
+        try Data(advancedText.utf8).write(to: advanced)
+        let result = try await engine.run(inputs: [basic, advanced],
+            operation: FileOperation(id: "convert.docx", title: "DOCX"))
+        XCTAssertEqual(result.outputs.map(\.lastPathComponent), ["basic.docx", "advanced.docx"])
+        XCTAssertTrue(result.note?.contains("Converted locally with Pandoc") == true)
+        let extracted = try await ExternalConverters.archives(result.outputs,
+            operation: FileOperation(id: "archive.extract", title: "Extract"), directory: root)
+        XCTAssertEqual(extracted.outputs.count, 2)
+        // Compare the simple first source against a direct Pandoc export. A
+        // per-file native attempt would mix exporters within one batch. Package
+        // timestamps are irrelevant; the Word document part is deterministic.
+        let referenceFolder = root.appendingPathComponent("pandoc-reference", isDirectory: true)
+        try FileManager.default.createDirectory(at: referenceFolder, withIntermediateDirectories: false)
+        let reference = try await ExternalConverters.document([basic],
+            operation: FileOperation(id: "convert.docx", title: "DOCX"), directory: referenceFolder)
+        let referenceExtracted = try await ExternalConverters.archives(reference.outputs,
+            operation: FileOperation(id: "archive.extract", title: "Extract"), directory: referenceFolder)
+        let firstPackage = try XCTUnwrap(extracted.outputs.first)
+        let referencePackage = try XCTUnwrap(referenceExtracted.outputs.first)
+        XCTAssertEqual(try Data(contentsOf: firstPackage.appendingPathComponent("word/document.xml")),
+                       try Data(contentsOf: referencePackage.appendingPathComponent("word/document.xml")))
+        let package = try XCTUnwrap(extracted.outputs.last)
+        let document = try officeXML(package, "word/document.xml")
+        let relationships = try officeXML(package, "word/_rels/document.xml.rels")
+        let styles = try officeXML(package, "word/styles.xml")
+        try withExtendedLifetime((document, relationships, styles)) {
+            func text(_ node: XMLNode) throws -> String {
+                try node.nodes(forXPath: ".//*[local-name()='t' and namespace-uri()='\(wordNamespace)']").compactMap(\.stringValue).joined()
+            }
+            let hyperlink = try XCTUnwrap(try document.nodes(forXPath: "//*[local-name()='hyperlink' and namespace-uri()='\(wordNamespace)']").first as? XMLElement)
+            XCTAssertEqual(try text(hyperlink), "the guide")
+            let relationshipID = try XCTUnwrap(hyperlink.attribute(forLocalName: "id",
+                uri: "http://schemas.openxmlformats.org/officeDocument/2006/relationships")?.stringValue)
+            let relationship = try XCTUnwrap(try relationships.nodes(forXPath: "/*[local-name()='Relationships']/*[local-name()='Relationship' and @Id='\(relationshipID)']").first as? XMLElement)
+            XCTAssertEqual(try relationship.nodes(forXPath: "./@*[local-name()='Target' and namespace-uri()='']").first?.stringValue,
+                           "https://example.com/guide")
+            XCTAssertEqual(try relationship.nodes(forXPath: "./@*[local-name()='TargetMode' and namespace-uri()='']").first?.stringValue,
+                           "External")
+            let paragraphs = try document.nodes(forXPath: "//*[local-name()='body']/*[local-name()='p' and namespace-uri()='\(wordNamespace)']")
+            let quoted = try XCTUnwrap(try paragraphs.first { try text($0) == "Quoted citrus." })
+            let styleID = try XCTUnwrap(try quoted.nodes(forXPath: "./*[local-name()='pPr']/*[local-name()='pStyle']/@*[local-name()='val']").first?.stringValue)
+            let quoteStyle = try XCTUnwrap(try styles.nodes(forXPath: "/*[local-name()='styles']/*[local-name()='style' and @*[local-name()='styleId']='\(styleID)']").first)
+            let quoteIndentText = try quoteStyle.nodes(forXPath: "./*[local-name()='pPr']/*[local-name()='ind']/@*[local-name()='left']").first?.stringValue
+            let quoteIndent = quoteIndentText.flatMap(Int.init)
+            XCTAssertGreaterThan(try XCTUnwrap(quoteIndent), 0, "The quotation lost its paragraph indentation")
+            let nested = try XCTUnwrap(try paragraphs.first { try text($0) == "Nested Item" })
+            XCTAssertEqual(try nested.nodes(forXPath: "./*[local-name()='pPr']/*[local-name()='numPr']/*[local-name()='ilvl']/@*[local-name()='val']").first?.stringValue, "1")
+        }
+        XCTAssertEqual(try Data(contentsOf: basic), Data(basicText.utf8))
+        XCTAssertEqual(try Data(contentsOf: advanced), Data(advancedText.utf8))
+    }
+
+    func testInvalidMarkdownBatchDoesNotFallBackOrPublish() async throws {
+        let advanced = root.appendingPathComponent("advanced.md")
+        let invalid = root.appendingPathComponent("invalid.markdown")
+        let original = Data("Read [the guide](https://example.com).\n".utf8)
+        let invalidBytes = Data([0xC3, 0x28])
+        try original.write(to: advanced); try invalidBytes.write(to: invalid)
+        let existing = root.appendingPathComponent("advanced.docx")
+        let sentinel = Data("Keep this existing file unchanged.".utf8)
+        try sentinel.write(to: existing)
+        let before = try FileManager.default.contentsOfDirectory(atPath: root.path).sorted()
+        do {
+            _ = try await engine.run(inputs: [advanced, invalid],
+                operation: FileOperation(id: "convert.docx", title: "DOCX"))
+            XCTFail("Invalid encoding was accepted or sent to a capability fallback")
+        } catch FreewheelError.invalidInput { }
+        // An unsupported first source must not hide a later invalid input.
+        XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: root.path).sorted(), before)
+        XCTAssertEqual(try Data(contentsOf: advanced), original)
+        XCTAssertEqual(try Data(contentsOf: invalid), invalidBytes)
+        XCTAssertEqual(try Data(contentsOf: existing), sentinel)
+    }
+
+    func testAdvancedMarkdownWordFallbackNormalizesUTF16WithoutChangingInputs() async throws {
+        try require("pandoc")
+        let title = "İstanbul 東京 😀"
+        let sourceText = "# \(title)\r\n\r\nA **bold** sentence.\r\n"
+        let little = root.appendingPathComponent("little.md")
+        let big = root.appendingPathComponent("big.MARKDOWN")
+        let advanced = root.appendingPathComponent("advanced.md")
+        let littleBytes = Data([0xFF, 0xFE]) + (try XCTUnwrap(sourceText.data(using: .utf16LittleEndian)))
+        let bigBytes = Data([0xFE, 0xFF]) + (try XCTUnwrap(sourceText.data(using: .utf16BigEndian)))
+        let advancedBytes = Data("Read [the guide](https://example.com/guide).\n".utf8)
+        let sources = [(little, littleBytes), (big, bigBytes), (advanced, advancedBytes)]
+        for (input, bytes) in sources { try bytes.write(to: input) }
+        let result = try await engine.run(inputs: sources.map(\.0),
+            operation: FileOperation(id: "convert.docx", title: "DOCX"))
+        XCTAssertEqual(result.outputs.map(\.lastPathComponent), ["little.docx", "big.docx", "advanced.docx"])
+        XCTAssertTrue(result.note?.contains("Converted locally with Pandoc") == true)
+        let expectedNames = Set(sources.map { $0.0.lastPathComponent } + result.outputs.map(\.lastPathComponent))
+        XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: root.path)), expectedNames,
+                       "Private Markdown preparation folders must be removed after export")
+        let extracted = try await ExternalConverters.archives(Array(result.outputs.prefix(2)),
+            operation: FileOperation(id: "archive.extract", title: "Extract"), directory: root)
+        XCTAssertEqual(extracted.outputs.count, 2)
+        for package in extracted.outputs {
+            let document = try officeXML(package, "word/document.xml")
+            try withExtendedLifetime(document) {
+                let heading = try XCTUnwrap(try document.nodes(forXPath:
+                    "//*[local-name()='body' and namespace-uri()='\(wordNamespace)']/*[local-name()='p'][1]").first)
+                XCTAssertEqual(try heading.nodes(forXPath:
+                    ".//*[local-name()='t' and namespace-uri()='\(wordNamespace)']").compactMap(\.stringValue).joined(), title)
+                XCTAssertEqual(try heading.nodes(forXPath:
+                    "./*[local-name()='pPr']/*[local-name()='pStyle']/@*[local-name()='val' and namespace-uri()='\(wordNamespace)']").first?.stringValue,
+                               "Heading1")
+            }
+        }
+        for (input, bytes) in sources { XCTAssertEqual(try Data(contentsOf: input), bytes) }
+    }
+
     private func checkMarkupWordExport(_ name: String, text: String, markdown: Bool,
                                        reviewCase: String?) async throws {
         let source = root.appendingPathComponent(name), original = Data(text.utf8)
         try original.write(to: source)
         let result = try await engine.run(inputs: [source], operation: FileOperation(id: "convert.docx", title: "DOCX"))
+        if markdown {
+            XCTAssertTrue(result.note?.contains("Basic Markdown was exported") == true)
+            XCTAssertTrue(result.note?.contains("built-in exporter") == true)
+        }
         XCTAssertEqual(result.outputs.count, 1)
         let output = try XCTUnwrap(result.outputs.first)
         let extracted = try await ExternalConverters.archives([output],

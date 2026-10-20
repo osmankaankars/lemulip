@@ -6,8 +6,8 @@
     <key>CFBundleDisplayName</key><string>Lemulip</string>
     <!-- Keep the original identifier so existing preferences carry over. -->
     <key>CFBundleIdentifier</key><string>app.freewheel.Freewheel</string>
-    <key>CFBundleVersion</key><string>17</string>
-    <key>CFBundleShortVersionString</key><string>0.1.14</string>
+    <key>CFBundleVersion</key><string>18</string>
+    <key>CFBundleShortVersionString</key><string>0.1.15</string>
     <key>CFBundleExecutable</key><string>Lemulip</string>
     <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>CFBundlePackageType</key><string>APPL</string>

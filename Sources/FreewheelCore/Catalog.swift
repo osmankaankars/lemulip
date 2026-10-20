@@ -42,8 +42,12 @@ public enum Catalog {
             else if family == .image && ext == "pdf" && inputs.count > 1 { detail = "Combine in the order shown" }
             else if ext == "epub" { detail = "Reflowable ebook" }
             else if ext == "docx", dependency == nil {
-                detail = inputs.contains { $0.pathExtension.lowercased() == "rtf" }
-                    ? "Microsoft Word Document · Basic Formatting" : "Microsoft Word Document · Plain Text"
+                if inputs.allSatisfy({ normalizedExtension($0.pathExtension) == "md" }) {
+                    detail = "Microsoft Word Document · Basic Markdown"
+                } else {
+                    detail = inputs.contains { $0.pathExtension.lowercased() == "rtf" }
+                        ? "Microsoft Word Document · Basic Formatting" : "Microsoft Word Document · Plain Text"
+                }
             }
             else if ext == "docx" { detail = "Microsoft Word Document" }
             else if ext == "xlsx" { detail = dependency == nil ? "Microsoft Excel Workbook · Text Cells" : "Microsoft Excel Workbook" }
@@ -165,6 +169,7 @@ public enum Catalog {
             if inputs.allSatisfy({ ["csv", "tsv"].contains($0.pathExtension.lowercased()) }) && ["csv", "tsv", "xlsx"].contains(output) { return nil }
             return "libreoffice"
         case .document:
+            if output == "docx", inputs.allSatisfy({ normalizedExtension($0.pathExtension) == "md" }) { return nil }
             #if os(macOS)
             if output == "docx", inputs.allSatisfy({ ["txt", "rtf"].contains($0.pathExtension.lowercased()) }) { return nil }
             #endif

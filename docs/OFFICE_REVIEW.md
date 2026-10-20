@@ -42,7 +42,7 @@ explain how to show the white space again.
 | `word-rtf` | `source.rtf` → `converted.docx` | “Orchard Notes” stays centered, bold and italic in Arial 14 pt. “Second Paragraph” remains left-aligned in Arial 11 pt. Compare paragraph spacing and note any font substitution. Native RTF export does not reconstruct page layout or margins. |
 | `word-layout` | `source.docx` → `intermediate.odt` → `converted.docx` | The source and converted Word documents both show two pages, with the explicit page break retained. Compare the heading, Unicode paragraph, two-by-two table, page margins, and second-page content. Nothing should be clipped, missing, or unexpectedly moved onto a third page. |
 | `word-html` | `source.html` → `converted.docx` | “Orchard Notes” is a level-one heading. “bold phrase” and “italic phrase” retain their emphasis. `İstanbul · 東京 & < >` remains readable. The table has headers “Fruit” and “Count”, then “Lemon” and “12”; “After the Table” follows it. |
-| `word-markdown` | `source.md` → `converted.docx` | Check the same heading, emphasis, Unicode, and table as the HTML case. “Lemon” and “Pistachio” form a bulleted list; “First Step” and “Second Step” form a numbered list. The three-line code block keeps its literal text and spacing, as shown below. |
+| `word-markdown` | `source.md` → `converted.docx` with the built-in writer | Check the same heading, emphasis, Unicode, and table as the HTML case. “Lemon” and “Pistachio” form a bulleted list; “First Step” and “Second Step” form a numbered list. The three-line code block keeps its literal text and spacing, as shown below. |
 
 For `word-layout`, inspect the source and final DOCX first. The intermediate
 ODT is included to help locate a difference if one appears. An installed-font
@@ -70,8 +70,8 @@ that “After the Table” is outside the table and follows it.
 
 The HTML and Markdown sources contain no images, stylesheets, scripts,
 hyperlinks, or external resources. They assess basic structure through
-LibreOffice and Pandoc, respectively. Browser layout and other Markdown
-extensions are outside these comparisons.
+LibreOffice and Lemulip's built-in Markdown writer, respectively. Browser
+layout and richer Markdown fallback through Pandoc are outside these comparisons.
 
 ### Excel: Literal Values and Recalculation
 

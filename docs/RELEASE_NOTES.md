@@ -3,6 +3,16 @@
 What's new in each Lemulip public preview. Release pages show the matching
 version below, followed by the installation note.
 
+## 0.1.15 · Markdown, Ready for Word
+
+- Convert basic **Markdown → DOCX** without installing another engine.
+- Keep editable headings, flat lists, tables, bold and italic text, and code spacing.
+- Check the whole selection before export. Advanced Markdown continues through **Pandoc** when installed.
+
+No new app dependencies. Visual review in Microsoft Office is still pending.
+
+[Markdown Guide](USER_GUIDE.md#convert-html-or-markdown-to-word) · [Supported Formats](FORMATS.md#documents-slides-and-spreadsheets)
+
 ## 0.1.14 · HTML Notes, Ready for Word
 
 - Fix **HTML and HTM → DOCX** conversion when LibreOffice opens the input as a web document.

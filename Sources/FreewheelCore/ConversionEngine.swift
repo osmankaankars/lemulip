@@ -210,6 +210,23 @@ public final class ConversionEngine: Sendable {
         }
         let hasEPUB = inputs.contains { $0.pathExtension.lowercased() == "epub" }
         let hasMarkdown = inputs.contains { ["md", "markdown"].contains($0.pathExtension.lowercased()) }
+        if operation.id.hasPrefix("convert."), target == "docx",
+           inputs.allSatisfy({ ["md", "markdown"].contains($0.pathExtension.lowercased()) }) {
+            // Choose one route for the entire batch before any native output is
+            // written. Invalid input and later conversion failures must not retry
+            // through an engine with different Markdown interpretation.
+            do { try MarkdownWordWriter.preflight(inputs) }
+            catch FreewheelError.unsupported(let reason) {
+                guard EngineLocator.isAvailable("pandoc") else {
+                    throw FreewheelError.unsupported("\(reason) \(FreewheelError.missingDependency("Pandoc").localizedDescription)")
+                }
+                let result = try await pandocDocuments(inputs, target: target, options: options, stage: stage,
+                                                      prepareMarkdownUTF8: true)
+                return ConversionResult(outputs: result.outputs,
+                    note: "Converted locally with Pandoc to preserve Markdown features outside the built-in Word exporter. " + (result.note ?? ""))
+            }
+            return try await MarkdownWordWriter.convert(inputs: inputs, directory: stage)
+        }
         if operation.id.hasPrefix("convert."), target == "epub" || hasEPUB || hasMarkdown && ["html", "docx", "odt"].contains(target) {
             return try await pandocDocuments(inputs, target: target, options: options, stage: stage)
         }
@@ -239,7 +256,8 @@ public final class ConversionEngine: Sendable {
         throw FreewheelError.unsupported("This combination of files and operation is not supported by the available local engines.")
     }
 
-    private func pandocDocuments(_ inputs: [URL], target: String, options: ConversionOptions, stage: URL) async throws -> ConversionResult {
+    private func pandocDocuments(_ inputs: [URL], target: String, options: ConversionOptions, stage: URL,
+                                 prepareMarkdownUTF8: Bool = false) async throws -> ConversionResult {
         var outputs: [URL] = []
         var notes = Set<String>()
         for original in inputs {
@@ -251,7 +269,14 @@ public final class ConversionEngine: Sendable {
             try FileManager.default.createDirectory(at: converted, withIntermediateDirectories: false)
             defer { try? FileManager.default.removeItem(at: job) }
             var input = original
-            if !["md", "markdown", "txt", "html", "htm", "epub", "docx", "odt"].contains(original.pathExtension.lowercased()) {
+            if prepareMarkdownUTF8 {
+                // The native Markdown preflight accepts BOM UTF-16 as well as
+                // UTF-8. Pandoc otherwise guesses Latin-1 for these files and
+                // can report success after corrupting their text. Give this
+                // whole-batch fallback a validated private UTF-8 copy instead.
+                input = preparation.appendingPathComponent(original.lastPathComponent)
+                try MarkdownWordWriter.validatedUTF8(original).write(to: input, options: .withoutOverwriting)
+            } else if !["md", "markdown", "txt", "html", "htm", "epub", "docx", "odt"].contains(original.pathExtension.lowercased()) {
                 let textOperation = FileOperation(id: "convert.txt", title: "Text", outputExtension: "txt")
                 var prepared: ConversionResult?
                 #if os(macOS)

@@ -38,10 +38,14 @@ Yes. Supported routes create **DOCX**, **XLSX**, and **PPTX** files. Microsoft O
 | --- | --- |
 | TXT and basic RTF → DOCX | Built into macOS |
 | CSV/TSV → XLSX | Built in; one worksheet, with every cell stored as text |
-| Markdown → DOCX | Pandoc |
+| Basic Markdown → DOCX | Built in; Pandoc for richer Markdown |
 | HTML, complex RTF, and existing Office files → supported Office formats | LibreOffice |
 
 LibreOffice runs in the background and is installed separately. It is not an output format. Rich formatting can change during conversion, and visual acceptance in Microsoft Office remains **Not Reviewed**. PDF → editable Office conversion is not implemented. See [Formats](FORMATS.md#documents-slides-and-spreadsheets) for the exact routes and limits.
+
+Basic Markdown supports headings, simple lists, emphasis, code, and pipe tables.
+If a Markdown file needs Pandoc, the whole Markdown selection uses it. Mixing
+Markdown with other document types also uses Pandoc.
 
 ## Why Is Pandoc Reporting a Missing Template?
 

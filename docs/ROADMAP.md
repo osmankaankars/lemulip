@@ -33,6 +33,19 @@ The [User Guide](USER_GUIDE.md) covers controls; [Formats](FORMATS.md) records
 supported routes and limits. Development versions that did not produce a
 separate download are grouped into the release that delivered their changes.
 
+## In This Update
+
+**0.1.15 · Native Markdown → DOCX** is implemented for headings, flat lists,
+tables, emphasis, and code, with no new package dependencies. Unsupported
+Markdown selects Pandoc for the whole selection before output; malformed text
+fails without publishing a partial batch. See [Formats](FORMATS.md#documents-slides-and-spreadsheets)
+for the subset and limits.
+
+Portable conversion checks are complete. The matching macOS builds, CodeQL,
+tagged package checks, and download publication must still pass before this
+update becomes a verified release. Follow [Actions](https://github.com/osmankaankars/lemulip/actions)
+and [Releases](https://github.com/osmankaankars/lemulip/releases).
+
 ## Next
 
 Work through these in order; release signing also depends on an available
@@ -41,10 +54,9 @@ Developer ID identity.
 | Order | Open Work | Complete When |
 | --- | --- | --- |
 | 1 | **Office Review** | Inspect the eight generated comparisons in Word, Excel, and PowerPoint. Record app versions, fonts, pagination, literal cell values, formula recalculation, and slide appearance in the [review results](OFFICE_REVIEW.md). Current manual status: **Not Reviewed**. |
-| 2 | **Native Markdown → DOCX** | Define a bounded subset for headings, lists, tables, emphasis, and code. Preserve unsupported structures through the existing Pandoc route before output; verify native results and limits. |
-| 3 | **Mac Interaction and Accessibility** | Check Finder dragging, multiple displays, each editor's pointer/keyboard controls, playback, cancellation, reopening, VoiceOver, and accessibility settings. Review Finder/Dock appearance and capture actual app screenshots. |
-| 4 | **Lightweight Performance** | Measure installed size, idle memory, CPU/wakeups, and warm launch on a stated Mac/OS baseline. Investigate the current 40 ms drag polling interval if measurements show unnecessary idle cost. |
-| 5 | **Signed Distribution** | Add Developer ID signing and notarization when credentials are available, then verify a quarantined download's installation and first launch on a clean Mac. |
+| 2 | **Mac Interaction and Accessibility** | Check Finder dragging, multiple displays, each editor's pointer/keyboard controls, playback, cancellation, reopening, VoiceOver, and accessibility settings. Review Finder/Dock appearance and capture actual app screenshots. |
+| 3 | **Lightweight Performance** | Measure installed size, idle memory, CPU/wakeups, and warm launch on a stated Mac/OS baseline. Investigate the current 40 ms drag polling interval if measurements show unnecessary idle cost. |
+| 4 | **Signed Distribution** | Add Developer ID signing and notarization when credentials are available, then verify a quarantined download's installation and first launch on a clean Mac. |
 
 Automated conversion checks do not complete hands-on interaction or Microsoft
 Office review. Keep observed results separate from plans and engineering targets.

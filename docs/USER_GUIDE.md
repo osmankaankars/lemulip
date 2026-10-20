@@ -420,8 +420,9 @@ Turn it off to choose a destination for each job. Existing files are not replace
 
 ## Basic Office Exports
 
-TXT and basic RTF → DOCX, plus CSV/TSV → XLSX, need no extra engine on macOS.
-Microsoft Office is not required for conversion.
+TXT, basic RTF, and [basic Markdown](#convert-html-or-markdown-to-word) → DOCX,
+plus CSV/TSV → XLSX, need no extra engine on macOS. Microsoft Office is not
+required for conversion.
 
 ### Create a Word Document
 
@@ -433,7 +434,7 @@ Microsoft Office is not required for conversion.
 
 For TXT, paragraphs, tabs, and Unicode are preserved. Save the source as UTF-8
 or BOM-marked UTF-16. A heading written as `# Notes` stays literal text; use a
-Markdown file with Pandoc for formatted Markdown conversion.
+`.md` or `.markdown` file for structured Markdown conversion.
 
 Basic RTF keeps supported fonts, bold and italic text, and paragraph alignment,
 spacing, and indents. Page layout and margins are not reconstructed. Unavailable
@@ -476,19 +477,26 @@ Your source files stay in place.
 
 ## Convert HTML or Markdown to Word
 
-1. Install **LibreOffice** for HTML (`.html` or `.htm`) or **Pandoc** for
-   Markdown (`.md` or `.markdown`). Open **Settings → Local Engines → Refresh**.
-2. Add your local file, then choose **Convert → DOCX**. Lemulip creates a Word
-   document using the available engine and keeps your original file.
+1. Add a local Markdown (`.md` or `.markdown`) or HTML (`.html` or `.htm`) file.
+2. Choose **Convert → DOCX**. Basic Markdown works without extra software;
+   HTML requires **LibreOffice**. Lemulip keeps the original file.
 3. Open the output from **Activity**. Check its structure and appearance in
    the application where you plan to use it.
 
-These routes preserve supported document structure, including headings,
-emphasis, and simple tables. Markdown uses Pandoc's dialect and also supports
-lists and code blocks. Complex web layouts, linked media, Markdown extensions,
-and embedded HTML are outside the generated review examples. See
-[HTML and Markdown Word Export](FORMATS.md#html-and-markdown-word-export) for
-the exact scope.
+Built-in Markdown export keeps headings, paragraphs, simple bold and italic
+text, inline code, flat lists, fenced code, and pipe tables. Save your source
+as UTF-8 or BOM-marked UTF-16. An empty Markdown file creates a blank document.
+
+Richer Markdown, such as links, images, nested lists, or embedded HTML, uses
+**Pandoc**. If any Markdown input needs it, the whole Markdown batch uses that
+engine before output is created. Mixed selections containing Markdown and
+other document types also use Pandoc. Install a requested engine, then choose
+**Settings → Local Engines → Refresh**.
+
+See [HTML and Markdown Word Export](FORMATS.md#html-and-markdown-word-export)
+for the supported syntax and limits. Inspect the copy in Word when layout
+matters. The [Office Review](OFFICE_REVIEW.md) comparisons still need manual
+inspection.
 
 ## Convert Existing Office Files
 
@@ -534,6 +542,7 @@ From a source checkout, prefix commands with `swift run`. A local app build also
 ./dist/lemulip convert vtt subtitles.srt
 ./dist/lemulip convert docx notes.txt
 ./dist/lemulip convert docx letter.rtf
+./dist/lemulip convert docx notes.md
 ./dist/lemulip convert xlsx table.csv
 ./dist/lemulip run pdf.merge first.pdf second.pdf
 ./dist/lemulip run archive.createZip image.png notes.txt
@@ -559,7 +568,8 @@ Use `--output` with an existing destination folder. Quote paths containing space
 The command prints output paths. Errors and conversion notes go to standard error. Finder, shelf, and AirDrop actions are available only in the desktop app.
 
 The desktop interface and Apple framework converters, including native TXT
-and basic RTF → DOCX, require macOS. Portable text, CSV/TSV → XLSX, and archive
+and basic RTF → DOCX, require macOS. Built-in Markdown → DOCX, portable text,
+CSV/TSV → XLSX, and archive
 operations, plus supported external-engine routes, can also run on Linux. The macOS helper
 sandbox is not applied on Linux.
 

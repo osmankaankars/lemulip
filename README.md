@@ -49,7 +49,7 @@ interactive simulation with sample files. The macOS app performs conversions.
 | PDFs | Preview, reorder, rotate, remove and extract pages; arrange documents before merging; split, export page images, extract text, offline OCR |
 | Audio | Waveform trim with selection playback; M4A, WAV and AIFF export |
 | Video | Native preview, visual trim and crop, MP4/MOV export |
-| Documents and Tables | Built-in TXT and basic RTF → DOCX; CSV/TSV → XLSX; CSV ↔ TSV; subtitles |
+| Documents and Tables | Built-in TXT, basic RTF, and basic Markdown → DOCX; CSV/TSV → XLSX; CSV ↔ TSV; subtitles |
 | Archives | Create ZIP and TAR, GZIP individual files, extract supported archives into a new folder |
 | File Actions | AirDrop, floating shelf, copy, move, copy path, open the containing folder in Terminal |
 
@@ -61,8 +61,9 @@ controls and the [Formats](docs/FORMATS.md) guide for input and export limits.
 
 Common image, PDF, OCR, archive, subtitle, and basic Office tools work without
 extra engines. Basic RTF export keeps supported font and paragraph formatting.
-CSV/TSV export creates one Excel worksheet and keeps every value as text,
-including leading zeros and formula-like content.
+Markdown notes can become Word documents with headings, simple lists, emphasis,
+code, and tables. CSV/TSV export creates one Excel worksheet and keeps every
+value as text, including leading zeros and formula-like content.
 
 Add optional local engines only for the formats you need:
 
@@ -71,12 +72,13 @@ Add optional local engines only for the formats you need:
 | FFmpeg | Additional audio and video formats and tools |
 | ImageMagick | Additional image formats |
 | LibreOffice | Richer Office documents, workbooks and presentations; complex RTF and HTML → DOCX |
-| Pandoc | Markdown → DOCX and other supported document routes |
+| Pandoc | Richer Markdown → DOCX, EPUB, and other supported document routes |
 
 Install instructions are in [Optional Engines](docs/INSTALL.md#optional-engines).
 Refresh detection in **Settings → Local Engines** afterward. Lemulip does not
-download engines automatically. Microsoft Office is not required for conversion;
-visual review of the generated files in Office is tracked separately.
+download engines automatically. Markdown outside the [built-in subset](docs/FORMATS.md#html-and-markdown-word-export)
+uses Pandoc for the whole selection. Microsoft Office is not required for
+conversion; visual review of generated files in Office is tracked separately.
 
 ## Make It Yours
 
