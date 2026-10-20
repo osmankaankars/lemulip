@@ -116,6 +116,45 @@ Original bytes must be preserved; failed or cancelled work must publish no file.
 Use the [Roadmap targets](ROADMAP.md#keep-it-lightweight) for measurements rather
 than inferring CPU or memory use from preview limits.
 
+### Measure on a Mac
+
+Inspect the installed app and local signing readiness with:
+
+```bash
+python3 script/review_mac.py --output "$HOME/Desktop/Lemulip-Mac-Review"
+```
+
+The default app is `/Applications/Lemulip.app`; use `--app PATH` for another
+installation. The report records the app version, generic hardware model,
+macOS version, installed logical and allocated bytes, and summarized signing
+checks. It omits usernames, computer names, volume paths, serial numbers,
+certificate identity names, and credentials. Nothing is uploaded.
+
+For idle measurements, first open Lemulip normally, keep the drag wheel enabled,
+and finish all jobs and playback. Close editors, leave the workspace idle, then
+run with a new output folder:
+
+```bash
+python3 script/review_mac.py --measure-idle \
+  --output "$HOME/Desktop/Lemulip-Idle-Review"
+```
+
+After confirmation, the collector waits 60 seconds and samples for another
+60 seconds. It attaches only to the matching running app and does not launch or
+quit it. The report gives mean and peak sampled resident memory for the main
+process and interval CPU usage as a percentage of one logical CPU. It does not
+measure optional engines, wakeups, or interactive startup time.
+
+Report wakeups and the median of ten interactive warm launches separately.
+Use an actual first-frame/responsiveness measurement, not the return time of
+`open` or the appearance of a process ID. See Apple's
+[launch-time guidance](https://developer.apple.com/documentation/xcode/reducing-your-app-s-launch-time).
+
+Signing readiness is diagnostic. A valid local signature or an available
+Developer ID identity does not prove notarization or a successful first launch
+from a browser download. Complete the [distribution checks](PUBLISHING.md#signing)
+on a Mac before closing that roadmap item. Keep local reports outside Git.
+
 ## Converter Constraints
 
 Use native frameworks for supported formats and keep external engines optional.
@@ -209,9 +248,10 @@ and animations remain outside these representative checks.
 
 ### HTML and Markdown Word Checks
 
-HTML → DOCX uses LibreOffice's Writer HTML importer and Word exporter. Markdown
-uses Pandoc. Check headings, emphasis, Unicode, and tables; Markdown also checks
-list definitions and literal code spacing.
+HTML → DOCX uses LibreOffice's Writer HTML importer and Word exporter. The
+basic Markdown review example uses Lemulip's built-in writer; separate advanced
+Markdown checks exercise Pandoc. Check headings, emphasis, Unicode, and tables;
+Markdown also checks list definitions and literal code spacing.
 
 The Mac XML loader combines `nodePromoteSignificantWhitespace` with
 `nodeLoadExternalEntitiesNever` so space-only Word text runs are read as content.

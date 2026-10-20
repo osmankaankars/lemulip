@@ -17,6 +17,40 @@ The folder also contains this guide, `REVIEW_RESULTS.md`, `manifest.json`, and
 `SHA256SUMS.txt`. Check the manifest's version and commit against the run you
 intend to review. Keep the captured files together and unchanged.
 
+## Run the Guided Review
+
+From a Lemulip source checkout, run:
+
+```bash
+python3 script/review_office.py /path/to/Lemulip-Office-Review \
+  --output "$HOME/Desktop/Lemulip-Office-Results"
+```
+
+The helper verifies all eight cases and their checksums, identifies the installed
+desktop Microsoft apps, and opens each comparison in its target app. Plain-text
+inputs open as text in TextEdit. It makes separate working copies for edits,
+including the Excel recalculation check, and preserves the captured documents.
+
+After each inspection, choose **Pass**, **Needs Review**, **Fail**, or **Not
+Reviewed** and enter an observation. Opening a file is never counted as a pass.
+Missing apps leave their cases unreviewed. Results include the source commit and
+actual app versions, stay in the chosen local output folder, and can be resumed
+with the same command. Review the generated JSON and Markdown before sharing;
+do not include personal documents, account details, or local paths in notes.
+
+The original 0.1.15 archive incorrectly labels `word-markdown` as a Pandoc
+route in its manifest. Its captured output uses the built-in writer. The helper
+explains this label correction without changing that archive's bytes or source
+commit. New captures use the corrected route label.
+
+To check the archive without opening apps or creating results:
+
+```bash
+python3 script/review_office.py /path/to/Lemulip-Office-Review --verify-only
+```
+
+The manual steps below remain available without the helper.
+
 ## Review in the Target Apps
 
 Use the desktop Microsoft apps, and record their actual versions in

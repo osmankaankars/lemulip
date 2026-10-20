@@ -71,8 +71,25 @@ that has been edited; do not rerun a completed release to change its description
 | Conflicting tag, release text, or asset | Stop and review the difference. The publisher will not overwrite it. |
 
 Before announcing a version, check download links and a clean Mac installation.
+## Signing
+
 The previews are ad hoc signed, without Developer ID signing or notarization.
 See [First Launch](INSTALL.md#signing-and-first-launch).
+
+The [local Mac collector](DEVELOPMENT.md#measure-on-a-mac) summarizes the
+installed app's signature and available Developer ID Application identities.
+It reads no private keys and records no identity names or credentials.
+
+Signed distribution still requires a Developer ID Application identity with
+its private key, hardened runtime, a secure timestamp, Apple notarization, and
+ticket stapling. Keep signing credentials in the local Keychain or protected
+CI secrets. See Apple's [notarization workflow](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution).
+Do not relabel existing preview downloads as notarized or replace their bytes.
+
+After the signed package is built, download it through a browser on a clean Mac
+and verify installation and first opening with quarantine intact. Signature
+integrity, a Gatekeeper assessment, and a CI launch smoke check each provide
+different evidence; none alone completes that first-opening review.
 
 ## Website and Repository Maintenance
 

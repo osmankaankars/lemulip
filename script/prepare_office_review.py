@@ -28,7 +28,7 @@ CASES = {
     "word-rtf": ("macOS Basic RTF → DOCX", ["source.rtf", "converted.docx"]),
     "word-layout": ("LibreOffice DOCX → ODT → DOCX", ["source.docx", "intermediate.odt", "converted.docx"]),
     "word-html": ("LibreOffice HTML → DOCX", ["source.html", "converted.docx"]),
-    "word-markdown": ("Pandoc Markdown → DOCX", ["source.md", "converted.docx"]),
+    "word-markdown": ("Built-In Markdown → DOCX", ["source.md", "converted.docx"]),
     "excel-text": ("Built-In CSV → XLSX", ["source.csv", "converted.xlsx"]),
     "excel-formulas": ("LibreOffice XLSX → ODS → XLSX", ["source.xlsx", "intermediate.ods", "converted.xlsx"]),
     "powerpoint-layout": ("LibreOffice PPTX → ODP → PPTX", ["source.pptx", "intermediate.odp", "converted.pptx"]),
