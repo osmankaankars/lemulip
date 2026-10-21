@@ -6,12 +6,14 @@
   <meta name="description" content="Free, open-source file tools for your Mac. Convert files, crop images and video, trim audio, and arrange PDFs with native previews. No uploads.">
   <meta name="theme-color" content="#14251D">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Lemulip · File Tools, Right Where You Drag.">
+  <meta property="og:title" content="Lemulip · Less File Work. More Flow.">
   <meta property="og:description" content="A small wheel for everyday file work. Free, open source, and local to your Mac. Try the interactive workflow preview.">
-  <title>Lemulip · File Tools, Right Where You Drag.</title>
+  <title>Lemulip · Less File Work. More Flow.</title>
   <link rel="icon" type="image/svg+xml" href="./favicon.svg">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./showcase.css">
   <script src="./demo.js" defer></script>
+  <script src="./showcase.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#try">Skip to the Interactive Preview</a>
@@ -32,24 +34,60 @@
   <header class="site-header shell">
     <a class="brand" href="./" aria-label="Lemulip Home"><img data-app-icon src="../Resources/AppIcon.png" width="40" height="40" alt="" decoding="async"><span class="wordmark" aria-hidden="true">Lemulip</span></a>
     <nav aria-label="Main navigation">
-      <a href="#how-it-works">How It Works</a>
-      <a href="https://github.com/osmankaankars/lemulip" data-repo-path="" class="source-link">Source <svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></a>
+      <a href="#features">Features</a>
+      <a href="#try">Try the Wheel</a>
+      <a href="https://github.com/osmankaankars/lemulip" data-repo-path="" class="source-link">GitHub</a>
+      <a class="button primary nav-download" href="https://github.com/osmankaankars/lemulip/releases" data-repo-path="/releases">Download for Mac</a>
     </nav>
   </header>
   <main>
-    <section class="hero shell" aria-labelledby="headline">
-      <h1 id="headline">File Tools,<br>Right Where<br class="desktop-break"> <span class="hero-highlight">You Drag.</span></h1>
-      <div class="hero-copy">
-        <div class="hero-product"><img data-app-icon src="../Resources/AppIcon.png" width="88" height="88" alt="" decoding="async"><span>Made for the Everyday.<small>Free · Open Source · On Your Mac</small></span></div>
-        <p class="hero-lead">Crop a photo. Trim a clip.<br> Put a PDF in order.<br> <strong>Give it a spin.</strong></p>
-        <p class="hero-detail">Lemulip puts everyday file tools in a small wheel on your Mac. Convert, refine, and carry on.</p>
-        <div class="hero-actions"><a class="button primary" href="https://github.com/osmankaankars/lemulip/releases" data-repo-path="/releases">Download for Mac <svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></a><a class="text-link" href="#try">Try the Wheel</a></div>
-        <div class="facts"><span>macOS 13+</span><span>Free &amp; Open Source</span><span>MIT License</span></div>
-        <div class="appearance-picker"><label for="appearance">Appearance</label><select id="appearance" aria-label="Preview Appearance"><option value="orchard">Orchard Night</option><option value="pistachio">Vivid Pistachio</option><option value="lemonade">Lemon Drop</option></select></div>
+    <section class="showcase-hero shell" aria-labelledby="headline">
+      <div class="showcase-copy">
+        <h1 id="headline">Less File Work.<br><span>More Flow.</span></h1>
+        <p class="showcase-lead">Convert, crop, trim, and arrange.</p>
+        <p class="showcase-description">A small set of useful tools, right where you drag.<br>Free, open source, and on your Mac.</p>
+        <div class="showcase-actions"><a class="button primary" href="https://github.com/osmankaankars/lemulip/releases" data-repo-path="/releases"><svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg>Download for Mac</a><a class="button secondary" href="#features"><svg class="icon" aria-hidden="true"><path d="m8 5 11 7-11 7Z"/></svg>See It in Action</a></div>
+        <p class="showcase-requirements">macOS 13+ · Apple Silicon &amp; Intel · Public Preview</p>
+      </div>
+      <div class="flow-demo motion-region" id="flow-demo">
+        <div class="flow-scene" role="img" aria-label="Illustrated workflow: morning-light.heic is dragged to PNG on the wheel. A new morning-light.png copy appears; the original stays unchanged.">
+          <figure class="flow-file flow-input"><img src="./assets/morning-light.jpg" alt="" width="384" height="288"><figcaption>morning-light.heic</figcaption></figure>
+          <svg class="flow-arrow flow-arrow-in" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-arrow"/></svg>
+          <div class="flow-wheel-wrap"><svg class="flow-wheel" viewBox="0 0 420 420" aria-hidden="true"><g class="flow-sector"><path d="M180.89,155.26L121.74,44.01A188,188 0 0 1 298.26,44.01L239.11,155.26A62,62 0 0 0 180.89,155.26Z"/><path class="flow-file-icon" d="M200.00,56.00h13l8,8v23h-21zM213.00,56.00v8h8"/><text x="210.00" y="110.00">JPG</text></g><g class="flow-sector picked-sector"><path d="M242.85,157.42L309.62,50.57A188,188 0 0 1 397.89,203.44L271.96,207.84A62,62 0 0 0 242.85,157.42Z"/><path class="flow-file-icon" d="M310.85,120.00h13l8,8v23h-21zM323.85,120.00v8h8"/><text x="320.85" y="174.00">PNG</text></g><g class="flow-sector"><path d="M271.96,212.16L397.89,216.56A188,188 0 0 1 309.62,369.43L242.85,262.58A62,62 0 0 0 271.96,212.16Z"/><path class="flow-file-icon" d="M310.85,248.00h13l8,8v23h-21zM323.85,248.00v8h8"/><text x="320.85" y="302.00">PDF</text></g><g class="flow-sector"><path d="M239.11,264.74L298.26,375.99A188,188 0 0 1 121.74,375.99L180.89,264.74A62,62 0 0 0 239.11,264.74Z"/><path class="flow-file-icon" d="M200.00,312.00h13l8,8v23h-21zM213.00,312.00v8h8"/><text x="210.00" y="366.00">BMP</text></g><g class="flow-sector"><path d="M177.15,262.58L110.38,369.43A188,188 0 0 1 22.11,216.56L148.04,212.16A62,62 0 0 0 177.15,262.58Z"/><path class="flow-file-icon" d="M89.15,248.00h13l8,8v23h-21zM102.15,248.00v8h8"/><text x="99.15" y="302.00">TIFF</text></g><g class="flow-sector"><path d="M148.04,207.84L22.11,203.44A188,188 0 0 1 110.38,50.57L177.15,157.42A62,62 0 0 0 148.04,207.84Z"/><path class="flow-file-icon" d="M89.15,120.00h13l8,8v23h-21zM102.15,120.00v8h8"/><text x="99.15" y="174.00">HEIC</text></g></svg><img class="flow-mark" data-app-icon src="../Resources/AppIcon.png" width="96" height="96" alt=""></div>
+          <svg class="flow-arrow flow-arrow-out" viewBox="0 0 24 24" aria-hidden="true"><use href="#icon-arrow"/></svg>
+          <figure class="flow-file flow-output"><img src="./assets/morning-light.jpg" alt="" width="384" height="288"><figcaption>morning-light.png</figcaption><span class="new-copy">✓ New Copy</span></figure>
+          <svg class="flow-cursor" viewBox="0 0 24 30" aria-hidden="true"><path d="m3 2 17 15-9 1-5 9Z"/></svg>
+        </div>
+        <div class="flow-caption"><span>Illustrated Demo · No Files Uploaded</span><button class="motion-toggle" id="showcase-toggle" type="button" aria-pressed="false">Pause Animation</button></div>
       </div>
     </section>
 
+    <section class="feature-section shell" id="features" aria-labelledby="features-title">
+      <h2 id="features-title">A Better Way With Every File.</h2>
+      <p class="feature-intro">Pick a file type. See what you can do.</p>
+      <div class="feature-tabs" role="tablist" aria-label="File types">
+        <button type="button" role="tab" id="tab-images" data-feature="images" aria-selected="true" aria-controls="feature-panel" tabindex="0">Images</button>
+        <button type="button" role="tab" id="tab-pdf" data-feature="pdf" aria-selected="false" aria-controls="feature-panel" tabindex="-1">PDF</button>
+        <button type="button" role="tab" id="tab-audio" data-feature="audio" aria-selected="false" aria-controls="feature-panel" tabindex="-1">Audio</button>
+        <button type="button" role="tab" id="tab-video" data-feature="video" aria-selected="false" aria-controls="feature-panel" tabindex="-1">Video</button>
+        <button type="button" role="tab" id="tab-documents" data-feature="documents" aria-selected="false" aria-controls="feature-panel" tabindex="-1">Documents</button>
+        <button type="button" role="tab" id="tab-archives" data-feature="archives" aria-selected="false" aria-controls="feature-panel" tabindex="-1">Archives</button>
+      </div>
+      <div class="feature-panel motion-region" id="feature-panel" role="tabpanel" aria-labelledby="tab-images" tabindex="0">
+        <div class="feature-editor">
+          <div class="feature-titlebar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span id="editor-title">Crop Image</span><small>Illustrated Preview</small></div>
+          <div id="feature-canvas" class="feature-canvas" data-scene="images"><div class="crop-demo"><img src="./assets/morning-light.jpg" width="384" height="288" alt="Generated sample landscape with an illustrated crop selection"><div class="crop-box"><i></i><i></i><i></i><i></i></div></div></div>
+          <div class="feature-toolbar"><span id="editor-hint">Select the part you want to keep.</span><span class="copy-label" id="editor-result">Create Copy</span></div>
+        </div>
+        <div class="feature-description"><h3 id="feature-title">Frame It Your Way.</h3><p id="feature-summary">Choose the part you want to keep. Your original stays as it is.</p><dl id="feature-facts"><div><dt>Convert</dt><dd>PNG · JPEG · HEIC · TIFF · BMP</dd></div><div><dt>Refine</dt><dd>Crop · Resize · Rotate · Remove Metadata</dd></div><div><dt>Also Built In</dt><dd>Images to PDF</dd></div></dl><a class="text-link" id="feature-link" href="https://github.com/osmankaankars/lemulip/blob/main/docs/FORMATS.md">More Formats With ImageMagick <svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></a></div>
+      </div>
+      <div class="feature-footnote"><p>Illustrated workflow, not a recording. The Mac app processes your files.</p><button class="motion-toggle" id="feature-toggle" type="button" aria-pressed="false">Pause Animation</button><button class="motion-toggle" id="feature-replay" type="button">Replay Preview</button></div>
+      <p class="sr-only" id="feature-announcer" role="status" aria-live="polite"></p>
+      <noscript><p class="no-script">Download the Mac app for image, PDF, audio, video, document, and archive tools. Enable JavaScript to explore the other illustrated previews.</p></noscript>
+    </section>
+
     <section class="demo-section shell" id="try" aria-label="Interactive Lemulip workflow preview">
+      <div class="appearance-picker"><label for="appearance">Preview Appearance</label><select id="appearance" aria-label="Preview Appearance"><option value="orchard">Orchard Night</option><option value="pistachio">Vivid Pistachio</option><option value="lemonade">Lemon Drop</option></select></div>
       <div class="demo-caption"><p><span class="live-dot" aria-hidden="true"></span>Interactive Workflow Preview</p><span>Sample files. No uploads.</span></div>
       <div class="demo" id="demo" data-phase="idle" tabindex="-1">
         <aside class="demo-sidebar">
@@ -118,19 +156,10 @@
         <div class="shortcut-row"><kbd>⌃</kbd><div><h3>Actions</h3><p>Copy, move, share, or keep files on a floating shelf.</p></div></div>
       </div>
     </section>
-    <section class="editors shell" id="editors" aria-labelledby="editors-title">
-      <div class="section-intro"><p class="eyebrow">Built-In Editors</p><h2 id="editors-title">See What<br>You're Changing.</h2><p>Choose the part you want to keep. Check the order. Then create a new copy, with your original still there.</p><a class="text-link" href="https://github.com/osmankaankars/lemulip/blob/main/docs/USER_GUIDE.md#visual-image-crop" data-repo-path="/blob/main/docs/USER_GUIDE.md#visual-image-crop">Explore the Editors <svg class="icon" aria-hidden="true"><use href="#icon-arrow"/></svg></a></div>
-      <div class="editor-list">
-        <article class="editor-row"><svg class="icon" aria-hidden="true"><use href="#icon-crop"/></svg><div><h3>Crop Images</h3><p>Move the handles over your image. Choose an aspect ratio or set exact pixel dimensions.</p></div></article>
-        <article class="editor-row"><svg class="icon" aria-hidden="true"><use href="#icon-waveform"/></svg><div><h3>Trim Audio</h3><p>Find your selection in the waveform and play it back before saving the part you want.</p></div></article>
-        <article class="editor-row"><svg class="icon" aria-hidden="true"><use href="#icon-video"/></svg><div><h3>Trim &amp; Crop Video</h3><p>Find a cut with timeline thumbnails, or set a crop over a video frame. Preview before exporting.</p></div></article>
-        <article class="editor-row"><svg class="icon" aria-hidden="true"><use href="#icon-pages"/></svg><div><h3>Organize &amp; Merge PDFs</h3><p>Reorder, rotate, or remove pages. Preview the files and page ranges before merging documents.</p></div></article>
-      </div>
-    </section>
     <section class="details shell" aria-label="About Lemulip">
       <div class="local-note"><svg class="icon" aria-hidden="true"><use href="#icon-lock"/></svg><h2>Your Files Stay<br>on Your Mac.</h2><p>Lemulip processes your files on your Mac. Built-in tools handle everyday work; additional formats can use optional local converters.</p><p>The app has no account, subscription, or upload service.</p></div>
       <div class="questions">
-        <details><summary>What Can I Try on This Page?</summary><p>A guided example of the file wheel, its modes, and the activity view. Every filename and result is a sample. To work with your own files, use the macOS app.</p></details>
+        <details><summary>What Can I Try on This Page?</summary><p>Animated illustrations of six file types, plus a guided example of the file wheel, its modes, and the activity view. Every filename and result is a sample. To work with your own files, use the macOS app.</p></details>
         <details><summary>Do I Need Extra Tools?</summary><p>The visual editors and basic Word and Excel exports are built in. Some document and media formats need optional local converters. See the format guide for supported routes and limits.</p><a class="text-link" href="https://github.com/osmankaankars/lemulip/blob/main/docs/FORMATS.md" data-repo-path="/blob/main/docs/FORMATS.md">Check Supported Formats</a></details>
         <details><summary>Where Should I Start?</summary><p>Download the universal DMG from Releases, open it, and drag Lemulip into Applications. It works on Apple silicon and Intel. Preview downloads are not yet notarized by Apple; the Installation Guide explains the first launch. You can also build from source.</p><a class="text-link" href="https://github.com/osmankaankars/lemulip/blob/main/docs/INSTALL.md" data-repo-path="/blob/main/docs/INSTALL.md">Read the Installation Guide</a></details>
       </div>

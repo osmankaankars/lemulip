@@ -2,7 +2,7 @@
 
 # Lemulip
 
-**File Tools, Right Where You Drag.**
+**Less File Work. More Flow.**
 
 Lemulip is a free, open-source file utility for macOS. Drag a file, tap a key,
 and choose a format or tool. Crop a photo, trim a clip, arrange PDFs, or turn a
@@ -10,11 +10,13 @@ simple table into an Excel workbook.
 
 Files are processed on your Mac. No account, subscription, uploads, or analytics.
 
-[Download for Mac](https://github.com/osmankaankars/lemulip/releases) · [Try the Wheel](https://osmankaankars.github.io/lemulip/) · [User Guide](docs/USER_GUIDE.md) · [Formats](docs/FORMATS.md)
+[Download for Mac](https://github.com/osmankaankars/lemulip/releases) · [See It in Action](https://osmankaankars.github.io/lemulip/#features) · [Try the Wheel](https://osmankaankars.github.io/lemulip/#try) · [User Guide](docs/USER_GUIDE.md) · [Formats](docs/FORMATS.md)
+
+[![Lemulip website showing an illustrated file-conversion workflow. Not a native app recording.](docs/assets/demo-preview.png)](https://osmankaankars.github.io/lemulip/#features)
 
 ## Get Started
 
-**Public Preview · macOS 13+ · Apple Silicon and Intel**
+**0.1.16 · Public Preview · macOS 13+ · Apple Silicon and Intel**
 
 Download the **macOS universal DMG** from [Releases](https://github.com/osmankaankars/lemulip/releases),
 open it, and drag **Lemulip** into **Applications**. The app ZIP also includes
@@ -36,10 +38,11 @@ Prefer a window? Add files with **⌘O**, drop them into Workspace, or choose
 **Open With → Lemulip**. A job queue, Activity, and floating file shelf keep
 related work together.
 
-![Browser walkthrough showing a sample file and conversion wheel. This is a simulation.](docs/assets/demo-preview.png)
-
-[Open the Browser Walkthrough](https://osmankaankars.github.io/lemulip/) — an
-interactive simulation with sample files. The macOS app performs conversions.
+[Explore the Feature Previews](https://osmankaankars.github.io/lemulip/#features)
+for images, PDFs, audio, video, documents, and archives, or
+[Try the Wheel](https://osmankaankars.github.io/lemulip/#try). These are illustrated
+workflows with sample files, not native app recordings. No files are uploaded
+or converted in the browser. Animation can be paused and respects reduced motion.
 
 ## What Can It Do?
 

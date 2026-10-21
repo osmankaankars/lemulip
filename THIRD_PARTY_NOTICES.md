@@ -82,3 +82,11 @@ and satisfy the licenses of the exact binaries and codecs you distribute.
 
 Lemulip's application code, icon, and product artwork are original to this
 project. Third-party components and optional engines are documented above.
+
+## Website Illustrations
+
+`site/assets/morning-light.jpg` is a generated fictional sample landscape made
+for the Lemulip website. The feature previews are HTML/CSS illustrations using
+that sample and synthetic data; they are not native app recordings.
+`docs/assets/demo-preview.png` is rendered from this website. Neither asset
+contains customer files or personal photographs.
