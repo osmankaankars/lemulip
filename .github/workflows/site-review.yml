@@ -1,0 +1,42 @@
+name: Website Browser Checks
+on:
+  push:
+    branches: [main, 'refresh/**']
+    paths: ['site/**', 'script/test_site*', 'script/test_public_images.py', '.github/workflows/site-review.yml']
+  pull_request:
+    paths: ['site/**', 'script/test_site*', 'script/test_public_images.py', '.github/workflows/site-review.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: website-review-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Check structure, branding, and approved images
+        run: |
+          python3 script/test_site.py
+          python3 script/test_branding.py
+          python3 script/test_public_images.py
+          node --check site/demo.js
+          node --check site/showcase.js
+      - name: Install browser test tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/site-tools"
+          "$RUNNER_TEMP/site-tools/bin/pip" install playwright==1.61.0
+          "$RUNNER_TEMP/site-tools/bin/python" -m playwright install --with-deps chromium
+      - name: Check desktop, mobile, keyboard, motion, and the original wheel
+        run: '"$RUNNER_TEMP/site-tools/bin/python" script/test_site_browser.py --output "$RUNNER_TEMP/site-review"'
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: Lemulip-Website-Review
+          path: ${{ runner.temp }}/site-review/
+          retention-days: 7
+          if-no-files-found: warn

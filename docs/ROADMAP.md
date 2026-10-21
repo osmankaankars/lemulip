@@ -6,9 +6,8 @@ remain open until their stated checks are complete.
 
 ## Current Release
 
-[**0.1.15 · Public Preview**](https://github.com/osmankaankars/lemulip/releases/tag/v0.1.15)
-is available for macOS 13+ on Apple silicon and Intel. Its source and tagged
-Mac builds, package verification, and CodeQL checks passed. Downloads are ad hoc
+[**0.1.16 · Public Preview**](https://github.com/osmankaankars/lemulip/releases/tag/v0.1.16)
+is available for macOS 13+ on Apple silicon and Intel. The universal DMG and app ZIP are published. Downloads are ad hoc
 signed and are not yet notarized by Apple.
 
 The [browser walkthrough](https://osmankaankars.github.io/lemulip/) uses sample
@@ -29,6 +28,7 @@ convert files.
 | Built-in TXT/basic RTF → DOCX and CSV/TSV → XLSX | 0.1.13 |
 | HTML Word export fix and expanded markup checks | 0.1.14 |
 | Built-in basic Markdown → DOCX | 0.1.15 |
+| Manual-wheel accessibility actions, audio keyboard fixes, and workspace position recovery | 0.1.16 |
 
 The [User Guide](USER_GUIDE.md) covers controls; [Formats](FORMATS.md) records
 supported routes and limits. Development versions that did not produce a
@@ -39,10 +39,10 @@ separate download are grouped into the release that delivered their changes.
 Work through these in order; release signing also depends on an available
 Developer ID identity.
 
-**Prepared for 0.1.16:** Manual-wheel accessibility actions, layout-aware audio
-shortcuts, a Finder action label, and workspace position recovery. Native CI and
-hands-on Mac review are still required; this work does not close the interaction
-and accessibility item below.
+**Released in 0.1.16:** Manual-wheel accessibility actions, layout-aware audio
+shortcuts, a Finder action label, and workspace position recovery. Publishing
+these improvements does not close the hands-on interaction and accessibility
+review below. Website illustrations are not evidence of native acceptance.
 
 | Order | Open Work | Complete When |
 | --- | --- | --- |
@@ -72,9 +72,9 @@ The app uses AppKit and SwiftUI with no third-party Swift package dependencies.
 Optional engines are separate installations. The website, tests, and design
 sources are not bundled into the installed app.
 
-The verified [0.1.15 release](https://github.com/osmankaankars/lemulip/releases/tag/v0.1.15)
-has a **6.06 MB DMG** (6,058,955 bytes) and **6.47 MB universal ZIP**
-(6,473,694 bytes). These are decimal download sizes, not installed size or memory use.
+The published [0.1.16 release](https://github.com/osmankaankars/lemulip/releases/tag/v0.1.16)
+has a **6.10 MB DMG** (6,099,535 bytes) and **6.52 MB universal ZIP**
+(6,516,862 bytes). These are decimal download sizes, not installed size or memory use.
 The following remain targets until measured:
 
 | Metric | Target | Method |

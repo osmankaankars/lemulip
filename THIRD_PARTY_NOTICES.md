@@ -15,7 +15,7 @@ does not bundle a separate runtime implementation.
 
 Some macOS SDKs omit libarchive's public declaration headers. Lemulip includes
 the following two unmodified headers from **libarchive 3.5.3** in the private
-`Sources/CFreewheelArchive/LibarchiveHeaders/` directory. They provide compile-time
+`Sources/CLemulipArchive/LibarchiveHeaders/` directory. They provide compile-time
 declarations only; the application continues to use the system library.
 
 Upstream project: <https://github.com/libarchive/libarchive>.
@@ -82,3 +82,11 @@ and satisfy the licenses of the exact binaries and codecs you distribute.
 
 Lemulip's application code, icon, and product artwork are original to this
 project. Third-party components and optional engines are documented above.
+
+## Website Illustrations
+
+`site/assets/morning-light.jpg` is a generated fictional sample landscape made
+for the Lemulip website. The feature previews are HTML/CSS illustrations using
+that sample and synthetic data; they are not native app recordings.
+`docs/assets/demo-preview.png` is rendered from this website. Neither asset
+contains customer files or personal photographs.

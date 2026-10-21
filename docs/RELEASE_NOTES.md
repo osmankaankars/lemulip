@@ -3,6 +3,17 @@
 What's new in each Lemulip public preview. Release pages show the matching
 version below, followed by the installation note.
 
+## Unreleased · Repository and Website Refresh
+
+- Align source, test, and package target names with Lemulip. Keep existing app
+  identity and saved settings compatible with earlier installations.
+- Introduce a clearer product page with six animated, explicitly illustrated
+  feature previews, keyboard-accessible tabs, and motion controls.
+- Refresh the README preview and retain the interactive browser wheel.
+
+This maintenance work does not replace the published 0.1.16 downloads or close
+manual Mac, Office, performance, or signing review.
+
 ## 0.1.16 · Easier to Navigate
 
 - Give the manual wheel a readable selection and accessibility actions for choosing operations, modes, and pages. Use **Shift-Tab** to go back a mode.

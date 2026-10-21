@@ -23,11 +23,11 @@ converters need macOS.
 
 | Path | Responsibility |
 | --- | --- |
-| `Sources/Freewheel` | AppKit lifecycle, drag wheel, SwiftUI workspace and editors |
-| `Sources/FreewheelCore` | Catalog, conversions, previews, process isolation, safe output |
-| `Sources/CFreewheelArchive` | Bounded libarchive creation and extraction |
-| `Sources/FreewheelCLI` | Command-line interface to the same engine |
-| `Tests/FreewheelCoreTests` | Core, native, integration, output-safety, and geometry checks |
+| `Sources/Lemulip` | AppKit lifecycle, drag wheel, SwiftUI workspace and editors |
+| `Sources/LemulipCore` | Catalog, conversions, previews, process isolation, safe output |
+| `Sources/CLemulipArchive` | Bounded libarchive creation and extraction |
+| `Sources/LemulipCLI` | Command-line interface to the same engine |
+| `Tests/LemulipCoreTests` | Core, native, integration, output-safety, and geometry checks |
 | `site` | Static browser walkthrough, separate from the Mac app |
 | `script` | Build, packaging, publishing, and public-source checks |
 
@@ -41,14 +41,22 @@ The installed app is `Lemulip.app`, with executable `Lemulip`. SwiftPM builds it
 as **LemulipApp**; the CLI product is **lemulip**. Keep the build product names
 distinct on case-insensitive filesystems.
 
-`FreewheelCore`, `CFreewheelArchive`, source-folder names, the bundle identifier
-`app.freewheel.Freewheel`, preference keys, and saved-window key are retained
-for compatibility. They are internal identifiers, not public branding. Renaming
-them as a cosmetic change can break imports or existing settings.
+Source folders, Swift modules, the C archive bridge, and the test target now
+use **Lemulip** names: `LemulipCore`, `CLemulipArchive`, `LemulipCLI`, and
+`LemulipCoreTests`. Source clients should import `LemulipCore`.
+
+The bundle identifier `app.freewheel.Freewheel`, existing preference keys, and
+`FreewheelMainWindow` autosave key deliberately remain unchanged so an upgrade
+keeps the user's settings and window position. Installer checks for the old
+process and the historical upgrade instructions also remain. These are narrowly
+scoped compatibility identifiers, not unfinished public branding.
+
+Run `python3 script/test_branding.py` to check module/path consistency and these
+preserved settings. Do not globally replace the remaining compatibility names.
 
 ## Appearance State
 
-`Sources/Freewheel/Theme.swift` defines all three themes. The native `theme`
+`Sources/Lemulip/Theme.swift` defines all three themes. The native `theme`
 preference accepts `orchard`, `pistachio`, and `lemonade`; missing or unknown
 values select Orchard Night. The website independently stores the same values
 under `lemulip.appearance`. Browser storage failure must leave the selector usable.

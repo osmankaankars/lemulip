@@ -56,8 +56,9 @@ ALLOWED_EMAILS = {
 # retains its provenance; no image may carry private metadata.
 # Update a digest only after reviewing the new image and its metadata.
 PUBLIC_IMAGES = {
+    "site/assets/morning-light.jpg": "e79abf44c036845255ecfd5e62ec378ec142b5b731fcc900759a7c8931ec5652",
     "Resources/AppIcon.png": "f68b17dc79d0e13246fc425218031a3bc35db2d1e27d845ee657f17f423d8a45",
-    "docs/assets/demo-preview.png": "8872c6e65528bf47bdf95e64b5313cd6ce6c25f8e22c111ac05574f0701f5870",
+    "docs/assets/demo-preview.png": "623b144f9a20a94acb6d32cccc412bdfd27a75b6d2de17d054d67cb7348bc0cf",
 }
 TEXT_SIZE_LIMIT = 2_000_000
 IMAGE_SIZE_LIMIT = 8_000_000
@@ -67,10 +68,52 @@ def size_limit(name: str) -> int:
     return IMAGE_SIZE_LIMIT if name in PUBLIC_IMAGES else TEXT_SIZE_LIMIT
 
 
+def jpeg_without_metadata(data: bytes) -> bool:
+    """Accept a baseline JPEG with only JFIF and coding segments, not EXIF/COM."""
+    if not data.startswith(b"\xff\xd8") or not data.endswith(b"\xff\xd9"):
+        return False
+    position = 2
+    seen_frame = False
+    while position + 4 <= len(data):
+        if data[position] != 0xFF:
+            return False
+        marker = data[position + 1]
+        size = int.from_bytes(data[position + 2:position + 4], "big")
+        end = position + 2 + size
+        if size < 2 or end > len(data) or marker not in {0xE0, 0xDB, 0xC0, 0xC4, 0xDA}:
+            return False
+        payload = data[position + 4:end]
+        if marker == 0xE0 and not payload.startswith(b"JFIF\x00"):
+            return False
+        if marker == 0xC0:
+            if len(payload) < 6:
+                return False
+            height = int.from_bytes(payload[1:3], "big")
+            width = int.from_bytes(payload[3:5], "big")
+            if not (1 <= width <= 4096 and 1 <= height <= 4096):
+                return False
+            seen_frame = True
+        if marker == 0xDA:
+            # A baseline image has a single entropy stream. Only escaped FF and
+            # restart markers are permitted before the final EOI marker.
+            scan = end
+            while scan < len(data) - 2:
+                if data[scan] == 0xFF:
+                    if scan + 1 >= len(data) - 2 or data[scan + 1] not in {0x00, *range(0xD0, 0xD8)}:
+                        return False
+                    scan += 1
+                scan += 1
+            return seen_frame and scan == len(data) - 2
+        position = end
+    return False
+
+
 def image_is_public(name: str, data: bytes) -> bool:
-    """Require approved bytes and a PNG without text, EXIF or trailing data."""
+    """Require approved bytes and a metadata-free reviewed image."""
     if hashlib.sha256(data).hexdigest() != PUBLIC_IMAGES[name]:
         return False
+    if name.endswith(".jpg"):
+        return jpeg_without_metadata(data)
     if not data.startswith(b"\x89PNG\r\n\x1a\n"):
         return False
     position = 8
