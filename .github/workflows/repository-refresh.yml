@@ -16,15 +16,13 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ github.ref_name }}
-      - name: Verify and apply the reviewed source patch
-        env:
-          EXPECTED_COMMIT: ${{ github.sha }}
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify and assemble the reviewed source without publishing
         shell: python
         run: |
-          import gzip, hashlib, io, os, pathlib, shutil, subprocess
+          import gzip, hashlib, io, pathlib, shutil, subprocess
           root = pathlib.Path('.')
-          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip() == os.environ['EXPECTED_COMMIT']
           def joined(prefix, count, length, digest):
               data = b''.join((root / '.github/refresh-assets' / f'{prefix}-{i:02d}').read_bytes() for i in range(1, count+1))
               assert len(data) == length, prefix + ' size mismatch'
@@ -36,19 +34,18 @@ jobs:
           assert len(patch) == 68990
           assert hashlib.sha256(patch).hexdigest() == 'bd11b6036702dea0f13e4b27fe69a4daf44ab50f25e8b2b02680d68fd4490e9d'
           expected = {'.github/workflows/build.yml','.github/workflows/pages.yml','.github/workflows/site-review.yml','README.md','THIRD_PARTY_NOTICES.md','docs/RELEASE_NOTES.md','docs/ROADMAP.md','script/privacy_check.py','script/test_public_images.py','script/test_site.py','script/test_site_browser.py','site/index.html','site/showcase.css','site/showcase.js'}
-          stat = subprocess.check_output(['git','apply','--numstat'], input=patch).decode()
+          stat = subprocess.check_output(['git','apply','--numstat'],input=patch).decode()
           assert {row.split('\t',2)[2] for row in stat.splitlines()} == expected
           subprocess.run(['git','apply','--check'],input=patch,check=True)
           subprocess.run(['git','apply'],input=patch,check=True)
-          photo = joined('photo', 2, 15164, 'e79abf44c036845255ecfd5e62ec378ec142b5b731fcc900759a7c8931ec5652')
+          photo = joined('photo',2,15164,'e79abf44c036845255ecfd5e62ec378ec142b5b731fcc900759a7c8931ec5652')
           (root/'site/assets/morning-light.jpg').write_bytes(photo)
           for directory in ('.github/refresh-assets','.github/refresh-payload'):
               shutil.rmtree(root/directory)
           for filename in ('script/migrate_branding.py','.github/workflows/repository-refresh.yml'):
               (root/filename).unlink()
           subprocess.run(['git','add','--all'],check=True)
-          print('Verified source patch and sample image; removed temporary transfer files.')
-      - name: Validate source before publishing the maintenance branch
+      - name: Check assembled source
         run: |
           python3 script/test_branding.py
           python3 script/test_site.py
@@ -57,12 +54,26 @@ jobs:
           node --check site/demo.js
           node --check site/showcase.js
           git diff --cached --check
-      - name: Save reviewed source on the isolated maintenance branch
+      - name: Stage non-workflow source objects for explicit connector publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
         run: |
-          git config user.name 'Kaan Kars'
-          git config user.email '56635935+osmankaankars@users.noreply.github.com'
-          git commit -m 'Refresh illustrated website, documentation, and website regression checks'
-          git push origin HEAD:refs/heads/refresh/lemulip-2026-10-21
+          import base64, hashlib, json, os, pathlib, subprocess, urllib.request
+          folder=pathlib.Path(os.environ['RUNNER_TEMP'])/'site-review'; folder.mkdir()
+          objects=[]
+          paths=subprocess.check_output(['git','diff','--cached','--name-only','--diff-filter=AM'],text=True).splitlines()
+          for path in paths:
+              if path.startswith('.github/workflows/'):
+                  continue
+              content=pathlib.Path(path).read_bytes()
+              payload=json.dumps({'content':base64.b64encode(content).decode(),'encoding':'base64'}).encode()
+              request=urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/git/blobs',data=payload,method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+              with urllib.request.urlopen(request,timeout=30) as response:
+                  blob=json.load(response)
+              objects.append({'path':path,'sha':blob['sha'],'sha256':hashlib.sha256(content).hexdigest(),'bytes':len(content)})
+          (folder/'source-objects.json').write_text(json.dumps(objects,indent=2)+'\n')
+          print(json.dumps(objects))
       - name: Install isolated browser test tools
         run: |
           python3 -m venv "$RUNNER_TEMP/site-tools"
@@ -70,30 +81,32 @@ jobs:
           "$RUNNER_TEMP/site-tools/bin/python" -m playwright install --with-deps chromium
       - name: Run desktop, mobile, interaction, and motion checks
         run: '"$RUNNER_TEMP/site-tools/bin/python" script/test_site_browser.py --output "$RUNNER_TEMP/site-review"'
-      - name: Prepare README image for visual approval without changing the README asset
+      - name: Prepare README image for visual review without publishing
+        if: success() || failure()
         env:
           GH_TOKEN: ${{ github.token }}
         shell: python
         run: |
-          import base64, hashlib, json, os, pathlib, struct, urllib.request, zlib
-          folder = pathlib.Path(os.environ['RUNNER_TEMP'])/'site-review'
-          raw = (folder/'home-1536.png').read_bytes()
-          assert raw.startswith(b'\x89PNG\r\n\x1a\n')
-          clean = bytearray(raw[:8]); offset = 8
+          import base64, hashlib, json, os, pathlib, struct, urllib.request
+          folder=pathlib.Path(os.environ['RUNNER_TEMP'])/'site-review'
+          source=folder/'home-1536.png'
+          if not source.exists():
+              raise SystemExit(0)
+          raw=source.read_bytes(); assert raw.startswith(b'\x89PNG\r\n\x1a\n')
+          clean=bytearray(raw[:8]); offset=8
           while offset < len(raw):
-              length = struct.unpack_from('>I',raw,offset)[0]
-              kind = raw[offset+4:offset+8]; end = offset+length+12
+              length=struct.unpack_from('>I',raw,offset)[0]
+              kind=raw[offset+4:offset+8]; end=offset+length+12
               assert end <= len(raw)
               if kind in {b'IHDR',b'PLTE',b'tRNS',b'IDAT',b'IEND',b'sRGB',b'gAMA',b'cHRM'}:
                   clean.extend(raw[offset:end])
-              offset = end
-          content = bytes(clean)
-          (folder/'readme-preview.png').write_bytes(content)
-          payload = json.dumps({'content':base64.b64encode(content).decode(),'encoding':'base64'}).encode()
-          request = urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/git/blobs',data=payload,method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
-          with urllib.request.urlopen(request) as response:
-              blob = json.load(response)
-          proof = {'blob_sha':blob['sha'],'sha256':hashlib.sha256(content).hexdigest(),'bytes':len(content),'status':'Awaiting visual review; not yet assigned to a repository path'}
+              offset=end
+          content=bytes(clean); (folder/'readme-preview.png').write_bytes(content)
+          payload=json.dumps({'content':base64.b64encode(content).decode(),'encoding':'base64'}).encode()
+          request=urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/git/blobs',data=payload,method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+          with urllib.request.urlopen(request,timeout=30) as response:
+              blob=json.load(response)
+          proof={'blob_sha':blob['sha'],'sha256':hashlib.sha256(content).hexdigest(),'bytes':len(content),'status':'Awaiting visual review; no repository path has been changed'}
           (folder/'readme-preview-object.json').write_text(json.dumps(proof,indent=2)+'\n')
           print(json.dumps(proof))
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
