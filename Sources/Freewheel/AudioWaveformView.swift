@@ -272,13 +272,20 @@ final class AudioWaveformCanvas: NSView {
         switch event.keyCode {
         case 123: adjustActiveHandle(by: -step)
         case 124: adjustActiveHandle(by: step)
-        case 1: selectHandle(.start)
-        case 14: selectHandle(.end)
-        case 49: onTogglePlayback?()
+        case 49:
+            if !event.isARepeat { onTogglePlayback?() }
         case 48:
             if modifiers.contains(.shift) { window?.selectPreviousKeyView(self) }
             else { window?.selectNextKeyView(self) }
-        default: super.keyDown(with: event)
+        default:
+            // Follow the active keyboard layout, including Shift or Caps Lock.
+            switch event.charactersIgnoringModifiers {
+            case "s", "S":
+                if !event.isARepeat { selectHandle(.start) }
+            case "e", "E":
+                if !event.isARepeat { selectHandle(.end) }
+            default: super.keyDown(with: event)
+            }
         }
     }
 

@@ -41,15 +41,30 @@ order becomes the starting arrangement in the PDF merge preview and controls
 the page order when combining images into a PDF. The merge editor lets you
 review and change its arrangement before creating the copy.
 
+The workspace remembers its window position. If a saved position becomes
+unreachable after a display change, Lemulip brings its title bar back onto an
+available display when reopening the window. A usable position is retained,
+including a window spanning displays.
+
 **Open Wheel** opens a clickable version of the wheel for the current selection. In this mode:
 
 | Control | Action |
 | --- | --- |
 | Arrow keys | Select an operation |
 | Return | Choose the selected operation |
-| Tab | Cycle Convert, Tools, and Actions |
+| Tab / Shift-Tab | Cycle Convert, Tools, and Actions forward / backward |
 | Page Up / Page Down | Change the menu page |
 | Escape | Close the wheel |
+
+The manual wheel exposes its current mode, page, and selected operation to
+assistive technology. Accessibility actions include **Choose Selected Operation**,
+**Next Operation**, **Previous Operation**, and named actions to select an
+operation, show another mode, change page, or cancel. Selecting an operation
+with an accessibility action highlights it; **Choose Selected Operation** runs it.
+These actions are available for the manual wheel when no drag is in progress.
+
+In a file shelf, each arrow button is labeled **Show [File Name] in Finder**.
+This reveals the corresponding file without changing it.
 
 ## Choose a Theme
 
@@ -149,8 +164,10 @@ appears, adjust the range and listen before making a copy.
 | **Create Copy** | Stop playback and queue the chosen range for export |
 
 With the waveform focused, **S** selects the start handle and **E** selects the
-end handle. Left and right arrows move that handle by 0.01 seconds; hold Shift
-for one second. Space plays or pauses. Tab moves to the other controls, and
+end handle using the active keyboard layout. Left and right arrows move that
+handle by 0.01 seconds; hold Shift for one second. Holding an arrow continues
+moving the handle. **Space** plays or pauses once per press, even when held down.
+Tab moves to the other controls, and
 accessible actions offer the same boundary adjustments. Invalid timestamps
 disable playback and Create Copy until corrected.
 

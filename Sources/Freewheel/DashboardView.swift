@@ -350,7 +350,10 @@ struct FileShelfView: View {
                             Image(nsImage: NSWorkspace.shared.icon(forFile: url.path)).resizable().frame(width: 26, height: 26)
                             Text(url.lastPathComponent).font(.system(size: 12)).lineLimit(1)
                             Spacer()
-                            Button { model.reveal([url]) } label: { Image(systemName: "arrow.up.right") }.buttonStyle(.plain)
+                            Button { model.reveal([url]) } label: { Image(systemName: "arrow.up.right") }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel(model.text("Show \(url.lastPathComponent) in Finder", "\(url.lastPathComponent) dosyasını Finder'da göster"))
+                                .help(model.text("Show in Finder", "Finder'da göster"))
                         }.padding(10).background(Palette.panel, in: RoundedRectangle(cornerRadius: 8))
                             .onDrag { NSItemProvider(object: url as NSURL) }
                     }

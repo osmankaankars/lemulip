@@ -39,6 +39,11 @@ separate download are grouped into the release that delivered their changes.
 Work through these in order; release signing also depends on an available
 Developer ID identity.
 
+**Prepared for 0.1.16:** Manual-wheel accessibility actions, layout-aware audio
+shortcuts, a Finder action label, and workspace position recovery. Native CI and
+hands-on Mac review are still required; this work does not close the interaction
+and accessibility item below.
+
 | Order | Open Work | Complete When |
 | --- | --- | --- |
 | 1 | **Office Review** | Use the [guided review](OFFICE_REVIEW.md#run-the-guided-review) to inspect the eight comparisons in Word, Excel, and PowerPoint. Record actual app versions, fonts, pagination, literal cell values, formula recalculation, and slide appearance. Current manual status: **Not Reviewed**. |

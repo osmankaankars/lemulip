@@ -27,6 +27,7 @@ final class DragWheelController {
     fileprivate var language: String { UserDefaults.standard.string(forKey: "language") ?? (Locale.preferredLanguages.first?.hasPrefix("tr") == true ? "tr" : "en") }
     fileprivate var visibleOperations: [FileOperation] { Array(operations.dropFirst(page * 8).prefix(8)) }
     fileprivate var pageCount: Int { max(1, (operations.count + 7) / 8) }
+    fileprivate var isTrackingDrag: Bool { trackedChangeCount != nil }
 
     init() {}
 
@@ -47,6 +48,7 @@ final class DragWheelController {
 
     func refreshAppearance() {
         wheelView?.needsDisplay = true
+        wheelView?.updateAccessibility()
         panel?.invalidateShadow()
     }
 
@@ -125,20 +127,24 @@ final class DragWheelController {
         panel.setFrameOrigin(NSPoint(x: center.x - 210, y: center.y - 210))
         wheelView?.selectedIndex = manual && !visibleOperations.isEmpty ? 0 : nil
         wheelView?.needsDisplay = true
+        wheelView?.updateAccessibility(notify: false)
         if manual { panel.makeKeyAndOrderFront(nil); panel.makeFirstResponder(wheelView) }
         else { panel.orderFrontRegardless() }
+        if manual { wheelView?.announceAccessibilityFocus() }
     }
 
     fileprivate func changeMode(_ requested: WheelMode) {
         mode = requested; page = 0; operations = Catalog.operations(for: files, mode: requested)
         wheelView?.selectedIndex = manual && !visibleOperations.isEmpty ? 0 : nil
         wheelView?.needsDisplay = true
+        wheelView?.updateAccessibility()
     }
 
     fileprivate func changePage(_ delta: Int) {
         guard pageCount > 1 else { return }
         page = (page + delta + pageCount) % pageCount
         wheelView?.selectedIndex = manual ? 0 : nil; wheelView?.needsDisplay = true
+        wheelView?.updateAccessibility()
     }
 
     fileprivate func captureDrag(_ sender: NSDraggingInfo) -> [URL]? {
@@ -152,6 +158,7 @@ final class DragWheelController {
             files = trackedURLs; page = 0
             operations = Catalog.operations(for: trackedURLs, mode: mode)
             wheelView?.selectedIndex = nil; wheelView?.needsDisplay = true
+            wheelView?.updateAccessibility(notify: false)
         }
         return trackedURLs
     }
@@ -175,11 +182,17 @@ private final class WheelPanel: NSPanel {
 @MainActor
 private final class DragWheelView: NSView {
     private weak var controller: DragWheelController?
-    var selectedIndex: Int? { didSet { needsDisplay = true } }
+    var selectedIndex: Int? {
+        didSet {
+            needsDisplay = true
+            if oldValue != selectedIndex { updateAccessibilityValue() }
+        }
+    }
     private var tracking: NSTrackingArea?
     private var acceptedSequence: Int?
     private var acceptedURLs: [URL] = []
     private var lastScroll = TimeInterval.zero
+    private var lastAccessibilityValue: String?
     private var accent: NSColor { Palette.accentColor }
     private var muted: NSColor { Palette.mutedColor }
     private var center: NSPoint { NSPoint(x: 210, y: 210) }
@@ -188,11 +201,173 @@ private final class DragWheelView: NSView {
         self.controller = controller
         super.init(frame: frame)
         registerForDraggedTypes([.fileURL])
-        setAccessibilityElement(true)
-        setAccessibilityLabel("Lemulip file operations. Use arrow keys and Return, or drop onto an operation.")
+        setAccessibilityRole(.group)
+        updateAccessibility(notify: false)
     }
     required init?(coder: NSCoder) { nil }
-    override var acceptsFirstResponder: Bool { true }
+    override var acceptsFirstResponder: Bool { controller?.manual == true }
+
+    private var isManualWheelAvailable: Bool {
+        guard let controller else { return false }
+        // A manual panel can receive a real Finder drag too. Accessibility and
+        // keyboard actions must never submit that drag's payload or bypass drop.
+        return controller.manual && window?.isVisible == true && !isHiddenOrHasHiddenAncestor
+            && acceptedSequence == nil && !controller.isTrackingDrag
+    }
+    private var canPerformManualAction: Bool {
+        isManualWheelAvailable && NSEvent.pressedMouseButtons == 0
+    }
+
+    private var selectedOperation: FileOperation? {
+        guard let controller, let selectedIndex,
+              controller.visibleOperations.indices.contains(selectedIndex) else { return nil }
+        return controller.visibleOperations[selectedIndex]
+    }
+
+    override func isAccessibilityEnabled() -> Bool { canPerformManualAction }
+    override func isAccessibilityFocused() -> Bool {
+        controller?.manual == true && window?.isVisible == true
+            && window?.isKeyWindow == true && window?.firstResponder === self
+    }
+    override func setAccessibilityFocused(_ focused: Bool) {
+        guard focused, canPerformManualAction, let window else { return }
+        let wasFocused = isAccessibilityFocused()
+        window.makeKey()
+        if window.makeFirstResponder(self), !wasFocused { announceAccessibilityFocus() }
+    }
+    func announceAccessibilityFocus() {
+        guard canPerformManualAction, isAccessibilityFocused() else { return }
+        NSAccessibility.post(element: self, notification: .focusedUIElementChanged)
+    }
+
+    override func isAccessibilitySelectorAllowed(_ selector: Selector) -> Bool {
+        switch selector {
+        case #selector(accessibilityPerformPress), #selector(accessibilityPerformConfirm):
+            return canPerformManualAction && selectedOperation != nil
+        case #selector(accessibilityPerformIncrement), #selector(accessibilityPerformDecrement):
+            return canPerformManualAction && controller?.visibleOperations.isEmpty == false
+        case #selector(accessibilityPerformCancel), #selector(setAccessibilityFocused(_:)):
+            return canPerformManualAction
+        case #selector(setAccessibilityValue(_:)):
+            return false
+        default: return super.isAccessibilitySelectorAllowed(selector)
+        }
+    }
+
+    override func accessibilityCustomActions() -> [NSAccessibilityCustomAction]? {
+        canPerformManualAction ? super.accessibilityCustomActions() : nil
+    }
+    override func accessibilityPerformIncrement() -> Bool {
+        guard canPerformManualAction else { return false }
+        return moveSelection(1)
+    }
+    override func accessibilityPerformDecrement() -> Bool {
+        guard canPerformManualAction else { return false }
+        return moveSelection(-1)
+    }
+    override func accessibilityPerformPress() -> Bool { chooseSelectedOperation() }
+    override func accessibilityPerformConfirm() -> Bool { chooseSelectedOperation() }
+    override func accessibilityPerformCancel() -> Bool {
+        guard canPerformManualAction, let controller else { return false }
+        controller.dismiss()
+        return true
+    }
+
+    private func chooseSelectedOperation() -> Bool {
+        guard canPerformManualAction, let controller, let operation = selectedOperation else { return false }
+        controller.execute(operation, inputs: controller.files)
+        return true
+    }
+    private func selectOperation(_ operation: FileOperation, mode: WheelMode, page: Int) -> Bool {
+        guard canPerformManualAction, let controller, controller.mode == mode, controller.page == page,
+              let index = controller.visibleOperations.firstIndex(of: operation) else { return false }
+        selectedIndex = index
+        return true
+    }
+    private func selectMode(_ mode: WheelMode) -> Bool {
+        guard canPerformManualAction, let controller else { return false }
+        controller.changeMode(mode)
+        return true
+    }
+    private func movePage(_ delta: Int) -> Bool {
+        guard canPerformManualAction, let controller, controller.pageCount > 1 else { return false }
+        controller.changePage(delta)
+        return true
+    }
+
+    func updateAccessibility(notify: Bool = true) {
+        guard let controller else { return }
+        setAccessibilityElement(controller.manual)
+        guard controller.manual else {
+            setAccessibilityCustomActions(nil)
+            updateAccessibilityValue(notify: false)
+            return
+        }
+        setAccessibilityLabel(controller.text("Lemulip file operations", "Lemulip dosya işlemleri"))
+        setAccessibilityHelp(controller.text(
+            "Arrow keys select an operation. Return chooses it. Tab changes mode; Shift-Tab goes back. Page Up and Page Down change page. Escape cancels. Accessibility actions also select operations, modes, and pages.",
+            "Ok tuşları bir işlem seçer. Return seçimi uygular. Tab modu değiştirir; Shift-Tab geri gider. Page Up ve Page Down sayfayı değiştirir. Escape kapatır. Erişilebilirlik eylemleriyle de işlem, mod ve sayfa seçebilirsin."))
+        var actions: [NSAccessibilityCustomAction] = []
+        if !controller.visibleOperations.isEmpty {
+            actions += [
+                NSAccessibilityCustomAction(name: controller.text("Choose Selected Operation", "Seçili işlemi uygula"), handler: { [weak self] in self?.accessibilityPerformPress() ?? false }),
+                NSAccessibilityCustomAction(name: controller.text("Next Operation", "Sonraki işlem"), handler: { [weak self] in self?.accessibilityPerformIncrement() ?? false }),
+                NSAccessibilityCustomAction(name: controller.text("Previous Operation", "Önceki işlem"), handler: { [weak self] in self?.accessibilityPerformDecrement() ?? false })
+            ]
+            let mode = controller.mode, page = controller.page
+            for operation in controller.visibleOperations {
+                let title = OperationNames.title(operation, language: controller.language)
+                actions.append(NSAccessibilityCustomAction(name: controller.text("Select \(title)", "\(title) seç"), handler: { [weak self] in
+                    self?.selectOperation(operation, mode: mode, page: page) ?? false
+                }))
+            }
+        }
+        for mode in WheelMode.allCases where mode != controller.mode {
+            let title = modeTitle(mode)
+            actions.append(NSAccessibilityCustomAction(name: controller.text("Show \(title)", "\(title) modunu göster"), handler: { [weak self] in self?.selectMode(mode) ?? false }))
+        }
+        if controller.pageCount > 1 {
+            actions += [
+                NSAccessibilityCustomAction(name: controller.text("Previous Page", "Önceki sayfa"), handler: { [weak self] in self?.movePage(-1) ?? false }),
+                NSAccessibilityCustomAction(name: controller.text("Next Page", "Sonraki sayfa"), handler: { [weak self] in self?.movePage(1) ?? false })
+            ]
+        }
+        actions.append(NSAccessibilityCustomAction(name: controller.text("Cancel", "Vazgeç"), handler: { [weak self] in self?.accessibilityPerformCancel() ?? false }))
+        setAccessibilityCustomActions(actions)
+        updateAccessibilityValue(notify: notify)
+    }
+
+    private func updateAccessibilityValue(notify: Bool = true) {
+        guard let controller, controller.manual else {
+            if lastAccessibilityValue != nil {
+                lastAccessibilityValue = nil
+                setAccessibilityValue(nil)
+            }
+            return
+        }
+        let selection: String
+        if let operation = selectedOperation, let selectedIndex {
+            let title = OperationNames.title(operation, language: controller.language)
+            let count = controller.visibleOperations.count
+            selection = controller.text("\(title), operation \(selectedIndex + 1) of \(count)", "\(title), \(count) işlemin \(selectedIndex + 1). işlemi")
+        } else {
+            selection = controller.visibleOperations.isEmpty
+                ? controller.text("No operations for this selection", "Bu seçim için işlem yok")
+                : controller.text("No operation selected", "İşlem seçilmedi")
+        }
+        let page = controller.text("Page \(controller.page + 1) of \(controller.pageCount)", "Sayfa \(controller.page + 1) / \(controller.pageCount)")
+        let value = "\(modeTitle(controller.mode)). \(page). \(selection)."
+        let changed = value != lastAccessibilityValue
+        lastAccessibilityValue = value
+        setAccessibilityValue(value)
+        if notify, changed, isManualWheelAvailable {
+            NSAccessibility.post(element: self, notification: .valueChanged)
+        }
+    }
+
+    private func modeTitle(_ mode: WheelMode) -> String {
+        controller?.text(mode.title, mode == .convert ? "Dönüştür" : mode == .tools ? "Araçlar" : "İşlemler") ?? mode.title
+    }
 
     override func viewDidChangeEffectiveAppearance() {
         super.viewDidChangeEffectiveAppearance()
@@ -252,7 +427,7 @@ private final class DragWheelView: NSView {
             let rect = NSRect(x: 65 + index * 98, y: 377, width: 94, height: 25)
             Palette.panelColor.setFill(); NSBezierPath(roundedRect: rect, xRadius: 8, yRadius: 8).fill()
             if mode == controller.mode { accent.withAlphaComponent(0.12).setFill(); NSBezierPath(roundedRect: rect, xRadius: 8, yRadius: 8).fill() }
-            let title = controller.text(mode.title, mode == .convert ? "Dönüştür" : mode == .tools ? "Araçlar" : "İşlemler")
+            let title = modeTitle(mode)
             label(title, rect: rect.insetBy(dx: 2, dy: 5), size: 10, color: mode == controller.mode ? accent : muted)
         }
         if visible.isEmpty { label(controller.text("No operations for this selection", "Bu seçim için işlem yok"), rect: NSRect(x: 42, y: 300, width: 336, height: 34), size: 11, color: muted) }
@@ -289,7 +464,11 @@ private final class DragWheelView: NSView {
     }
 
     override func keyDown(with event: NSEvent) {
-        guard let controller, controller.manual else { return }
+        let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        guard canPerformManualAction, let controller,
+              modifiers.intersection([.command, .control, .option]).isEmpty else {
+            super.keyDown(with: event); return
+        }
         switch event.keyCode {
         case 53: controller.dismiss()
         case 123, 126: moveSelection(-1)
@@ -298,15 +477,20 @@ private final class DragWheelView: NSView {
         case 121: controller.changePage(1)
         case 48:
             let modes = WheelMode.allCases
-            if let index = modes.firstIndex(of: controller.mode) { controller.changeMode(modes[(index + 1) % modes.count]) }
+            let delta = modifiers.contains(.shift) ? -1 : 1
+            if let index = modes.firstIndex(of: controller.mode) { controller.changeMode(modes[(index + delta + modes.count) % modes.count]) }
         case 36, 76:
-            if let selectedIndex, controller.visibleOperations.indices.contains(selectedIndex) { controller.execute(controller.visibleOperations[selectedIndex], inputs: controller.files) }
+            _ = chooseSelectedOperation()
         default: super.keyDown(with: event)
         }
     }
-    private func moveSelection(_ delta: Int) {
-        guard let count = controller?.visibleOperations.count, count > 0 else { return }
-        selectedIndex = ((selectedIndex ?? (delta > 0 ? -1 : 0)) + delta + count) % count
+    @discardableResult
+    private func moveSelection(_ delta: Int) -> Bool {
+        guard let count = controller?.visibleOperations.count, count > 0 else { return false }
+        let next = ((selectedIndex ?? (delta > 0 ? -1 : 0)) + delta + count) % count
+        guard next != selectedIndex else { return false }
+        selectedIndex = next
+        return true
     }
     override func scrollWheel(with event: NSEvent) {
         guard event.timestamp - lastScroll > 0.18, abs(event.scrollingDeltaY) > 0.5 else { return }

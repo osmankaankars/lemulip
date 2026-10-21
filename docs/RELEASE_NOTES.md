@@ -3,6 +3,17 @@
 What's new in each Lemulip public preview. Release pages show the matching
 version below, followed by the installation note.
 
+## 0.1.16 · Easier to Navigate
+
+- Give the manual wheel a readable selection and accessibility actions for choosing operations, modes, and pages. Use **Shift-Tab** to go back a mode.
+- Make audio trim's **S/E** shortcuts follow the keyboard layout. Holding **Space** now changes playback only once per press.
+- Give each file shelf's Finder button a clear action label with its file name.
+- Restore the workspace's saved position and recover an unreachable window after a display changes.
+
+No new app dependencies. Hands-on VoiceOver and multiple-display review remain pending.
+
+[Workspace Guide](USER_GUIDE.md#the-workspace) · [Audio Trim Guide](USER_GUIDE.md#audio-waveform-trim)
+
 ## 0.1.15 · Markdown, Ready for Word
 
 - Convert basic **Markdown → DOCX** without installing another engine.

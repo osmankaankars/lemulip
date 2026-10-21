@@ -24,7 +24,11 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
     @Published var pendingOperation: FileOperation?
     @Published var alertMessage: String?
     @Published var language = UserDefaults.standard.string(forKey: "language") ?? (Locale.preferredLanguages.first?.hasPrefix("tr") == true ? "tr" : "en") {
-        didSet { UserDefaults.standard.set(language, forKey: "language"); rebuildStatusMenu() }
+        didSet {
+            UserDefaults.standard.set(language, forKey: "language")
+            rebuildStatusMenu()
+            wheel.refreshAppearance()
+        }
     }
     @Published var theme = AppTheme.saved {
         didSet {
@@ -67,6 +71,8 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         UserDefaults.standard.set(theme.rawValue, forKey: AppTheme.preferenceKey)
         applyThemeAppearance()
         buildWindow()
+        NotificationCenter.default.addObserver(self, selector: #selector(displayConfigurationChanged(_:)),
+            name: NSApplication.didChangeScreenParametersNotification, object: NSApp)
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         statusItem?.button?.image = NSImage(systemSymbolName: "circle.hexagongrid", accessibilityDescription: "Lemulip")
         statusItem?.button?.toolTip = "Lemulip"
@@ -106,7 +112,10 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         return tasks.isEmpty && activeJob == nil ? .terminateNow : .terminateLater
     }
 
-    func applicationWillTerminate(_ notification: Notification) { wheel.stop(); tasks.values.forEach { $0.cancel() } }
+    func applicationWillTerminate(_ notification: Notification) {
+        NotificationCenter.default.removeObserver(self, name: NSApplication.didChangeScreenParametersNotification, object: NSApp)
+        wheel.stop(); tasks.values.forEach { $0.cancel() }
+    }
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool { showMainWindow(); return true }
     func application(_ sender: NSApplication, openFiles filenames: [String]) {
         addFiles(filenames.map { URL(fileURLWithPath: $0) }); showMainWindow(); sender.reply(toOpenOrPrint: .success)
@@ -134,8 +143,9 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         window.minSize = NSSize(width: 850, height: 620)
         window.contentView = NSHostingView(rootView: DashboardView(model: self))
         // Preserve the saved window position from the original application name.
+        let restoredFrame = window.setFrameUsingName("FreewheelMainWindow")
         window.setFrameAutosaveName("FreewheelMainWindow")
-        window.center()
+        if !restoredFrame { window.center() }
         mainWindow = window
         let menu = NSMenu()
         let applicationItem = NSMenuItem()
@@ -181,7 +191,23 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         statusItem.menu = menu
     }
 
-    @objc func showMainWindow() { mainWindow?.makeKeyAndOrderFront(nil); NSApp.activate(ignoringOtherApps: true) }
+    @objc func showMainWindow() {
+        guard let mainWindow else { return }
+        recoverWorkspaceWindow()
+        if mainWindow.isMiniaturized { mainWindow.deminiaturize(nil) }
+        mainWindow.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    @objc private func displayConfigurationChanged(_ notification: Notification) { recoverWorkspaceWindow() }
+
+    private func recoverWorkspaceWindow() {
+        guard let mainWindow, !mainWindow.styleMask.contains(.fullScreen) else { return }
+        let frame = WorkspaceWindowPlacement.recoveredFrame(mainWindow.frame,
+            visibleScreens: NSScreen.screens.map(\.visibleFrame),
+            preferredScreen: NSScreen.main?.visibleFrame, minimumSize: mainWindow.minSize)
+        if frame != mainWindow.frame { mainWindow.setFrame(frame, display: mainWindow.isVisible) }
+    }
     @objc func showSettings() { section = "settings"; engineRefresh += 1; showMainWindow() }
     @objc private func toggleWheel() { wheelEnabled.toggle() }
     @objc private func showAbout() {

@@ -92,9 +92,9 @@ record each commit's results. Workflow files contain the current tool and action
 pins. A source check, a tagged package build, and a Pages deployment have different
 purposes; one does not substitute for another.
 
-The seven test files are a separate SwiftPM target and are not installed in the
-app. Keep meaningful checks for conversion fidelity, originals, cancellation,
-archives, and geometry. Extend the existing suites with generated inputs.
+Tests are a separate SwiftPM target and are not installed in the app. Keep
+meaningful checks for conversion fidelity, originals, cancellation, archives,
+and geometry. Use generated inputs; keep local acceptance reports outside Git.
 
 ## Mac Checks That Matter
 
@@ -115,6 +115,23 @@ different file, and check that old requests cannot update the new session.
 Original bytes must be preserved; failed or cancelled work must publish no file.
 Use the [Roadmap targets](ROADMAP.md#keep-it-lightweight) for measurements rather
 than inferring CPU or memory use from preview limits.
+
+For the 0.1.16 interaction changes, recheck these specific paths on a Mac:
+
+- **Manual wheel:** With VoiceOver, inspect mode, page, and selection; use named
+  selection actions, choose an operation, change mode/page, and cancel. Check
+  Tab and Shift-Tab. A real Finder drag into the manual wheel must still require
+  a drop; accessibility actions must not submit a pending drag.
+- **Audio trim:** On the active keyboard layout, use S/E to select handles.
+  Hold Space and confirm only one playback change. Arrow repeat and Shift-arrow
+  movement should continue; Command, Control, and Option shortcuts pass through.
+- **File shelf:** Inspect each Finder button's purpose and file name.
+- **Workspace:** Move and resize, quit and reopen, then disconnect a display.
+  Check negative display origins, mixed scaling, minimized windows, full screen,
+  and a window spanning displays. A usable placement should remain unchanged.
+
+Window-placement unit checks cover recovery geometry. They do not establish
+native window restoration, keyboard interaction, or VoiceOver acceptance.
 
 ### Measure on a Mac
 
@@ -184,6 +201,10 @@ then check a real workspace or menu action separately. Finish all work and
 quit the app normally before this repeated-launch review; the test can
 terminate the app between iterations. Keep the local test project and raw
 results outside the repository.
+
+If the native launch metric is absent or has too few samples, keep warm launch
+**Not Measured**. A passed XCTest, its total duration, or a Clock Monotonic Time
+measurement does not replace the missing first-frame/responsiveness metric.
 
 Use an actual first-frame/responsiveness measurement, not the return time of
 `open` or the appearance of a process ID. See Apple's
