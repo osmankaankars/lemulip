@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse,functools,http.server,io,json,re,threading
 from pathlib import Path
 from playwright.sync_api import sync_playwright
+from test_presentation_browser import check_presentation
 ROOT=Path(__file__).resolve().parent.parent
 FAMILIES=('images','pdf','audio','video','documents','spreadsheets','presentations','subtitles','archives')
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
@@ -33,7 +34,7 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers();return io.BytesIO(raw[start:end+1])
 
 def exercise(page,output,width,height):
-    assert page.locator('html').get_attribute('data-site-version')=='20261021.2'
+    assert page.locator('html').get_attribute('data-site-version')=='20261021.3'
     assert 'Lemulip' in page.title()
     assert page.locator('#format-count').inner_text()=='35'
     assert page.locator('#tool-count').inner_text()=='26'
@@ -42,19 +43,19 @@ def exercise(page,output,width,height):
     # New sample families must change the actual wheel and output, not just a tab.
     expected={'images':'morning-light.png','pdf':'field-notes.png','audio':'voice-note.mp3','video':'morning-walk.mp4','documents':'weekend-notes.pdf','spreadsheets':'inventory.xlsx','presentations':'project-deck.pdf','subtitles':'captions.vtt','archives':'project/'}
     for family in FAMILIES:
-        page.locator('#sample-type').select_option(family)
+        page.locator('[data-sample="'+family+'"]').click()
         page.locator('[data-mode="convert"]').click()
         page.locator('.wheel-choice').first.click()
         assert page.locator('#sample-output').is_visible(),family
         assert page.locator('#output-name').inner_text()==expected[family],family
-    page.locator('#sample-type').select_option('images')
+    page.locator('[data-sample="images"]').click()
     page.locator('[data-mode="tools"]').click()
     assert 'Crop' in page.locator('#wheel-svg').text_content()
     page.locator('[data-mode="actions"]').click()
     assert page.locator('.wheel-choice').count()==6
     page.locator('.wheel-choice').filter(has_text='Move To').click()
     assert 'moves' not in page.locator('#output-detail').inner_text() or 'Mac app' in page.locator('#output-detail').inner_text()
-    for origin in ('finder','desktop'):
+    for origin in ('finder','workspace','desktop'):
         page.locator('#origin-'+origin).click()
         assert page.locator('#desktop-demo').get_attribute('data-origin')==origin
         page.locator('#desktop-demo').focus();page.keyboard.press('Shift')
@@ -138,7 +139,7 @@ def run(output:Path,engine:str,url:str|None):
                     page=browser.new_page(viewport={'width':width,'height':height})
                     page.on('pageerror',lambda e:errors.append(str(e)))
                     page.on('response',lambda r:failures.append([r.status,r.url]) if r.status>=400 else None)
-                    page.goto(url,wait_until='networkidle');exercise(page,output,width,height)
+                    page.goto(url,wait_until='networkidle');check_presentation(page,output,width,height);exercise(page,output,width,height)
                     results.append({'viewport':f'{width}x{height}','nine_samples':'PASS','wheel':'PASS','edit_results':'PASS','video_decode_and_playback':'PASS','keyboard':'PASS','themes':'PASS','overflow':'NONE'})
                     page.close()
                 page=browser.new_page(viewport={'width':1440,'height':1000})
