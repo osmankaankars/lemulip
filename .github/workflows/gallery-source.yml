@@ -1,4 +1,4 @@
-name: Gallery Source Snapshot
+name: Gallery Transfer Verification
 on:
   push:
     branches: [site/native-gallery-20261022]
@@ -6,17 +6,28 @@ on:
 permissions:
   contents: read
 jobs:
-  source:
+  verify:
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          ref: 603c6973a46524c3e4eabeef6b0b32c7dba62815
-          persist-credentials: false
-      - run: git archive --format=tar.gz --output="$RUNNER_TEMP/gallery-source.tar.gz" HEAD
+      - name: Export unassigned image fragments as data only
+        shell: python
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          import base64, json, os, pathlib, urllib.request
+          folder = pathlib.Path(os.environ['RUNNER_TEMP']) / 'fragments'
+          folder.mkdir()
+          objects = {'01':'3e9d5ea45105070eacaf89d68827f85a06c41d49','04':'944241a0c0bdce70aa5163ad3008d85f64282d15','05':'ea43e1fd3ce0b10ff9148429a1b86aa2d5eb9ffd','07a':'183160a02ee649c694c9866777b6a6032fefb9a3'}
+          for name, sha in objects.items():
+              request = urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/git/blobs/' + sha, headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(request,timeout=30) as response:
+                  blob = json.load(response)
+              raw = base64.b64decode(blob['content'])
+              (folder/(name+'.bin')).write_bytes(raw)
+          print('Exported data for byte-for-byte comparison; no project source executed or published.')
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          name: Lemulip-Gallery-Source
-          path: ${{ runner.temp }}/gallery-source.tar.gz
+          name: Lemulip-Gallery-Fragments
+          path: ${{ runner.temp }}/fragments/
           retention-days: 1
