@@ -19,6 +19,19 @@
       .sample-label select{flex:1;min-width:0;max-width:none;margin-left:10px}
     }
   </style>
+  <script>
+    // Selection controls can sit below the video on narrow screens. Bring the
+    // requested playback into view, where WebKit will keep silent media active.
+    document.addEventListener('click', function (event) {
+      if (!(event.target instanceof Element) || !event.target.closest('#play-video')) return;
+      const video = document.getElementById('sample-video');
+      if (!video) return;
+      const bounds = video.getBoundingClientRect();
+      if (bounds.top < 0 || bounds.bottom > innerHeight) {
+        video.scrollIntoView({block: 'center', inline: 'nearest', behavior: 'instant'});
+      }
+    }, true);
+  </script>
   <script src="./catalog.js?v=20261021.2" defer></script>
   <script src="./product.js?v=20261021.2" defer></script>
 </head>
