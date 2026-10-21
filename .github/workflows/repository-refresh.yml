@@ -1,0 +1,35 @@
+name: One-Time Lemulip Source Rename
+on:
+  push:
+    branches: [refresh/lemulip-2026-10-21]
+    paths: ['script/migrate_branding.py', '.github/workflows/repository-refresh.yml']
+permissions:
+  contents: read
+jobs:
+  rename:
+    if: github.repository == 'osmankaankars/lemulip' && github.ref == 'refs/heads/refresh/lemulip-2026-10-21'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+      - name: Apply the source-only rename and verify compatibility
+        run: |
+          python3 script/migrate_branding.py
+          python3 script/test_branding.py
+          git add Sources Tests Package.swift THIRD_PARTY_NOTICES.md docs/DEVELOPMENT.md
+          python3 script/privacy_check.py --staged
+      - name: Commit only to the isolated refresh branch
+        env:
+          EXPECTED_HEAD: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          BRANCH='refresh/lemulip-2026-10-21'
+          test "$(git ls-remote origin "refs/heads/$BRANCH" | cut -f1)" = "$EXPECTED_HEAD"
+          git config user.name 'Lemulip Maintenance'
+          git config user.email 'contributors@lemulip.invalid'
+          git commit -m 'Rename source modules and tests to Lemulip; preserve saved settings'
+          git push origin "HEAD:refs/heads/$BRANCH"
