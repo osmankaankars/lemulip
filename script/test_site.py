@@ -20,7 +20,7 @@ class SiteTests(unittest.TestCase):
             if not asset.startswith(('http','data:')):self.assertTrue((ROOT/'site'/urlsplit(asset).path).is_file(),asset)
     def test_desktop_demo_has_nine_samples_and_real_controls(self):
         page=(ROOT/'site/index.html').read_text()
-        for name in ('desktop-demo','sample-type','origin-desktop','origin-finder','tour-toggle','next-step','wheel-svg','sample-file'):
+        for name in ('desktop-demo','sample-grid','origin-desktop','origin-finder','tour-toggle','next-step','wheel-svg','sample-file'):
             self.assertIn('id="'+name+'"',page)
         for name in ('images','pdf','audio','video','documents','spreadsheets','presentations','subtitles','archives'):
             self.assertIn('data-feature="'+name+'"',page)
@@ -50,12 +50,13 @@ class SiteTests(unittest.TestCase):
             self.assertNotRegex(p.read_text(),r'(?i)developer id|notariz|ad hoc sign',str(p))
     def test_motion_and_stale_assets_are_explicit(self):
         page=(ROOT/'site/index.html').read_text(); js=(ROOT/'site/product.js').read_text()
-        self.assertIn('data-site-version="20261021.2"',page)
-        self.assertIn('product.js?v=20261021.2',page)
+        self.assertIn('data-site-version="20261021.3"',page)
+        self.assertIn('product.js?v=20261021.3',page)
         for event in ('visibilitychange','prefers-reduced-motion','pointercancel'):self.assertIn(event,js)
-        self.assertIn('Browser simulation',page)
+        self.assertIn('Browser Simulation',page)
         self.assertNotRegex(js,r'\b(FileReader|XMLHttpRequest)\s*\(')
     def test_no_temporary_import_workflows(self):
         self.assertFalse((ROOT/'.github/workflows/inspect-live-site.yml').exists())
         self.assertFalse((ROOT/'.github/refresh-payload').exists())
+from test_site_polish import PresentationTests
 if __name__=='__main__':unittest.main()

@@ -6,7 +6,9 @@
   if (!data || !$('desktop-demo')) return;
   const esc = text => String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
-  const desktop = $('desktop-demo'), source = $('sample-file'), svg = $('wheel-svg');
+  const desktop = $('desktop-demo'), grid = $('sample-grid'), svg = $('wheel-svg');
+  let source = $('sample-file');
+  const sampleFiles = [...grid.querySelectorAll('[data-sample]')];
   let sampleIndex = 0, mode = 'convert', step = 0, wheelPage = 0, selected = 0;
   let autoplay = !reduced.matches, visible = true, timer = null, pointer = null, suppressClick = false;
   let feature = 'images', edit = {}, audioContext = null, audioFrame = null;
@@ -15,16 +17,17 @@
   const announce = text => { $('announcer').textContent = text; };
   const icons = {images:'HEIC',pdf:'PDF',audio:'WAV',video:'MOV',documents:'MD',spreadsheets:'CSV',presentations:'PPTX',subtitles:'SRT',archives:'ZIP'};
   const nativeNotes = {
-    images:'PNG, JPG, HEIC, TIFF, BMP and PDF: built in. WebP and AVIF: optional ImageMagick.',
-    pdf:'Built-in PDF tools and offline OCR. Text extraction needs selectable text or OCR.',
-    audio:'M4A, WAV and AIFF: native routes where codecs allow. Other targets: optional FFmpeg.',
-    video:'MP4, MOV and M4A: native routes where codecs allow. Other targets: optional FFmpeg.',
-    documents:'Basic Markdown, TXT and basic RTF → DOCX: built in. Richer documents use local LibreOffice or Pandoc.',
-    spreadsheets:'CSV / TSV → XLSX and CSV ↔ TSV: built in. Other workbook routes use LibreOffice.',
-    presentations:'Presentation conversions use optional LibreOffice.',
-    subtitles:'SRT ↔ VTT and plain text extraction: built in.',
-    archives:'Create ZIP / TAR; GZIP individual files. Extract supported archives into a new folder.'
+    images:[['Built In','PNG, JPG, HEIC, TIFF, BMP And PDF.'],['Optional','ImageMagick For WebP And AVIF.']],
+    pdf:[['Built In','PDF Tools And Offline OCR.'],['Text','Selectable Text Or OCR Required.']],
+    audio:[['Built In','M4A, WAV And AIFF Where Codecs Allow.'],['Optional','FFmpeg For Other Targets.']],
+    video:[['Built In','MP4, MOV And M4A Where Codecs Allow.'],['Optional','FFmpeg For Other Targets.']],
+    documents:[['Built In','Basic Markdown, TXT And Basic RTF To DOCX.'],['Optional','LibreOffice Or Pandoc For Richer Documents.']],
+    spreadsheets:[['Built In','CSV / TSV To XLSX. CSV And TSV Interchange.'],['Optional','LibreOffice For Other Workbook Routes.']],
+    presentations:[['Optional','LibreOffice For Presentation Conversions.']],
+    subtitles:[['Built In','SRT And VTT Interchange. Plain Text Export.']],
+    archives:[['Create','ZIP, TAR And GZIP.'],['Extract','Supported Archives Into A New Folder.']]
   };
+  const renderNotes = notes => notes.map(([label,text]) => '<div class="engine-note"><strong>'+esc(label)+'</strong>'+text.split(/\. (?=[A-Z])/).map(part=>'<p>'+esc(part.endsWith('.')?part:part+'.')+'</p>').join('')+'</div>').join('');
   const engineFor = ext => {
     const id = sample().id;
     if (id === 'images' && ['webp','avif'].includes(ext)) return 'ImageMagick';
@@ -44,7 +47,9 @@
   }
   function stopTour() { autoplay = false; clearTimeout(timer); updatePlay(); }
   function updatePlay() {
-    $('tour-toggle').textContent = autoplay ? 'Pause tour' : 'Play tour';
+    $('tour-toggle').textContent = autoplay ? 'Ⅱ' : '▶';
+    $('tour-toggle').setAttribute('aria-label', autoplay ? 'Pause Tour' : 'Play Tour');
+    $('tour-toggle').title = autoplay ? 'Pause Tour' : 'Play Tour';
     $('tour-toggle').setAttribute('aria-pressed', String(autoplay));
     desktop.dataset.autoplay = String(autoplay);
   }
@@ -57,11 +62,14 @@
     }, step === 3 ? 2600 : step === 2 ? 2100 : 1700);
   }
   function setSample() {
-    $('sample-type').value = sample().id;
-    $('sample-name').textContent = sample().name;
-    $('sample-art').textContent = sample().id === 'images' ? '' : icons[sample().id];
-    $('sample-art').className = 'file-art '+({images:'image-art',pdf:'pdf-art',audio:'audio-art',video:'video-art'}[sample().id] || '');
-    source.setAttribute('aria-label', 'Pick up sample '+sample().name);
+    source.removeAttribute('id');
+    source = sampleFiles[sampleIndex]; source.id = 'sample-file';
+    sampleFiles.forEach((button,i) => {
+      button.setAttribute('aria-pressed',String(i===sampleIndex));
+      button.classList.remove('picked');
+      button.setAttribute('aria-label','Pick Up '+data.samples[i].name);
+    });
+    $('workspace-status').textContent = '9 Files';
     mode = 'convert'; wheelPage = 0; selected = 0;
     updateModes(); setStep(0);
   }
@@ -76,8 +84,13 @@
     $('floating-wheel').hidden = step !== 2;
     $('sample-output').hidden = step !== 3;
     source.classList.toggle('picked',step === 1 || step === 2);
-    $('next-step').textContent = step === 3 ? 'Replay example ↻' : 'Next step →';
-    if (step === 2) drawWheel();
+    const cursor=$('tour-cursor');
+    if(step<2){const d=desktop.getBoundingClientRect(),f=source.getBoundingClientRect();cursor.style.left=(f.left-d.left+f.width*.7)+'px';cursor.style.top=(f.top-d.top+f.height*.75)+'px';}
+    else {cursor.style.left='57%';cursor.style.top='42%';}
+    $('next-step').textContent = step === 3 ? '↻' : '→';
+    $('next-step').setAttribute('aria-label',step === 3 ? 'Replay Example' : 'Next Step');
+    $('next-step').title = step === 3 ? 'Replay Example' : 'Next Step';
+    if (step === 2) { drawWheel(); $('workspace-status').textContent = 'Choose An Operation'; }
     if (step === 3) showResult(operations()[selected] || operations()[0]);
   }
   function point(radius,angle) { return [210+radius*Math.sin(angle),210-radius*Math.cos(angle)]; }
@@ -114,23 +127,29 @@
     let name,detail;
     if (op.extension) {name=stem(sample().name)+'.'+op.extension;detail='Sample copy · original kept'+(op.engine?' · '+op.engine:'');}
     else if(op.id==='archive.extract'){name=stem(sample().name)+'/';detail='Sample extracted folder · archive kept';}
-    else {name=op.title;detail=op.detail+' — in the Mac app.';}
+    else {name=op.title;detail=op.detail+'. In the Mac app.';}
     $('output-name').textContent=name;$('output-detail').textContent=detail;
+    $('workspace-status').textContent = name;
     $('demo-instruction').textContent=op.extension?'Example: '+name+' · original kept.':'Example: '+op.title+'.';
   }
   function choose(index) {stopTour();selected=index;setStep(3);announce($('demo-instruction').textContent);}
   function chooseMode(value) {stopTour();mode=value;wheelPage=0;selected=0;updateModes();setStep(2);}
-  $('sample-type').addEventListener('change',e=>{stopTour();sampleIndex=data.samples.findIndex(x=>x.id===e.target.value);setSample();});
-  source.addEventListener('click',()=>{if(suppressClick){suppressClick=false;return;}stopTour();setStep(step===2?0:1);desktop.focus({preventScroll:true});});
+  grid.addEventListener('click',e=>{
+    const file=e.target.closest('[data-sample]');if(!file)return;
+    if(suppressClick){suppressClick=false;return;}
+    stopTour();const index=sampleFiles.indexOf(file);
+    if(index!==sampleIndex){sampleIndex=index;setSample();}
+    setStep(step===2?0:1);desktop.focus({preventScroll:true});
+  });
   $('next-step').addEventListener('click',()=>{stopTour();setStep(step===3?0:step+1);announce($('demo-instruction').textContent);});
   $('tour-toggle').addEventListener('click',()=>{autoplay=!autoplay;updatePlay();if(autoplay&&step===3)setStep(0);schedule();});
   document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>chooseMode(b.dataset.mode)));
   $('wheel-cancel').addEventListener('click',()=>{stopTour();setStep(0);announce('Example cancelled. Original unchanged.');source.focus({preventScroll:true});});
   for(const [id,direction] of [['wheel-prev',-1],['wheel-next',1]]) $(id).addEventListener('click',()=>{const pages=Math.ceil(operations().length/8);wheelPage=(wheelPage+direction+pages)%pages;selected=wheelPage*8;drawWheel();});
-  for(const origin of ['desktop','finder']) $('origin-'+origin).addEventListener('click',()=>{
+  for(const origin of ['desktop','finder','workspace']) $('origin-'+origin).addEventListener('click',()=>{
     stopTour();desktop.dataset.origin=origin;
-    for(const x of ['desktop','finder']) $('origin-'+x).setAttribute('aria-pressed',String(x===origin));
-    $('desktop-note').textContent=origin==='desktop'?'Your desktop. No Lemulip window needed.':'A Finder file. The same wheel, right here.';setStep(0);
+    for(const x of ['desktop','finder','workspace']) $('origin-'+x).setAttribute('aria-pressed',String(x===origin));
+    setStep(0); $('workspace-status').textContent='9 Files';
   });
   desktop.addEventListener('keydown',e=>{
     if(e.target.closest('select,input,textarea'))return;
@@ -139,11 +158,13 @@
     else if(step===2 && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const all=operations();selected=(selected+(['ArrowLeft','ArrowUp'].includes(e.key)?-1:1)+all.length)%all.length;wheelPage=Math.floor(selected/8);drawWheel();}
     else if(e.key==='Enter' && e.target===desktop){e.preventDefault();if(step===2)choose(selected);else{stopTour();setStep(1);}}
   });
-  source.addEventListener('pointerdown',e=>{
-    if(e.button!==0)return;
+  grid.addEventListener('pointerdown',e=>{
+    const file=e.target.closest('[data-sample]');if(e.button!==0||!file)return;
+    stopTour();const index=sampleFiles.indexOf(file);
+    if(index!==sampleIndex){sampleIndex=index;setSample();}
     pointer={id:e.pointerId,x:e.clientX,y:e.clientY,moved:false};source.setPointerCapture(e.pointerId);
   });
-  source.addEventListener('pointermove',e=>{
+  grid.addEventListener('pointermove',e=>{
     if(!pointer||pointer.id!==e.pointerId)return;
     if(!pointer.moved && Math.hypot(e.clientX-pointer.x,e.clientY-pointer.y)>8){
       pointer.moved=true;stopTour();setStep(1);desktop.focus({preventScroll:true});
@@ -162,7 +183,7 @@
     }
     pointer=null;
   }
-  source.addEventListener('pointerup',e=>finishDrag(e));source.addEventListener('pointercancel',e=>finishDrag(e,true));
+  grid.addEventListener('pointerup',e=>finishDrag(e));grid.addEventListener('pointercancel',e=>finishDrag(e,true));
   desktop.addEventListener('dragover',e=>e.preventDefault());desktop.addEventListener('drop',e=>{e.preventDefault();announce('Please use the sample selector. This website does not read your files.');});
   reduced.addEventListener('change',()=>{if(reduced.matches)stopTour();});
   document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(timer);stopSound();$('sample-video')?.pause();}else schedule();});
@@ -291,7 +312,7 @@
     e.preventDefault();selectFeature(tabs[index].dataset.feature,true);
   });});
   $('format-count').textContent=data.counts.formats;$('tool-count').textContent=data.counts.tools;$('action-count').textContent=data.counts.actions;
-  $('format-directory').innerHTML=data.samples.map(s=>'<div class="format-row"><h3>'+esc(s.label)+'</h3><p class="format-list">'+(s.formats.length?s.formats.map(x=>esc(x.toUpperCase())).join(' · '):'ZIP · TAR · GZIP · Extract')+'</p><p class="format-engine">'+esc(nativeNotes[s.id])+'</p></div>').join('');
+  $('format-directory').innerHTML=data.samples.map(s=>'<div class="format-row"><h3>'+esc(s.label)+'</h3><p class="format-list">'+(s.formats.length?s.formats.map(x=>esc(x.toUpperCase())).join(' · '):'ZIP · TAR · GZIP · Extract')+'</p><div class="format-engine">'+renderNotes(nativeNotes[s.id])+'</div></div>').join('');
   const prefixes={image:'Image',pdf:'PDF',media:'Media',document:'Document',archive:'Archive',action:''};
   $('tool-directory').innerHTML=[['26 file tools',data.tools],['6 file actions',data.actions]].map(([title,list])=>'<div><h3>'+title+'</h3><ul>'+list.map(op=>'<li>'+esc((prefixes[op.id.split('.')[0]]+' '+op.title).trim())+'</li>').join('')+'</ul></div>').join('');
   const themes={orchard:'#14251D',pistachio:'#FFF9EB',lemonade:'#FFFAED'};
