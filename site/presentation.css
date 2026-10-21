@@ -2,6 +2,7 @@
 body { text-transform: capitalize; }
 pre, code, .file-name, #output-name, #workspace-status, .archive-items,
 .archive-box b, .sheet small, .sheet pre, .sheet td, .sheet th,
+.sheet h4, .example-output,
 #announcer, .verbatim, .requirements { text-transform: none; }
 .header { gap: 24px; }
 .header .theme-label { margin: 0 0 0 auto; gap: 8px; flex-shrink: 0; }
@@ -123,7 +124,6 @@ pre, code, .file-name, #output-name, #workspace-status, .archive-items,
   .format-engine { grid-column: 2; display: grid; gap: 16px; grid-template-columns: 1fr 1fr; }
   .engine-note + .engine-note { margin-top: 0; }
   .shortcut-list > div { padding: 17px 14px; }
-  .shortcut-list h3 { margin-top: 13px; }
 }
 @media(max-width:500px) {
   .header { gap: 14px 10px; padding: 16px 0 9px; }
