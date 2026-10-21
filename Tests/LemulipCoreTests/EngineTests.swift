@@ -1212,7 +1212,7 @@ final class EngineTests: XCTestCase {
 
         // Independent MD5 vectors exercise LibreOffice's unpadded-byte spelling.
         for (profileURL, digest) in [
-            ("file:///private/tmp/lemulip-profile", "8dde90caf5ca1b752d47c91e1954854"),
+            ("file:///private/tmp/lemulip-profile", "e02d3c3cf665647c3be15017e1a5255"),
             ("file:///private/tmp/office%20profile%20%25%20%23%20%5B%5D", "1fa5e9fd753261a2573ad92a1224b74")
         ] {
             let sockets = try ExternalConverters.officeIPCSockets(profileURL: profileURL)

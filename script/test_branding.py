@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Guard the source rename without losing existing Mac preferences."""
+import hashlib
 import plistlib
 import re
 import unittest
@@ -35,6 +36,15 @@ class BrandingTests(unittest.TestCase):
                 if re.search('freewheel', text, re.IGNORECASE):
                     unexpected.append(str(path.relative_to(ROOT)))
         self.assertEqual([], unexpected)
+
+    def test_office_profile_vectors_follow_renamed_fixture_paths(self):
+        source = (ROOT / 'Tests/LemulipCoreTests/EngineTests.swift').read_text()
+        vectors = re.findall(r'\("(file:///private/tmp/[^"\n]+)", "([a-f0-9]+)"\)', source)
+        self.assertEqual(2, len(vectors))
+        for profile, expected in vectors:
+            # Independent reference: LibreOffice uses UTF-16LE and unpadded bytes.
+            digest = ''.join(format(byte, 'x') for byte in hashlib.md5(profile.encode('utf-16le')).digest())
+            self.assertEqual(expected, digest, profile)
 
     def test_existing_bundle_and_preferences_are_preserved(self):
         with (ROOT / 'Resources/Info.plist').open('rb') as source:
