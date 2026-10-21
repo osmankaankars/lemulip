@@ -1,71 +1,104 @@
-name: Inspect Live Product Page
+name: Review Product Page Correction
 on:
   push:
     branches: [fix/product-demo-20261021]
-    paths: ['.github/workflows/inspect-live-site.yml']
+    paths: ['.github/correction-transfer/**', '.github/workflows/inspect-live-site.yml']
 permissions:
-  contents: read
+  contents: write
 jobs:
-  inspect:
+  review:
+    if: github.repository == 'osmankaankars/lemulip' && github.ref == 'refs/heads/fix/product-demo-20261021'
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Save exact source
+      - name: Assemble exact locally checked changes
+        shell: python
         run: |
-          mkdir -p "$RUNNER_TEMP/inspection"
-          git archive --format=tar.gz --output="$RUNNER_TEMP/inspection/source.tar.gz" HEAD
+          import base64, hashlib, json, lzma, pathlib, shutil, subprocess
+          root=pathlib.Path('.')
+          encoded=''.join((root/'.github/correction-transfer'/f'part-{i:02d}').read_text() for i in range(1,5))
+          packed=base64.b64decode(encoded,validate=True)
+          assert len(packed)==27876 and hashlib.sha256(packed).hexdigest()=='8dc9a8a0b0470f25aadcf8a29d610fcf5210fc5a14c9e9735acf2f9e2e7377af'
+          data=lzma.decompress(packed,memlimit=200000000)
+          assert len(data)==103672 and hashlib.sha256(data).hexdigest()=='b536617ec1097ac21398f2aeb5e30e8b69cda7feef091ce4424e9ed1e08b8811'
+          changes=json.loads(data)
+          expected={'README.md','THIRD_PARTY_NOTICES.md','docs/DEVELOPMENT.md','docs/FAQ.md','docs/FORMATS.md','docs/INSTALL.md','docs/PUBLISHING.md','docs/RELEASE_NOTES.md','docs/ROADMAP.md','script/privacy_check.py','script/test_public_images.py','script/test_site.py','script/test_site_browser.py','site/catalog.js','site/index.html','site/product.css','site/product.js'}
+          assert len(changes)==len(expected) and {c['path'] for c in changes}==expected
+          for change in changes:
+              path=root/change['path'];before=path.read_bytes() if path.exists() else b''
+              assert hashlib.sha256(before).hexdigest()==change['base'],str(path)
+              lines=before.decode().splitlines(keepends=True)
+              for edit in sorted(change['edits'],key=lambda x:x['start'],reverse=True):
+                  assert 0<=edit['start']<=edit['end']<=len(lines)
+                  lines[edit['start']:edit['end']]=[edit['text']]
+              after=''.join(lines).encode()
+              assert hashlib.sha256(after).hexdigest()==change['sha256'],str(path)
+              path.parent.mkdir(parents=True,exist_ok=True);path.write_bytes(after)
+          subprocess.run(['git','fetch','--depth=1','origin','08a439a25659b7531f375a72b3e88c026049b084'],check=True)
+          preview=subprocess.check_output(['git','show','08a439a25659b7531f375a72b3e88c026049b084:docs/assets/demo-preview.png'])
+          assert hashlib.sha256(preview).hexdigest()=='8872c6e65528bf47bdf95e64b5313cd6ce6c25f8e22c111ac05574f0701f5870'
+          (root/'docs/assets/demo-preview.png').write_bytes(preview)
+          for name in ('site/demo.js','site/styles.css','site/showcase.css','site/showcase.js','.github/workflows/inspect-live-site.yml'):
+              (root/name).unlink()
+          shutil.rmtree(root/'.github/correction-transfer')
+      - name: Create the reviewed sample clip from the existing bundled landscape
+        run: |
+          command -v ffmpeg || (sudo apt-get update -qq && sudo apt-get install -y ffmpeg)
+          ffmpeg -y -hide_banner -loglevel error -loop 1 -i site/assets/morning-light.jpg -vf "scale=640:480,zoompan=z='min(zoom+0.001,1.15)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=96:s=320x240:fps=24,format=yuv420p" -t 4 -an -c:v libx264 -preset slow -crf 28 -map_metadata -1 -movflags +faststart site/assets/sample-walk.mp4
+          ffprobe -v error -show_entries stream=codec_name,width,height:format=duration -of json site/assets/sample-walk.mp4
+          python3 - <<'PY'
+          import hashlib,pathlib
+          video=pathlib.Path('site/assets/sample-walk.mp4').read_bytes()
+          assert video[4:8]==b'ftyp' and len(video)<100000
+          path=pathlib.Path('script/privacy_check.py');text=path.read_text()
+          old='2178ed48a7397f354d7d13865ebed2763a6057c8800d42c83bc671ce323f4b15'
+          assert text.count(old)==1
+          path.write_text(text.replace(old,hashlib.sha256(video).hexdigest()))
+          PY
+          git add --all
+      - name: Validate reviewed public source
+        run: |
+          python3 script/test_branding.py
+          python3 script/test_site.py
+          python3 script/test_public_images.py
+          python3 script/privacy_check.py --staged
+          node --check site/catalog.js
+          node --check site/product.js
+          git diff --cached --check
+      - name: Prepare source objects without publishing a branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64,hashlib,json,os,pathlib,subprocess,tarfile,urllib.request
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'correction-review';out.mkdir()
+          objects=[]
+          paths=subprocess.check_output(['git','diff','--cached','--name-only','--diff-filter=AM'],text=True).splitlines()
+          for path in paths:
+              if path.startswith('.github/workflows/'):continue
+              raw=pathlib.Path(path).read_bytes()
+              request=urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/git/blobs',data=json.dumps({'content':base64.b64encode(raw).decode(),'encoding':'base64'}).encode(),method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+              with urllib.request.urlopen(request,timeout=30) as response:blob=json.load(response)
+              objects.append({'path':path,'sha':blob['sha'],'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw)})
+          (out/'objects.json').write_text(json.dumps(objects,indent=2)+'\n');print(json.dumps(objects))
+          with tarfile.open(out/'reviewed-source.tar.gz','w:gz') as archive:
+              for path in subprocess.check_output(['git','ls-files'],text=True).splitlines():archive.add(path,arcname=path,recursive=False)
       - name: Install isolated browser tools
         run: |
           python3 -m venv "$RUNNER_TEMP/browser"
           "$RUNNER_TEMP/browser/bin/pip" install playwright==1.61.0
           "$RUNNER_TEMP/browser/bin/python" -m playwright install --with-deps chromium webkit
-      - name: Inspect production and visual reference
-        shell: bash
+      - name: Check the corrected page in both engines
         run: |
-          "$RUNNER_TEMP/browser/bin/python" - <<'PY'
-          import json, os, pathlib
-          from playwright.sync_api import sync_playwright
-          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'inspection'
-          results=[]
-          with sync_playwright() as p:
-              for engine in ('chromium','webkit'):
-                  browser=getattr(p,engine).launch()
-                  page=browser.new_page(viewport={'width':1440,'height':1000})
-                  errors=[]; failures=[]
-                  page.on('pageerror',lambda e: errors.append(str(e)))
-                  page.on('response',lambda r: failures.append([r.status,r.url]) if r.status>=400 else None)
-                  try:
-                      response=page.goto('https://osmankaankars.github.io/lemulip/',wait_until='networkidle',timeout=60000)
-                      page.screenshot(path=str(out/(engine+'-live-home.png')))
-                      first=page.locator('#feature-title').inner_text()
-                      page.locator('#tab-audio').click()
-                      page.locator('#feature-panel').scroll_into_view_if_needed()
-                      page.wait_for_timeout(1000)
-                      page.screenshot(path=str(out/(engine+'-live-audio.png')))
-                      second=page.locator('#feature-title').inner_text()
-                      animations=page.evaluate('document.getAnimations().map(a=>({name:a.animationName,state:a.playState,time:a.currentTime}))')
-                      page.wait_for_timeout(1500)
-                      later=page.evaluate('document.getAnimations().map(a=>({name:a.animationName,state:a.playState,time:a.currentTime}))')
-                      results.append({'engine':engine,'status':response.status,'url':page.url,'title':page.title(),'before':first,'after':second,'animations':animations,'later':later,'errors':errors,'http_failures':failures})
-                      (out/(engine+'-live.html')).write_text(page.content())
-                  except Exception as e:
-                      results.append({'engine':engine,'failure':str(e),'errors':errors,'http_failures':failures})
-                  if engine=='chromium':
-                      try:
-                          page.goto('https://tangerineformac.com/#details',wait_until='networkidle',timeout=60000)
-                          (out/'reference.txt').write_text(page.locator('body').inner_text())
-                          page.screenshot(path=str(out/'reference.png'),full_page=True)
-                      except Exception as e:
-                          results.append({'reference_failure':str(e)})
-                  browser.close()
-          (out/'results.json').write_text(json.dumps(results,indent=2));print(json.dumps(results,indent=2))
-          PY
+          "$RUNNER_TEMP/browser/bin/python" script/test_site_browser.py --engine chromium --output "$RUNNER_TEMP/correction-review/chromium"
+          "$RUNNER_TEMP/browser/bin/python" script/test_site_browser.py --engine webkit --output "$RUNNER_TEMP/correction-review/webkit"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
-          name: live-product-inspection
-          path: ${{ runner.temp }}/inspection/
+          name: Lemulip-Correction-Review
+          path: ${{ runner.temp }}/correction-review/
           retention-days: 2
+          if-no-files-found: warn
