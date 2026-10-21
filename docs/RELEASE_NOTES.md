@@ -3,16 +3,18 @@
 What's new in each Lemulip public preview. Release pages show the matching
 version below, followed by the installation note.
 
-## Unreleased · Repository and Website Refresh
+## Unreleased · Product Website and Repository Refresh
 
-- Align source, test, and package target names with Lemulip. Keep existing app
-  identity and saved settings compatible with earlier installations.
-- Introduce a clearer product page with six animated, explicitly illustrated
-  feature previews, keyboard-accessible tabs, and motion controls.
-- Refresh the README preview and retain the interactive browser wheel.
+- Align source, test, and package target names with Lemulip while keeping
+  existing app identity and saved settings compatible.
+- Show the drag wheel on a desktop and in Finder, with nine sample file types.
+- Display 35 conversion output formats, 26 tools, and six file actions from
+  the app catalog, with optional engine requirements visible.
+- Add interactive edit examples, a playable sample clip, keyboard controls,
+  an automatic tour, and manual controls that also work with reduced motion.
+- Restore the compact product preview in the README and simplify the roadmap.
 
-This maintenance work does not replace the published 0.1.16 downloads or close
-manual Mac, Office, performance, or signing review.
+Website and documentation changes do not replace the published 0.1.16 downloads.
 
 ## 0.1.16 · Easier to Navigate
 
@@ -119,7 +121,4 @@ Export re-encodes the selection; media boundaries can affect its exact duration.
 
 macOS 13+ · Apple Silicon and Intel. Download the DMG or app ZIP under **Assets**.
 
-**Public Preview:** Ad hoc signed; not Developer ID signed or notarized.
-macOS may block first launch.
-
-[Installation Guide](INSTALL.md#signing-and-first-launch) · [User Guide](USER_GUIDE.md) · [Full Changelog](RELEASE_NOTES.md)
+[Installation Guide](INSTALL.md#first-launch) · [User Guide](USER_GUIDE.md) · [Full Changelog](RELEASE_NOTES.md)

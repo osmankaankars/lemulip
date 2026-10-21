@@ -1,18 +1,25 @@
-<p align="center"><img src="Resources/AppIcon.png" width="132" height="132" alt="Lemulip’s green folded ribbon on a warm white app icon"></p>
+<p align="center"><img src="Resources/AppIcon.png" width="88" height="88" alt="Lemulip’s green folded ribbon on a warm white app icon"></p>
 
 # Lemulip
 
 **Less File Work. More Flow.**
 
-Lemulip is a free, open-source file utility for macOS. Drag a file, tap a key,
-and choose a format or tool. Crop a photo, trim a clip, arrange PDFs, or turn a
+Lemulip is a free, open-source file utility for macOS. Start dragging a local
+file on your desktop or in Finder, tap a key, and choose a format or tool.
+You do not need to move the file into Lemulip’s workspace first. Crop a photo, trim a clip, arrange PDFs, or turn a
 simple table into an Excel workbook.
+
+**35 conversion output formats · 26 file tools · 6 file actions.**
+Built-in and optional local engines; counts are distinct catalog entries, not
+input/output pairs. [See formats and limits](docs/FORMATS.md).
 
 Files are processed on your Mac. No account, subscription, uploads, or analytics.
 
 [Download for Mac](https://github.com/osmankaankars/lemulip/releases) · [See It in Action](https://osmankaankars.github.io/lemulip/#features) · [Try the Wheel](https://osmankaankars.github.io/lemulip/#try) · [User Guide](docs/USER_GUIDE.md) · [Formats](docs/FORMATS.md)
 
-[![Lemulip website showing an illustrated file-conversion workflow. Not a native app recording.](docs/assets/demo-preview.png)](https://osmankaankars.github.io/lemulip/#features)
+<p><a href="https://osmankaankars.github.io/lemulip/#try"><img src="docs/assets/demo-preview.png" width="720" alt="Lemulip product preview: a file and its conversion wheel"></a></p>
+
+*Illustrated product preview, not a native app recording. Try the desktop and Finder examples on the [website](https://osmankaankars.github.io/lemulip/#try).*
 
 ## Get Started
 
@@ -22,10 +29,7 @@ Download the **macOS universal DMG** from [Releases](https://github.com/osmankaa
 open it, and drag **Lemulip** into **Applications**. The app ZIP also includes
 the `lemulip` command-line tool. Neither download requires Xcode.
 
-Preview downloads are ad hoc signed and are not yet notarized by Apple.
-Follow [First Launch](docs/INSTALL.md#signing-and-first-launch) if macOS blocks
-opening the app. Native interaction and accessibility reviews are still open
-in the [Roadmap](docs/ROADMAP.md).
+For installation help, see [First Launch](docs/INSTALL.md#first-launch).
 
 ## A Wheel for Your Files
 
@@ -39,10 +43,11 @@ Prefer a window? Add files with **⌘O**, drop them into Workspace, or choose
 related work together.
 
 [Explore the Feature Previews](https://osmankaankars.github.io/lemulip/#features)
-for images, PDFs, audio, video, documents, and archives, or
+for nine sample file types, including images, PDFs, audio, video, documents,
+spreadsheets, slides, subtitles and archives, or
 [Try the Wheel](https://osmankaankars.github.io/lemulip/#try). These are illustrated
-workflows with sample files, not native app recordings. No files are uploaded
-or converted in the browser. Animation can be paused and respects reduced motion.
+workflows with bundled sample content, not native app recordings. The website
+never reads or uploads your files. Animation can be paused and respects reduced motion.
 
 ## What Can It Do?
 
@@ -80,8 +85,7 @@ Add optional local engines only for the formats you need:
 Install instructions are in [Optional Engines](docs/INSTALL.md#optional-engines).
 Refresh detection in **Settings → Local Engines** afterward. Lemulip does not
 download engines automatically. Markdown outside the [built-in subset](docs/FORMATS.md#html-and-markdown-word-export)
-uses Pandoc for the whole selection. Microsoft Office is not required for
-conversion; visual review of generated files in Office is tracked separately.
+uses Pandoc for the whole selection. Microsoft Office is not required for conversion.
 
 ## Make It Yours
 

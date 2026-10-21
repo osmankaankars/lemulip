@@ -22,7 +22,9 @@ Yes. Download the universal DMG or app ZIP from [Releases](https://github.com/os
 
 ## Why Does macOS Show a Warning When Opening a Download?
 
-Current packages are **ad hoc signed**, without Apple Developer ID signing or notarization. macOS may block first launch. Follow [Signing and First Launch](INSTALL.md#signing-and-first-launch) after checking the download's source.
+Check that your download came from this repository, then follow
+[First Launch](INSTALL.md#first-launch). Do not ignore a warning for a download
+from an unknown source.
 
 ## Why Does an Operation Ask for FFmpeg or Another Engine?
 

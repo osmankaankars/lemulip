@@ -1,18 +1,23 @@
 name: Website Browser Checks
 on:
   push:
-    branches: [main, 'refresh/**']
+    branches: [main, 'refresh/**', 'fix/**']
     paths: ['site/**', 'script/test_site*', 'script/test_public_images.py', '.github/workflows/site-review.yml']
   pull_request:
     paths: ['site/**', 'script/test_site*', 'script/test_public_images.py', '.github/workflows/site-review.yml']
   workflow_dispatch:
+  workflow_run:
+    workflows: [Website and Interactive Demo]
+    types: [completed]
+    branches: [main]
 permissions:
   contents: read
 concurrency:
-  group: website-review-${{ github.ref }}
+  group: website-review-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   browser:
+    if: github.event_name != 'workflow_run'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -24,19 +29,47 @@ jobs:
           python3 script/test_site.py
           python3 script/test_branding.py
           python3 script/test_public_images.py
-          node --check site/demo.js
-          node --check site/showcase.js
+          python3 script/privacy_check.py --staged
+          node --check site/catalog.js
+          node --check site/product.js
       - name: Install browser test tools
         run: |
           python3 -m venv "$RUNNER_TEMP/site-tools"
           "$RUNNER_TEMP/site-tools/bin/pip" install playwright==1.61.0
-          "$RUNNER_TEMP/site-tools/bin/python" -m playwright install --with-deps chromium
-      - name: Check desktop, mobile, keyboard, motion, and the original wheel
-        run: '"$RUNNER_TEMP/site-tools/bin/python" script/test_site_browser.py --output "$RUNNER_TEMP/site-review"'
+          "$RUNNER_TEMP/site-tools/bin/python" -m playwright install --with-deps chromium webkit
+      - name: Check nine samples, desktop dragging, editors, and motion
+        run: |
+          "$RUNNER_TEMP/site-tools/bin/python" script/test_site_browser.py --engine chromium --output "$RUNNER_TEMP/site-review/chromium"
+          "$RUNNER_TEMP/site-tools/bin/python" script/test_site_browser.py --engine webkit --output "$RUNNER_TEMP/site-tools/../site-review/webkit"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
           name: Lemulip-Website-Review
           path: ${{ runner.temp }}/site-review/
+          retention-days: 7
+          if-no-files-found: warn
+  production:
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - name: Install isolated browser test tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/site-tools"
+          "$RUNNER_TEMP/site-tools/bin/pip" install playwright==1.61.0
+          "$RUNNER_TEMP/site-tools/bin/python" -m playwright install --with-deps chromium webkit
+      - name: Verify the public Pages URL in Chromium and WebKit
+        run: |
+          "$RUNNER_TEMP/site-tools/bin/python" script/test_site_browser.py --engine chromium --url https://osmankaankars.github.io/lemulip/ --output "$RUNNER_TEMP/live-review/chromium"
+          "$RUNNER_TEMP/site-tools/bin/python" script/test_site_browser.py --engine webkit --url https://osmankaankars.github.io/lemulip/ --output "$RUNNER_TEMP/live-review/webkit"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: Lemulip-Live-Website-Review
+          path: ${{ runner.temp }}/live-review/
           retention-days: 7
           if-no-files-found: warn
