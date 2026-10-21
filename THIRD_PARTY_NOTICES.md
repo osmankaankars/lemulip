@@ -15,7 +15,7 @@ does not bundle a separate runtime implementation.
 
 Some macOS SDKs omit libarchive's public declaration headers. Lemulip includes
 the following two unmodified headers from **libarchive 3.5.3** in the private
-`Sources/CFreewheelArchive/LibarchiveHeaders/` directory. They provide compile-time
+`Sources/CLemulipArchive/LibarchiveHeaders/` directory. They provide compile-time
 declarations only; the application continues to use the system library.
 
 Upstream project: <https://github.com/libarchive/libarchive>.
