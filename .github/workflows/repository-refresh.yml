@@ -2,7 +2,7 @@ name: Validate Refresh Transfer
 on:
   push:
     branches: [refresh/lemulip-2026-10-21]
-    paths: ['.github/refresh-payload/**', '.github/workflows/repository-refresh.yml']
+    paths: ['.github/workflows/repository-refresh.yml']
 permissions:
   contents: read
 jobs:
@@ -15,24 +15,13 @@ jobs:
         with:
           ref: ${{ github.sha }}
           persist-credentials: false
-      - name: Inspect archive as data only
-        shell: python
+      - name: Archive committed source without executing project code
         run: |
-          import hashlib, io, pathlib, tarfile
-          parts = sorted(pathlib.Path('.github/refresh-payload').glob('part-*'))
-          data = b''.join(p.read_bytes() for p in parts)
-          print('ARCHIVE_SHA256', hashlib.sha256(data).hexdigest(), 'BYTES', len(data), flush=True)
-          with tarfile.open(fileobj=io.BytesIO(data), mode='r:gz') as archive:
-              members = archive.getmembers()
-              for member in members:
-                  path = pathlib.PurePosixPath(member.name)
-                  if path.is_absolute() or '..' in path.parts or not member.isfile():
-                      raise SystemExit('Unexpected archive entry: ' + member.name)
-                  if member.size > 2000000:
-                      raise SystemExit('Oversized entry: ' + member.name)
-                  raw = archive.extractfile(member).read()
-                  print('FILE', member.name, 'BYTES', len(raw), 'SHA256', hashlib.sha256(raw).hexdigest(), flush=True)
-              for member in members:
-                  if member.name.endswith(('.md', '.yml', '.py', '.html', '.js', '.css', '.svg', '.json')):
-                      raw = archive.extractfile(member).read()
-                      print('\nBEGIN_FILE ' + member.name + '\n' + raw.decode('utf-8') + '\nEND_FILE ' + member.name, flush=True)
+          git archive --format=tar.gz --output="$RUNNER_TEMP/lemulip-maintenance-source.tar.gz" HEAD
+          sha256sum "$RUNNER_TEMP/lemulip-maintenance-source.tar.gz"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: lemulip-maintenance-source
+          path: ${{ runner.temp }}/lemulip-maintenance-source.tar.gz
+          retention-days: 1
+          if-no-files-found: error
