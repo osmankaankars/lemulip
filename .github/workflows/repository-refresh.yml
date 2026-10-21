@@ -1,27 +1,105 @@
-name: Validate Refresh Transfer
+name: Assemble and Review Website Refresh
 on:
   push:
     branches: [refresh/lemulip-2026-10-21]
-    paths: ['.github/workflows/repository-refresh.yml']
+    paths: ['.github/refresh-assets/**', '.github/workflows/repository-refresh.yml']
 permissions:
-  contents: read
+  contents: write
+concurrency:
+  group: lemulip-refresh-import
+  cancel-in-progress: false
 jobs:
-  validate:
+  review:
     if: github.repository == 'osmankaankars/lemulip' && github.ref == 'refs/heads/refresh/lemulip-2026-10-21'
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-      - name: Archive committed source without executing project code
+          ref: ${{ github.ref_name }}
+      - name: Verify and apply the reviewed source patch
+        env:
+          EXPECTED_COMMIT: ${{ github.sha }}
+        shell: python
         run: |
-          git archive --format=tar.gz --output="$RUNNER_TEMP/lemulip-maintenance-source.tar.gz" HEAD
-          sha256sum "$RUNNER_TEMP/lemulip-maintenance-source.tar.gz"
+          import gzip, hashlib, io, os, pathlib, shutil, subprocess
+          root = pathlib.Path('.')
+          assert subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip() == os.environ['EXPECTED_COMMIT']
+          def joined(prefix, count, length, digest):
+              data = b''.join((root / '.github/refresh-assets' / f'{prefix}-{i:02d}').read_bytes() for i in range(1, count+1))
+              assert len(data) == length, prefix + ' size mismatch'
+              assert hashlib.sha256(data).hexdigest() == digest, prefix + ' checksum mismatch'
+              return data
+          packed = joined('patch', 3, 19437, 'c10c695daa0394ff2dae73a975c90f6b89e95145dafb09aeae9e4f2fa1975d2b')
+          with gzip.GzipFile(fileobj=io.BytesIO(packed)) as stream:
+              patch = stream.read(100001)
+          assert len(patch) == 68990
+          assert hashlib.sha256(patch).hexdigest() == 'bd11b6036702dea0f13e4b27fe69a4daf44ab50f25e8b2b02680d68fd4490e9d'
+          expected = {'.github/workflows/build.yml','.github/workflows/pages.yml','.github/workflows/site-review.yml','README.md','THIRD_PARTY_NOTICES.md','docs/RELEASE_NOTES.md','docs/ROADMAP.md','script/privacy_check.py','script/test_public_images.py','script/test_site.py','script/test_site_browser.py','site/index.html','site/showcase.css','site/showcase.js'}
+          stat = subprocess.check_output(['git','apply','--numstat'], input=patch).decode()
+          assert {row.split('\t',2)[2] for row in stat.splitlines()} == expected
+          subprocess.run(['git','apply','--check'],input=patch,check=True)
+          subprocess.run(['git','apply'],input=patch,check=True)
+          photo = joined('photo', 2, 15164, 'e79abf44c036845255ecfd5e62ec378ec142b5b731fcc900759a7c8931ec5652')
+          (root/'site/assets/morning-light.jpg').write_bytes(photo)
+          for directory in ('.github/refresh-assets','.github/refresh-payload'):
+              shutil.rmtree(root/directory)
+          for filename in ('script/migrate_branding.py','.github/workflows/repository-refresh.yml'):
+              (root/filename).unlink()
+          subprocess.run(['git','add','--all'],check=True)
+          print('Verified source patch and sample image; removed temporary transfer files.')
+      - name: Validate source before publishing the maintenance branch
+        run: |
+          python3 script/test_branding.py
+          python3 script/test_site.py
+          python3 script/test_public_images.py
+          python3 script/privacy_check.py --staged
+          node --check site/demo.js
+          node --check site/showcase.js
+          git diff --cached --check
+      - name: Save reviewed source on the isolated maintenance branch
+        run: |
+          git config user.name 'Kaan Kars'
+          git config user.email '56635935+osmankaankars@users.noreply.github.com'
+          git commit -m 'Refresh illustrated website, documentation, and website regression checks'
+          git push origin HEAD:refs/heads/refresh/lemulip-2026-10-21
+      - name: Install isolated browser test tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/site-tools"
+          "$RUNNER_TEMP/site-tools/bin/pip" install playwright==1.61.0
+          "$RUNNER_TEMP/site-tools/bin/python" -m playwright install --with-deps chromium
+      - name: Run desktop, mobile, interaction, and motion checks
+        run: '"$RUNNER_TEMP/site-tools/bin/python" script/test_site_browser.py --output "$RUNNER_TEMP/site-review"'
+      - name: Prepare README image for visual approval without changing the README asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64, hashlib, json, os, pathlib, struct, urllib.request, zlib
+          folder = pathlib.Path(os.environ['RUNNER_TEMP'])/'site-review'
+          raw = (folder/'home-1536.png').read_bytes()
+          assert raw.startswith(b'\x89PNG\r\n\x1a\n')
+          clean = bytearray(raw[:8]); offset = 8
+          while offset < len(raw):
+              length = struct.unpack_from('>I',raw,offset)[0]
+              kind = raw[offset+4:offset+8]; end = offset+length+12
+              assert end <= len(raw)
+              if kind in {b'IHDR',b'PLTE',b'tRNS',b'IDAT',b'IEND',b'sRGB',b'gAMA',b'cHRM'}:
+                  clean.extend(raw[offset:end])
+              offset = end
+          content = bytes(clean)
+          (folder/'readme-preview.png').write_bytes(content)
+          payload = json.dumps({'content':base64.b64encode(content).decode(),'encoding':'base64'}).encode()
+          request = urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/git/blobs',data=payload,method='POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+          with urllib.request.urlopen(request) as response:
+              blob = json.load(response)
+          proof = {'blob_sha':blob['sha'],'sha256':hashlib.sha256(content).hexdigest(),'bytes':len(content),'status':'Awaiting visual review; not yet assigned to a repository path'}
+          (folder/'readme-preview-object.json').write_text(json.dumps(proof,indent=2)+'\n')
+          print(json.dumps(proof))
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
         with:
-          name: lemulip-maintenance-source
-          path: ${{ runner.temp }}/lemulip-maintenance-source.tar.gz
-          retention-days: 1
-          if-no-files-found: error
+          name: Lemulip-Refresh-Review
+          path: ${{ runner.temp }}/site-review/
+          retention-days: 7
+          if-no-files-found: warn
