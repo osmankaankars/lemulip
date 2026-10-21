@@ -1,0 +1,23 @@
+name: Review Source Snapshot
+on:
+  push:
+    branches: [fix/simplify-product-page-20261022]
+    paths: [.github/workflows/review-snapshot.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 4967e504a6986a885b1d55c049138e65a06550fc
+          persist-credentials: false
+      - name: Archive tracked public source only
+        run: git archive --format=tar.gz --output="$RUNNER_TEMP/review-source.tar.gz" HEAD
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Review-Source
+          path: ${{ runner.temp }}/review-source.tar.gz
+          retention-days: 1
