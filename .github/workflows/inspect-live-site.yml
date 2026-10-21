@@ -1,0 +1,71 @@
+name: Inspect Live Product Page
+on:
+  push:
+    branches: [fix/product-demo-20261021]
+    paths: ['.github/workflows/inspect-live-site.yml']
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Save exact source
+        run: |
+          mkdir -p "$RUNNER_TEMP/inspection"
+          git archive --format=tar.gz --output="$RUNNER_TEMP/inspection/source.tar.gz" HEAD
+      - name: Install isolated browser tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/browser"
+          "$RUNNER_TEMP/browser/bin/pip" install playwright==1.61.0
+          "$RUNNER_TEMP/browser/bin/python" -m playwright install --with-deps chromium webkit
+      - name: Inspect production and visual reference
+        shell: bash
+        run: |
+          "$RUNNER_TEMP/browser/bin/python" - <<'PY'
+          import json, os, pathlib
+          from playwright.sync_api import sync_playwright
+          out=pathlib.Path(os.environ['RUNNER_TEMP'])/'inspection'
+          results=[]
+          with sync_playwright() as p:
+              for engine in ('chromium','webkit'):
+                  browser=getattr(p,engine).launch()
+                  page=browser.new_page(viewport={'width':1440,'height':1000})
+                  errors=[]; failures=[]
+                  page.on('pageerror',lambda e: errors.append(str(e)))
+                  page.on('response',lambda r: failures.append([r.status,r.url]) if r.status>=400 else None)
+                  try:
+                      response=page.goto('https://osmankaankars.github.io/lemulip/',wait_until='networkidle',timeout=60000)
+                      page.screenshot(path=str(out/(engine+'-live-home.png')))
+                      first=page.locator('#feature-title').inner_text()
+                      page.locator('#tab-audio').click()
+                      page.locator('#feature-panel').scroll_into_view_if_needed()
+                      page.wait_for_timeout(1000)
+                      page.screenshot(path=str(out/(engine+'-live-audio.png')))
+                      second=page.locator('#feature-title').inner_text()
+                      animations=page.evaluate('document.getAnimations().map(a=>({name:a.animationName,state:a.playState,time:a.currentTime}))')
+                      page.wait_for_timeout(1500)
+                      later=page.evaluate('document.getAnimations().map(a=>({name:a.animationName,state:a.playState,time:a.currentTime}))')
+                      results.append({'engine':engine,'status':response.status,'url':page.url,'title':page.title(),'before':first,'after':second,'animations':animations,'later':later,'errors':errors,'http_failures':failures})
+                      (out/(engine+'-live.html')).write_text(page.content())
+                  except Exception as e:
+                      results.append({'engine':engine,'failure':str(e),'errors':errors,'http_failures':failures})
+                  if engine=='chromium':
+                      try:
+                          page.goto('https://tangerineformac.com/#details',wait_until='networkidle',timeout=60000)
+                          (out/'reference.txt').write_text(page.locator('body').inner_text())
+                          page.screenshot(path=str(out/'reference.png'),full_page=True)
+                      except Exception as e:
+                          results.append({'reference_failure':str(e)})
+                  browser.close()
+          (out/'results.json').write_text(json.dumps(results,indent=2));print(json.dumps(results,indent=2))
+          PY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: live-product-inspection
+          path: ${{ runner.temp }}/inspection/
+          retention-days: 2
