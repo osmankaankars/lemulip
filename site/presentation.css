@@ -54,7 +54,7 @@ pre, code, .file-name, #output-name, #workspace-status, .archive-items,
 [data-origin=workspace] .sample-grid .file-art,
 [data-origin=finder] .sample-grid .file-art { width: 34px; height: 42px; }
 [data-origin=workspace] .sample-grid .desktop-file,
-[data-origin=finder] .sample-grid .desktop-file { font-size: 9px; gap: 4px; }
+[data-origin=finder] .sample-grid .desktop-file { font-size: 9px; gap: 4px; padding: 2px 4px; }
 .floating-wheel { left: 52%; top: 52%; width: min(62%, 290px); }
 .sample-output { left: 50%; right: auto; top: 50%; transform: translate(-50%,-50%);
   width: min(260px, 82%); padding: 19px; border-radius: 13px; border: 1px solid #8da768;
