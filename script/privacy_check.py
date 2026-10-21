@@ -58,14 +58,17 @@ ALLOWED_EMAILS = {
 PUBLIC_IMAGES = {
     "site/assets/morning-light.jpg": "e79abf44c036845255ecfd5e62ec378ec142b5b731fcc900759a7c8931ec5652",
     "Resources/AppIcon.png": "f68b17dc79d0e13246fc425218031a3bc35db2d1e27d845ee657f17f423d8a45",
-    "docs/assets/demo-preview.png": "623b144f9a20a94acb6d32cccc412bdfd27a75b6d2de17d054d67cb7348bc0cf",
+    "docs/assets/demo-preview.png": "8872c6e65528bf47bdf95e64b5313cd6ce6c25f8e22c111ac05574f0701f5870",
+}
+PUBLIC_MEDIA = {
+    "site/assets/sample-walk.mp4": "f7e491386111e3cd4d60eb886e24379a60a0a38943b674e8e1081ac5e1127e10",
 }
 TEXT_SIZE_LIMIT = 2_000_000
 IMAGE_SIZE_LIMIT = 8_000_000
 
 
 def size_limit(name: str) -> int:
-    return IMAGE_SIZE_LIMIT if name in PUBLIC_IMAGES else TEXT_SIZE_LIMIT
+    return IMAGE_SIZE_LIMIT if name in PUBLIC_IMAGES or name in PUBLIC_MEDIA else TEXT_SIZE_LIMIT
 
 
 def jpeg_without_metadata(data: bytes) -> bool:
@@ -154,6 +157,9 @@ def image_is_public(name: str, data: bytes) -> bool:
 def content_failures(name: str, data: bytes) -> list[str]:
     if len(data) > size_limit(name):
         return ["unexpected-large-file"]
+    if name in PUBLIC_MEDIA:
+        valid = hashlib.sha256(data).hexdigest() == PUBLIC_MEDIA[name] and data[4:8] == b"ftyp"
+        return [] if valid else ["unreviewed-or-invalid-public-media"]
     if name in PUBLIC_IMAGES:
         return [] if image_is_public(name, data) else ["unreviewed-or-invalid-public-image"]
     failures = []

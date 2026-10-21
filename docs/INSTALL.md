@@ -15,7 +15,7 @@ ZIP if you also want the command-line tool.
 | `Lemulip-<version>-macOS-universal.zip` | Mac app, `lemulip` CLI, and guides | Extract the ZIP and move **Lemulip.app** into **Applications** |
 | `Lemulip-<version>-Source.zip` | Source code | Follow the source-build instructions below |
 
-App downloads run without Xcode or Swift. See [Signing and First Launch](#signing-and-first-launch)
+App downloads run without Xcode or Swift. See [First Launch](#first-launch)
 before opening a preview for the first time.
 
 ### Verify a Download
@@ -29,8 +29,8 @@ shasum -a 256 -c SHA256SUMS.txt
 
 If you downloaded only the DMG or app ZIP, calculate that file's SHA-256 with
 `shasum -a 256` and compare it with the matching line in `SHA256SUMS.txt`.
-Checksums detect a mismatch with the published files; they do not provide Apple
-notarization.
+Checksums help detect a mismatch with the published files. Verify that the
+release comes from this repository before opening a download.
 
 ## Build From Source
 
@@ -46,7 +46,7 @@ You need **Swift 5.9 or later** from compatible Xcode Command Line Tools or full
 
 You can also double-click the command file in Finder.
 
-The script builds the app, checks its bundle, applies an ad hoc signature, and installs it in your account's `Applications` folder. It opens the new installation when no existing Lemulip or Freewheel instance is running.
+The script builds the app, checks its bundle, and installs it in your account's `Applications` folder. It opens the new installation when no existing Lemulip or Freewheel instance is running.
 
 If Lemulip is already installed there, the script preserves it. The new app is at `dist/Lemulip.app`. Quit the current app before replacing it with the new build. Your preferences are stored separately from the app bundle.
 
@@ -88,9 +88,10 @@ The outputs are `dist/Lemulip.app` and `dist/lemulip`. For Apple Silicon and Int
 ./script/build_app.sh --universal
 ```
 
-## Signing and First Launch
+## First Launch
 
-Current packages are **ad hoc signed**, without Apple Developer ID signing or notarization. macOS may block a downloaded app on first launch. Review its source and origin before opening it.
+macOS may ask you to confirm a downloaded app on first launch. Check that your
+download came from this repository before opening it.
 
 Apple's [guide to safely opening apps](https://support.apple.com/en-us/102445) explains first-launch controls. Lemulip does not disable Gatekeeper, remove quarantine attributes, or change system security settings.
 

@@ -143,7 +143,7 @@ native window restoration, keyboard interaction, or VoiceOver acceptance.
 
 ### Measure on a Mac
 
-Inspect the installed app and local signing readiness with:
+Inspect the installed app with:
 
 ```bash
 python3 script/review_mac.py --output "$HOME/Desktop/Lemulip-Mac-Review"
@@ -151,7 +151,7 @@ python3 script/review_mac.py --output "$HOME/Desktop/Lemulip-Mac-Review"
 
 The default app is `/Applications/Lemulip.app`; use `--app PATH` for another
 installation. The report records the app version, generic hardware model,
-macOS version, installed logical and allocated bytes, and summarized signing
+macOS version, installed logical and allocated bytes, and package
 checks. It omits usernames, computer names, volume paths, serial numbers,
 certificate identity names, and credentials. Nothing is uploaded.
 
@@ -218,10 +218,6 @@ Use an actual first-frame/responsiveness measurement, not the return time of
 `open` or the appearance of a process ID. See Apple's
 [launch-time guidance](https://developer.apple.com/documentation/xcode/reducing-your-app-s-launch-time).
 
-Signing readiness is diagnostic. A valid local signature or an available
-Developer ID identity does not prove notarization or a successful first launch
-from a browser download. Complete the [distribution checks](PUBLISHING.md#signing)
-on a Mac before closing that roadmap item. Keep local reports outside Git.
 
 ## Converter Constraints
 
@@ -361,4 +357,4 @@ Both routes prepare files; actual Microsoft Office acceptance stays
 Use a clean checkout and a new app version for a new release. Packaging preserves
 existing archives. For a source-only ZIP, use `python3 script/package_source.py`;
 `--output` selects a new filename. See [Publishing](PUBLISHING.md) for the
-release workflow and keep signing credentials outside the repository.
+release workflow and keep credentials outside the repository.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regression checks for the public-image allowlist and metadata guard."""
 import unittest
-from privacy_check import ROOT, PUBLIC_IMAGES, image_is_public, jpeg_without_metadata
+from privacy_check import ROOT, PUBLIC_IMAGES, image_is_public, jpeg_without_metadata, PUBLIC_MEDIA, content_failures
 class PublicImageTests(unittest.TestCase):
     def test_reviewed_assets_match_their_digests(self):
         for name in PUBLIC_IMAGES:
@@ -18,4 +18,9 @@ class PublicImageTests(unittest.TestCase):
     def test_truncated_jpeg_is_rejected(self):
         data=(ROOT/'site/assets/morning-light.jpg').read_bytes()
         self.assertFalse(jpeg_without_metadata(data[:-2]))
+    def test_reviewed_sample_video_is_exact_and_tampering_is_rejected(self):
+        for name in PUBLIC_MEDIA:
+            data=(ROOT/name).read_bytes()
+            self.assertEqual([],content_failures(name,data))
+            self.assertIn('unreviewed-or-invalid-public-media',content_failures(name,data+b'x'))
 if __name__=='__main__': unittest.main()

@@ -1,5 +1,10 @@
 # Formats and Conversion Limits
 
+The app catalog lists **35 distinct conversion output formats**, **26 file tools**,
+and **6 file actions**. These are unique entries, not a count of every possible
+input/output pair. The tool count includes ZIP, TAR and GZIP creation and archive
+extraction. Some routes require the optional local engines described below.
+
 Lemulip selects operations from the file extensions in your selection. A listed format is a supported route, not a promise that every codec or document feature will survive conversion.
 
 See [Installation](INSTALL.md#optional-engines) for optional engines and
