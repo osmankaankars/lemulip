@@ -7,6 +7,7 @@ import ctypes
 import datetime
 import functools
 import json
+import math
 import os
 from pathlib import Path
 import platform
@@ -25,6 +26,24 @@ BUNDLE_ID = "app.freewheel.Freewheel"
 REPORT_NAMES = ("Lemulip-Mac-Review.json", "Lemulip-Mac-Review.md")
 SETTLE_SECONDS = 60
 SAMPLE_SECONDS = 60
+
+
+class RUsageInfoV0(ctypes.Structure):
+    # Apple XNU's fixed V0 layout; do not use a newer flavor with this buffer.
+    # https://github.com/apple-oss-distributions/xnu/blob/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/bsd/sys/resource.h
+    _fields_ = [
+        ("ri_uuid", ctypes.c_uint8 * 16),
+        ("ri_user_time", ctypes.c_uint64),
+        ("ri_system_time", ctypes.c_uint64),
+        ("ri_pkg_idle_wkups", ctypes.c_uint64),
+        ("ri_interrupt_wkups", ctypes.c_uint64),
+        ("ri_pageins", ctypes.c_uint64),
+        ("ri_wired_size", ctypes.c_uint64),
+        ("ri_resident_size", ctypes.c_uint64),
+        ("ri_phys_footprint", ctypes.c_uint64),
+        ("ri_proc_start_abstime", ctypes.c_uint64),
+        ("ri_proc_exit_abstime", ctypes.c_uint64),
+    ]
 
 
 class ReviewError(Exception):
@@ -201,6 +220,67 @@ def process_path(pid: int) -> Path:
     return Path(os.fsdecode(buffer.value)).resolve()
 
 
+@functools.lru_cache(maxsize=1)
+def wakeup_function():
+    function = process_library().proc_pid_rusage
+    function.argtypes = [ctypes.c_int, ctypes.c_int, ctypes.c_void_p]
+    function.restype = ctypes.c_int
+    return function
+
+
+def wakeup_snapshot(pid: int) -> dict:
+    """Read optional counters without weakening process checks or requiring sudo."""
+    if (ctypes.sizeof(ctypes.c_void_p) != 8 or ctypes.sizeof(RUsageInfoV0) != 96
+            or RUsageInfoV0.ri_pkg_idle_wkups.offset != 32
+            or RUsageInfoV0.ri_interrupt_wkups.offset != 40
+            or RUsageInfoV0.ri_proc_start_abstime.offset != 80
+            or RUsageInfoV0.ri_proc_exit_abstime.offset != 88):
+        return {"status": "Not Measured", "reason": "Native Wakeup Counter Layout Unsupported"}
+    try:
+        function = wakeup_function()
+        usage = RUsageInfoV0()
+        before = time.monotonic()
+        result = function(pid, 0, ctypes.byref(usage))
+        after = time.monotonic()
+    except (AttributeError, OSError, TypeError, ValueError, ctypes.ArgumentError):
+        return {"status": "Not Measured", "reason": "Native Wakeup Counters Unavailable"}
+    if result != 0:
+        return {"status": "Not Measured", "reason": "Native Wakeup Counters Unavailable"}
+    if not 0 <= after - before <= 1:
+        return {"status": "Not Measured", "reason": "Native Wakeup Read Interrupted"}
+    if usage.ri_proc_start_abstime == 0:
+        return {"status": "Not Measured", "reason": "Native Wakeup Process Identity Unavailable"}
+    if usage.ri_proc_exit_abstime != 0:
+        return {"status": "Not Measured", "reason": "App Process Exited During Wakeup Measurement"}
+    return {"status": "Measured", "time": before + (after - before) / 2,
+            "process_start": usage.ri_proc_start_abstime,
+            "interrupt": usage.ri_interrupt_wkups, "platform_idle": usage.ri_pkg_idle_wkups}
+
+
+def wakeup_measurement(start: dict, end: dict) -> dict:
+    """Return interval counts only; timestamps and process identifiers stay local."""
+    for snapshot in (start, end):
+        if snapshot["status"] != "Measured":
+            return {"status": "Not Measured", "reason": snapshot["reason"]}
+    if start["process_start"] != end["process_start"]:
+        return {"status": "Not Measured", "reason": "App Process Changed During Wakeup Measurement"}
+    if any(end[key] < start[key] for key in ("interrupt", "platform_idle")):
+        return {"status": "Not Measured", "reason": "Native Wakeup Counters Decreased"}
+    elapsed = end["time"] - start["time"]
+    if not math.isfinite(elapsed) or elapsed <= 0:
+        return {"status": "Not Measured", "reason": "Wakeup Observation Interval Invalid"}
+    # XNU maps these to interrupt and platform-idle task ledgers. They overlap;
+    # neither their sum nor the app's timer interval measures total wakeups/energy.
+    # https://github.com/apple-oss-distributions/xnu/blob/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/osfmk/kern/bsd_kern.c
+    interrupt = end["interrupt"] - start["interrupt"]
+    platform_idle = end["platform_idle"] - start["platform_idle"]
+    return {"status": "Measured", "source": "proc_pid_rusage (RUSAGE_INFO_V0)",
+            "scope": "Main App Process Only", "observation_seconds": round(elapsed, 3),
+            "interrupt_wakeups": interrupt, "interrupt_wakeups_per_second": round(interrupt / elapsed, 4),
+            "platform_idle_wakeups": platform_idle,
+            "platform_idle_wakeups_per_second": round(platform_idle / elapsed, 4)}
+
+
 def process_snapshot(pid: int, executable: Path) -> dict:
     result = command(["/bin/ps", "-p", str(pid), "-o", "uid=", "-o", "lstart=", "-o", "rss=", "-o", "time="])
     require(result is not None and result.returncode == 0, "The selected app process is no longer available.")
@@ -265,6 +345,7 @@ def measure_idle(executable: Path, pid=None) -> dict:
             print(f"Settling: {second} / {SETTLE_SECONDS} Seconds", flush=True)
     start = process_snapshot(pid, executable)
     require(start["identity"] == initial["identity"], "The app process or executable changed during measurement.")
+    wakeup_start = wakeup_snapshot(pid)
     samples = [start]
     print(f"Measuring: {SAMPLE_SECONDS} Seconds", flush=True)
     for second in range(1, SAMPLE_SECONDS + 1):
@@ -277,6 +358,8 @@ def measure_idle(executable: Path, pid=None) -> dict:
         samples.append(current)
         if second % 30 == 0:
             print(f"Measuring: {second} / {SAMPLE_SECONDS} Seconds", flush=True)
+    wakeup_end = wakeup_snapshot(pid) if wakeup_start["status"] == "Measured" else wakeup_start
+    wakeups = wakeup_measurement(wakeup_start, wakeup_end)
     elapsed = samples[-1]["time"] - start["time"]
     return {
         "status": "Measured", "conditions": "Operator Confirmed: Workspace Visible, Wheel Enabled, No Jobs, Editors, Playback or Dragging",
@@ -285,7 +368,8 @@ def measure_idle(executable: Path, pid=None) -> dict:
         "mean_rss_bytes": round(statistics.mean(sample["rss_bytes"] for sample in samples)),
         "peak_sampled_rss_bytes": max(sample["rss_bytes"] for sample in samples),
         "mean_cpu_percent_one_core": round(100 * (samples[-1]["cpu_seconds"] - start["cpu_seconds"]) / elapsed, 4),
-        "wakeups": "Not Measured", "warm_interactive_launch": "Not Measured",
+        "wakeups": wakeups["status"], "wakeup_measurement": wakeups,
+        "warm_interactive_launch": "Not Measured",
     }
 
 
@@ -345,16 +429,38 @@ def markdown_report(report: dict) -> str:
                   idle["conditions"] + ".", ""]
     elif "reason" in idle:
         lines += [idle["reason"] + ".", ""]
+    wakeups = idle.get("wakeup_measurement")
+    measured_wakeups = isinstance(wakeups, dict) and wakeups.get("status") == "Measured"
+    if measured_wakeups:
+        lines += ["Wakeups: **Measured**.", "", "| Metric | Result |", "| --- | --- |",
+                  f"| Wakeup Observation Period (Seconds) | {wakeups['observation_seconds']} |",
+                  f"| Interrupt Wakeups | {wakeups['interrupt_wakeups']} |",
+                  f"| Interrupt Wakeups per Second | {wakeups['interrupt_wakeups_per_second']} |",
+                  f"| Platform Idle Wakeups | {wakeups['platform_idle_wakeups']} |",
+                  f"| Platform Idle Wakeups per Second | {wakeups['platform_idle_wakeups_per_second']} |", "",
+                  "Warm Interactive Launch: **Not Measured**.", ""]
+    else:
+        lines += ["Wakeups: **Not Measured**. Warm Interactive Launch: **Not Measured**.", ""]
+        if isinstance(wakeups, dict) and "reason" in wakeups:
+            lines += [wakeups["reason"] + ".", ""]
     lines += [
-        "Wakeups: **Not Measured**. Warm Interactive Launch: **Not Measured**.", "",
         "## Measurement Limits", "",
         "- MB uses decimal units: 1 MB = 1,000,000 bytes. Exact byte counts are retained in both reports.",
         "- Logical size sums file bytes and symlink lengths. Allocated size comes from `du`; filesystem allocation can differ. Optional engines are excluded.",
         "- RSS samples cover the main app process. They are not total system memory, physical footprint, or the maximum between samples.",
         "- CPU uses the difference in cumulative process CPU time over monotonic elapsed time. Its source has centisecond precision; this is not an instantaneous CPU sample.",
+    ]
+    if isinstance(wakeups, dict):
+        lines += [
+            "- Wakeups use two `proc_pid_rusage` V0 counter readings and their own monotonic interval. The app process must retain the same start identifier; decreasing or unavailable counters are not reported as zero.",
+            "- Interrupt and platform-idle wakeups are separate kernel attributions for the main app process. They can overlap and must not be added; they do not measure all thread wakeups, system sleep/wake events, or total energy use.",
+        ]
+    lines += [
         "- A local Gatekeeper assessment can reflect existing approvals. It does not verify notarization or the first launch of a fresh quarantined download.",
         "- Available signing identities do not prove notarization access. Identity names, certificate data, paths, usernames, hostnames, and serial numbers are omitted.",
-        "- Office appearance, Finder interactions, editors, VoiceOver, multiple displays, wakeups, and ten interactive warm launches require separate review.",
+        ("- Office appearance, Finder interactions, editors, VoiceOver, multiple displays, and ten interactive warm launches require separate review."
+         if measured_wakeups else
+         "- Office appearance, Finder interactions, editors, VoiceOver, multiple displays, wakeups, and ten interactive warm launches require separate review."),
         "", "This report stays local. Nothing is uploaded or installed, and no application is launched or quit.", "",
     ]
     return "\n".join(lines)
@@ -382,6 +488,7 @@ def main() -> int:
     directory = prepare_output(arguments.output)
     print("Checking Lemulip and Installed Size...", flush=True)
     app_summary, executable = inspect_bundle(app)
+    print(f"Selected App: Lemulip {app_summary['version']} (Build {app_summary['build']})", flush=True)
     print("Checking the Mac Baseline...", flush=True)
     baseline = system_summary()
     print("Checking Local Signing Readiness...", flush=True)
@@ -409,9 +516,11 @@ def main() -> int:
             print("Lemulip: Idle process data could not be collected. The running app was left untouched.", file=sys.stderr)
             exit_status = 1
         print("Idle Measurement: " + report["idle"]["status"], flush=True)
+        print("Idle Wakeups: " + report["idle"]["wakeups"], flush=True)
     write_reports(directory, report)
     print("Saved: " + " and ".join(REPORT_NAMES))
-    print("Readiness was recorded. Hands-on acceptance, warm launch, and wakeups remain unverified.")
+    print("Readiness was recorded. Hands-on acceptance and warm launch remain unverified."
+          + (" Wakeups were not measured." if report["idle"]["wakeups"] != "Measured" else ""))
     return exit_status
 
 

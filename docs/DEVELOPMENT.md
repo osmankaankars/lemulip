@@ -160,10 +160,31 @@ measurements. Each attempt needs a new output folder; existing reports are
 preserved.
 
 The report gives mean and peak sampled resident memory for the main process
-and interval CPU usage as a percentage of one logical CPU. It does not measure
-optional engines, wakeups, or interactive startup time.
+and interval CPU usage as a percentage of one logical CPU. It also reads the
+kernel's per-process interrupt and platform-idle wakeup counters at the start
+and end of the observation period. Counts and rates use their own measured
+interval, and the native process-start value must match at both endpoints.
 
-Report wakeups and the median of ten interactive warm launches separately.
+The wakeup counters describe different kernel events. Report them separately;
+do not add them, infer them from a timer interval, or interpret them as a
+battery-use measurement. The collector uses `proc_pid_rusage` with
+`RUSAGE_INFO_V0` for the selected, current-user app. It requests no elevated
+privileges. If the counters are unavailable, denied, reset, or inconsistent,
+wakeups stay **Not Measured** while valid memory and CPU results are retained.
+Apple's [V0 counter layout](https://github.com/apple-oss-distributions/xnu/blob/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/bsd/sys/resource.h)
+and [task-counter mapping](https://github.com/apple-oss-distributions/xnu/blob/f6217f891ac0bb64f3d375211650a4c1ff8ca1ea/osfmk/kern/bsd_kern.c)
+define the collected fields. Optional engines and interactive startup time
+remain outside this collection.
+
+Report the median of ten interactive warm launches separately. A local XCTest
+UI-test target can use
+[`XCTApplicationLaunchMetric(waitUntilResponsive: true)`](https://developer.apple.com/documentation/xctest/xctapplicationlaunchmetric/init(waituntilresponsive:))
+for the installed app. Record the ten individual durations and their median,
+then check a real workspace or menu action separately. Finish all work and
+quit the app normally before this repeated-launch review; the test can
+terminate the app between iterations. Keep the local test project and raw
+results outside the repository.
+
 Use an actual first-frame/responsiveness measurement, not the return time of
 `open` or the appearance of a process ID. See Apple's
 [launch-time guidance](https://developer.apple.com/documentation/xcode/reducing-your-app-s-launch-time).

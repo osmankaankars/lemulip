@@ -43,7 +43,7 @@ Developer ID identity.
 | --- | --- | --- |
 | 1 | **Office Review** | Use the [guided review](OFFICE_REVIEW.md#run-the-guided-review) to inspect the eight comparisons in Word, Excel, and PowerPoint. Record actual app versions, fonts, pagination, literal cell values, formula recalculation, and slide appearance. Current manual status: **Not Reviewed**. |
 | 2 | **Mac Interaction and Accessibility** | Check Finder dragging, multiple displays, each editor's pointer/keyboard controls, playback, cancellation, reopening, VoiceOver, and accessibility settings. Review Finder/Dock appearance and capture actual app screenshots. |
-| 3 | **Lightweight Performance** | Run the [local Mac collector](DEVELOPMENT.md#measure-on-a-mac) for installed size and idle memory/CPU, then measure wakeups and interactive warm launch on a stated Mac/OS baseline. Investigate the current 40 ms drag polling interval if measurements show unnecessary idle cost. |
+| 3 | **Lightweight Performance** | Run the [local Mac collector](DEVELOPMENT.md#measure-on-a-mac) for installed size, idle memory/CPU, and wakeups, then measure ten interactive warm launches on a stated Mac/OS baseline. Investigate the current 40 ms drag polling interval if measurements show unnecessary idle cost. |
 | 4 | **Signed Distribution** | Check local signing readiness, add Developer ID signing and notarization when credentials are available, then verify a quarantined download's installation and first launch on a clean Mac. |
 
 Automated conversion checks do not complete hands-on interaction or Microsoft
