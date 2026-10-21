@@ -1,140 +1,43 @@
-<p align="center"><img src="Resources/AppIcon.png" width="88" height="88" alt="Lemulip’s green folded ribbon on a warm white app icon"></p>
+<p align="center"><img src="Resources/AppIcon.png" width="88" height="88" alt="Lemulip app icon"></p>
 
 # Lemulip
 
 **Less File Work. More Flow.**
 
-Lemulip is a free, open-source file utility for macOS. Start dragging a local
-file on your desktop or in Finder, tap a key, and choose a format or tool.
-You do not need to move the file into Lemulip’s workspace first. Crop a photo, trim a clip, arrange PDFs, or turn a
-simple table into an Excel workbook.
+Free, open-source file tools for macOS. Drag a local file on your desktop or in Finder, tap a key, and choose an operation. Processing stays on your Mac.
 
-**35 conversion output formats · 26 file tools · 6 file actions.**
-Built-in and optional local engines; counts are distinct catalog entries, not
-input/output pairs. [See formats and limits](docs/FORMATS.md).
+**35 Conversion Output Formats · 26 File Tools · 6 File Actions**
 
-Files are processed on your Mac. No account, subscription, uploads, or analytics.
+Includes built-in and optional local engines.
 
-[Download for Mac](https://github.com/osmankaankars/lemulip/releases) · [See It in Action](https://osmankaankars.github.io/lemulip/#features) · [Try the Wheel](https://osmankaankars.github.io/lemulip/#try) · [User Guide](docs/USER_GUIDE.md) · [Formats](docs/FORMATS.md)
+[Download For Mac](https://github.com/osmankaankars/lemulip/releases) · [Website](https://osmankaankars.github.io/lemulip/)
 
-<p><a href="https://osmankaankars.github.io/lemulip/#try"><img src="docs/assets/demo-preview.png" width="720" alt="Lemulip product preview: a file and its conversion wheel"></a></p>
+<p><img src="docs/assets/demo-preview.png" width="720" alt="Illustrated Lemulip product preview"></p>
 
-*Illustrated product preview, not a native app recording. Try the desktop and Finder examples on the [website](https://osmankaankars.github.io/lemulip/#try).*
+*Illustrated product preview.*
 
-## Get Started
+## Install
 
-**0.1.16 · Public Preview · macOS 13+ · Apple Silicon and Intel**
+**macOS 13+ · Apple Silicon & Intel · 0.1.16 Public Preview**
 
-Download the **macOS universal DMG** from [Releases](https://github.com/osmankaankars/lemulip/releases),
-open it, and drag **Lemulip** into **Applications**. The app ZIP also includes
-the `lemulip` command-line tool. Neither download requires Xcode.
+Open the release DMG and drag Lemulip into Applications. The app ZIP also includes the command-line tool. [Installation and optional engines](docs/INSTALL.md).
 
-For installation help, see [First Launch](docs/INSTALL.md#first-launch).
+## File Tools
 
-## A Wheel for Your Files
-
-1. Start dragging one or more local files.
-2. Tap **⇧ Shift** for formats, **⌘ Command** for tools, or **⌃ Control** for file actions.
-3. Drop onto an operation. Editors and option panels open when needed.
-
-The center cancels; dropping outside the wheel submits no conversion.
-Prefer a window? Add files with **⌘O**, drop them into Workspace, or choose
-**Open With → Lemulip**. A job queue, Activity, and floating file shelf keep
-related work together.
-
-[Explore the Feature Previews](https://osmankaankars.github.io/lemulip/#features)
-for nine sample file types, including images, PDFs, audio, video, documents,
-spreadsheets, slides, subtitles and archives, or
-[Try the Wheel](https://osmankaankars.github.io/lemulip/#try). These are illustrated
-workflows with bundled sample content, not native app recordings. The website
-never reads or uploads your files. Animation can be paused and respects reduced motion.
-
-## What Can It Do?
-
-| Work With | Tools |
+| Files | Operations |
 | --- | --- |
-| Images | Convert PNG, JPEG, HEIC, TIFF and BMP; visual crop, resize, rotate, remove metadata; images to PDF |
-| PDFs | Preview, reorder, rotate, remove and extract pages; arrange documents before merging; split, export page images, extract text, offline OCR |
-| Audio | Waveform trim with selection playback; M4A, WAV and AIFF export |
-| Video | Native preview, visual trim and crop, MP4/MOV export |
-| Documents and Tables | Built-in TXT, basic RTF, and basic Markdown → DOCX; CSV/TSV → XLSX; CSV ↔ TSV; subtitles |
-| Archives | Create ZIP and TAR, GZIP individual files, extract supported archives into a new folder |
-| File Actions | AirDrop, floating shelf, copy, move, copy path, open the containing folder in Terminal |
+| Images | Convert, crop, resize, rotate, remove metadata |
+| PDFs | Organize, merge, split, extract, rotate, offline OCR |
+| Audio & Video | Trim, crop video, convert and extract audio |
+| Documents & Tables | Word and Excel export, document and spreadsheet conversions |
+| Subtitles & Archives | SRT/VTT conversion, ZIP/TAR creation, GZIP and extraction |
 
-The visual editors let you review the crop, selection, or page order before
-choosing **Create Copy**. See the [User Guide](docs/USER_GUIDE.md) for each tool's
-controls and the [Formats](docs/FORMATS.md) guide for input and export limits.
+Tap **⇧ Shift** for formats, **⌘ Command** for tools, or **⌃ Control** for actions while dragging. Workspace is also available for file selection and jobs.
 
-## Start With What Is Built In
+## Local Engines
 
-Common image, PDF, OCR, archive, subtitle, and basic Office tools work without
-extra engines. Basic RTF export keeps supported font and paragraph formatting.
-Markdown notes can become Word documents with headings, simple lists, emphasis,
-code, and tables. CSV/TSV export creates one Excel worksheet and keeps every
-value as text, including leading zeros and formula-like content.
+Common tools are built in. Optional **FFmpeg**, **ImageMagick**, **LibreOffice**, and **Pandoc** extend media, image, and document support. Engines are installed separately, not bundled. Refresh detection in **Settings → Local Engines** after installation.
 
-Add optional local engines only for the formats you need:
+[User Guide](docs/USER_GUIDE.md) · [Formats](docs/FORMATS.md) · [Development](docs/DEVELOPMENT.md) · [Release Notes](docs/RELEASE_NOTES.md)
 
-| Engine | Adds |
-| --- | --- |
-| FFmpeg | Additional audio and video formats and tools |
-| ImageMagick | Additional image formats |
-| LibreOffice | Richer Office documents, workbooks and presentations; complex RTF and HTML → DOCX |
-| Pandoc | Richer Markdown → DOCX, EPUB, and other supported document routes |
-
-Install instructions are in [Optional Engines](docs/INSTALL.md#optional-engines).
-Refresh detection in **Settings → Local Engines** afterward. Lemulip does not
-download engines automatically. Markdown outside the [built-in subset](docs/FORMATS.md#html-and-markdown-word-export)
-uses Pandoc for the whole selection. Microsoft Office is not required for conversion.
-
-## Make It Yours
-
-Choose **Orchard Night**, **Vivid Pistachio**, or **Lemon Drop** in
-**Settings → Appearance → Theme**. Orchard Night is the default. Your choice is
-remembered across the workspace, wheel, and editors. Every theme shares the
-warm white icon tile and vivid green ribbon.
-
-## Your Originals Stay Yours
-
-Conversions create new files under unused names. By default, a job saves output
-beside its first file; PDF merge follows the first retained document in the
-arranged list. Change **Save in the First File's Folder** to choose a destination.
-
-**Move To…** moves the selected originals. **Compress PDF** creates a flattened
-copy, removing searchable text, links, forms, and other PDF structure from that
-copy; the app asks you to acknowledge this first. Activity lasts for the current
-session. Only preferences are saved.
-
-## Build From Source
-
-Use **Swift 5.9+** from compatible Xcode Command Line Tools or full Xcode.
-From the extracted source folder, run:
-
-```bash
-./Build-and-Install.command
-```
-
-The script installs to your account's `Applications` folder. If Lemulip is
-already installed there, it keeps that copy and places the new build in
-`dist/Lemulip.app`. See [Installation](docs/INSTALL.md) for developer-tool setup
-and [Development](docs/DEVELOPMENT.md) for checks and packaging.
-
-The CLI uses the same conversion engine:
-
-```bash
-swift run lemulip convert png photo.heic
-swift run lemulip run pdf.merge first.pdf second.pdf
-swift run lemulip engines
-```
-
-More examples: [CLI Guide](docs/USER_GUIDE.md#command-line-use).
-
-## Contributors
-
-Created and maintained by **[Kaan Kars](https://github.com/osmankaankars)**.
-Bug reports and focused improvements are welcome; see [Contributing](CONTRIBUTING.md)
-and the [Roadmap](docs/ROADMAP.md).
-
-Lemulip is MIT licensed. Its drag-wheel workflow was inspired by [Tangerine](https://tangerineformac.com).
-
-[License](LICENSE) · [Third-Party Notices](THIRD_PARTY_NOTICES.md) · [Security](SECURITY.md) · [FAQ](docs/FAQ.md) · [Design](docs/DESIGN.md) · [Release Notes](docs/RELEASE_NOTES.md)
+Created by [Kaan Kars](https://github.com/osmankaankars). [MIT License](LICENSE) · [Third-Party Notices](THIRD_PARTY_NOTICES.md) · [Security](SECURITY.md)

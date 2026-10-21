@@ -34,30 +34,25 @@ verify_bundle() {
 
 copy_public_guides() {
   local destination="$1"
-  mkdir -p "$destination/docs/assets"
+  mkdir -p "$destination/docs"
   cp LICENSE THIRD_PARTY_NOTICES.md CONTRIBUTING.md SECURITY.md "$destination/"
-  cp docs/assets/workflow.svg "$destination/docs/assets/"
-  for guide in INSTALL.md USER_GUIDE.md FAQ.md FORMATS.md DEVELOPMENT.md OFFICE_REVIEW.md RELEASE_NOTES.md PUBLISHING.md; do
+  for guide in INSTALL.md USER_GUIDE.md FORMATS.md DEVELOPMENT.md OFFICE_REVIEW.md RELEASE_NOTES.md; do
     cp "docs/$guide" "$destination/docs/"
   done
   cat > "$destination/README.md" <<'README'
 # Lemulip
 
-Start with the [installation guide](docs/INSTALL.md), then see the
-[user guide](docs/USER_GUIDE.md), [formats](docs/FORMATS.md), and [FAQ](docs/FAQ.md).
-The ZIP download also includes the `lemulip` command-line tool.
+[Installation](docs/INSTALL.md) · [User Guide](docs/USER_GUIDE.md) · [Formats](docs/FORMATS.md) · [Release Notes](docs/RELEASE_NOTES.md)
 
-This public preview is ad hoc signed, without Apple Developer ID signing or
-notarization. See [release notes](docs/RELEASE_NOTES.md) for its status and limits.
+The ZIP also includes the `lemulip` command-line tool.
 
-[License](LICENSE) · [Third-party notices](THIRD_PARTY_NOTICES.md)
+[License](LICENSE) · [Third-Party Notices](THIRD_PARTY_NOTICES.md) · [Security](SECURITY.md)
 README
 }
 
 verify_public_guides() {
   local destination="$1"
-  cmp docs/assets/workflow.svg "$destination/docs/assets/workflow.svg"
-  for guide in INSTALL.md USER_GUIDE.md FAQ.md FORMATS.md DEVELOPMENT.md OFFICE_REVIEW.md RELEASE_NOTES.md PUBLISHING.md; do
+  for guide in INSTALL.md USER_GUIDE.md FORMATS.md DEVELOPMENT.md OFFICE_REVIEW.md RELEASE_NOTES.md; do
     cmp "docs/$guide" "$destination/docs/$guide"
   done
   for notice in LICENSE THIRD_PARTY_NOTICES.md CONTRIBUTING.md SECURITY.md; do

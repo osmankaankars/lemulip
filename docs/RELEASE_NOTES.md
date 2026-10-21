@@ -3,18 +3,13 @@
 What's new in each Lemulip public preview. Release pages show the matching
 version below, followed by the installation note.
 
-## Unreleased · Product Website and Repository Refresh
+## Unreleased · Website and Repository
 
-- Align source, test, and package target names with Lemulip while keeping
-  existing app identity and saved settings compatible.
-- Show the drag wheel on a desktop and in Finder, with nine sample file types.
-- Display 35 conversion output formats, 26 tools, and six file actions from
-  the app catalog, with optional engine requirements visible.
-- Add interactive edit examples, a playable sample clip, keyboard controls,
-  an automatic tour, and manual controls that also work with reduced motion.
-- Restore the compact product preview in the README and simplify the roadmap.
+- Align source and test names with Lemulip while preserving installed settings.
+- Present one Desktop/Finder demo, visible sample files, and catalog-backed counts.
+- Simplify the product page, README, and supporting documentation.
 
-Website and documentation changes do not replace the published 0.1.16 downloads.
+Published 0.1.16 app downloads are unchanged.
 
 ## 0.1.16 · Easier to Navigate
 
@@ -69,7 +64,7 @@ recalculation in Microsoft Office are still pending.
 
 **Orchard Night** stays the default. Your saved appearance and settings are retained.
 
-[Design Guide](DESIGN.md)
+[Appearance](USER_GUIDE.md#choose-a-theme)
 
 ## 0.1.8 · Bring Your PDFs Together
 

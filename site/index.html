@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-repository="" data-theme="orchard" data-site-version="20261021.3">
+<html lang="en" data-repository="" data-theme="orchard" data-site-version="20261022.1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,46 +10,31 @@
   <meta property="og:description" content="35 conversion output formats. 26 tools. 6 file actions. Free, open source, and local to your Mac.">
   <title>Lemulip · File Tools, Right Where You Drag.</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./product.css?v=20261021.3">
-  <script>
-    // Selection controls can sit below the video on narrow screens. Bring the
-    // requested playback into view, where WebKit will keep silent media active.
-    document.addEventListener('click', function (event) {
-      if (!(event.target instanceof Element) || !event.target.closest('#play-video')) return;
-      const video = document.getElementById('sample-video');
-      if (!video) return;
-      const bounds = video.getBoundingClientRect();
-      if (bounds.top < 0 || bounds.bottom > innerHeight) {
-        video.scrollIntoView({block: 'center', inline: 'nearest', behavior: 'instant'});
-      }
-    }, true);
-  </script>
-  <link rel="stylesheet" href="./presentation.css?v=20261021.3">
-  <script src="./catalog.js?v=20261021.3" defer></script>
-  <script src="./product.js?v=20261021.3" defer></script>
+  <link rel="stylesheet" href="./product.css?v=20261022.1">
+  <script src="./catalog.js?v=20261022.1" defer></script>
+  <script src="./product.js?v=20261022.1" defer></script>
 </head>
 <body>
 <a class="skip" href="#try">Skip to interactive demo</a>
 <header class="shell header">
   <a class="brand" href="#" aria-label="Lemulip home"><img src="../Resources/AppIcon.png" width="42" height="42" alt=""><span class="wordmark">Lemulip</span></a>
   <label class="theme-label" for="appearance">Appearance <select id="appearance"><option value="orchard">Orchard Night</option><option value="pistachio">Vivid Pistachio</option><option value="lemonade">Lemon Drop</option></select></label>
-  <nav aria-label="Main navigation"><a href="#features">Features</a><a href="#formats">Formats</a><a class="github-link" href="https://github.com/osmankaankars/lemulip">GitHub</a><a class="button primary nav-download" href="https://github.com/osmankaankars/lemulip/releases">Download For Mac <span aria-hidden="true">↗</span></a></nav>
+  <nav aria-label="Main navigation"><a href="#features">Features</a><a href="#formats">Formats</a><a class="button primary nav-download" href="https://github.com/osmankaankars/lemulip/releases">Download For Mac <span aria-hidden="true">↗</span></a></nav>
 </header>
 <main>
 <section class="shell hero" aria-labelledby="hero-title">
   <div class="hero-copy">
     <h1 id="hero-title">File Tools.<br><em>Right Where<br>You Drag.</em></h1>
-    <p class="lead">On Your Desktop. In Finder.<br>Or In Your Workspace.</p>
+    <p class="lead">On Your Desktop. In Finder.</p>
     <p class="intro">Convert, Crop, Trim And Arrange.<br>All On Your Mac.</p>
     <a class="button primary" href="https://github.com/osmankaankars/lemulip/releases">Download For Mac <span aria-hidden="true">↓</span></a>
     <p class="requirements">Free &amp; Open Source · <span class="verbatim">macOS</span> 13+<br>Apple Silicon &amp; Intel</p>
   </div>
   <div class="product-demo" id="try">
-    <div class="demo-heading"><div class="origin-picker" role="group" aria-label="Demo Location"><button id="origin-desktop" aria-pressed="true">Desktop</button><button id="origin-finder" aria-pressed="false">Finder</button><button id="origin-workspace" aria-pressed="false">Workspace</button></div><span class="demo-hint">Pick Up A File</span></div>
+    <div class="demo-heading"><div class="origin-picker" role="group" aria-label="Demo Location"><button id="origin-desktop" aria-pressed="true">Desktop</button><button id="origin-finder" aria-pressed="false">Finder</button></div><span class="demo-hint">Pick Up A File</span></div>
     <div class="desktop" id="desktop-demo" data-step="0" data-origin="desktop" tabindex="0" aria-label="Interactive desktop illustration. Pick a sample file, choose a mode, then choose a wheel operation.">
       <div class="mac-menubar" aria-hidden="true"><strong>Finder</strong><span>File</span><span>Edit</span><span>View</span><span>Go</span><span class="menu-app">Lemulip <i></i></span></div>
       <div class="finder-window" aria-hidden="true"><div class="finder-title"><span class="traffic">● ● ●</span><b>Downloads</b></div><div class="finder-sidebar">Favorites<br><br>Desktop<br><br><b>Downloads</b><br><br>Documents</div></div>
-      <div class="workspace-window" aria-hidden="true"><div class="workspace-title"><span class="traffic">● ● ●</span><img src="../Resources/AppIcon.png" width="20" height="20" alt=""><b>Lemulip</b><span>Workspace</span></div><div class="workspace-sidebar"><strong>Workspace</strong><span>Activity</span><span>Settings</span></div><div class="workspace-status" id="workspace-status">9 Files</div></div>
       <div class="sample-grid" id="sample-grid" role="group" aria-label="Nine Sample Files">
         <button id="sample-file" class="desktop-file" data-sample="images" aria-pressed="true" aria-describedby="demo-instruction"><span class="file-art image-art"></span><span class="file-name">morning-light.heic</span></button>
         <button class="desktop-file" data-sample="pdf" aria-pressed="false" aria-describedby="demo-instruction"><span class="file-art pdf-art">PDF</span><span class="file-name">field-notes.pdf</span></button>
@@ -79,23 +64,13 @@
   <div><strong id="format-count">35</strong><h2>Conversion output formats</h2><p>Images, media, documents &amp; more.</p></div>
   <div><strong id="tool-count">26</strong><h2>File tools</h2><p>Crop, trim, merge, split &amp; more.</p></div>
   <div><strong id="action-count">6</strong><h2>File actions</h2><p>Share, float, copy, move &amp; more.</p></div>
-  <p class="count-note">Built In And Optional Local Engines. Distinct Entries, Not Conversion Pairs. <a href="#formats">See exactly what’s included →</a></p>
+  <p class="count-note">Built In And Optional Local Engines. <a href="#formats">See exactly what’s included →</a></p>
 </section>
-<section class="shell features" id="features" aria-labelledby="features-title">
-  <div class="section-heading"><h2 id="features-title">Different Files.<br>Same Simple Idea.</h2><p>Choose A File.<br>Try A Tool.</p></div>
-  <div class="feature-tabs" role="tablist" aria-label="Sample file types">
-    <button role="tab" id="tab-images" data-feature="images" aria-selected="true" aria-controls="feature-panel">Images</button><button role="tab" id="tab-pdf" data-feature="pdf" aria-selected="false" aria-controls="feature-panel" tabindex="-1">PDF</button><button role="tab" id="tab-audio" data-feature="audio" aria-selected="false" aria-controls="feature-panel" tabindex="-1">Audio</button><button role="tab" id="tab-video" data-feature="video" aria-selected="false" aria-controls="feature-panel" tabindex="-1">Video</button><button role="tab" id="tab-documents" data-feature="documents" aria-selected="false" aria-controls="feature-panel" tabindex="-1">Documents</button><button role="tab" id="tab-spreadsheets" data-feature="spreadsheets" aria-selected="false" aria-controls="feature-panel" tabindex="-1">Spreadsheets</button><button role="tab" id="tab-presentations" data-feature="presentations" aria-selected="false" aria-controls="feature-panel" tabindex="-1">Slides</button><button role="tab" id="tab-subtitles" data-feature="subtitles" aria-selected="false" aria-controls="feature-panel" tabindex="-1">Subtitles</button><button role="tab" id="tab-archives" data-feature="archives" aria-selected="false" aria-controls="feature-panel" tabindex="-1">Archives</button>
-  </div>
-  <div class="feature-panel" id="feature-panel" role="tabpanel" aria-labelledby="tab-images" tabindex="0">
-    <div class="workbench"><div class="workbench-bar"><span class="traffic" aria-hidden="true">● ● ●</span><b id="editor-title">Crop image</b></div><div id="sample-workbench" class="sample-workbench" data-family="images"><div class="crop-stage"><img src="./assets/morning-light.jpg" width="384" height="288" alt="Sample landscape"><div class="crop-selection"></div></div></div><div id="edit-controls" class="edit-controls"></div><div id="example-output" class="example-output" role="status" hidden></div></div>
-    <div class="feature-description"><h3 id="feature-title">Keep the part you love.</h3><p id="feature-summary">Move the crop, then preview your new copy. The original stays untouched.</p><div id="feature-details"></div><button id="run-example" class="button primary" type="button">Preview crop →</button><button id="reset-example" class="text-button" type="button">Reset example</button><a id="try-this-file" class="text-button" href="#try">Try this file on the desktop ↑</a></div>
-  </div>
-</section>
-<section class="shell shortcuts" aria-labelledby="shortcuts-title"><div><h2 id="shortcuts-title">Start With A Drag.<br>Finish With A Drop.</h2><p>Keep Your Files Where They Are.<br>Bring The Right Tool To Them.</p></div><div class="shortcut-list"><div class="shortcut-convert"><kbd>⇧</kbd><h3>Convert</h3><p>Choose a new format.</p></div><div class="shortcut-tools"><kbd>⌘</kbd><h3>Tools</h3><p>Choose an edit or file tool.</p></div><div class="shortcut-actions"><kbd>⌃</kbd><h3>Actions</h3><p>Move, share, or keep a file close.</p></div></div></section>
-<section class="shell format-section" id="formats" aria-labelledby="formats-title"><div class="section-heading"><h2 id="formats-title">The Formats.<br>The Tools. The Details.</h2><p>35 conversion targets. Plus ZIP, TAR and GZIP creation.<br>Not every input converts to every output.</p></div><div id="format-directory" class="format-directory"><p>PNG · JPG · HEIC · TIFF · WebP · AVIF · BMP · PDF · MP3 · M4A · WAV · FLAC · OGG · Opus · AIFF · MP4 · MOV · MKV · WebM · GIF · DOCX · ODT · RTF · HTML · TXT · Markdown · EPUB · PPTX · ODP · XLSX · ODS · CSV · TSV · SRT · VTT</p></div><details class="tool-directory"><summary>See all 26 tools and 6 file actions</summary><div id="tool-directory"></div></details><p class="simulation-note">Engine and codec availability depend on your Mac and selected files. <a href="https://github.com/osmankaankars/lemulip/blob/main/docs/FORMATS.md">Full format guide and limits →</a></p></section>
+<section class="shell shortcuts" id="features" aria-labelledby="shortcuts-title"><div><h2 id="shortcuts-title">Start With A Drag.<br>Finish With A Drop.</h2><p>Keep Your Files Where They Are.<br>Bring The Right Tool To Them.</p></div><div class="shortcut-list"><div class="shortcut-convert"><kbd>⇧</kbd><h3>Convert</h3><p>Choose a new format.</p></div><div class="shortcut-tools"><kbd>⌘</kbd><h3>Tools</h3><p>Choose an edit or file tool.</p></div><div class="shortcut-actions"><kbd>⌃</kbd><h3>Actions</h3><p>Move, share, or keep a file close.</p></div></div></section>
+<section class="shell format-section" id="formats" aria-labelledby="formats-title"><div class="section-heading"><h2 id="formats-title">The Formats.<br>The Tools. The Details.</h2></div><div id="format-directory" class="format-directory"><p>PNG · JPG · HEIC · TIFF · WebP · AVIF · BMP · PDF · MP3 · M4A · WAV · FLAC · OGG · Opus · AIFF · MP4 · MOV · MKV · WebM · GIF · DOCX · ODT · RTF · HTML · TXT · Markdown · EPUB · PPTX · ODP · XLSX · ODS · CSV · TSV · SRT · VTT</p></div><details class="tool-directory"><summary>Tools And File Actions</summary><div id="tool-directory"></div></details><p class="simulation-note">Engine and codec availability depend on your Mac and selected files. <a href="https://github.com/osmankaankars/lemulip/blob/main/docs/FORMATS.md">Full format guide and limits →</a></p></section>
 <section class="shell final-section"><div><h2>Your Files Stay<br><em>On Your Mac.</em></h2><p>No Account. No Subscription. No Uploads.</p></div><div><a class="button primary" href="https://github.com/osmankaankars/lemulip/releases">Get Lemulip for Mac ↓</a><p class="requirements">macOS 13+ · Apple Silicon &amp; Intel</p></div></section>
 </main>
-<footer class="shell footer"><span>Lemulip · Made by <a href="https://github.com/osmankaankars">Kaan Kars</a></span><div><a href="https://github.com/osmankaankars/lemulip/blob/main/docs/USER_GUIDE.md">User guide</a><a href="https://github.com/osmankaankars/lemulip/blob/main/docs/ROADMAP.md">Roadmap</a><a href="https://github.com/osmankaankars/lemulip/blob/main/LICENSE">MIT license</a></div></footer>
+<footer class="shell footer"><span>Lemulip · Made by <a href="https://github.com/osmankaankars">Kaan Kars</a></span><div><a href="https://github.com/osmankaankars/lemulip/blob/main/docs/USER_GUIDE.md">User guide</a><a href="https://github.com/osmankaankars/lemulip/blob/main/THIRD_PARTY_NOTICES.md">Third-Party Notices</a><a href="https://github.com/osmankaankars/lemulip/blob/main/LICENSE">MIT license</a></div></footer>
 <p id="announcer" class="sr-only" role="status" aria-live="polite"></p>
 </body>
 </html>

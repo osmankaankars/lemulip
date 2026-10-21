@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Source-backed checks for the product page; no network or extra packages."""
-import json, re, unittest
+import json, re, unittest, subprocess, tempfile
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -23,8 +23,8 @@ class SiteTests(unittest.TestCase):
         for name in ('desktop-demo','sample-grid','origin-desktop','origin-finder','tour-toggle','next-step','wheel-svg','sample-file'):
             self.assertIn('id="'+name+'"',page)
         for name in ('images','pdf','audio','video','documents','spreadsheets','presentations','subtitles','archives'):
-            self.assertIn('data-feature="'+name+'"',page)
-        self.assertIn('<button id="run-example"',page)
+            self.assertIn('data-sample="'+name+'"',page)
+        self.assertNotIn('id="run-example"',page)
         self.assertNotIn('class="copy-label"',page)
     def test_counts_come_from_native_catalog_not_format_pairs(self):
         source=(ROOT/'Sources/LemulipCore/Catalog.swift').read_text()
@@ -50,13 +50,65 @@ class SiteTests(unittest.TestCase):
             self.assertNotRegex(p.read_text(),r'(?i)developer id|notariz|ad hoc sign',str(p))
     def test_motion_and_stale_assets_are_explicit(self):
         page=(ROOT/'site/index.html').read_text(); js=(ROOT/'site/product.js').read_text()
-        self.assertIn('data-site-version="20261021.3"',page)
-        self.assertIn('product.js?v=20261021.3',page)
+        self.assertIn('data-site-version="20261022.1"',page)
+        self.assertIn('product.js?v=20261022.1',page)
         for event in ('visibilitychange','prefers-reduced-motion','pointercancel'):self.assertIn(event,js)
         self.assertIn('Browser Simulation',page)
         self.assertNotRegex(js,r'\b(FileReader|XMLHttpRequest)\s*\(')
     def test_no_temporary_import_workflows(self):
         self.assertFalse((ROOT/'.github/workflows/inspect-live-site.yml').exists())
         self.assertFalse((ROOT/'.github/refresh-payload').exists())
-from test_site_polish import PresentationTests
+    def test_single_demo_and_navigation(self):
+        page=(ROOT/'site/index.html').read_text()
+        js=(ROOT/'site/product.js').read_text()
+        for removed in ('feature-panel','run-example','origin-workspace','workspace-window','sample-video'):
+            self.assertNotIn(removed,page)
+        for removed in ('workspace-status','const features=','AudioContext','sample-video'):
+            self.assertNotIn(removed,js)
+        header=page.split('<header',1)[1].split('</header>',1)[0]
+        self.assertIn('id="appearance"',header)
+        self.assertIn('href="#features"',header);self.assertIn('href="#formats"',header)
+        self.assertNotIn('class="github-link"',header)
+        self.assertIn('id="features"',page)
+        self.assertNotIn('35 conversion targets',page)
+        self.assertNotIn('Not every input',page)
+        self.assertFalse((ROOT/'site/assets/sample-walk.mp4').exists())
+        self.assertFalse((ROOT/'site/presentation.css').exists())
+    def test_copy_and_format_notes(self):
+        page=(ROOT/'site/index.html').read_text();js=(ROOT/'site/product.js').read_text()
+        for text in (page,js):self.assertNotRegex(text,r'[\u2013\u2014]')
+        for name in ('shortcut-convert','shortcut-tools','shortcut-actions'):self.assertIn(name,page)
+        self.assertIn('class="engine-note"',js)
+        self.assertIn('ImageMagick',js)
+        self.assertEqual(9,len(re.findall(r'data-sample="',page)))
+    def test_readme_is_one_product_summary(self):
+        readme=(ROOT/'README.md').read_text()
+        self.assertLess(len(readme.split()),450)
+        self.assertEqual(1,len(re.findall(r'https://osmankaankars\.github\.io/lemulip/[^)"\s]*',readme)))
+        self.assertEqual(1,readme.lower().count('open-source'))
+        for required in ('THIRD_PARTY_NOTICES.md','LICENSE','SECURITY.md','FFmpeg','LibreOffice','Pandoc','ImageMagick'):
+            self.assertIn(required,readme)
+    def test_document_links_and_fragments_resolve(self):
+        for source in [*ROOT.glob('*.md'),*(ROOT/'docs').glob('*.md')]:
+            text=source.read_text()
+            for href in re.findall(r'\[[^\]]*\]\(([^)]+)\)',text):
+                parts=urlsplit(href.split(' "',1)[0])
+                if parts.scheme or parts.netloc:continue
+                target=(source.parent/parts.path).resolve() if parts.path else source
+                self.assertTrue(target.exists(),f'{source.name}: {href}')
+                if parts.fragment and target.suffix=='.md':
+                    headings=re.findall(r'^#{1,6}\s+(.+)$',target.read_text(),re.M)
+                    slugs={re.sub(r'[^\w\- ]','',h.lower()).replace(' ','-') for h in headings}
+                    self.assertIn(parts.fragment,slugs,f'{source.name}: {href}')
+    def test_packaged_guides_match_current_tree(self):
+        script=(ROOT/'script/package_release.sh').read_text()
+        functions=script[script.index('copy_public_guides()'):script.index('if [[ "${1:-}" == --verify')]
+        with tempfile.TemporaryDirectory(prefix='lemulip-guides-') as folder:
+            run=subprocess.run(['bash','-s','--',folder],input='set -eu\n'+functions+'\ncopy_public_guides "$1"\nverify_public_guides "$1"\n',cwd=ROOT,text=True,capture_output=True)
+            self.assertEqual(0,run.returncode,run.stderr)
+            readme=(Path(folder)/'README.md').read_text()
+            for href in re.findall(r'\[[^\]]*\]\(([^)]+)\)',readme):
+                self.assertTrue((Path(folder)/href).exists(),href)
+            for name in ('LICENSE','THIRD_PARTY_NOTICES.md','SECURITY.md'):
+                self.assertEqual((ROOT/name).read_bytes(),(Path(folder)/name).read_bytes())
 if __name__=='__main__':unittest.main()
