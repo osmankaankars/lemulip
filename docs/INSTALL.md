@@ -34,59 +34,13 @@ release comes from this repository before opening a download.
 
 ## Build From Source
 
-You need **Swift 5.9 or later** from compatible Xcode Command Line Tools or full Xcode.
-
-1. Download the source ZIP from the repository or a source release.
-2. Extract it into its own folder.
-3. Open Terminal in that folder and run:
-
-```bash
-./Build-and-Install.command
-```
-
-You can also double-click the command file in Finder.
-
-The script builds the app, checks its bundle, and installs it in your account's `Applications` folder. It opens the new installation when no existing Lemulip or Freewheel instance is running.
-
-If Lemulip is already installed there, the script preserves it. The new app is at `dist/Lemulip.app`. Quit the current app before replacing it with the new build. Your preferences are stored separately from the app bundle.
+Use Swift 5.9+ from compatible Xcode tools, then run `./Build-and-Install.command`.
+See [Development](DEVELOPMENT.md#build-and-check) for build and verification commands.
+The installer preserves an existing app; a separate build remains in `dist`.
 
 ### Upgrading From Freewheel
 
-Freewheel was the app's original name. Finish any jobs and quit it before opening
-Lemulip, which uses the same saved settings. The installer leaves `Freewheel.app`
-in place; remove that old copy after checking the new app. Update shortcuts that
-invoke the old `freewheel` CLI to use `lemulip`.
-
-### Developer Tools
-
-If developer tools are missing, run Apple's installer:
-
-```bash
-xcode-select --install
-```
-
-To use a full Xcode installation for this build:
-
-```bash
-DEVELOPER_DIR="/Applications/Xcode.app/Contents/Developer" \
-PATH="/usr/bin:/bin:/usr/sbin:/sbin" ./Build-and-Install.command
-```
-
-Replace the path if Xcode is installed elsewhere. This selects tools for one command; a later plain invocation or Finder launch uses the system's selected developer tools. See Apple's [command-line tools settings guide](https://developer.apple.com/documentation/xcode/configuring-command-line-tools-settings).
-
-Lemulip supplies the archive declarations and links to the macOS libarchive library. A separate Homebrew libarchive installation is not required.
-
-### Build Without Installing
-
-```bash
-./script/build_app.sh
-```
-
-The outputs are `dist/Lemulip.app` and `dist/lemulip`. For Apple Silicon and Intel binaries in one app:
-
-```bash
-./script/build_app.sh --universal
-```
+Quit the old app before opening Lemulip. Saved settings are retained; the installer leaves the old application in place. Update CLI shortcuts to `lemulip`.
 
 ## First Launch
 
@@ -95,7 +49,6 @@ download came from this repository before opening it.
 
 Apple's [guide to safely opening apps](https://support.apple.com/en-us/102445) explains first-launch controls. Lemulip does not disable Gatekeeper, remove quarantine attributes, or change system security settings.
 
-After launch, start with a small image in the workspace. Add it with **⌘O**, select a different format, and check the result in Activity. Then try the drag wheel using the [User Guide](USER_GUIDE.md#the-drag-wheel).
 
 ## Optional Engines
 
@@ -139,13 +92,13 @@ xcrun --sdk macosx swift package dump-package
 ```
 
 If the failure occurs before source compilation, try compatible full Xcode using
-the `DEVELOPER_DIR` example above. The compiler path in the error identifies the
+a `DEVELOPER_DIR` pointing at compatible full Xcode. The compiler path in the error identifies the
 toolchain in use. Keep source backups outside `Sources` and use a complete,
 fresh checkout when updating from an old development build.
 
 ### A Conversion Fails or the Wheel Stays Hidden
 
-Check Activity for the error, then follow the [FAQ](FAQ.md). Install a named engine if needed, use local files, or try the workspace.
+Check Activity for the error, then follow the [User Guide](USER_GUIDE.md#if-something-fails). Install a named engine if needed, use local files, or try the workspace.
 
 ## Uninstall
 

@@ -85,10 +85,7 @@ project. Third-party components and optional engines are documented above.
 
 ## Website Illustrations
 
-`site/assets/morning-light.jpg` is a generated fictional sample landscape made
-for the Lemulip website. The feature previews are HTML/CSS illustrations using
-that sample and synthetic data; they are not native app recordings.
-`site/assets/sample-walk.mp4` is a four-second pan/zoom of that generated
-landscape, used as a real playable sample clip. It is not a recording of the app.
-`docs/assets/demo-preview.png` is the earlier illustrated product workspace
-preview. None of these assets contains customer files or personal photographs.
+`site/assets/morning-light.jpg` is a generated fictional sample landscape.
+`docs/assets/demo-preview.png` is an illustrated product preview.
+The website's Desktop and Finder demo uses sample data, not native app recordings.
+These assets contain no customer files or personal photographs.
