@@ -11,6 +11,14 @@
   <title>Lemulip · File tools, right where you drag.</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./product.css?v=20261021.2">
+  <style>
+    /* Keep WebKit's native file selector within compact viewports. */
+    @media(max-width:360px){
+      .demo-heading{flex-wrap:wrap;row-gap:10px}
+      .sample-label{flex:1 1 100%;min-width:0;justify-content:space-between}
+      .sample-label select{flex:1;min-width:0;max-width:none;margin-left:10px}
+    }
+  </style>
   <script src="./catalog.js?v=20261021.2" defer></script>
   <script src="./product.js?v=20261021.2" defer></script>
 </head>
