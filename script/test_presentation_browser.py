@@ -14,6 +14,7 @@ def check_presentation(page,output,width,height):
     for origin in ('desktop','finder','workspace'):
         page.locator('#origin-'+origin).click()
         desktop=page.locator('#desktop-demo').bounding_box()
+        grid=page.locator('#sample-grid').bounding_box();assert grid
         boxes=[]
         for file in page.locator('#sample-grid [data-sample]').all():
             assert file.is_visible()
@@ -21,7 +22,13 @@ def check_presentation(page,output,width,height):
             assert box['x']>=desktop['x']-1
             assert box['y']>=desktop['y']+27
             assert box['x']+box['width']<=desktop['x']+desktop['width']+1
+            within_grid=(box['y']>=grid['y']-1 and box['y']+box['height']<=grid['y']+grid['height']+1)
+            if not within_grid:
+                page.locator('#try').screenshot(path=str(output/f'clipping-{origin}-{width}.png'))
+            assert within_grid,{'origin':origin,'width':width,'file':file.inner_text(),'file_box':box,'grid_box':grid}
             assert box['y']+box['height']<=desktop['y']+desktop['height']+1
+            label=file.locator('.file-name').bounding_box();assert label
+            assert label['y']+label['height']<=box['y']+box['height']+1
             boxes.append(box)
         for i,a in enumerate(boxes):
             for b in boxes[i+1:]:
@@ -52,4 +59,5 @@ def check_presentation(page,output,width,height):
         page.locator('#formats').screenshot(path=str(output/f'formats-{width}.png'))
     page.locator('#origin-desktop').click();page.locator('[data-sample="images"]').click()
     page.locator('#desktop-demo').focus();page.keyboard.press('Escape')
-    page.evaluate('scrollTo(0,0)')
+    page.evaluate('document.documentElement.style.scrollBehavior="auto";scrollTo(0,0)')
+    page.screenshot(path=str(output/f'overview-{width}.png'))

@@ -186,3 +186,11 @@ pre, code, .file-name, #output-name, #workspace-status, .archive-items,
 .sample-output .output-icon, .sample-output > span:last-child { display: none; }
 .sample-output b { overflow-wrap: anywhere; }
 [data-origin=workspace][data-step="3"] .workspace-status { visibility: hidden; }
+
+/* Keep two-line filenames inside all three rows on narrow screens. */
+@media(max-width:360px) {
+  .header .theme-label { font-size: 0; gap: 0; }
+  .desktop .sample-grid { grid-template-rows: repeat(3, minmax(0, 1fr)); }
+  .desktop .sample-grid .desktop-file { padding: 3px 1px; gap: 3px; font-size: 8px; line-height: 1.2; min-height: 0; }
+  .desktop .sample-grid .file-art { width: 28px; height: 32px; }
+}
