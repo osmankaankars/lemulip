@@ -19,7 +19,8 @@ let package = Package(
             cSettings: [.headerSearchPath("LibarchiveHeaders")],
             linkerSettings: [.linkedLibrary("archive")]
         ),
-        .target(name: "LemulipCore", dependencies: ["CLemulipArchive"]),
+        .target(name: "CLemulipProcess"),
+        .target(name: "LemulipCore", dependencies: ["CLemulipArchive", "CLemulipProcess"]),
         .executableTarget(name: "Lemulip", dependencies: ["LemulipCore"]),
         .executableTarget(name: "LemulipCLI", dependencies: ["LemulipCore"]),
         .testTarget(name: "LemulipCoreTests", dependencies: ["LemulipCore"])

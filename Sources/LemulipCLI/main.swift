@@ -51,7 +51,12 @@ var arguments = Array(CommandLine.arguments.dropFirst())
 if arguments.isEmpty || arguments.contains("--help") || arguments.contains("-h") { print(usage); exit(0) }
 let command = arguments.removeFirst()
 if command == "engines" {
-    for name in ["ffmpeg", "imagemagick", "libreoffice", "pandoc"] { print("\(name): \(EngineLocator.find(name)?.path ?? "not installed")") }
+    for name in ["ffmpeg", "imagemagick", "libreoffice", "pandoc"] {
+        let report = try await EngineHealth.inspect(name)
+        let status = report.state == .missing ? "not installed" : report.state.rawValue
+        print("\(name): \(status)\(report.version.map { " " + $0 } ?? "") · \(report.executable?.path ?? "")")
+        if report.state == .unusable || report.state == .limited { print("  \(report.detail)") }
+    }
     exit(0)
 }
 

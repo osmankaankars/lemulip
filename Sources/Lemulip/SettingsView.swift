@@ -6,6 +6,7 @@ import LemulipCore
 struct SettingsContent: View {
     @ObservedObject var model: AppController
     @State private var copied: String?
+    @State private var engineReports: [String: EngineReport] = [:]
     private let engines: [(String, String, String, String)] = [
         ("ffmpeg", "FFmpeg", "Video & audio formats, compression, trim, speed", "brew install ffmpeg"),
         ("imagemagick", "ImageMagick", "WebP, AVIF & additional image codecs", "brew install imagemagick"),
@@ -51,11 +52,21 @@ struct SettingsContent: View {
                     .font(.system(size: 12)).foregroundStyle(Palette.muted).lineSpacing(4)
                 VStack(spacing: 0) {
                     ForEach(engines, id: \.0) { engine in
-                        let installed = EngineLocator.isAvailable(engine.0)
+                        let report = engineReports[engine.0]
+                        let installed = report?.state == .ready
                         HStack(alignment: .center, spacing: 14) {
-                            Image(systemName: installed ? "checkmark.circle.fill" : "plus.circle").font(.system(size: 19)).foregroundStyle(installed ? Palette.accent : Palette.muted)
+                            Image(systemName: installed ? "checkmark.circle.fill" : report?.state == .missing ? "plus.circle" : "exclamationmark.circle").font(.system(size: 19)).foregroundStyle(installed ? Palette.accent : Palette.muted)
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(engine.1).font(.system(size: 13, weight: .semibold))
+                                if let report {
+                                    Text(engineStatus(report)).font(.system(size: 10, weight: .medium))
+                                        .foregroundStyle(installed ? Palette.accent : Palette.muted)
+                                    if report.state == .limited || report.state == .unusable {
+                                        Text(report.detail).font(.system(size: 10)).foregroundStyle(Palette.muted).textSelection(.enabled)
+                                    }
+                                } else {
+                                    Text(model.text("Checking…", "Kontrol ediliyor…")).font(.system(size: 10)).foregroundStyle(Palette.muted)
+                                }
                                 Text(engineSubtitle(engine.0, fallback: engine.2)).font(.system(size: 10)).foregroundStyle(Palette.muted)
                                 if engine.0 == "pandoc" {
                                     Text(model.text("Use the official installer with built-in templates.", "Şablonları içinde olan resmî kurulum paketini kullan."))
@@ -75,7 +86,16 @@ struct SettingsContent: View {
                         }.padding(17)
                         if engine.0 != engines.last?.0 { divider }
                     }
-                }.id(model.engineRefresh).background(Palette.panel, in: RoundedRectangle(cornerRadius: 13)).overlay(RoundedRectangle(cornerRadius: 13).stroke(Palette.line))
+                }.task(id: model.engineRefresh) {
+                    engineReports = [:]
+                    for engine in engines {
+                        do {
+                            let report = try await EngineHealth.inspect(engine.0)
+                            try Task.checkCancellation()
+                            engineReports[engine.0] = report
+                        } catch { return }
+                    }
+                }.background(Palette.panel, in: RoundedRectangle(cornerRadius: 13)).overlay(RoundedRectangle(cornerRadius: 13).stroke(Palette.line))
                 HStack {
                     Text(model.text("Install commands require Homebrew. Pandoc uses its official installer. No automatic downloads.", "Kurulum komutları Homebrew gerektirir. Pandoc için resmî paket kullanılır. Otomatik indirme yok."))
                         .font(.system(size: 10)).foregroundStyle(Palette.muted)
@@ -97,6 +117,17 @@ struct SettingsContent: View {
                 }.padding(.top, 4).accessibilityElement(children: .combine)
             }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.accent.opacity(0.04), in: RoundedRectangle(cornerRadius: 13))
         }
+    }
+
+    private func engineStatus(_ report: EngineReport) -> String {
+        let status: String
+        switch report.state {
+        case .ready: status = model.text("Ready", "Hazır")
+        case .limited: status = model.text("Limited Support", "Kısmi destek")
+        case .unusable: status = model.text("Needs Attention", "Kontrol gerekli")
+        case .missing: status = model.text("Not Installed", "Kurulu değil")
+        }
+        return status + (report.version.map { " · " + $0 } ?? "")
     }
 
     private var appearanceSettings: some View {
