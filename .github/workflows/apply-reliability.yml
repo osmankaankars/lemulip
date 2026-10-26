@@ -1,0 +1,64 @@
+name: Apply Verified Reliability Changes
+on:
+  push:
+    branches: [fix/process-and-engine-health-20261027]
+    paths: [.github/workflows/apply-reliability.yml]
+permissions:
+  contents: write
+jobs:
+  apply:
+    if: github.repository == 'osmankaankars/lemulip' && github.ref == 'refs/heads/fix/process-and-engine-health-20261027'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+      - name: Verify exact base and reviewed patch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64, gzip, hashlib, io, json, os, pathlib, subprocess, urllib.request
+          base = '603c6973a46524c3e4eabeef6b0b32c7dba62815'
+          temporary = '.github/workflows/apply-reliability.yml'
+          assert not subprocess.check_output(['git','diff','--name-only',base,'HEAD','--','.',':(exclude)'+temporary],text=True).strip()
+          shas = ['23317db65b3ce24c0ef294bf4b29dc06980a099b','9cbfc456b3cfbc0076eb8707cc9816f2fddc7b06','dafbbf093399ada36b1c774f7d61f7a0b669315c','960a3105090d8f5b08c316a5ce2afb9d933fd86a','8c53faf4bb5397a532a8b3b41b452fd006ef8577','04acc6d816a5ce8197f60380ed5818f48dd0b045','c5bffb4c92641aa0f47ed23d48f0b6bac3126c48','c566b78fd4b3be0433f5179c21c89c7804f99c83']
+          parts = []
+          for sha in shas:
+              request = urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/git/blobs/'+sha, headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  blob = json.load(response)
+              data = base64.b64decode(blob['content'])
+              assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest() == sha
+              parts.append(data)
+          packed = b''.join(parts)
+          assert len(packed) == 8781
+          assert hashlib.sha256(packed).hexdigest() == '76204b5cac8cc5c9ed7f04bf3e17247bc70842c0ede90d95bda570e64d2c76f2'
+          with gzip.GzipFile(fileobj=io.BytesIO(packed)) as stream:
+              patch = stream.read(34862)
+          assert len(patch) == 34861
+          assert hashlib.sha256(patch).hexdigest() == 'a99a6a5b1b63ebdbd8acf141f3806366cebc1c2c34527031455bca7d2c9ce8d7'
+          subprocess.run(['git','apply','--unidiff-zero','--check'], input=patch, check=True)
+          subprocess.run(['git','apply','--unidiff-zero','--index'], input=patch, check=True)
+          env = os.environ.copy()
+          env['GIT_INDEX_FILE'] = str(pathlib.Path(os.environ['RUNNER_TEMP'])/'projected-index')
+          subprocess.run(['git','read-tree',subprocess.check_output(['git','write-tree'],text=True).strip()],env=env,check=True)
+          subprocess.run(['git','update-index','--force-remove',temporary],env=env,check=True)
+          tree = subprocess.check_output(['git','write-tree'],env=env,text=True).strip()
+          assert tree == '8006e2d80e1605b077e8d1154a741edfdf334186', tree
+          print('Verified exact source tree:', tree)
+      - name: Check source and public-file policy
+        run: |
+          python3 script/test_site.py
+          python3 script/test_branding.py
+          python3 script/test_public_images.py
+          python3 script/privacy_check.py --staged
+          git diff --cached --check
+      - name: Save verified source on the review branch
+        run: |
+          git config user.name 'Kaan Kars'
+          git config user.email '56635935+osmankaankars@users.noreply.github.com'
+          git commit -m 'Isolate converter process groups and verify optional engine capabilities'
+          git push origin HEAD:refs/heads/fix/process-and-engine-health-20261027
