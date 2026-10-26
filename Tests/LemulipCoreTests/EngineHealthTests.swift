@@ -29,6 +29,14 @@ final class EngineHealthTests: XCTestCase {
         XCTAssertThrowsError(try EngineHealth.require(report, capabilities: ["libx264"]))
         XCTAssertNoThrow(try EngineHealth.require(report, capabilities: ["aac"]))
     }
+    func testUnusedOptionalAudioEncoderDoesNotBlockVideoConversion() {
+        let optional = ["-map", "0:v:0", "-map", "0:a:0?", "-c:v", "libx264", "-c:a", "aac"]
+        XCTAssertEqual(ExternalConverters.requiredEncoders(in: optional), ["libx264"])
+        let muted = ["-an", "-c:v", "libx264", "-c:a", "aac"]
+        XCTAssertEqual(ExternalConverters.requiredEncoders(in: muted), ["libx264"])
+        let audio = ["-map", "0:a:0", "-vn", "-c:a", "libopus"]
+        XCTAssertEqual(ExternalConverters.requiredEncoders(in: audio), ["libopus"])
+    }
     func testExecutableThatFailsIsNotHealthy() async throws {
         let path = try engine("exit 126")
         let report = try await EngineHealth.inspect("ffmpeg", executable: path)
@@ -67,6 +75,8 @@ final class EngineHealthTests: XCTestCase {
         let path = try engine("sleep 20")
         let task = Task { try await EngineHealth.inspect("ffmpeg", executable: path) }
         try await Task.sleep(nanoseconds: 100_000_000); task.cancel()
-        do { _ = try await task.value; XCTFail("Expected cancellation") } catch { }
+        do { _ = try await task.value; XCTFail("Expected cancellation") }
+        catch is CancellationError { }
+        catch { XCTFail("Unexpected cancellation error: \(error)") }
     }
 }

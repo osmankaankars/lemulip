@@ -34,7 +34,9 @@ final class ProcessLifecycleTests: XCTestCase {
         try other.run(); defer { _ = kill(other.processIdentifier, SIGKILL); other.waitUntilExit() }
         let running = Task { try await ProcessRunner.run(executable: URL(fileURLWithPath: "/bin/sh"), arguments: ["-c", self.program], currentDirectory: root, timeout: 10) }
         try await Task.sleep(nanoseconds: 300_000_000); running.cancel()
-        do { _ = try await running.value; XCTFail("Expected cancellation") } catch { }
+        do { _ = try await running.value; XCTFail("Expected cancellation") }
+        catch LemulipError.cancelled { }
+        catch { XCTFail("Unexpected cancellation error: \(error)") }
         try await Task.sleep(nanoseconds: 1_300_000_000)
         XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("survived.txt").path))
         XCTAssertTrue(other.isRunning, "Cancellation must not signal unrelated programs")

@@ -79,14 +79,26 @@ enum ExternalConverters {
                 }
                 arguments += ["-pix_fmt", "yuv420p", "-threads", "4", output.path]
             }
-            let codecs = Set(arguments.indices.compactMap { index -> String? in
-                ["-c:v", "-c:a"].contains(arguments[index]) && index + 1 < arguments.count ? arguments[index + 1] : nil
-            })
+            let codecs = requiredEncoders(in: arguments)
             _ = try EngineHealth.require(health, capabilities: codecs)
             _ = try await ProcessRunner.checked(executable: ffmpeg, arguments: arguments, currentDirectory: directory)
             try requireFile(output); outputs.append(output)
         }
         return ConversionResult(outputs: outputs, note: operation.id == "media.compress" ? "Compression depends on the source; compare the output size before removing any original." : nil)
+    }
+
+    static func requiredEncoders(in arguments: [String]) -> Set<String> {
+        let optionalAudio = arguments.contains("-an") || arguments.indices.contains { index in
+            arguments[index] == "-map" && index + 1 < arguments.count && arguments[index + 1] == "0:a:0?"
+        }
+        return Set(arguments.indices.compactMap { index -> String? in
+            let flag = arguments[index]
+            guard ["-c:v", "-c:a"].contains(flag), index + 1 < arguments.count else { return nil }
+            // An optional audio map can select no streams. FFmpeg checks that encoder
+            // if audio is actually present; requiring it here would reject silent video.
+            if flag == "-c:a" && optionalAudio { return nil }
+            return arguments[index + 1]
+        })
     }
 
     private static func mediaDemuxers(_ ext: String) -> String {
