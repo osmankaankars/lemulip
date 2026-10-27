@@ -65,8 +65,19 @@ jobs:
           brew install ffmpeg imagemagick
           brew install --cask libreoffice
       - name: Install Official Pandoc With Embedded Templates
-        if: matrix.arch == 'arm64'
         run: ./script/install_ci_pandoc.sh
+      - name: Verify Commandless Document Engine Installation
+        run: |
+          set -o pipefail
+          xcrun --sdk macosx swift test --jobs 2 --filter EngineIntegrationTests/testOfficialPandocCommandlessInstallAndNoOverwrite 2>&1 | tee "$RUNNER_TEMP/engine-installation.log"
+      - name: Retain Installation Diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Engine-Installation-${{ matrix.arch }}
+          path: ${{ runner.temp }}/engine-installation.log
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Require All Integration Engines
         if: matrix.arch == 'arm64'
         run: |
