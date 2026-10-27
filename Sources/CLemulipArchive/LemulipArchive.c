@@ -82,10 +82,13 @@ static int open_parent(int root, const char *path, char **leaf, char **storage, 
     return parent;
 }
 
-int lemulip_archive_extract(const char *input_path, const char *output_directory,
+static int extract_archive(const char *input_path, const char *output_directory,
                        const char *raw_filename, int allow_raw,
+                       const char *const *ignored_links, size_t ignored_count,
                        char *error, size_t error_capacity, lemulip_cancel_callback cancelled, void *context) {
     if (error && error_capacity) error[0] = '\0';
+    if (ignored_count > 32 || (ignored_count && !ignored_links))
+        return fail(error, error_capacity, "Invalid package alias list.");
     int root = open(output_directory, O_RDONLY | O_DIRECTORY | O_NOFOLLOW | O_CLOEXEC);
     if (root < 0) return fail(error, error_capacity, "Could not open the private extraction folder.");
     int input = open(input_path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC);
@@ -129,10 +132,24 @@ int lemulip_archive_extract(const char *input_path, const char *output_directory
         char path[LEMULIP_MAX_PATH];
         int path_status = safe_path(original_name, path);
         mode_t kind = archive_entry_filetype(entry);
+        if (path_status < 0) { result = fail(error, error_capacity, "Archive contains an absolute, traversing, or unsafe path."); break; }
+        /* Verified engine packages may omit explicitly named command aliases.
+           Never materialize or follow these links. User extraction passes no list. */
+        if (path_status == 0 && kind == AE_IFLNK && archive_entry_symlink(entry) && !archive_entry_hardlink(entry)) {
+            int ignored = 0;
+            for (size_t i = 0; i < ignored_count; i++) {
+                if (ignored_links[i] && !strcmp(path, ignored_links[i])) { ignored = 1; break; }
+            }
+            if (ignored) {
+                if (archive_read_data_skip(reader) != ARCHIVE_OK) {
+                    result = archive_fail(reader, error, error_capacity, "Could not skip a package alias."); break;
+                }
+                continue;
+            }
+        }
         if (archive_entry_symlink(entry) || archive_entry_hardlink(entry) || (kind != AE_IFREG && kind != AE_IFDIR)) {
             result = fail(error, error_capacity, "Archive contains a link, device, or other unsafe file type."); break;
         }
-        if (path_status < 0) { result = fail(error, error_capacity, "Archive contains an absolute, traversing, or unsafe path."); break; }
         if (path_status == 1) {
             if (kind == AE_IFDIR) { archive_read_data_skip(reader); continue; }
             result = fail(error, error_capacity, "Archive contains an empty filename."); break;
@@ -186,6 +203,20 @@ int lemulip_archive_extract(const char *input_path, const char *output_directory
 cleanup:
     archive_read_close(reader); archive_read_free(reader); close(input); close(root);
     return result;
+}
+
+int lemulip_archive_extract(const char *input_path, const char *output_directory,
+                       const char *raw_filename, int allow_raw,
+                       char *error, size_t error_capacity, lemulip_cancel_callback cancelled, void *context) {
+    return extract_archive(input_path, output_directory, raw_filename, allow_raw,
+                           NULL, 0, error, error_capacity, cancelled, context);
+}
+
+int lemulip_archive_extract_package(const char *input_path, const char *output_directory,
+                       const char *const *ignored_links, size_t ignored_count,
+                       char *error, size_t error_capacity, lemulip_cancel_callback cancelled, void *context) {
+    return extract_archive(input_path, output_directory, NULL, 0,
+                           ignored_links, ignored_count, error, error_capacity, cancelled, context);
 }
 
 struct write_context {

@@ -368,7 +368,8 @@ enum ExternalConverters {
         return ConversionResult(outputs: outputs, note: "Linked external resources are not loaded. Check formatting after document conversion.")
     }
 
-    static func archives(_ inputs: [URL], operation: FileOperation, directory: URL) async throws -> ConversionResult {
+    static func archives(_ inputs: [URL], operation: FileOperation, directory: URL,
+                         ignoredSymbolicLinks: [String] = []) async throws -> ConversionResult {
         let cancellation = ArchiveCancellation()
         return try await withTaskCancellationHandler(operation: {
             let context = Unmanaged.passUnretained(cancellation).toOpaque()
@@ -386,7 +387,18 @@ enum ExternalConverters {
                     let stem = rawName.hasSuffix(".tar") ? String(rawName.dropLast(4)) : rawName
                     let output = OutputStore.uniqueURL(in: directory, stem: stem + " extracted", extension: "")
                     try FileManager.default.createDirectory(at: output, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
-                    let code = lemulip_archive_extract(input.path, output.path, rawName, ["gz", "bz2", "xz"].contains(ext) ? 1 : 0, &error, error.count, callback, context)
+                    let code: Int32
+                    if ignoredSymbolicLinks.isEmpty {
+                        code = lemulip_archive_extract(input.path, output.path, rawName, ["gz", "bz2", "xz"].contains(ext) ? 1 : 0, &error, error.count, callback, context)
+                    } else {
+                        let names = ignoredSymbolicLinks.map { strdup($0) }
+                        defer { names.forEach { free($0) } }
+                        guard names.allSatisfy({ $0 != nil }) else { throw LemulipError.operationFailed("Not enough memory to inspect package aliases.") }
+                        let pointers = names.map { $0.map { UnsafePointer<CChar>($0) } }
+                        code = pointers.withUnsafeBufferPointer {
+                            lemulip_archive_extract_package(input.path, output.path, $0.baseAddress, $0.count, &error, error.count, callback, context)
+                        }
+                    }
                     try Task.checkCancellation()
                     guard code == 0 else { throw LemulipError.operationFailed(String(cString: error)) }
                     outputs.append(output)

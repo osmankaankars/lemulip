@@ -17,7 +17,7 @@ struct PandocPackage: Sendable {
         }
     }
     /// Called only inside private staging after the archive checksum is verified.
-    /// Upstream macOS ZIPs put the binary at the root; managed engines use bin/.
+    /// Preserve verified executable bytes while enforcing the managed bin/ layout.
     func prepareExecutable(in directory: URL) throws -> URL {
         let manager = FileManager.default
         let root = try directory.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
@@ -157,9 +157,15 @@ public actor EngineInstaller {
         try Task.checkCancellation()
         let extracted = stage.appendingPathComponent("expanded", isDirectory: true)
         try manager.createDirectory(at: extracted, withIntermediateDirectories: false)
-        let result = try await ExternalConverters.archives([copy], operation: FileOperation(id: "archive.extract", title: "Extract"), directory: extracted)
+        // Both pinned upstream ZIPs contain these two optional symlink aliases.
+        // The app uses only bin/pandoc, so omit aliases without following them.
+        // This path is reached only after both archive checksum checks above.
+        let packageFolder = "pandoc-\(package.version)-\(package.architecture)"
+        let aliases = ["pandoc-lua", "pandoc-server"].map { packageFolder + "/bin/" + $0 }
+        let result = try await ExternalConverters.archives([copy], operation: FileOperation(id: "archive.extract", title: "Extract"),
+                                                          directory: extracted, ignoredSymbolicLinks: aliases)
         guard let root = result.outputs.first else { throw LemulipError.operationFailed("The archive contains no engine.") }
-        let expected = root.appendingPathComponent("pandoc-\(package.version)-\(package.architecture)", isDirectory: true)
+        let expected = root.appendingPathComponent(packageFolder, isDirectory: true)
         let executable = try package.prepareExecutable(in: expected)
         try manager.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
         let report = try await EngineHealth.inspect("pandoc", executable: executable, timeout: 15)
