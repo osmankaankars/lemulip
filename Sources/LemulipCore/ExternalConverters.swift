@@ -13,7 +13,8 @@ enum ExternalConverters {
     static let officeExtensions: Set<String> = ["doc", "docx", "odt", "rtf", "ppt", "pptx", "odp", "xls", "xlsx", "ods", "csv", "tsv", "pdf", "html", "txt"]
 
     static func media(_ inputs: [URL], operation: FileOperation, options: ConversionOptions, directory: URL) async throws -> ConversionResult {
-        guard let ffmpeg = EngineLocator.find("ffmpeg") else { throw LemulipError.missingDependency("FFmpeg") }
+        let health = try await EngineHealth.inspect("ffmpeg")
+        let ffmpeg = try EngineHealth.require(health)
         var outputs: [URL] = []
         for input in inputs {
             try Task.checkCancellation()
@@ -78,10 +79,26 @@ enum ExternalConverters {
                 }
                 arguments += ["-pix_fmt", "yuv420p", "-threads", "4", output.path]
             }
+            let codecs = requiredEncoders(in: arguments)
+            _ = try EngineHealth.require(health, capabilities: codecs)
             _ = try await ProcessRunner.checked(executable: ffmpeg, arguments: arguments, currentDirectory: directory)
             try requireFile(output); outputs.append(output)
         }
         return ConversionResult(outputs: outputs, note: operation.id == "media.compress" ? "Compression depends on the source; compare the output size before removing any original." : nil)
+    }
+
+    static func requiredEncoders(in arguments: [String]) -> Set<String> {
+        let optionalAudio = arguments.contains("-an") || arguments.indices.contains { index in
+            arguments[index] == "-map" && index + 1 < arguments.count && arguments[index + 1] == "0:a:0?"
+        }
+        return Set(arguments.indices.compactMap { index -> String? in
+            let flag = arguments[index]
+            guard ["-c:v", "-c:a"].contains(flag), index + 1 < arguments.count else { return nil }
+            // An optional audio map can select no streams. FFmpeg checks that encoder
+            // if audio is actually present; requiring it here would reject silent video.
+            if flag == "-c:a" && optionalAudio { return nil }
+            return arguments[index + 1]
+        })
     }
 
     private static func mediaDemuxers(_ ext: String) -> String {
@@ -128,7 +145,8 @@ enum ExternalConverters {
     }
 
     static func image(_ inputs: [URL], operation: FileOperation, options: ConversionOptions, directory: URL) async throws -> ConversionResult {
-        guard let magick = EngineLocator.find("imagemagick") else { throw LemulipError.missingDependency("ImageMagick") }
+        let health = try await EngineHealth.inspect("imagemagick")
+        let magick = try EngineHealth.require(health)
         let profile = directory.appendingPathComponent(".image-policy-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: profile, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
         defer { try? FileManager.default.removeItem(at: profile) }
@@ -161,6 +179,8 @@ enum ExternalConverters {
             guard raster.contains(source) || source == "svg", raster.contains(target) else {
                 throw LemulipError.unsupported("This image conversion is not supported by the configured local engines.")
             }
+            let aliases = ["jpg": "JPEG", "jpeg": "JPEG", "tif": "TIFF", "heif": "HEIC", "svg": "MSVG"]
+            _ = try EngineHealth.require(health, capabilities: ["read:\(aliases[source] ?? source.uppercased())", "write:\(aliases[target] ?? target.uppercased())"])
             if source == "svg" { try validateSVG(try TextCodec.read(input)) }
             let copy = profile.appendingPathComponent("source-\(UUID().uuidString).\(source)")
             try FileManager.default.copyItem(at: input, to: copy)
@@ -209,7 +229,7 @@ enum ExternalConverters {
     }
 
     static func office(_ inputs: [URL], operation: FileOperation, directory: URL) async throws -> ConversionResult {
-        guard let office = EngineLocator.find("libreoffice") else { throw LemulipError.missingDependency("LibreOffice") }
+        let office = try EngineHealth.require(try await EngineHealth.inspect("libreoffice"))
         let target = operation.outputExtension?.lowercased() ?? String(operation.id.dropFirst(8))
         guard officeExtensions.contains(target) else { throw LemulipError.unsupported("LibreOffice conversion to .\(target) is not configured.") }
         var outputs: [URL] = []
@@ -301,11 +321,13 @@ enum ExternalConverters {
     #endif
 
     static func document(_ inputs: [URL], operation: FileOperation, directory: URL) async throws -> ConversionResult {
-        guard let pandoc = EngineLocator.find("pandoc") else { throw LemulipError.missingDependency("Pandoc") }
+        let health = try await EngineHealth.inspect("pandoc")
+        let pandoc = try EngineHealth.require(health)
         let target = operation.outputExtension?.lowercased() ?? String(operation.id.dropFirst(8))
         let readers = ["md": "markdown", "markdown": "markdown", "txt": "markdown", "html": "html", "htm": "html", "epub": "epub", "docx": "docx", "odt": "odt"]
         let writers = ["md": "markdown", "markdown": "markdown", "txt": "plain", "html": "html5", "htm": "html5", "epub": "epub3", "docx": "docx", "odt": "odt", "rtf": "rtf"]
         guard let writer = writers[target] else { throw LemulipError.unsupported("Pandoc output is not configured for .\(target).") }
+        _ = try EngineHealth.require(health, capabilities: [writer])
         var outputs: [URL] = []
         for input in inputs {
             try Task.checkCancellation()

@@ -2,7 +2,8 @@ import Foundation
 
 /// Finds optional local converters without starting a shell or reading credentials.
 public enum EngineLocator {
-    public static func find(_ name: String) -> URL? {
+    public static func find(_ name: String, bundleURL: URL = Bundle.main.bundleURL,
+                            homeDirectory: URL = FileManager.default.homeDirectoryForCurrentUser) -> URL? {
         let aliases: [String]
         switch name.lowercased() {
         case "imagemagick", "magick": aliases = ["magick", "convert"]
@@ -12,14 +13,24 @@ public enum EngineLocator {
             guard !name.isEmpty, name.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || "-_".contains($0)) }) else { return nil }
             aliases = [name]
         }
-        var directories: [String] = []
+        let family: String
+        switch name.lowercased() {
+        case "ffmpeg", "ffprobe": family = "ffmpeg"
+        case "imagemagick", "magick": family = "imagemagick"
+        case "libreoffice", "soffice": family = "libreoffice"
+        default: family = name.lowercased()
+        }
+        let managed = homeDirectory.appendingPathComponent("Library/Application Support/Lemulip/Engines")
+        let bundled = bundleURL.appendingPathComponent("Contents/Helpers/Engines")
+        var directories = [bundled, managed].map { $0.appendingPathComponent(family).appendingPathComponent("bin").path }
         if let path = ProcessInfo.processInfo.environment["PATH"] {
             directories += path.split(separator: ":").map(String.init).filter { $0.hasPrefix("/") }
         }
         directories += ["/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", "/bin"]
         var candidates = directories.flatMap { directory in aliases.map { URL(fileURLWithPath: directory).appendingPathComponent($0) } }
         if aliases.contains("soffice") {
-            candidates.insert(URL(fileURLWithPath: "/Applications/LibreOffice.app/Contents/MacOS/soffice"), at: 0)
+            candidates += [homeDirectory.appendingPathComponent("Applications/LibreOffice.app/Contents/MacOS/soffice"),
+                           URL(fileURLWithPath: "/Applications/LibreOffice.app/Contents/MacOS/soffice")]
         }
         var seen = Set<String>()
         for url in candidates where seen.insert(url.path).inserted {

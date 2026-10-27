@@ -1,4 +1,5 @@
 import Foundation
+import CLemulipProcess
 #if os(macOS)
 import Darwin
 #else
@@ -12,7 +13,7 @@ struct ProcessOutput: Sendable {
     var errorText: String { String(decoding: standardError, as: UTF8.self).trimmingCharacters(in: .whitespacesAndNewlines) }
 }
 
-/// Drains both pipes while the process runs. Cancellation also stops the child.
+/// Drains both pipes while the process runs. Each converter owns a process group, including its helper processes.
 enum ProcessRunner {
     static func canonicalDirectoryPath(_ directory: URL) throws -> String {
         let path = directory.path
@@ -58,7 +59,7 @@ enum ProcessRunner {
                     timeout: TimeInterval = 900, denyNetwork: Bool = true,
                     allowedUnixSockets: [URL] = []) async throws -> ProcessOutput {
         try Task.checkCancellation()
-        guard executable.isFileURL, maximumOutputBytes > 0, timeout > 0,
+        guard executable.isFileURL, maximumOutputBytes > 0, timeout > 0, timeout.isFinite,
               allowedUnixSockets.allSatisfy({ $0.isFileURL && $0.path != "/" && !$0.path.contains("\0") }) else {
             throw LemulipError.invalidInput("Invalid converter process configuration.")
         }
@@ -114,7 +115,7 @@ private final class ProcessState: @unchecked Sendable {
     private let maximumOutputBytes: Int
     private let timeout: TimeInterval
     private var continuation: CheckedContinuation<ProcessOutput, Error>?
-    private var process: Process?
+    private var processID: pid_t = 0
     private var outputPipe: Pipe?
     private var errorPipe: Pipe?
     private var outputSource: DispatchSourceRead?
@@ -136,8 +137,6 @@ private final class ProcessState: @unchecked Sendable {
         queue.async { [self] in
             self.continuation = continuation
             if cancellationRequested { finish(.failure(LemulipError.cancelled)); return }
-            let child = Process()
-            child.executableURL = executable; child.arguments = arguments; child.currentDirectoryURL = currentDirectory
             let inherited = ProcessInfo.processInfo.environment
             let allowed = ["PATH", "HOME", "TMPDIR", "LANG", "LC_ALL", "LC_CTYPE", "FONTCONFIG_PATH", "FONTCONFIG_FILE"]
             var cleanEnvironment: [String: String] = [:]
@@ -145,31 +144,59 @@ private final class ProcessState: @unchecked Sendable {
             cleanEnvironment["PATH"] = cleanEnvironment["PATH"] ?? "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
             cleanEnvironment["LANG"] = cleanEnvironment["LANG"] ?? "en_US.UTF-8"
             cleanEnvironment.merge(environment) { _, replacement in replacement }
-            child.environment = cleanEnvironment
-            child.standardInput = FileHandle.nullDevice
             let out = Pipe(), err = Pipe()
-            child.standardOutput = out; child.standardError = err
-            outputPipe = out; errorPipe = err; process = child
+            outputPipe = out; errorPipe = err
             outputSource = makeSource(out.fileHandleForReading, isError: false)
             errorSource = makeSource(err.fileHandleForReading, isError: true)
-            child.terminationHandler = { [weak self] child in
-                guard let self else { return }
-                self.queue.async { [self] in
-                    self.drain(isError: false); self.drain(isError: true)
-                    if let terminalError = self.terminalError { self.finish(.failure(terminalError)) }
-                    else { self.finish(.success(ProcessOutput(standardOutput: self.stdout, standardError: self.stderr, exitCode: child.terminationStatus))) }
+            let values = [executable.path] + arguments
+            let variables = cleanEnvironment.sorted { $0.key < $1.key }.map { "\($0.key)=\($0.value)" }
+            guard values.allSatisfy({ !$0.contains("\0") }), variables.allSatisfy({ !$0.contains("\0") }),
+                  currentDirectory?.isFileURL != false, currentDirectory?.path.contains("\0") != true else {
+                finish(.failure(LemulipError.invalidInput("Invalid converter arguments."))); return
+            }
+            let argv = values.map { strdup($0) } + [nil]
+            let envp = variables.map { strdup($0) } + [nil]
+            defer { for pointer in argv + envp { free(pointer) } }
+            guard argv.dropLast().allSatisfy({ $0 != nil }), envp.dropLast().allSatisfy({ $0 != nil }) else {
+                finish(.failure(LemulipError.operationFailed("Not enough memory to start the converter."))); return
+            }
+            let spawnError = argv.withUnsafeBufferPointer { args in
+                envp.withUnsafeBufferPointer { env in
+                    lemulip_process_spawn(&processID, executable.path, args.baseAddress, env.baseAddress,
+                        currentDirectory?.path, out.fileHandleForWriting.fileDescriptor, err.fileHandleForWriting.fileDescriptor)
                 }
             }
-            do {
-                try child.run()
-                let timer = DispatchSource.makeTimerSource(queue: queue)
-                timer.schedule(deadline: .now() + timeout)
-                timer.setEventHandler { [weak self] in
-                    self?.stop(error: LemulipError.operationFailed("The converter exceeded its time limit and was stopped."))
+            try? out.fileHandleForWriting.close(); try? err.fileHandleForWriting.close()
+            guard spawnError == 0 else {
+                finish(.failure(LemulipError.operationFailed("Could not start \(executable.lastPathComponent): \(String(cString: strerror(spawnError)))"))); return
+            }
+            let pid = processID
+            DispatchQueue.global(qos: .utility).async { [self] in
+                var status: Int32 = 0
+                let waitError = lemulip_process_wait(pid, &status)
+                let exitCode = status
+                self.queue.async { [self] in
+                    // WNOWAIT keeps the leader unreaped until signals are done, preventing
+                    // PID reuse. Never let an exited converter leave background writers.
+                    if waitError == 0 {
+                        _ = lemulip_process_signal_group(pid, SIGKILL)
+                        _ = lemulip_process_reap(pid)
+                    }
+                    processID = 0
+                    drain(isError: false); drain(isError: true)
+                    if let terminalError { finish(.failure(terminalError)) }
+                    else if waitError != 0 { finish(.failure(LemulipError.operationFailed("Could not observe converter completion."))) }
+                    else { finish(.success(ProcessOutput(standardOutput: stdout, standardError: stderr, exitCode: exitCode))) }
                 }
-                deadline = timer; timer.resume()
-                if cancellationRequested { stop(error: LemulipError.cancelled) }
-            } catch { finish(.failure(LemulipError.operationFailed("Could not start \(executable.lastPathComponent): \(error.localizedDescription)"))) }
+            }
+            let timer = DispatchSource.makeTimerSource(queue: queue)
+            timer.schedule(deadline: .now() + timeout)
+            timer.setEventHandler { [weak self] in
+                self?.stop(error: LemulipError.operationFailed("The converter exceeded its time limit and was stopped."))
+            }
+            deadline = timer; timer.resume()
+            if cancellationRequested { stop(error: LemulipError.cancelled) }
+
         }
     }
 
@@ -215,14 +242,14 @@ private final class ProcessState: @unchecked Sendable {
 
     private func stop(error: Error) {
         guard !finished else { return }
+        guard terminalError == nil else { return }
         terminalError = error
-        guard let process else { finish(.failure(error)); return }
-        if process.isRunning {
-            process.terminate()
-            queue.asyncAfter(deadline: .now() + 2) { [weak self, weak process] in
-                guard let self, !self.finished, let process, process.isRunning else { return }
-                _ = kill(process.processIdentifier, SIGKILL)
-            }
+        guard processID > 1 else { finish(.failure(error)); return }
+        let pid = processID
+        _ = lemulip_process_signal_group(pid, SIGTERM)
+        queue.asyncAfter(deadline: .now() + 2) { [weak self] in
+            guard let self, !self.finished, self.processID == pid else { return }
+            _ = lemulip_process_signal_group(pid, SIGKILL)
         }
     }
 
@@ -232,7 +259,7 @@ private final class ProcessState: @unchecked Sendable {
         deadline?.cancel(); deadline = nil
         outputSource?.cancel(); errorSource?.cancel(); outputSource = nil; errorSource = nil
         try? outputPipe?.fileHandleForReading.close(); try? errorPipe?.fileHandleForReading.close()
-        process?.terminationHandler = nil
+        try? outputPipe?.fileHandleForWriting.close(); try? errorPipe?.fileHandleForWriting.close()
         let completion = continuation; continuation = nil
         completion?.resume(with: result)
     }
