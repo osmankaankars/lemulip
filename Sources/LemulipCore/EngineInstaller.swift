@@ -16,6 +16,39 @@ struct PandocPackage: Sendable {
         default: throw LemulipError.unsupported("No reviewed document engine is available for this architecture.")
         }
     }
+    /// Called only inside private staging after the archive checksum is verified.
+    /// Upstream macOS ZIPs put the binary at the root; managed engines use bin/.
+    func prepareExecutable(in directory: URL) throws -> URL {
+        let manager = FileManager.default
+        let root = try directory.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+        guard root.isDirectory == true, root.isSymbolicLink != true else {
+            throw LemulipError.invalidInput("The engine package folder is invalid.")
+        }
+        let bin = directory.appendingPathComponent("bin", isDirectory: true)
+        if let values = try? bin.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey]) {
+            guard values.isDirectory == true, values.isSymbolicLink != true else {
+                throw LemulipError.invalidInput("The engine binary folder is invalid.")
+            }
+        }
+        let executable = bin.appendingPathComponent("pandoc")
+        if let values = try? executable.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey]) {
+            guard values.isRegularFile == true, values.isSymbolicLink != true else {
+                throw LemulipError.invalidInput("The document engine must be a regular file.")
+            }
+            return executable
+        }
+        let upstream = directory.appendingPathComponent("pandoc")
+        let values = try upstream.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey])
+        guard values.isRegularFile == true, values.isSymbolicLink != true else {
+            throw LemulipError.invalidInput("The official archive has an unexpected layout.")
+        }
+        if !manager.fileExists(atPath: bin.path) {
+            try manager.createDirectory(at: bin, withIntermediateDirectories: false,
+                                        attributes: [.posixPermissions: 0o700])
+        }
+        try manager.moveItem(at: upstream, to: executable)
+        return executable
+    }
     static func allowsDownload(_ url: URL) -> Bool {
         url.scheme == "https" && url.user == nil && url.password == nil &&
         (url.port == nil || url.port == 443) &&
@@ -127,8 +160,7 @@ public actor EngineInstaller {
         let result = try await ExternalConverters.archives([copy], operation: FileOperation(id: "archive.extract", title: "Extract"), directory: extracted)
         guard let root = result.outputs.first else { throw LemulipError.operationFailed("The archive contains no engine.") }
         let expected = root.appendingPathComponent("pandoc-\(package.version)-\(package.architecture)", isDirectory: true)
-        let executable = expected.appendingPathComponent("bin/pandoc")
-        guard manager.fileExists(atPath: executable.path) else { throw LemulipError.invalidInput("The official archive has an unexpected layout.") }
+        let executable = try package.prepareExecutable(in: expected)
         try manager.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
         let report = try await EngineHealth.inspect("pandoc", executable: executable, timeout: 15)
         guard report.state == .ready else { throw LemulipError.operationFailed("The document engine failed its local compatibility check. " + report.detail) }

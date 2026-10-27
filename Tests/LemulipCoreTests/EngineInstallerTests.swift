@@ -18,6 +18,40 @@ final class EngineInstallerTests: XCTestCase {
         XCTAssertFalse(PandocPackage.allowsDownload(credentials.url!))
         XCTAssertTrue(PandocPackage.allowsDownload(URL(string: "https://release-assets.githubusercontent.com/asset")!))
     }
+    func testOfficialRootExecutableIsNormalizedWithoutChangingBytes() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let original = root.appendingPathComponent("pandoc")
+        let payload = Data("verified fixture bytes".utf8)
+        try payload.write(to: original)
+        try Data("retained upstream notice".utf8).write(to: root.appendingPathComponent("COPYING"))
+        let normalized = try PandocPackage(architecture: "arm64").prepareExecutable(in: root)
+        XCTAssertEqual(normalized, root.appendingPathComponent("bin/pandoc"))
+        XCTAssertEqual(try Data(contentsOf: normalized), payload)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: original.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: root.appendingPathComponent("COPYING").path))
+    }
+
+    func testExistingBinLayoutIsPreservedAndLinksAreRejected() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let package = try PandocPackage(architecture: "arm64")
+        let executable = root.appendingPathComponent("bin/pandoc")
+        try FileManager.default.createDirectory(at: executable.deletingLastPathComponent(), withIntermediateDirectories: false)
+        try Data("binary".utf8).write(to: executable)
+        XCTAssertEqual(try package.prepareExecutable(in: root), executable)
+        try FileManager.default.removeItem(at: executable)
+        try FileManager.default.createSymbolicLink(at: executable, withDestinationURL: root.appendingPathComponent("missing"))
+        XCTAssertThrowsError(try package.prepareExecutable(in: root))
+        try FileManager.default.removeItem(at: executable)
+        try FileManager.default.removeItem(at: root.appendingPathComponent("bin"))
+        try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("bin"), withDestinationURL: root)
+        try Data("binary".utf8).write(to: root.appendingPathComponent("pandoc"))
+        XCTAssertThrowsError(try package.prepareExecutable(in: root))
+    }
+
     #if os(macOS)
     func testCorruptPackageCannotInstallOrReplaceExistingEngine() async throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
