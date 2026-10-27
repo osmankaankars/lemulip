@@ -70,6 +70,17 @@ jobs:
           ditto -c -k --sequesterRsrc --keepParent dist/Lemulip.app "$RUNNER_TEMP/media-review/Lemulip-With-Media-${{ matrix.arch }}.zip"
           cd "$RUNNER_TEMP/media-review"
           shasum -a 256 *.tar.gz *.zip > SHA256SUMS.txt
+      - name: Retain native load commands on success or failure
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/media-diagnostics"
+          for executable in ffmpeg ffprobe; do
+            binary="$RUNNER_TEMP/media-build/pack/bin/$executable"
+            if [ -f "$binary" ]; then
+              /usr/bin/otool -l "$binary" > "$RUNNER_TEMP/media-diagnostics/$executable-load-commands.txt"
+              /usr/bin/otool -L "$binary" > "$RUNNER_TEMP/media-diagnostics/$executable-runtime-libraries.txt"
+            fi
+          done
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
@@ -78,6 +89,7 @@ jobs:
             ${{ runner.temp }}/media-review/
             ${{ runner.temp }}/media-build.log
             ${{ runner.temp }}/media-app.log
+            ${{ runner.temp }}/media-diagnostics/
           if-no-files-found: warn
           retention-days: 14
           compression-level: 0

@@ -112,13 +112,27 @@ def verify_macho(root: pathlib.Path, manifest: dict, required_architectures: set
         if not required_architectures<=set(result.stdout.split()):raise ValueError('Missing binary architecture: '+p.name)
         for arch in sorted(required_architectures):
             load=subprocess.check_output(['/usr/bin/otool','-arch',arch,'-l',str(p)],text=True)
-            # Check only deployment commands, not arbitrary dylib version fields.
+            # LC_BUILD_VERSION also contains the linker's "version". Only its
+            # "minos" field is the deployment target; SDK/tool versions are not.
             commands=re.split(r'Load command \d+',load)
             deployment=[]
             for command in commands:
-                if 'LC_BUILD_VERSION' in command or 'LC_VERSION_MIN_MACOSX' in command:
-                    deployment+=re.findall(r'^\s+(?:minos|version)\s+(\d+\.\d+(?:\.\d+)?)\s*$',command,re.M)
-            if not deployment or any(version(v)>(13,0) for v in deployment):raise ValueError('Unsupported binary deployment target: '+p.name)
+                kind=re.search(r'^[ \t]*cmd[ \t]+(LC_\w+)[ \t]*$',command,re.M)
+                if not kind:continue
+                if kind[1]=='LC_BUILD_VERSION':
+                    platforms=re.findall(r'^[ \t]*platform[ \t]+(\w+)[ \t]*$',command,re.M)
+                    if len(platforms)!=1 or platforms[0] not in {'1','MACOS'}:
+                        raise ValueError('Engine binary is not a macOS target: '+p.name)
+                    field='minos'
+                elif kind[1]=='LC_VERSION_MIN_MACOSX':field='version'
+                elif kind[1].startswith('LC_VERSION_MIN_'):
+                    raise ValueError('Engine binary is not a macOS target: '+p.name)
+                else:continue
+                values=re.findall(r'^[ \t]*'+field+r'[ \t]+(\d+\.\d+(?:\.\d+)?)[ \t]*$',command,re.M)
+                if len(values)!=1:raise ValueError('Missing or ambiguous binary deployment target: '+p.name)
+                deployment.extend(values)
+            if len(deployment)!=1 or any(version(v)>(13,0) for v in deployment):
+                raise ValueError('Unsupported binary deployment target: '+p.name+' '+repr(deployment))
             linked=subprocess.check_output(['/usr/bin/otool','-arch',arch,'-L',str(p)],text=True)
             for line in linked.splitlines():
                 if not line.startswith((' ','\t')):continue
