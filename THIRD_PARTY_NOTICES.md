@@ -65,8 +65,10 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ## Optional, Independently Installed Engines
 
-Lemulip detects these tools if they are already installed. It neither downloads
-nor bundles them. Their own licenses and notices apply to those installations:
+Lemulip detects locally installed tools. Pandoc can also be downloaded from its
+official GitHub release after explicit user approval; the pinned archive is
+checksum-verified before installation. No engine binary is included in this
+source repository. Their own licenses and notices apply:
 
 | Engine | Project and licensing information |
 | --- | --- |
@@ -75,7 +77,11 @@ nor bundles them. Their own licenses and notices apply to those installations:
 | LibreOffice | <https://www.libreoffice.org/about-us/licenses/> |
 | Pandoc | <https://pandoc.org/> and <https://github.com/jgm/pandoc/blob/main/COPYING.md> |
 
-If distributing a modified application that bundles any of these engines, review
+The optional Pandoc installer uses the unmodified 3.12.1 archive. Its source and
+license are available at <https://github.com/jgm/pandoc/tree/3.12.1> and
+<https://github.com/jgm/pandoc/blob/3.12.1/COPYING.md>.
+
+If distributing an application that bundles any of these engines, review
 and satisfy the licenses of the exact binaries and codecs you distribute.
 
 ## Independent Implementation

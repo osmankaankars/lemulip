@@ -37,6 +37,8 @@ jobs:
           persist-credentials: false
       - name: Check Public Source Contents
         run: python3 script/privacy_check.py --staged
+      - name: Validate Engine Pack Guardrails
+        run: python3 script/test_engine_packs.py
       - name: Check Architecture, Toolchain, and Version
         env:
           EXPECTED_ARCH: ${{ matrix.arch }}
