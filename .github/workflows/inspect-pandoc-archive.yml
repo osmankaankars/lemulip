@@ -1,0 +1,36 @@
+name: Inspect Pinned Pandoc Archive
+on:
+  push:
+    branches: [feat/engine-packs-and-activity-20261027]
+    paths: [.github/workflows/inspect-pandoc-archive.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Verify and inspect both architecture archives as data only
+        shell: python
+        run: |
+          import hashlib,io,json,os,pathlib,stat,urllib.request,zipfile
+          folder=pathlib.Path(os.environ['RUNNER_TEMP'])/'pandoc-inspection'; folder.mkdir()
+          pins={'arm64':'c2146cf33a583f3ac93eccddf1bb662371d5cfcce1aad1c87ad860cca1435d46','x86_64':'81ed3e2cfecf096df15d407152f89a684fd65221082b919963f738e977fad3bc'}
+          for arch,digest in pins.items():
+              url=f'https://github.com/jgm/pandoc/releases/download/3.12.1/pandoc-3.12.1-{arch}-macOS.zip'
+              with urllib.request.urlopen(url,timeout=60) as response: data=response.read(200*1024*1024+1)
+              assert len(data)<=200*1024*1024
+              assert hashlib.sha256(data).hexdigest()==digest
+              entries=[]
+              with zipfile.ZipFile(io.BytesIO(data)) as archive:
+                  for item in archive.infolist():
+                      mode=item.external_attr>>16
+                      entries.append({'name':item.filename,'mode':oct(mode),'size':item.file_size,'link':archive.read(item).decode() if stat.S_ISLNK(mode) else None})
+              result={'architecture':arch,'sha256':digest,'entries':entries}
+              (folder/(arch+'.json')).write_text(json.dumps(result,indent=2)+'\n')
+              print(json.dumps(result))
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Pandoc-Archive-Inspection
+          path: ${{ runner.temp }}/pandoc-inspection/
+          retention-days: 1
