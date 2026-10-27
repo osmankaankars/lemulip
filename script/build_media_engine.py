@@ -7,6 +7,7 @@ installed separately; no Homebrew runtime library is copied into the pack.
 """
 from __future__ import annotations
 import argparse
+import difflib
 import hashlib
 import json
 import os
@@ -112,6 +113,23 @@ def extract_source(archive: Path, destination: Path, maximum_bytes: int = 1_000_
             shutil.rmtree(destination)
             raise
     return destination / next(iter(roots))
+
+
+def prepare_source(name: str, source: Path, sources: Path) -> Path | None:
+    # Vorbis 1.3.7 injects an obsolete PowerPC-era linker flag on every Darwin
+    # host. Keep the original archive and a reproducible patch beside it.
+    if name != 'libvorbis': return None
+    configure = source / 'configure'
+    original = configure.read_text()
+    obsolete = ' -force_cpusubtype_ALL'
+    if original.count(obsolete) != 3:
+        raise ValueError('Unexpected Vorbis configure script; review the source before patching')
+    corrected = original.replace(obsolete, '')
+    patch = sources / 'libvorbis-darwin-linker.patch'
+    patch.write_text(''.join(difflib.unified_diff(original.splitlines(keepends=True),
+        corrected.splitlines(keepends=True), fromfile='a/configure', tofile='b/configure')))
+    configure.write_text(corrected)
+    return patch
 
 
 def assert_host(system: str, host: str, requested: str) -> None:
@@ -236,6 +254,7 @@ def build(output: Path, work: Path, architecture: str) -> None:
                 destination.write(('\n===== ' + p.name + ' =====\n').encode()); destination.write(p.read_bytes())
             if name == 'ffmpeg':
                 destination.write(b'\nThis software is based in part on the work of the Independent JPEG Group.\nNo changes were made to the IJG-derived FFmpeg source files.\n')
+        prepare_source(name, source, stage / 'sources')
         flags = configure_arguments(name, prefix, architecture)
         if name == 'ffmpeg': ffmpeg_flags = flags
         run(['./configure', *flags], source, environment, record)
@@ -253,7 +272,8 @@ def build(output: Path, work: Path, architecture: str) -> None:
         'Use script/build_media_engine.py and the included media-engine-sources.json from the matching Lemulip checkout.\n'
         'Run: python3 script/build_media_engine.py --output <new-pack-directory> --work <new-work-directory> --arch ' + architecture + '\n'
         'The source archives here are the complete unmodified inputs. Git inputs are verified by the pinned commit before export.\n'
-        'The full command sequence is in build-record.json. No patches are applied. The helper executables are separate from the MIT application.\n')
+        'The full command sequence is in build-record.json. The recipe applies libvorbis-darwin-linker.patch to the original Vorbis configure script.\n'
+        'The helper executables are separate from the MIT application.\n')
     smoke_test(stage, work, environment, record)
     (stage / 'sources/build-record.json').write_text(json.dumps({'architecture': architecture, 'minimumMacOS': '13.0',
         'compiler': subprocess.check_output(['clang', '--version'], env=environment, text=True),

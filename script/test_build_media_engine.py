@@ -94,6 +94,26 @@ class MediaBuildTests(unittest.TestCase):
         self.assertTrue(any(f.startswith('--extra-cflags=-I') for f in flags))
         self.assertTrue(any(f.startswith('--extra-ldflags=-L') for f in flags))
 
+    def test_vorbis_obsolete_linker_flag_is_removed_and_patch_is_retained(self):
+        source = self.root / 'vorbis'; source.mkdir()
+        sources = self.root / 'sources'; sources.mkdir()
+        original = '#!/bin/sh\n' + 'CFLAGS="-DDARWIN -force_cpusubtype_ALL -O3"\n' * 3
+        (source / 'configure').write_text(original)
+        (source / 'configure').chmod(0o755)
+        patch = self.m.prepare_source('libvorbis', source, sources)
+        self.assertNotIn(' -force_cpusubtype_ALL', (source / 'configure').read_text())
+        self.assertTrue((source / 'configure').stat().st_mode & 0o111)
+        self.assertTrue(patch.is_file())
+        self.assertIn('-CFLAGS="-DDARWIN -force_cpusubtype_ALL -O3"', patch.read_text())
+        self.assertIn('+CFLAGS="-DDARWIN -O3"', patch.read_text())
+
+    def test_vorbis_patch_refuses_unexpected_upstream_source(self):
+        source = self.root / 'vorbis'; source.mkdir()
+        sources = self.root / 'sources'; sources.mkdir()
+        (source / 'configure').write_text('#!/bin/sh\necho unexpected\n')
+        with self.assertRaises(ValueError): self.m.prepare_source('libvorbis', source, sources)
+        self.assertEqual('#!/bin/sh\necho unexpected\n', (source / 'configure').read_text())
+
     def test_architecture_and_platform_mismatch_fail(self):
         for system, host, requested in [('Linux','arm64','arm64'), ('Darwin','x86_64','arm64'), ('Darwin','arm64','unknown')]:
             with self.assertRaises(ValueError): self.m.assert_host(system, host, requested)
