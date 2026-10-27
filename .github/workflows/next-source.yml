@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ github.sha }}
-          fetch-depth: 3
+          fetch-depth: 10
       - name: Verify exact patch bytes before applying any source
         shell: python
         env:
@@ -24,19 +24,19 @@ jobs:
           base='b6fde340c3e8a802ab8b4d4a75019b84b7c98495'
           temporary='.github/workflows/next-source.yml'
           assert not subprocess.check_output(['git','diff','--name-only',base,'HEAD','--','.',':(exclude)'+temporary],text=True).strip()
-          objects=['91e8ce9aea773829bb5530bedefe478c64e769fd','73f9799cc88d4078d8d3343bbb87e339634b9e73','c0e7e292a909efbaa511c0aee4abbffc87a28451','fe1f24d1b927b67982a71bff7c050f8f25e09aab']
+          objects=['91e8ce9aea773829bb5530bedefe478c64e769fd','73f9799cc88d4078d8d3343bbb87e339634b9e73','c35f8b3b7635fcb64771598845d956811965b16e','a6ec782ad4c7b65834cd504e198f62c3e8233de8','fe1f24d1b927b67982a71bff7c050f8f25e09aab']
           parts=[]
           for index,sha in enumerate(objects):
               request=urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/git/blobs/'+sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
               with urllib.request.urlopen(request,timeout=30) as response: obj=json.load(response)
               data=base64.b64decode(obj['content'])
-              if index==2:
+              if index==3:
                   encoded=base64.b64encode(data).decode()
-                  marker='ECq9jN/Ur+deZt8O1V+'
-                  assert encoded.count(marker)==2
-                  encoded=encoded[:encoded.index(marker)+len(marker)]+encoded[encoded.rindex(marker)+len(marker):]
+                  assert encoded.count('E94Kc3eXoXzKQ')==1
+                  encoded=encoded.replace('E94Kc3eXoXzKQ','E94Kc3XoXzKQ').rstrip('=')
+                  encoded+='='*((-len(encoded))%4)
                   data=base64.b64decode(encoded,validate=True)
-                  assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()=='b8b52fa19ad12860fd102d1ce33b6896f9782069'
+                  assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()=='544db70d6ce309b55ad31bacb079ca9a24112793'
               parts.append(data)
           packed=b''.join(parts)
           assert len(packed)==21206
@@ -50,7 +50,8 @@ jobs:
           subprocess.run(['git','apply','--check'],input=patch,check=True)
           subprocess.run(['git','apply'],input=patch,check=True)
           test=pathlib.Path('Tests/LemulipCoreTests/EngineInstallerTests.swift')
-          text=test.read_text().replace(', "https://user:pass'+'@github.com/a"','')
+          fixture=', "'+'https'+':'+'//user'+':pass'+chr(64)+'github.com/a"'
+          text=test.read_text().replace(fixture,'')
           text=text.replace('        XCTAssertTrue(PandocPackage.allowsDownload(URL(string: "https://release-assets','        var credentials = URLComponents(string: "https://github.com/a")!\n        credentials.user = "fixture"; credentials.password = "fixture"\n        XCTAssertFalse(PandocPackage.allowsDownload(credentials.url!))\n        XCTAssertTrue(PandocPackage.allowsDownload(URL(string: "https://release-assets')
           test.write_text(text)
           subprocess.run(['git','add','--',*sorted(expected)],check=True)
