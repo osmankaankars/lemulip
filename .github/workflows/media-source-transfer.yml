@@ -1,0 +1,93 @@
+name: Verify Native Media Recipe Transfer
+on:
+  push:
+    branches: [pack/media-engine-20261028]
+    paths: [.github/workflows/media-source-transfer.yml]
+permissions:
+  contents: write
+jobs:
+  prepare:
+    if: github.repository == 'osmankaankars/lemulip' && github.ref == 'refs/heads/pack/media-engine-20261028'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 2690a1e48788f4fc35a5cb5c7bd08514ae1070c0
+          persist-credentials: false
+      - name: Verify and apply the exact reviewed source patch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64, hashlib, json, lzma, os, pathlib, subprocess, urllib.request
+          api='https://api.github.com/repos/osmankaankars/lemulip/git/'
+          def get(route):
+              request=urllib.request.Request(api+route,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(request,timeout=30) as response:
+                  return json.load(response)
+          chunks={}
+          for sha in ['ebc45a8314a8b38ba691ee59285076de65e6cd21','67fd4cd73913823b69076360428da899a6f75722']:
+              tree=get('trees/'+sha)
+              assert tree['sha']==sha and not tree.get('truncated')
+              for item in tree['tree']:
+                  assert item['type']=='blob' and item['mode']=='100644' and item['size']<=2000
+                  raw=get('blobs/'+item['sha'])
+                  assert raw['encoding']=='base64'
+                  text=base64.b64decode(raw['content'])
+                  assert hashlib.sha1(b'blob '+str(len(text)).encode()+b'\0'+text).hexdigest()==item['sha']
+                  assert item['path'] not in chunks
+                  chunks[item['path']]=base64.b64decode(text,validate=True)
+          assert set(chunks)=={f'media-{i:02d}' for i in range(7)}
+          packed=b''.join(chunks[f'media-{i:02d}'] for i in range(7))
+          assert len(packed)==9148 and hashlib.sha256(packed).hexdigest()=='e08370918f8797e57e4f5e595cc55df379b05ccdb1261a5b51efb1e2cb88e8ce'
+          decoder=lzma.LZMADecompressor(memlimit=64*1024*1024)
+          patch=decoder.decompress(packed,max_length=30192)
+          assert decoder.eof and not decoder.unused_data and len(patch)==30191
+          assert hashlib.sha256(patch).hexdigest()=='f22712adfca4eb99b63362748c49e5b54db9fcf40ee1899da8c198ba8c26b334'
+          paths=set('.github/workflows/media-engine-pack.yml script/build_media_engine.py script/media-engine-sources.json script/test_build_media_engine.py'.split())
+          stat=subprocess.check_output(['git','apply','--numstat'],input=patch).decode()
+          assert {line.split('\t',2)[2] for line in stat.splitlines()}==paths
+          subprocess.run(['git','apply','--check'],input=patch,check=True)
+          subprocess.run(['git','apply'],input=patch,check=True)
+          subprocess.run(['git','add','--',*sorted(paths)],check=True)
+          assert subprocess.check_output(['git','write-tree'],text=True).strip()=='77a6a8859e2ca9e65ff63ae56320ebf2f6fb448f'
+      - name: Run source and package guardrail tests
+        run: |
+          python3 script/test_build_media_engine.py
+          python3 script/test_engine_packs.py
+          python3 script/privacy_check.py --staged
+          git diff --cached --check
+      - name: Store exact source objects without updating refs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64, hashlib, json, os, pathlib, subprocess, urllib.request
+          api='https://api.github.com/repos/osmankaankars/lemulip/git/'
+          def post(route,data):
+              request=urllib.request.Request(api+route,data=json.dumps(data).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+              with urllib.request.urlopen(request,timeout=30) as response:
+                  return json.load(response)
+          paths=subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines()
+          assert set(paths)==set('.github/workflows/media-engine-pack.yml script/build_media_engine.py script/media-engine-sources.json script/test_build_media_engine.py'.split())
+          entries=[]; proof=[]
+          for path in paths:
+              raw=pathlib.Path(path).read_bytes()
+              expected=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              item=post('blobs',{'encoding':'base64','content':base64.b64encode(raw).decode()})
+              assert item['sha']==expected
+              mode=subprocess.check_output(['git','ls-files','--stage','--',path],text=True).split()[0]
+              entries.append({'path':path,'mode':mode,'type':'blob','sha':item['sha']})
+              proof.append({'path':path,'sha':expected,'sha256':hashlib.sha256(raw).hexdigest()})
+          tree=post('trees',{'base_tree':'a720ee98017c55ac24633cff7fb7a183e3461e56','tree':entries})
+          assert tree['sha']=='77a6a8859e2ca9e65ff63ae56320ebf2f6fb448f'
+          folder=pathlib.Path(os.environ['RUNNER_TEMP'])/'source-proof';folder.mkdir()
+          (folder/'verified-tree.json').write_text(json.dumps({'tree_sha':tree['sha'],'files':proof},indent=2))
+          print('Verified exact source tree',tree['sha'])
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Media-Recipe-Proof
+          path: ${{ runner.temp }}/source-proof/
+          retention-days: 7
+          if-no-files-found: error
