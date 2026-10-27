@@ -31,10 +31,17 @@ jobs:
               tree=api_call('trees/'+sha)
               assert tree['sha']==sha and not tree.get('truncated')
               entries.extend(tree['tree'])
-          (root/'chunk-inventory.json').write_text(json.dumps(entries,indent=2))
           assert len(entries)==86 and len({e['path'] for e in entries})==86
+          replacements={}
+          for sha in ['987e1c6b0e01b8e2614a17b1aeb9523938ec3f5b','f870aac09cb67b01c3e750d4e0f7f1155c62cf7c']:
+              tree=api_call('trees/'+sha)
+              assert tree['sha']==sha and not tree.get('truncated')
+              replacements.update({e['path']:e for e in tree['tree']})
+          assert set(replacements)=={f'app-workspace-{i:02d}' for i in range(15,21)}
+          entries=[replacements.get(e['path'],e) for e in entries]
+          (root/'chunk-inventory.json').write_text(json.dumps(entries,indent=2))
           def read(item):
-              assert item['type']=='blob' and item['mode']=='100644' and item['size']<=3000
+              assert item['type']=='blob' and item['mode']=='100644' and item['size']<=2000
               blob=api_call('blobs/'+item['sha'])
               assert blob['encoding']=='base64'
               text=base64.b64decode(blob['content'])
