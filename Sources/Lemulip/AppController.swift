@@ -5,7 +5,7 @@ import UniformTypeIdentifiers
 import LemulipCore
 
 struct ActivityItem: Identifiable {
-    enum State { case waiting, running, succeeded, failed, cancelled }
+    typealias State = ConversionJobState
     let id = UUID()
     let operation: FileOperation
     let inputs: [URL]
@@ -13,6 +13,8 @@ struct ActivityItem: Identifiable {
     var state: State = .waiting
     var outputs: [URL] = []
     var message: String = ""
+    var progress: ConversionProgress?
+    var retryRequest: ConversionRequest?
 }
 
 @MainActor
@@ -279,7 +281,12 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         } else {
             activityInputs = inputs
         }
-        let item = ActivityItem(operation: operation, inputs: activityInputs)
+        // Freeze the chosen destination so a later settings change cannot redirect a retry.
+        if chosenOptions.destinationDirectory == nil, let first = activityInputs.first {
+            chosenOptions.destinationDirectory = first.standardizedFileURL.resolvingSymlinksInPath().deletingLastPathComponent()
+        }
+        var item = ActivityItem(operation: operation, inputs: activityInputs)
+        item.retryRequest = ConversionRequest(inputs: inputs, operation: operation, options: chosenOptions)
         activity.insert(item, at: 0)
         queue.append((item.id, inputs, operation, chosenOptions))
         startNextJob()
@@ -297,9 +304,14 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         let engine = self.engine
         tasks[id] = Task { [weak self] in
             do {
-                let result = try await engine.run(inputs: inputs, operation: operation, options: options)
+                let result = try await engine.run(inputs: inputs, operation: operation, options: options) { [weak self] progress in
+                    Task { @MainActor [weak self] in
+                        guard let self, self.activity.first(where: { $0.id == id })?.state == .running else { return }
+                        self.update(id) { $0.progress = progress }
+                    }
+                }
                 guard let self else { return }
-                self.update(id) { $0.state = .succeeded; $0.outputs = result.outputs; $0.message = result.note ?? "" }
+                self.update(id) { $0.state = .succeeded; $0.retryRequest = nil; $0.outputs = result.outputs; $0.message = result.note ?? "" }
                 if self.revealWhenFinished { NSWorkspace.shared.activateFileViewerSelecting(result.outputs) }
             } catch {
                 guard let self else { return }
@@ -319,6 +331,23 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
     func cancelJob(_ id: UUID) {
         if let task = tasks[id] { task.cancel() }
         else { queue.removeAll { $0.0 == id }; update(id) { $0.state = .cancelled } }
+    }
+
+    func canRetry(_ item: ActivityItem) -> Bool {
+        item.retryRequest?.canRetry(after: item.state) == true
+    }
+
+    func retryJob(_ id: UUID) {
+        guard !quittingAfterCancellation,
+              let old = activity.first(where: { $0.id == id }),
+              let request = old.retryRequest, request.canRetry(after: old.state) else { return }
+        // Consume this retry before enqueuing; repeated clicks cannot submit twice.
+        update(id) { $0.retryRequest = nil }
+        var item = ActivityItem(operation: request.operation, inputs: old.inputs)
+        item.retryRequest = request
+        activity.insert(item, at: 0)
+        queue.append((item.id, request.inputs, request.operation, request.options))
+        startNextJob()
     }
 
     func clearActivity() { activity.removeAll { $0.state != .running && $0.state != .waiting } }

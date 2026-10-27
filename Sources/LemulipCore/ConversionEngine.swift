@@ -5,7 +5,23 @@ import Foundation
 public final class ConversionEngine: Sendable {
     public init() {}
 
-    public func run(inputs: [URL], operation: FileOperation, options: ConversionOptions = .init()) async throws -> ConversionResult {
+    public func run(inputs: [URL], operation: FileOperation, options: ConversionOptions = .init(),
+                    progress: (@Sendable (ConversionProgress) -> Void)? = nil) async throws -> ConversionResult {
+        guard !inputs.isEmpty, inputs.count <= 1_000, inputs.allSatisfy({ $0.isFileURL && !$0.path.contains("\0") }) else {
+            throw LemulipError.invalidInput("Select between 1 and 1,000 local files.")
+        }
+        let trackedInputs: [URL]
+        if let plan = options.pdfMerge, (try? plan.validate(sourceInputCount: inputs.count)) != nil {
+            trackedInputs = plan.sources.map { inputs[$0.inputIndex] }
+        } else { trackedInputs = inputs }
+        let reporter = progress.map { ConversionProgressReporter(inputs: trackedInputs, handler: $0) }
+        return try await ConversionProgressScope.$reporter.withValue(reporter) {
+            reporter?.setPhase(.preparing)
+            return try await execute(inputs: inputs, operation: operation, options: options)
+        }
+    }
+
+    private func execute(inputs: [URL], operation: FileOperation, options: ConversionOptions) async throws -> ConversionResult {
         do {
             try Task.checkCancellation()
             guard !inputs.isEmpty, inputs.count <= 1_000 else { throw LemulipError.invalidInput("Select between 1 and 1,000 local files.") }
@@ -86,10 +102,14 @@ public final class ConversionEngine: Sendable {
             }
             let stage = try OutputStore.prepare(destination: destination)
             defer { try? FileManager.default.removeItem(at: stage) }
+            ConversionProgressScope.reporter?.setPhase(.converting)
             let result = try await convert(validated, operation: operation, options: options, stage: stage)
             try Task.checkCancellation()
             guard !result.outputs.isEmpty || result.note != nil else { throw LemulipError.operationFailed("The converter produced no output.") }
-            return try OutputStore.publish(result, from: stage, to: destination)
+            ConversionProgressScope.reporter?.setPhase(.publishing)
+            let published = try OutputStore.publish(result, from: stage, to: destination)
+            ConversionProgressScope.reporter?.setPhase(.finished)
+            return published
         } catch is CancellationError { throw LemulipError.cancelled }
     }
 
@@ -143,6 +163,7 @@ public final class ConversionEngine: Sendable {
                     return try await NativeConverter.convert(inputs: inputs, operation: operation,
                                                               options: options, outputDirectory: stage)
                 } catch LemulipError.unsupported {
+                    ConversionProgressScope.reporter?.resetAttempt()
                     // Both engines receive the exact selected range. The native
                     // converter removes its partial output before this retry.
                 }
@@ -184,7 +205,9 @@ public final class ConversionEngine: Sendable {
             if EngineLocator.isAvailable("ffmpeg") { return try await ExternalConverters.media(inputs, operation: operation, options: options, directory: stage) }
             #if os(macOS)
             do { return try await NativeConverter.convert(inputs: inputs, operation: operation, options: options, outputDirectory: stage) }
-            catch LemulipError.unsupported { throw LemulipError.missingDependency("FFmpeg") }
+            catch LemulipError.unsupported {
+                    ConversionProgressScope.reporter?.resetAttempt()
+                throw LemulipError.missingDependency("FFmpeg") }
             #else
             throw LemulipError.missingDependency("FFmpeg")
             #endif
@@ -200,7 +223,10 @@ public final class ConversionEngine: Sendable {
             }
             #if os(macOS)
             do { return try await NativeConverter.convert(inputs: inputs, operation: operation, options: options, outputDirectory: stage) }
-            catch LemulipError.unsupported { /* Try an optional local image codec below. */ }
+            catch LemulipError.unsupported {
+                ConversionProgressScope.reporter?.resetAttempt()
+                // Try an optional local image codec below.
+            }
             #endif
             return try await ExternalConverters.image(inputs, operation: operation, options: options, directory: stage)
         }
@@ -232,7 +258,8 @@ public final class ConversionEngine: Sendable {
         }
         #if os(macOS)
         do { return try await NativeConverter.convert(inputs: inputs, operation: operation, options: options, outputDirectory: stage) }
-        catch LemulipError.unsupported { /* A document engine may support the remaining formats. */ }
+        catch LemulipError.unsupported {
+                    ConversionProgressScope.reporter?.resetAttempt() /* A document engine may support the remaining formats. */ }
         #endif
         if operation.id == "document.wordCount", families.isSubset(of: [.document]) {
             let textOperation = FileOperation(id: "convert.txt", title: "Text", outputExtension: "txt")
@@ -258,9 +285,12 @@ public final class ConversionEngine: Sendable {
 
     private func pandocDocuments(_ inputs: [URL], target: String, options: ConversionOptions, stage: URL,
                                  prepareMarkdownUTF8: Bool = false) async throws -> ConversionResult {
+        let reporter = ConversionProgressScope.reporter
+        return try await ConversionProgressScope.$reporter.withValue(nil) {
         var outputs: [URL] = []
         var notes = Set<String>()
         for original in inputs {
+            reporter?.begin(original)
             try Task.checkCancellation()
             let job = stage.appendingPathComponent(".document-\(UUID().uuidString)", isDirectory: true)
             let preparation = job.appendingPathComponent("preparation", isDirectory: true)
@@ -281,7 +311,9 @@ public final class ConversionEngine: Sendable {
                 var prepared: ConversionResult?
                 #if os(macOS)
                 do { prepared = try await NativeConverter.convert(inputs: [original], operation: textOperation, options: options, outputDirectory: preparation) }
-                catch LemulipError.unsupported { /* Try the office engine below. */ }
+                catch LemulipError.unsupported {
+                    // Intermediate stages do not publish progress.
+                }
                 #endif
                 if prepared == nil { prepared = try await ExternalConverters.office([original], operation: textOperation, directory: preparation) }
                 guard let file = prepared?.outputs.first else { throw LemulipError.operationFailed("Could not prepare the document for ebook conversion.") }
@@ -307,9 +339,11 @@ public final class ConversionEngine: Sendable {
             }
             let output = OutputStore.uniqueURL(in: stage, stem: original.deletingPathExtension().lastPathComponent, extension: target)
             try FileManager.default.moveItem(at: file, to: output); outputs.append(output)
+            reporter?.complete(original)
         }
         notes.insert("Linked external resources are not loaded. Check formatting after document conversion.")
         return ConversionResult(outputs: outputs, note: notes.sorted().joined(separator: " "))
+        }
     }
 
     private func textOutputs(_ inputs: [URL], target: String, directory: URL, transform: (URL) throws -> String) throws -> ConversionResult {
@@ -317,7 +351,9 @@ public final class ConversionEngine: Sendable {
         for input in inputs {
             try Task.checkCancellation()
             let output = OutputStore.uniqueURL(in: directory, stem: input.deletingPathExtension().lastPathComponent, extension: target)
+            ConversionProgressScope.begin(input)
             try transform(input).write(to: output, atomically: true, encoding: .utf8); outputs.append(output)
+            ConversionProgressScope.complete(input)
         }
         return ConversionResult(outputs: outputs)
     }

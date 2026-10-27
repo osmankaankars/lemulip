@@ -84,6 +84,51 @@ final class EngineArchiveTests: XCTestCase {
         } catch { XCTAssertTrue(error.localizedDescription.contains("outside")) }
     }
 
+    func testVerifiedPackageAliasesAreSkippedWithoutCreatingLinks() async throws {
+        let prefix = "pandoc-3.12.1-arm64/bin/"
+        let aliases = [prefix + "pandoc-lua", prefix + "pandoc-server"]
+        let archive = root.appendingPathComponent("engine.tar")
+        let binary = Data("verified binary fixture".utf8)
+        var data = tarEntry(name: prefix + "pandoc", content: binary)
+        for alias in aliases { data += tarEntry(name: alias, content: Data(), type: 50, link: "pandoc") }
+        data += Data(repeating: 0, count: 1024)
+        try data.write(to: archive)
+        let stage = root.appendingPathComponent("stage")
+        try FileManager.default.createDirectory(at: stage, withIntermediateDirectories: false)
+        let result = try await ExternalConverters.archives([archive], operation: FileOperation(id: "archive.extract", title: "Extract"),
+                                                           directory: stage, ignoredSymbolicLinks: aliases)
+        let output = try XCTUnwrap(result.outputs.first)
+        XCTAssertEqual(try Data(contentsOf: output.appendingPathComponent(prefix + "pandoc")), binary)
+        for alias in aliases {
+            XCTAssertFalse(FileManager.default.fileExists(atPath: output.appendingPathComponent(alias).path))
+            XCTAssertNil(try? FileManager.default.destinationOfSymbolicLink(atPath: output.appendingPathComponent(alias).path))
+        }
+        // The same archive remains rejected by ordinary user-file extraction.
+        do {
+            _ = try await ConversionEngine().run(inputs: [archive], operation: FileOperation(id: "archive.extract", title: "Extract"))
+            XCTFail("User archives must still reject links")
+        } catch { XCTAssertTrue(error.localizedDescription.contains("link")) }
+    }
+
+    func testIgnoredAliasesDoNotPermitOtherLinksTraversalOrDevices() async throws {
+        let cases: [(String, UInt8, String)] = [("other", 50, "pandoc"), ("alias", 49, "pandoc"),
+                                               ("alias", 51, ""), ("../alias", 50, "pandoc")]
+        for (index, entry) in cases.enumerated() {
+            let archive = root.appendingPathComponent("bad-package-\(index).tar")
+            try (tarEntry(name: "pandoc", content: Data("binary".utf8)) +
+                 tarEntry(name: entry.0, content: Data(), type: entry.1, link: entry.2) +
+                 Data(repeating: 0, count: 1024)).write(to: archive)
+            let stage = root.appendingPathComponent("stage-\(index)")
+            try FileManager.default.createDirectory(at: stage, withIntermediateDirectories: false)
+            do {
+                _ = try await ExternalConverters.archives([archive], operation: FileOperation(id: "archive.extract", title: "Extract"),
+                                                          directory: stage, ignoredSymbolicLinks: ["alias", "../alias"])
+                XCTFail("Unexpected entry must not be accepted: \(entry.0)")
+            } catch { XCTAssertTrue(error is LemulipError) }
+            XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("alias").path))
+        }
+    }
+
     private func tarEntry(name: String, content: Data, type: UInt8 = 48, link: String = "", declaredSize: UInt64? = nil) -> Data {
         var header = [UInt8](repeating: 0, count: 512)
         func put(_ text: String, at offset: Int, length: Int) { for (index, byte) in text.utf8.prefix(length).enumerated() { header[offset + index] = byte } }

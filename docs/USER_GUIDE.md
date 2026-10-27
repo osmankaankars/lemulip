@@ -122,3 +122,5 @@ Read Activity for the missing engine, codec, setting, or file limit. For a hidde
 Pandoc template errors usually require a build with embedded data files, such as its official installer. Protected PDFs require an unlocked copy; encrypted archives are rejected. Compression can produce a larger file when the source is already optimized.
 
 Report the app and macOS versions, operation, input format, and error using a non-private sample. Security-sensitive findings belong in [private vulnerability reporting](../SECURITY.md).
+
+In Settings, **Install** downloads and verifies the official Pandoc document engine after confirmation. Existing engines are not replaced. Conversions remain local. Failed or cancelled conversions can be retried with their original settings from Activity.

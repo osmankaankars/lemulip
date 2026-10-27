@@ -69,20 +69,25 @@ struct SettingsContent: View {
                                 }
                                 Text(engineSubtitle(engine.0, fallback: engine.2)).font(.system(size: 10)).foregroundStyle(Palette.muted)
                                 if engine.0 == "pandoc" {
-                                    Text(model.text("Use the official installer with built-in templates.", "Şablonları içinde olan resmî kurulum paketini kullan."))
+                                    Text(model.text("Official Package. No Terminal Needed.", "Resmî paket. Terminal gerekmez."))
                                         .font(.system(size: 9)).foregroundStyle(Palette.muted)
                                 }
                                 if let path = EngineLocator.find(engine.0)?.path { Text(path).font(.system(size: 9, design: .monospaced)).foregroundStyle(Palette.muted).lineLimit(1).truncationMode(.middle) }
                             }
                             Spacer(minLength: 8)
-                            Button {
-                                if engine.0 == "pandoc", let url = URL(string: engine.3) { NSWorkspace.shared.open(url) }
-                                else { NSPasteboard.general.clearContents(); NSPasteboard.general.setString(engine.3, forType: .string); copied = engine.0 }
-                            } label: {
-                                Text(engine.0 == "pandoc" ? model.text("Open Installer Page", "Kurulum sayfasını aç") : (copied == engine.0 ? model.text("Copied", "Kopyalandı") : model.text("Copy Install Command", "Kurulum komutunu kopyala")))
-                                    .font(.system(size: 10, weight: .medium)).foregroundStyle(Palette.accent).padding(.horizontal, 10).padding(.vertical, 7)
-                                    .background(Palette.accent.opacity(0.07), in: Capsule())
-                            }.buttonStyle(.plain)
+                            if engine.0 == "pandoc" {
+                                PandocInstallButton(model: model, installed: installed)
+                            } else {
+                                Button {
+                                    NSPasteboard.general.clearContents()
+                                    NSPasteboard.general.setString(engine.3, forType: .string)
+                                    copied = engine.0
+                                } label: {
+                                    Text(copied == engine.0 ? model.text("Copied", "Kopyalandı") : model.text("Copy Install Command", "Kurulum komutunu kopyala"))
+                                        .font(.system(size: 10, weight: .medium)).foregroundStyle(Palette.accent).padding(.horizontal, 10).padding(.vertical, 7)
+                                        .background(Palette.accent.opacity(0.07), in: Capsule())
+                                }.buttonStyle(.plain)
+                            }
                         }.padding(17)
                         if engine.0 != engines.last?.0 { divider }
                     }
@@ -97,7 +102,7 @@ struct SettingsContent: View {
                     }
                 }.background(Palette.panel, in: RoundedRectangle(cornerRadius: 13)).overlay(RoundedRectangle(cornerRadius: 13).stroke(Palette.line))
                 HStack {
-                    Text(model.text("Install commands require Homebrew. Pandoc uses its official installer. No automatic downloads.", "Kurulum komutları Homebrew gerektirir. Pandoc için resmî paket kullanılır. Otomatik indirme yok."))
+                    Text(model.text("Pandoc Downloads Only When You Choose Install. Other Install Commands Require Homebrew.", "Pandoc yalnızca Kur düğmesini seçtiğinde indirilir. Diğer kurulum komutları Homebrew gerektirir."))
                         .font(.system(size: 10)).foregroundStyle(Palette.muted)
                     Spacer()
                     Link("Homebrew ↗", destination: URL(string: "https://brew.sh")!).font(.system(size: 10)).foregroundStyle(Palette.accent)
