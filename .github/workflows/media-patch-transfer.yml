@@ -1,0 +1,53 @@
+name: Verify Vorbis Build Fix
+on:
+  push:
+    branches: [pack/media-engine-20261028]
+    paths: [.github/workflows/media-patch-transfer.yml]
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 07b067dfadac680f164a0d909fffa8f84617ade3
+          persist-credentials: false
+      - name: Verify scoped patch and store checked source objects
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64, hashlib, json, lzma, os, pathlib, subprocess, urllib.request
+          api='https://api.github.com/repos/osmankaankars/lemulip/git/'
+          def call(route,payload=None):
+              request=urllib.request.Request(api+route,data=None if payload is None else json.dumps(payload).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+              with urllib.request.urlopen(request,timeout=30) as response: return json.load(response)
+          obj=call('blobs/c291ed23e7714d8eef64bd6ed30ba5d498192578')
+          assert obj['encoding']=='base64'
+          packed=base64.b64decode(obj['content'])
+          assert len(packed)==2052 and hashlib.sha256(packed).hexdigest()=='f1b342b70807328e1915e895c351903b3a92b4f93a92b7ad24def0c8f6579958'
+          decoder=lzma.LZMADecompressor(memlimit=128*1024*1024)
+          patch=decoder.decompress(packed,max_length=5367)
+          assert decoder.eof and not decoder.unused_data and len(patch)==5366
+          assert hashlib.sha256(patch).hexdigest()=='6705d1e8c78f8c80fcf3e5dd20839a1520b13fa731e7fcc9ab95c4527f103803'
+          paths={'script/build_media_engine.py','script/test_build_media_engine.py'}
+          stat=subprocess.check_output(['git','apply','--numstat'],input=patch).decode()
+          assert {r.split('\t',2)[2] for r in stat.splitlines()}==paths
+          subprocess.run(['git','apply','--check'],input=patch,check=True)
+          subprocess.run(['git','apply'],input=patch,check=True)
+          subprocess.run(['git','add','--',*sorted(paths)],check=True)
+          assert subprocess.check_output(['git','write-tree'],text=True).strip()=='51c7bb520ef490163c4b2007194b9b8e01c72a59'
+          for command in [['python3','script/test_build_media_engine.py'],['python3','script/test_engine_packs.py'],['python3','script/privacy_check.py','--staged'],['git','diff','--cached','--check']]:
+              subprocess.run(command,check=True)
+          entries=[]
+          for path in sorted(paths):
+              raw=pathlib.Path(path).read_bytes()
+              sha=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              obj=call('blobs',{'encoding':'base64','content':base64.b64encode(raw).decode()})
+              assert obj['sha']==sha
+              entries.append({'path':path,'mode':'100644','type':'blob','sha':sha})
+          tree=call('trees',{'base_tree':'77a6a8859e2ca9e65ff63ae56320ebf2f6fb448f','tree':entries})
+          assert tree['sha']=='51c7bb520ef490163c4b2007194b9b8e01c72a59'
+          print('Verified source tree',tree['sha'])
