@@ -12,9 +12,7 @@ Includes built-in and optional local engines.
 
 [Download For Mac](https://github.com/osmankaankars/lemulip/releases) · [Website](https://osmankaankars.github.io/lemulip/)
 
-<p><img src="docs/assets/demo-preview.png" width="720" alt="Illustrated Lemulip product preview"></p>
-
-*Illustrated product preview.*
+<p><img src="site/assets/app-workspace.webp" width="720" alt="Native macOS app: Lemulip Workspace"></p>
 
 ## Install
 

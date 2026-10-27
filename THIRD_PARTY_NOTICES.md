@@ -93,5 +93,8 @@ project. Third-party components and optional engines are documented above.
 
 `site/assets/morning-light.jpg` is a generated fictional sample landscape.
 `docs/assets/demo-preview.png` is an illustrated product preview.
+`site/assets/app-*.webp` are native app screenshots supplied by the project author.
+They are cropped to the app window and resized for the website, with transparent
+outer corners. The interfaces are not generated or repainted.
 The website's Desktop and Finder demo uses sample data, not native app recordings.
 These assets contain no customer files or personal photographs.

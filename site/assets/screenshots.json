@@ -1,0 +1,78 @@
+[
+  {
+    "file": "app-workspace.webp",
+    "origin": "User-provided native app screenshot",
+    "sourceSHA256": "dde06d07036d9c3dd4308c4d208536eb5e4fef20d7a8521dbc4423f94d992681",
+    "sourceSize": [
+      2047,
+      1385
+    ],
+    "cropBox": [
+      53,
+      18,
+      1969,
+      1332
+    ],
+    "processing": "Window-only crop; transparent rounded outer corners; no UI content generated or repainted",
+    "sha256": "d41d5ee79656a769de38c03e3e19acb0cf95a6a64a20fcecf0ab82f83d640382",
+    "width": 1200,
+    "height": 823
+  },
+  {
+    "file": "app-crop-video.webp",
+    "origin": "User-provided native app screenshot",
+    "sourceSHA256": "8e04cdf8ea4a36825613eb5391243c63673effb79c5dbedbe22132d7c5ff153d",
+    "sourceSize": [
+      2048,
+      1376
+    ],
+    "cropBox": [
+      101,
+      35,
+      1956,
+      1308
+    ],
+    "processing": "Window-only crop; transparent rounded outer corners; no UI content generated or repainted",
+    "sha256": "a8d298b2738e78f8a4e5b4aacd463837b2ee9e4aec11290e86e2e1b984249e54",
+    "width": 1200,
+    "height": 824
+  },
+  {
+    "file": "app-trim-audio.webp",
+    "origin": "User-provided native app screenshot",
+    "sourceSHA256": "f5df04002a99380d36125b9ae72f6e35c669ce41086421c2a00b47eb095184c8",
+    "sourceSize": [
+      2048,
+      1384
+    ],
+    "cropBox": [
+      69,
+      18,
+      1979,
+      1328
+    ],
+    "processing": "Window-only crop; transparent rounded outer corners; no UI content generated or repainted",
+    "sha256": "f34558db61c7ead7705a275e57d8331e8f5dcd6b33006c76b3d7f91b0f5ccf87",
+    "width": 1200,
+    "height": 823
+  },
+  {
+    "file": "app-activity.webp",
+    "origin": "User-provided native app screenshot",
+    "sourceSHA256": "c1b215c7b25bd813ca46838a068f87ac1a55b8c1ff04808de573ab5cbd243cfc",
+    "sourceSize": [
+      2048,
+      1376
+    ],
+    "cropBox": [
+      64,
+      15,
+      1996,
+      1340
+    ],
+    "processing": "Window-only crop; transparent rounded outer corners; no UI content generated or repainted",
+    "sha256": "117952195d08f546a43cfe52a729ad40bca44d5d47b141a339967b9adb2b4ea0",
+    "width": 1200,
+    "height": 823
+  }
+]
