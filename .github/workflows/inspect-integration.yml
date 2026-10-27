@@ -1,0 +1,27 @@
+name: Inspect Native Integration
+on:
+  push:
+    branches: [feat/engine-packs-and-activity-20261027]
+    paths: [.github/workflows/inspect-integration.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Read failed job diagnostics
+        shell: python
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          import os, urllib.request
+          req=urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/actions/jobs/121932917844/logs',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(req,timeout=30) as response:
+              lines=response.read().decode('utf-8-sig').splitlines()
+          indexes=set()
+          for index,line in enumerate(lines):
+              if 'error:' in line or 'failed (' in line or 'pandoc-3.12.1-arm64/' in line:
+                  indexes.update(range(max(0,index-2),min(len(lines),index+3)))
+          for index in sorted(indexes): print(lines[index])
