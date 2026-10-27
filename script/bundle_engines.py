@@ -148,33 +148,87 @@ def verify_macho(root: pathlib.Path, manifest: dict, required_architectures: set
     return native
 
 def stage_packs(packs: pathlib.Path, app: pathlib.Path, architectures: set[str]) -> None:
-    destination=app/'Contents/Helpers/Engines'
-    if destination.exists() or destination.is_symlink():raise ValueError('Refusing to replace an existing engine bundle')
+    """Install flat signed helpers and resource-only support into a staging app.
+
+    The enclosing build publishes the entire application after signing it. This
+    function never overwrites existing helpers and rolls back its own additions
+    on failure. Source packs remain unchanged.
+    """
+    helpers=app/'Contents/Helpers'
+    support=app/'Contents/Resources/EngineSupport'
+    directories=[app,app/'Contents',app/'Contents/Resources',helpers,support]
+    for directory in directories:
+        if directory.is_symlink() or (directory.exists() and not directory.is_dir()):
+            raise ValueError('Bundle directories must be real directories')
+    if not app.is_dir() or not (app/'Contents').is_dir():raise ValueError('Missing staging application')
+    if (helpers/'Engines').exists() or (helpers/'Engines').is_symlink():
+        raise ValueError('Refusing to replace an existing engine bundle')
     roots=sorted(p for p in packs.iterdir() if p.is_dir())
     if not roots:raise ValueError('No prepared engine packs were supplied')
-    manifests=[];seen=set()
+    manifests=[];seen=set();helper_names=set()
     for root in roots:
         manifest=validate_pack(root,architectures)
-        if manifest['engine'] in seen:raise ValueError('Duplicate engine pack')
-        seen.add(manifest['engine']);verify_macho(root,manifest,architectures);manifests.append((root,manifest))
-    destination.parent.mkdir(parents=True,exist_ok=True)
-    stage=pathlib.Path(tempfile.mkdtemp(prefix='.engine-stage-',dir=destination.parent))
+        engine=manifest['engine']
+        if engine in seen:raise ValueError('Duplicate engine pack')
+        seen.add(engine)
+        target=support/engine
+        if target.exists() or target.is_symlink():raise ValueError('Refusing to replace existing engine resources')
+        if 'installed-manifest.json' in manifest['files']:raise ValueError('Reserved installed manifest path')
+        native=verify_macho(root,manifest,architectures)
+        if {p.relative_to(root).as_posix() for p in native}!=set(manifest['executables']):
+            raise ValueError('Only self-contained executable packs support this bundle layout')
+        for executable in manifest['executables']:
+            name=pathlib.PurePosixPath(executable).name
+            if name in helper_names or (helpers/name).exists() or (helpers/name).is_symlink():
+                raise ValueError('Refusing to replace an existing helper: '+name)
+            helper_names.add(name)
+        manifests.append((root,manifest))
+    # Never put temporary data in Helpers: macOS treats that directory as code.
+    stage=pathlib.Path(tempfile.mkdtemp(prefix='.engine-stage-',dir=app.parent))
+    created_files=[];created_support=[];created_directories=[]
     try:
         for root,m in manifests:
-            target=stage/m['engine'];shutil.copytree(root,target,symlinks=True)
-            # Revalidate the copy to catch mutations between inspection and copy.
-            if validate_pack(target,architectures) != m:raise ValueError('Pack manifest changed during staging')
-            for p in verify_macho(target,m,architectures):
+            copy=stage/'packs'/m['engine'];shutil.copytree(root,copy,symlinks=True)
+            if validate_pack(copy,architectures)!=m:raise ValueError('Pack manifest changed during staging')
+            for p in verify_macho(copy,m,architectures):
                 p.chmod(0o755)
                 subprocess.run(['/usr/bin/codesign','--force','--sign','-',str(p)],check=True)
                 subprocess.run(['/usr/bin/codesign','--verify','--strict',str(p)],check=True)
-            # Keep the upstream-byte manifest and an additional post-sign inventory.
-            signed={name:digest(target/name) for name in m['files']}
-            (target/'installed-files.json').write_text(json.dumps(signed,indent=2)+'\n')
-        if destination.exists():raise ValueError('Engine destination appeared during staging')
-        stage.rename(destination)
+            mapping={}
+            for name in [*m['files'],'manifest.json']:
+                if name in m['executables']:
+                    relative='Contents/Helpers/'+pathlib.PurePosixPath(name).name
+                else:relative='Contents/Resources/EngineSupport/'+m['engine']+'/'+name
+                mapping[name]=relative
+                target=stage/'layout'/relative;target.parent.mkdir(parents=True,exist_ok=True)
+                shutil.copy2(copy/name,target)
+                target.chmod(0o755 if name in m['executables'] else 0o644)
+            installed={'schema':2,'engine':m['engine'],'sourceManifestSHA256':digest(copy/'manifest.json'),
+                       'architectures':sorted(architectures),'sourceToBundle':mapping,
+                       'files':{target:digest(stage/'layout'/target) for target in mapping.values()}}
+            (stage/'layout/Contents/Resources/EngineSupport'/m['engine']/'installed-manifest.json').write_text(
+                json.dumps(installed,indent=2,sort_keys=True)+'\n')
+        # All native validation and signing finish before touching the app.
+        for directory in [app/'Contents/Resources',helpers,support]:
+            if directory.is_symlink():raise ValueError('Bundle directory changed during staging')
+            if not directory.exists():directory.mkdir();created_directories.append(directory)
+        for name in sorted(helper_names):
+            target=helpers/name
+            # Exclusive publication: unlike rename, link never replaces a file
+            # that appeared after the collision checks. Staging is on this volume.
+            os.link(stage/'layout/Contents/Helpers'/name,target)
+            created_files.append(target)
+        for _,m in manifests:
+            target=support/m['engine']
+            target.mkdir();created_support.append(target)
+            shutil.copytree(stage/'layout/Contents/Resources/EngineSupport'/m['engine'],target,dirs_exist_ok=True)
+    except BaseException:
+        for target in reversed(created_support):shutil.rmtree(target)
+        for target in reversed(created_files):target.unlink()
+        for directory in reversed(created_directories):directory.rmdir()
+        raise
     finally:
-        if stage.exists():shutil.rmtree(stage)
+        shutil.rmtree(stage)
 
 def main():
     parser=argparse.ArgumentParser(description=__doc__)

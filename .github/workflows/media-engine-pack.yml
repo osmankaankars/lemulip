@@ -2,7 +2,7 @@ name: Build Native Media Engine Pack
 on:
   push:
     branches: ['pack/media-engine-*']
-    paths: ['script/build_media_engine.py', 'script/media-engine-sources.json', 'script/test_build_media_engine.py', 'script/bundle_engines.py', '.github/workflows/media-engine-pack.yml']
+    paths: ['script/build_media_engine.py', 'script/media-engine-sources.json', 'script/test_build_media_engine.py', 'script/bundle_engines.py', 'Sources/LemulipCore/EngineLocator.swift', '.github/workflows/media-engine-pack.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -52,7 +52,7 @@ jobs:
           set -o pipefail
           LEMULIP_ENGINE_PACKS="$RUNNER_TEMP/media-packs" ./script/build_app.sh 2>&1 | tee "$RUNNER_TEMP/media-app.log"
           mkdir "$RUNNER_TEMP/media-review"
-          HELPER="$PWD/dist/Lemulip.app/Contents/Helpers/Engines/ffmpeg/bin"
+          HELPER="$PWD/dist/Lemulip.app/Contents/Helpers"
           PATH="$HELPER:/usr/bin:/bin:/usr/sbin:/sbin" dist/lemulip engines > "$RUNNER_TEMP/media-review/engine-health.txt"
           grep -F "ffmpeg: ready" "$RUNNER_TEMP/media-review/engine-health.txt"
           grep -F "$HELPER/ffmpeg" "$RUNNER_TEMP/media-review/engine-health.txt"
@@ -62,7 +62,7 @@ jobs:
           "$HELPER/ffmpeg" -buildconf > "$RUNNER_TEMP/media-review/ffmpeg-build.txt" 2>&1
           /usr/bin/otool -L "$HELPER/ffmpeg" > "$RUNNER_TEMP/media-review/runtime-libraries.txt"
           cp "$RUNNER_TEMP/media-packs/ffmpeg/manifest.json" "$RUNNER_TEMP/media-review/manifest.json"
-          cp "dist/Lemulip.app/Contents/Helpers/Engines/ffmpeg/installed-files.json" "$RUNNER_TEMP/media-review/installed-files.json"
+          cp "dist/Lemulip.app/Contents/Resources/EngineSupport/ffmpeg/installed-manifest.json" "$RUNNER_TEMP/media-review/installed-manifest.json"
           git rev-parse HEAD > "$RUNNER_TEMP/media-review/source-commit.txt"
       - name: Archive candidate and corresponding sources without publishing a release
         run: |
