@@ -5,23 +5,21 @@ on:
     paths: [.github/workflows/inspect-integration.yml]
 permissions:
   contents: read
-  actions: read
+  checks: read
 jobs:
   inspect:
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     steps:
-      - name: Read failed job diagnostics
+      - name: Read failed check annotations
         shell: python
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          import os, urllib.request
-          req=urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/actions/jobs/121932917844/logs',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          import json, os, urllib.request
+          req=urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/check-runs/121932917844/annotations?per_page=100',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
           with urllib.request.urlopen(req,timeout=30) as response:
-              lines=response.read().decode('utf-8-sig').splitlines()
-          indexes=set()
-          for index,line in enumerate(lines):
-              if 'error:' in line or 'failed (' in line or 'pandoc-3.12.1-arm64/' in line:
-                  indexes.update(range(max(0,index-2),min(len(lines),index+3)))
-          for index in sorted(indexes): print(lines[index])
+              annotations=json.load(response)
+          for item in annotations:
+              if item['annotation_level']=='failure':
+                  print(json.dumps({key:item.get(key) for key in ['path','start_line','title','message','raw_details']}))
