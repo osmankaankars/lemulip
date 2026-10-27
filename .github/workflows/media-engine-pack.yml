@@ -1,0 +1,83 @@
+name: Build Native Media Engine Pack
+on:
+  push:
+    branches: ['pack/media-engine-*']
+    paths: ['script/build_media_engine.py', 'script/media-engine-sources.json', 'script/test_build_media_engine.py', 'script/bundle_engines.py', '.github/workflows/media-engine-pack.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: media-pack-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+jobs:
+  build:
+    name: Media Pack (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Check source recipe and pack rules
+        run: |
+          test "$(uname -m)" = '${{ matrix.arch }}'
+          python3 script/test_build_media_engine.py
+          python3 script/test_engine_packs.py
+          python3 script/privacy_check.py --staged
+      - name: Install build-only tools when missing
+        env:
+          HOMEBREW_NO_ANALYTICS: '1'
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+        run: |
+          if ! command -v nasm >/dev/null || ! command -v pkg-config >/dev/null; then
+            brew update
+            brew install nasm pkgconf
+          fi
+      - name: Build pinned sources and verify real conversions after relocation
+        run: |
+          set -o pipefail
+          python3 script/build_media_engine.py --arch '${{ matrix.arch }}' --work "$RUNNER_TEMP/media-build" --output "$RUNNER_TEMP/media-packs/ffmpeg" 2>&1 | tee "$RUNNER_TEMP/media-build.log"
+      - name: Embed the verified helper in a native app candidate
+        run: |
+          set -o pipefail
+          LEMULIP_ENGINE_PACKS="$RUNNER_TEMP/media-packs" ./script/build_app.sh 2>&1 | tee "$RUNNER_TEMP/media-app.log"
+          mkdir "$RUNNER_TEMP/media-review"
+          HELPER="$PWD/dist/Lemulip.app/Contents/Helpers/Engines/ffmpeg/bin"
+          PATH="$HELPER:/usr/bin:/bin:/usr/sbin:/sbin" dist/lemulip engines > "$RUNNER_TEMP/media-review/engine-health.txt"
+          grep -F "ffmpeg: ready" "$RUNNER_TEMP/media-review/engine-health.txt"
+          grep -F "$HELPER/ffmpeg" "$RUNNER_TEMP/media-review/engine-health.txt"
+          mkdir "$RUNNER_TEMP/media-app-output"
+          PATH="$HELPER:/usr/bin:/bin:/usr/sbin:/sbin" dist/lemulip convert webm "$RUNNER_TEMP/media-build/smoke/original.mkv" --output "$RUNNER_TEMP/media-app-output" > "$RUNNER_TEMP/media-review/app-conversion.txt"
+          test "$(find "$RUNNER_TEMP/media-app-output" -name '*.webm' -type f | wc -l | tr -d ' ')" = 1
+          "$HELPER/ffmpeg" -buildconf > "$RUNNER_TEMP/media-review/ffmpeg-build.txt" 2>&1
+          /usr/bin/otool -L "$HELPER/ffmpeg" > "$RUNNER_TEMP/media-review/runtime-libraries.txt"
+          cp "$RUNNER_TEMP/media-packs/ffmpeg/manifest.json" "$RUNNER_TEMP/media-review/manifest.json"
+          cp "dist/Lemulip.app/Contents/Helpers/Engines/ffmpeg/installed-files.json" "$RUNNER_TEMP/media-review/installed-files.json"
+          git rev-parse HEAD > "$RUNNER_TEMP/media-review/source-commit.txt"
+      - name: Archive candidate and corresponding sources without publishing a release
+        run: |
+          tar -czf "$RUNNER_TEMP/media-review/Lemulip-FFmpeg-${{ matrix.arch }}.tar.gz" -C "$RUNNER_TEMP/media-packs" ffmpeg
+          ditto -c -k --sequesterRsrc --keepParent dist/Lemulip.app "$RUNNER_TEMP/media-review/Lemulip-With-Media-${{ matrix.arch }}.zip"
+          cd "$RUNNER_TEMP/media-review"
+          shasum -a 256 *.tar.gz *.zip > SHA256SUMS.txt
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: Lemulip-Media-Pack-${{ matrix.arch }}
+          path: |
+            ${{ runner.temp }}/media-review/
+            ${{ runner.temp }}/media-build.log
+            ${{ runner.temp }}/media-app.log
+          if-no-files-found: warn
+          retention-days: 14
+          compression-level: 0
