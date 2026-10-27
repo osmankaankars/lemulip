@@ -1,0 +1,40 @@
+name: Verify Gallery Transfer
+on:
+  push:
+    branches: [site/cropped-native-gallery-20261027]
+    paths: [.github/workflows/gallery-transfer.yml]
+permissions:
+  contents: read
+jobs:
+  inspect:
+    if: github.repository == 'osmankaankars/lemulip' && github.ref == 'refs/heads/site/cropped-native-gallery-20261027'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 67bc5f48d3135939162c59faa78116984042a07f
+          persist-credentials: false
+      - name: Export source and unexecuted transfer bytes for comparison
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64, hashlib, json, os, pathlib, subprocess, urllib.request
+          folder = pathlib.Path(os.environ['RUNNER_TEMP']) / 'gallery-review'
+          folder.mkdir()
+          subprocess.run(['git', 'archive', '--format=tar.gz', '--output='+str(folder/'main-source.tar.gz'), 'HEAD'], check=True)
+          sha = '011cda0a2ad3396e1eab54b3a54adfbc87344f31'
+          request = urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/git/blobs/'+sha, headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'], 'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(request, timeout=30) as response:
+              record = json.load(response)
+          data = base64.b64decode(record['content'])
+          assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest() == sha
+          (folder/'workspace-part-1.bin').write_bytes(data)
+          print(json.dumps({'bytes':len(data), 'sha256':hashlib.sha256(data).hexdigest()}))
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Gallery-Transfer-Review
+          path: ${{ runner.temp }}/gallery-review/
+          retention-days: 1
+          if-no-files-found: error
