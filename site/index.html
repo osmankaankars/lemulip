@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-repository="" data-theme="orchard" data-site-version="20261022.1">
+<html lang="en" data-repository="" data-theme="orchard" data-site-version="20261027.1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,9 +10,11 @@
   <meta property="og:description" content="35 conversion output formats. 26 tools. 6 file actions. Free, open source, and local to your Mac.">
   <title>Lemulip · File Tools, Right Where You Drag.</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./product.css?v=20261022.1">
-  <script src="./catalog.js?v=20261022.1" defer></script>
-  <script src="./product.js?v=20261022.1" defer></script>
+  <link rel="stylesheet" href="./product.css?v=20261027.1">
+  <script src="./catalog.js?v=20261027.1" defer></script>
+  <script src="./product.js?v=20261027.1" defer></script>
+  <link rel="stylesheet" href="./gallery.css?v=20261027.1">
+  <script src="./gallery.js?v=20261027.1" defer></script>
 </head>
 <body>
 <a class="skip" href="#try">Skip to interactive demo</a>
@@ -67,6 +69,46 @@
   <p class="count-note">Built In And Optional Local Engines. <a href="#formats">See exactly what’s included →</a></p>
 </section>
 <section class="shell shortcuts" id="features" aria-labelledby="shortcuts-title"><div><h2 id="shortcuts-title">Start With A Drag.<br>Finish With A Drop.</h2><p>Keep Your Files Where They Are.<br>Bring The Right Tool To Them.</p></div><div class="shortcut-list"><div class="shortcut-convert"><kbd>⇧</kbd><h3>Convert</h3><p>Choose a new format.</p></div><div class="shortcut-tools"><kbd>⌘</kbd><h3>Tools</h3><p>Choose an edit or file tool.</p></div><div class="shortcut-actions"><kbd>⌃</kbd><h3>Actions</h3><p>Move, share, or keep a file close.</p></div></div></section>
+<section class="shell app-gallery" id="app-gallery" aria-labelledby="gallery-title">
+  <h2 id="gallery-title">Inside Lemulip.</h2>
+  <div class="gallery-viewer">
+    <div class="gallery-tabs" id="gallery-tabs" role="tablist" aria-label="App Screenshots" hidden>
+      <button id="tab-workspace" type="button" role="tab" data-screen="workspace" aria-controls="screen-workspace" aria-selected="true" tabindex="0">Workspace</button>
+      <button id="tab-crop-video" type="button" role="tab" data-screen="crop-video" aria-controls="screen-crop-video" aria-selected="false" tabindex="-1">Crop Video</button>
+      <button id="tab-trim-audio" type="button" role="tab" data-screen="trim-audio" aria-controls="screen-trim-audio" aria-selected="false" tabindex="-1">Trim Audio</button>
+      <button id="tab-activity" type="button" role="tab" data-screen="activity" aria-controls="screen-activity" aria-selected="false" tabindex="-1">Activity</button>
+    </div>
+  <div class="app-frame">
+    <figure class="app-slide" id="screen-workspace" role="tabpanel" aria-labelledby="tab-workspace">
+      <a href="./assets/app-workspace.webp" target="_blank" rel="noopener" aria-label="Open Workspace Screenshot">
+        <img src="./assets/app-workspace.webp" width="1200" height="823" alt="The Lemulip Workspace With Its File Drop Area" decoding="async">
+      </a>
+    </figure>
+    <figure class="app-slide" id="screen-crop-video" role="tabpanel" aria-labelledby="tab-crop-video" hidden>
+      <a href="./assets/app-crop-video.webp" target="_blank" rel="noopener" aria-label="Open Crop Video Screenshot">
+        <img src="./assets/app-crop-video.webp" width="1200" height="824" alt="The Native Video Crop Editor With Aspect Ratio And Output Size Controls" decoding="async">
+      </a>
+    </figure>
+    <figure class="app-slide" id="screen-trim-audio" role="tabpanel" aria-labelledby="tab-trim-audio" hidden>
+      <a href="./assets/app-trim-audio.webp" target="_blank" rel="noopener" aria-label="Open Trim Audio Screenshot">
+        <img src="./assets/app-trim-audio.webp" width="1200" height="823" alt="The Native Audio Trim Editor With Its Waveform And Selected Range" decoding="async">
+      </a>
+    </figure>
+    <figure class="app-slide" id="screen-activity" role="tabpanel" aria-labelledby="tab-activity" hidden>
+      <a href="./assets/app-activity.webp" target="_blank" rel="noopener" aria-label="Open Activity Screenshot">
+        <img src="./assets/app-activity.webp" width="1200" height="823" alt="The Lemulip Activity Screen Showing A Finished Conversion" decoding="async">
+      </a>
+    </figure>
+  </div>
+    <div class="gallery-navigation" hidden>
+      <button id="gallery-previous" type="button" aria-label="Previous Screenshot">←</button>
+      <span id="gallery-counter" aria-hidden="true">1 / 4</span>
+      <button id="gallery-next" type="button" aria-label="Next Screenshot">→</button>
+    </div>
+  </div>
+  <p class="gallery-caption" id="gallery-caption" role="status" aria-live="polite">Workspace</p>
+  <noscript><p><a href="./assets/app-workspace.webp">Workspace</a> · <a href="./assets/app-crop-video.webp">Crop Video</a> · <a href="./assets/app-trim-audio.webp">Trim Audio</a> · <a href="./assets/app-activity.webp">Activity</a></p></noscript>
+</section>
 <section class="shell format-section" id="formats" aria-labelledby="formats-title"><div class="section-heading"><h2 id="formats-title">The Formats.<br>The Tools. The Details.</h2></div><div id="format-directory" class="format-directory"><p>PNG · JPG · HEIC · TIFF · WebP · AVIF · BMP · PDF · MP3 · M4A · WAV · FLAC · OGG · Opus · AIFF · MP4 · MOV · MKV · WebM · GIF · DOCX · ODT · RTF · HTML · TXT · Markdown · EPUB · PPTX · ODP · XLSX · ODS · CSV · TSV · SRT · VTT</p></div><details class="tool-directory"><summary>Tools And File Actions</summary><div id="tool-directory"></div></details><p class="simulation-note">Engine and codec availability depend on your Mac and selected files. <a href="https://github.com/osmankaankars/lemulip/blob/main/docs/FORMATS.md">Full format guide and limits →</a></p></section>
 <section class="shell final-section"><div><h2>Your Files Stay<br><em>On Your Mac.</em></h2><p>No Account. No Subscription. No Uploads.</p></div><div><a class="button primary" href="https://github.com/osmankaankars/lemulip/releases">Get Lemulip for Mac ↓</a><p class="requirements">macOS 13+ · Apple Silicon &amp; Intel</p></div></section>
 </main>

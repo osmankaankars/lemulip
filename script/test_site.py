@@ -39,9 +39,38 @@ class SiteTests(unittest.TestCase):
     def test_product_preview_is_compact_and_not_a_site_snapshot(self):
         page=(ROOT/'README.md').read_text()
         self.assertIn('width="720"',page)
-        self.assertIn('docs/assets/demo-preview.png',page)
-        self.assertIn('Illustrated product preview',page)
+        self.assertIn('site/assets/app-workspace.webp',page)
+        self.assertIn('Native macOS app',page)
+        self.assertNotIn('Illustrated product preview',page)
         self.assertNotIn('Lemulip website showing',page)
+    def test_native_gallery_order_structure_and_no_autoplay(self):
+        page=(ROOT/'site/index.html').read_text()
+        self.assertIn('id="app-gallery"',page)
+        self.assertLess(page.index('id="features"'),page.index('id="app-gallery"'))
+        self.assertLess(page.index('id="app-gallery"'),page.index('id="formats"'))
+        gallery=page.split('id="app-gallery"',1)[1].split('</section>',1)[0]
+        self.assertEqual(['workspace','crop-video','trim-audio','activity'],re.findall(r'data-screen="([^"]+)"',gallery))
+        self.assertEqual(4,gallery.count('role="tabpanel"'))
+        self.assertEqual(4,gallery.count('role="tab"'))
+        self.assertIn('<noscript>',gallery)
+        js=(ROOT/'site/gallery.js').read_text()
+        self.assertNotRegex(js,r'setInterval|setTimeout|requestAnimationFrame')
+        self.assertNotRegex(js,r'fetch\s*\(|XMLHttpRequest|FileReader')
+        for key in ('ArrowRight','ArrowLeft','Home','End'):self.assertIn(key,js)
+        self.assertEqual(1,page.count('class="product-demo"'))
+    def test_native_gallery_assets_have_reviewed_hashes(self):
+        import hashlib,struct
+        manifest=ROOT/'site/assets/screenshots.json'
+        self.assertTrue(manifest.is_file(),'Missing native screenshot inventory')
+        records=json.loads(manifest.read_text())
+        self.assertEqual(4,len(records))
+        for row in records:
+            data=(ROOT/'site/assets'/row['file']).read_bytes()
+            self.assertEqual(row['sha256'],hashlib.sha256(data).hexdigest())
+            self.assertEqual(b'RIFF',data[:4]);self.assertEqual(b'WEBP',data[8:12])
+            self.assertEqual(len(data),struct.unpack('<I',data[4:8])[0]+8)
+            self.assertEqual('User-provided native app screenshot',row['origin'])
+            self.assertNotIn(b'EXIF',data);self.assertNotIn(b'XMP ',data)
     def test_documentation_does_not_expose_removed_roadmap_gates(self):
         roadmap=(ROOT/'docs/ROADMAP.md').read_text()
         for removed in ('Office Review','Mac Interaction and Accessibility','Lightweight Performance','Signed Distribution'):
@@ -50,8 +79,8 @@ class SiteTests(unittest.TestCase):
             self.assertNotRegex(p.read_text(),r'(?i)developer id|notariz|ad hoc sign',str(p))
     def test_motion_and_stale_assets_are_explicit(self):
         page=(ROOT/'site/index.html').read_text(); js=(ROOT/'site/product.js').read_text()
-        self.assertIn('data-site-version="20261022.1"',page)
-        self.assertIn('product.js?v=20261022.1',page)
+        self.assertIn('data-site-version="20261027.1"',page)
+        self.assertIn('product.js?v=20261027.1',page)
         for event in ('visibilitychange','prefers-reduced-motion','pointercancel'):self.assertIn(event,js)
         self.assertIn('Browser Simulation',page)
         self.assertNotRegex(js,r'\b(FileReader|XMLHttpRequest)\s*\(')

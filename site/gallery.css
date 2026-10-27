@@ -1,0 +1,27 @@
+.app-gallery { padding-top:48px; padding-bottom:64px; border-top:1px solid var(--line); }
+.app-gallery h2 { margin:0 0 28px; font-size:clamp(30px,4vw,48px); line-height:1.1; letter-spacing:-.045em; }
+.gallery-viewer { width:min(100%,1060px); margin-inline:auto; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:20px; }
+.app-frame { grid-column:1 / -1; grid-row:1; position:relative; width:min(100%,1060px); aspect-ratio:1200 / 824; margin-inline:auto; overflow:visible; border-radius:12px; background:transparent; }
+.app-slide { position:absolute; inset:0; margin:0; }
+.app-slide[hidden], .gallery-tabs[hidden], .gallery-navigation[hidden] { display:none!important; }
+.app-slide a { display:block; width:100%; height:100%; border-radius:inherit; }
+.app-slide img { display:block; width:100%; height:100%; object-fit:contain; }
+.app-slide a:focus-visible { outline:3px solid var(--accent); outline-offset:-4px; }
+.gallery-tabs { grid-column:1; grid-row:2; display:flex; flex-wrap:wrap; gap:6px; }
+.gallery-tabs button { border:1px solid transparent; border-radius:999px; padding:10px 16px; min-height:42px; color:var(--muted); background:transparent; font:inherit; font-size:13px; cursor:pointer; }
+.gallery-tabs button[aria-selected="true"] { color:var(--text); background:var(--raised); border-color:var(--line); }
+.gallery-tabs button:hover { color:var(--text); }
+.gallery-navigation { grid-column:2; grid-row:2; display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.gallery-navigation button { width:42px; height:42px; border:1px solid var(--line); border-radius:50%; color:var(--text); background:transparent; font-size:19px; cursor:pointer; }
+.gallery-navigation button:hover { background:var(--raised); }
+#gallery-counter { color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; min-width:32px; text-align:center; }
+.gallery-caption { height:22px; margin:12px 0 0; text-align:center; color:var(--muted); font-size:12px; }
+.app-gallery noscript p { margin:16px 0; text-align:center; }
+@media(max-width:600px) {
+  .app-gallery { padding-top:32px; padding-bottom:36px; }
+  .app-frame { border-radius:8px; }
+  .gallery-viewer { grid-template-columns:minmax(0,1fr); gap:12px; }
+  .gallery-navigation { grid-column:1; grid-row:3; justify-self:center; }
+  .gallery-tabs { justify-content:center; gap:2px; }
+  .gallery-tabs button { padding:8px 10px; font-size:11px; }
+}

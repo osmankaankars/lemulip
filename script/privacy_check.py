@@ -52,13 +52,17 @@ ALLOWED_EMAILS = {
     b"56635935+osmankaankars@users.noreply.github.com",
 }
 
-# Only these visually reviewed illustrations may be binary. Generated artwork
+# Only these visually reviewed illustrations and screenshots may be binary. Generated artwork
 # retains its provenance; no image may carry private metadata.
 # Update a digest only after reviewing the new image and its metadata.
 PUBLIC_IMAGES = {
     "site/assets/morning-light.jpg": "e79abf44c036845255ecfd5e62ec378ec142b5b731fcc900759a7c8931ec5652",
     "Resources/AppIcon.png": "f68b17dc79d0e13246fc425218031a3bc35db2d1e27d845ee657f17f423d8a45",
     "docs/assets/demo-preview.png": "8872c6e65528bf47bdf95e64b5313cd6ce6c25f8e22c111ac05574f0701f5870",
+    "site/assets/app-workspace.webp": "d41d5ee79656a769de38c03e3e19acb0cf95a6a64a20fcecf0ab82f83d640382",
+    "site/assets/app-crop-video.webp": "a8d298b2738e78f8a4e5b4aacd463837b2ee9e4aec11290e86e2e1b984249e54",
+    "site/assets/app-trim-audio.webp": "f34558db61c7ead7705a275e57d8331e8f5dcd6b33006c76b3d7f91b0f5ccf87",
+    "site/assets/app-activity.webp": "117952195d08f546a43cfe52a729ad40bca44d5d47b141a339967b9adb2b4ea0",
 }
 TEXT_SIZE_LIMIT = 2_000_000
 IMAGE_SIZE_LIMIT = 8_000_000
@@ -108,10 +112,57 @@ def jpeg_without_metadata(data: bytes) -> bool:
     return False
 
 
+def webp_without_metadata(data: bytes) -> bool:
+    """Accept reviewed static VP8 images, optionally with transparent corners.
+
+    Only VP8 or VP8X/ALPH/VP8 in order is accepted. No profiles, metadata,
+    animation, unknown chunks or trailing bytes. Approved hashes are also required.
+    Container layout: https://developers.google.com/speed/webp/docs/riff_container
+    """
+    if len(data) < 30 or data[:4] != b"RIFF" or data[8:12] != b"WEBP":
+        return False
+    if struct.unpack_from("<I", data, 4)[0] + 8 != len(data):
+        return False
+    chunks = []
+    offset = 12
+    while offset < len(data):
+        if offset + 8 > len(data) or len(chunks) >= 3:
+            return False
+        kind = data[offset:offset + 4]
+        size = struct.unpack_from("<I", data, offset + 4)[0]
+        end = offset + 8 + size
+        padded = end + (size & 1)
+        if padded > len(data) or (size & 1 and data[end] != 0):
+            return False
+        chunks.append((kind, data[offset + 8:end]))
+        offset = padded
+    kinds = [kind for kind, _ in chunks]
+    canvas = None
+    if kinds == [b"VP8X", b"ALPH", b"VP8 "]:
+        header, alpha = chunks[0][1], chunks[1][1]
+        if len(header) != 10 or header[:4] != b"\x10\x00\x00\x00":
+            return False
+        canvas = (1 + int.from_bytes(header[4:7], "little"),
+                  1 + int.from_bytes(header[7:10], "little"))
+        if len(alpha) < 2 or alpha[0] & 0xc0 or (alpha[0] & 3) > 1 or ((alpha[0] >> 4) & 3) > 1:
+            return False
+    elif kinds != [b"VP8 "]:
+        return False
+    pixels = chunks[-1][1]
+    if len(pixels) < 10 or pixels[0] & 1 or pixels[3:6] != b"\x9d\x01\x2a":
+        return False
+    width, height = struct.unpack_from("<HH", pixels, 6)
+    width, height = width & 0x3fff, height & 0x3fff
+    return (1 <= width <= 4096 and 1 <= height <= 4096
+            and (canvas is None or canvas == (width, height)))
+
+
 def image_is_public(name: str, data: bytes) -> bool:
     """Require approved bytes and a metadata-free reviewed image."""
     if hashlib.sha256(data).hexdigest() != PUBLIC_IMAGES[name]:
         return False
+    if name.endswith(".webp"):
+        return webp_without_metadata(data)
     if name.endswith(".jpg"):
         return jpeg_without_metadata(data)
     if not data.startswith(b"\x89PNG\r\n\x1a\n"):

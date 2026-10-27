@@ -77,8 +77,91 @@ def check_presentation(page,output,width,height):
     page.screenshot(path=str(output/f'overview-{width}.png'))
 
 
+
+GALLERY_SCREENS = ("workspace", "crop-video", "trim-audio", "activity")
+
+
+def check_native_gallery(page, output: Path, width: int, height: int) -> None:
+    """Exercise the actual gallery DOM, including keyboard and demo isolation."""
+    if page.locator("#tour-toggle").get_attribute("aria-pressed") == "true":
+        page.locator("#tour-toggle").click()
+    gallery = page.locator("#app-gallery")
+    gallery.scroll_into_view_if_needed()
+    frame = gallery.locator(".app-frame")
+    original = frame.bounding_box()
+    assert original
+    formats_y = page.locator("#formats").evaluate("e=>e.getBoundingClientRect().top+scrollY")
+    for index, screen in enumerate(GALLERY_SCREENS):
+        tab = page.locator("#tab-" + screen)
+        tab.click()
+        panel = page.locator("#screen-" + screen)
+        assert panel.is_visible(), screen
+        assert gallery.locator(".app-slide:visible").count() == 1
+        assert tab.get_attribute("aria-selected") == "true"
+        assert gallery.locator('[role="tab"][tabindex="0"]').count() == 1
+        assert page.locator("#gallery-counter").inner_text() == f"{index + 1} / 4"
+        assert page.locator("#gallery-caption").inner_text() == tab.inner_text()
+        assert panel.locator("img").evaluate("e=>e.complete&&e.naturalWidth>0")
+        corners = panel.locator("img").evaluate("""img => {
+            const c = document.createElement('canvas');
+            c.width = img.naturalWidth; c.height = img.naturalHeight;
+            const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0);
+            return [[0,0],[c.width-1,0],[0,c.height-1],[c.width-1,c.height-1]]
+                .map(([x,y]) => ctx.getImageData(x,y,1,1).data[3]);
+        }""")
+        assert corners == [0, 0, 0, 0], "Only the application window belongs in the gallery"
+        box = frame.bounding_box()
+        assert box and abs(box["width"] - original["width"]) < 1
+        assert abs(box["height"] - original["height"]) < 1
+        after = page.locator("#formats").evaluate("e=>e.getBoundingClientRect().top+scrollY")
+        assert abs(after - formats_y) < 1, "Gallery selection must not reflow the formats section"
+        # The active panel is next in tab order; hidden screenshots cannot receive focus.
+        tab.focus()
+        page.keyboard.press("Tab")
+        assert panel.locator("a").evaluate("e=>e===document.activeElement"), screen
+        page.keyboard.press("Shift+Tab")
+        assert tab.evaluate("e=>e===document.activeElement")
+    page.locator("#gallery-next").click()
+    assert page.locator("#screen-workspace").is_visible()
+    page.locator("#gallery-previous").click()
+    assert page.locator("#screen-activity").is_visible()
+    page.locator("#tab-activity").focus()
+    for key, screen in (("ArrowRight", "workspace"), ("ArrowLeft", "activity"),
+                        ("Home", "workspace"), ("End", "activity")):
+        page.keyboard.press(key)
+        assert page.locator("#screen-" + screen).is_visible()
+        assert page.locator("#tab-" + screen).evaluate("e=>e===document.activeElement")
+    for theme in ("pistachio", "lemonade", "orchard"):
+        page.locator("#appearance").select_option(theme)
+        assert page.locator("html").get_attribute("data-theme") == theme
+        assert page.evaluate("document.documentElement.scrollWidth<=innerWidth")
+        if width in (1440, 390):
+            gallery.screenshot(path=str(output / f"native-gallery-{theme}-{width}.png"))
+    page.locator("#origin-finder").click()
+    page.locator('[data-sample="images"]').click()
+    page.locator('[data-mode="convert"]').click()
+    page.locator(".wheel-choice").first.click()
+    assert page.locator("#output-name").inner_text() == "morning-light.png"
+    page.locator("#tab-workspace").click()
+    page.locator("#tab-workspace").press("ArrowRight")
+    assert page.locator("#output-name").inner_text() == "morning-light.png"
+    assert page.locator("#desktop-demo").get_attribute("data-origin") == "finder"
+    assert page.locator(".product-demo").count() == 1
+
+
+def check_gallery_without_javascript(page) -> None:
+    assert page.locator("#screen-workspace").is_visible()
+    assert page.locator("#gallery-tabs").is_hidden()
+    assert page.locator(".gallery-navigation").is_hidden()
+    links = page.locator("#app-gallery noscript a")
+    assert links.count() == 4
+    for link in links.all():
+        assert link.is_visible()
+        assert link.get_attribute("href").endswith(".webp")
+
+
 def exercise(page,output,width,height):
-    assert page.locator('html').get_attribute('data-site-version')=='20261022.1'
+    assert page.locator('html').get_attribute('data-site-version')=='20261027.1'
     assert 'Lemulip' in page.title()
     assert page.locator('#format-count').inner_text()=='35'
     assert page.locator('#tool-count').inner_text()=='26'
@@ -153,14 +236,16 @@ def run(output:Path,engine:str,url:str|None,executable:str|None=None):
                     page=browser.new_page(viewport={'width':width,'height':height})
                     page.on('pageerror',lambda e:errors.append(str(e)))
                     page.on('response',lambda r:failures.append([r.status,r.url]) if r.status>=400 else None)
-                    page.goto(url,wait_until='networkidle');check_presentation(page,output,width,height);exercise(page,output,width,height)
-                    results.append({'viewport':f'{width}x{height}','nine_samples':'PASS','wheel':'PASS','single_demo':'PASS','stable_layout':'PASS','keyboard':'PASS','themes':'PASS','overflow':'NONE'})
+                    page.goto(url,wait_until='networkidle');check_presentation(page,output,width,height);exercise(page,output,width,height);check_native_gallery(page,output,width,height)
+                    results.append({'viewport':f'{width}x{height}','nine_samples':'PASS','wheel':'PASS','single_demo':'PASS','stable_layout':'PASS','keyboard':'PASS','native_gallery_click_keys_focus_wrap':'PASS','themes':'PASS','overflow':'NONE'})
                     page.close()
                 page=browser.new_page(viewport={'width':1440,'height':1000})
                 page.goto(url,wait_until='networkidle')
                 page.wait_for_function('document.querySelector("#desktop-demo").dataset.step!=="0"')
                 page.locator('#tour-toggle').click();before=page.locator('#desktop-demo').get_attribute('data-step');page.wait_for_timeout(2400)
                 assert page.locator('#desktop-demo').get_attribute('data-step')==before
+                page.locator('#tab-trim-audio').click();page.wait_for_timeout(2600)
+                assert page.locator('#screen-trim-audio').is_visible(),'The gallery must never autoplay'
                 page.locator('#next-step').click();assert page.locator('#desktop-demo').get_attribute('data-step')!=before
                 # A genuine pointer drag and modifier key must submit only on a wheel drop.
                 page.locator('#origin-desktop').click();box=page.locator('#sample-file').bounding_box();assert box
@@ -178,7 +263,8 @@ def run(output:Path,engine:str,url:str|None,executable:str|None=None):
                 results.append({'reduced_motion_manual_controls':'PASS'});page.close()
                 page=browser.new_page(java_script_enabled=False);page.goto(url,wait_until='networkidle')
                 assert page.locator('h1').is_visible();assert page.locator('.hero-copy .button').is_visible()
-                results.append({'no_javascript_fallback':'PASS'});page.close()
+                check_gallery_without_javascript(page)
+                results.append({'no_javascript_fallback':'PASS','native_gallery_fallback':'PASS'});page.close()
                 assert not errors,errors;assert not failures,failures
             finally:browser.close()
     finally:
