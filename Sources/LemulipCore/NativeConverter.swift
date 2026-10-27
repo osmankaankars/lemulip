@@ -363,6 +363,7 @@ public enum NativeConverter {
         var notes = Set<String>()
         for input in inputs {
             try Task.checkCancellation()
+            ConversionProgressScope.begin(input)
             let ext = outputExtension(operation) ?? (input.pathExtension.lowercased() == "svg" ? "png" : input.pathExtension.lowercased())
             let type: String
             do { type = try imageDestinationType(ext) }
@@ -416,6 +417,7 @@ public enum NativeConverter {
             if operation.id == "image.compress", ext == "png" || ext == "bmp" || ext == "tif" || ext == "tiff" {
                 notes.insert("This format uses lossless image encoding; the quality slider affects JPEG and HEIC. A smaller file is not guaranteed.")
             }
+            ConversionProgressScope.complete(input)
         }
         try Task.checkCancellation()
         return ConversionResult(outputs: outputs, note: notes.isEmpty ? nil : notes.sorted().joined(separator: " "))
@@ -1275,6 +1277,7 @@ public enum NativeConverter {
         var outputs: [URL] = []
         for input in inputs {
             try Task.checkCancellation()
+            ConversionProgressScope.begin(input)
             let ext = outputExtension(operation) ?? (operation.id == "media.extractAudio" || FileFamily.detect(input) == .audio ? "m4a" : "mp4")
             guard ["mp4", "mov", "m4a", "wav", "aiff", "aif"].contains(ext) else {
                 throw LemulipError.unsupported("This media format needs FFmpeg.")
@@ -1334,6 +1337,7 @@ public enum NativeConverter {
                                       options: options, output: output)
             }
             outputs.append(output)
+            ConversionProgressScope.complete(input)
         }
         if options.audioTrim != nil {
             return ConversionResult(outputs: outputs,

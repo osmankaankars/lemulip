@@ -50,6 +50,16 @@ iconutil --convert icns "$STAGING/AppIcon.iconset" --output "$CONTENTS/Resources
 chmod +x "$CONTENTS/MacOS/$APP_NAME" "$STAGING/lemulip"
 plutil -lint "$CONTENTS/Info.plist"
 
+# Optional maintainer-audited packs are staged before signing the outer bundle.
+# The normal lightweight build does not download or bundle third-party engines.
+if [[ -n "${LEMULIP_ENGINE_PACKS:-}" ]]; then
+  if [[ "$UNIVERSAL" == true ]]; then
+    python3 script/bundle_engines.py --packs "$LEMULIP_ENGINE_PACKS" --app "$STAGING/$APP_NAME.app" --architectures arm64 x86_64
+  else
+    python3 script/bundle_engines.py --packs "$LEMULIP_ENGINE_PACKS" --app "$STAGING/$APP_NAME.app" --architectures "$(uname -m)"
+  fi
+fi
+
 # An ad-hoc signature makes a local build self-contained. No signing keys are used.
 codesign --force --sign - "$STAGING/$APP_NAME.app"
 codesign --force --sign - "$STAGING/lemulip"

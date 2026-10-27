@@ -44,3 +44,8 @@ if [[ -z "$PANDOC_BIN" ]]; then
 fi
 "$PANDOC_BIN" --version
 printf '%s\n' "$(dirname "$PANDOC_BIN")" >> "$GITHUB_PATH"
+
+# Exercise the in-app installer with the same verified archive in native CI.
+if [[ -n "${GITHUB_ENV:-}" ]]; then
+  printf 'LEMULIP_PANDOC_ARCHIVE=%s\n' "$ARCHIVE" >> "$GITHUB_ENV"
+fi

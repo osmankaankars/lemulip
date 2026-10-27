@@ -18,6 +18,7 @@ enum ExternalConverters {
         var outputs: [URL] = []
         for input in inputs {
             try Task.checkCancellation()
+            ConversionProgressScope.begin(input)
             let inputFamily = FileFamily.detect(input)
             guard inputFamily == .audio || inputFamily == .video else { throw LemulipError.invalidInput("Select audio or video files for this tool.") }
             let sourceExtension = input.pathExtension.lowercased()
@@ -81,8 +82,25 @@ enum ExternalConverters {
             }
             let codecs = requiredEncoders(in: arguments)
             _ = try EngineHealth.require(health, capabilities: codecs)
-            _ = try await ProcessRunner.checked(executable: ffmpeg, arguments: arguments, currentDirectory: directory)
+            let reporter = ConversionProgressScope.reporter
+            var duration: Double?
+            if reporter != nil {
+                duration = try? await mediaDuration(input)
+                try Task.checkCancellation()
+                if operation.id == "media.trim", let sourceDuration = duration {
+                    duration = min(sourceDuration, options.endSeconds) - options.startSeconds
+                } else if operation.id == "media.speed", let sourceDuration = duration {
+                    duration = sourceDuration / options.speedMultiplier
+                }
+                arguments.insert(contentsOf: ["-progress", "pipe:1", "-stats_period", "0.25", "-nostats"], at: 0)
+            }
+            let parser = FFmpegProgressParser(duration: duration) { value in reporter?.updateFraction(value) }
+            var outputHandler: (@Sendable (Data) -> Void)?
+            if reporter != nil { outputHandler = { data in parser.consume(data) } }
+            _ = try await ProcessRunner.checked(executable: ffmpeg, arguments: arguments, currentDirectory: directory,
+                standardOutputHandler: outputHandler)
             try requireFile(output); outputs.append(output)
+            ConversionProgressScope.complete(input)
         }
         return ConversionResult(outputs: outputs, note: operation.id == "media.compress" ? "Compression depends on the source; compare the output size before removing any original." : nil)
     }
@@ -173,6 +191,7 @@ enum ExternalConverters {
         var outputs: [URL] = []
         for input in inputs {
             try Task.checkCancellation()
+            ConversionProgressScope.begin(input)
             let source = input.pathExtension.lowercased()
             let target = operation.outputExtension?.lowercased() ?? (operation.id.hasPrefix("convert.") ? String(operation.id.dropFirst(8)) : source)
             let raster: Set<String> = ["jpg", "jpeg", "png", "webp", "avif", "heic", "heif", "tif", "tiff", "bmp", "gif", "ico"]
@@ -210,6 +229,7 @@ enum ExternalConverters {
             try requireFile(temporaryOutput)
             let output = outputURL(for: input, operation: operation, extension: target, directory: directory)
             try FileManager.default.moveItem(at: temporaryOutput, to: output); outputs.append(output)
+            ConversionProgressScope.complete(input)
         }
         return ConversionResult(outputs: outputs, note: inputs.contains(where: { $0.pathExtension.lowercased() == "gif" }) ? "Image conversion uses the first frame of animated images." : nil)
     }
@@ -235,6 +255,7 @@ enum ExternalConverters {
         var outputs: [URL] = []
         for input in inputs {
             try Task.checkCancellation()
+            ConversionProgressScope.begin(input)
             let job = directory.appendingPathComponent(".office-\(UUID().uuidString)", isDirectory: true)
             let profile = job.appendingPathComponent("profile", isDirectory: true)
             let userProfile = profile.appendingPathComponent("user", isDirectory: true)
@@ -287,10 +308,12 @@ enum ExternalConverters {
                 let bundle = OutputStore.uniqueURL(in: directory, stem: input.deletingPathExtension().lastPathComponent + " HTML", extension: "")
                 try FileManager.default.moveItem(at: expected, to: out.appendingPathComponent("index.html"))
                 try FileManager.default.moveItem(at: out, to: bundle); outputs.append(bundle)
+                ConversionProgressScope.complete(input)
                 continue
             }
             let output = outputURL(for: input, operation: operation, extension: target, directory: directory)
             try FileManager.default.moveItem(at: expected, to: output); outputs.append(output)
+            ConversionProgressScope.complete(input)
         }
         return ConversionResult(outputs: outputs, note: target == "csv" || target == "tsv" ? "CSV and TSV export the active sheet only; formulas and formatting become values." : target == "html" ? "HTML with embedded media is saved as a folder containing index.html and its resources. Complex layouts may change." : "Complex layouts may change when moving between office formats.")
     }
@@ -331,6 +354,7 @@ enum ExternalConverters {
         var outputs: [URL] = []
         for input in inputs {
             try Task.checkCancellation()
+            ConversionProgressScope.begin(input)
             guard let reader = readers[input.pathExtension.lowercased()] else { throw LemulipError.unsupported("This document format needs LibreOffice or a native macOS converter.") }
             let output = outputURL(for: input, operation: operation, extension: target, directory: directory)
             do {
@@ -339,6 +363,7 @@ enum ExternalConverters {
                 throw LemulipError.operationFailed("This Pandoc build cannot load the templates required for an offline conversion. Install the official Pandoc package with embedded data files from pandoc.org/installing.html, then reopen Lemulip. The file sandbox remains enabled.")
             }
             try requireFile(output, allowEmpty: ["txt", "md", "markdown"].contains(target)); outputs.append(output)
+            ConversionProgressScope.complete(input)
         }
         return ConversionResult(outputs: outputs, note: "Linked external resources are not loaded. Check formatting after document conversion.")
     }

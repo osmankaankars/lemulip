@@ -60,6 +60,18 @@ struct ActivityRow: View {
                         .font(.system(size: 12)).foregroundStyle(Palette.muted).lineLimit(1)
                 }
                 Text(statusText).font(.system(size: 11)).foregroundStyle(item.state == .failed ? .orange : Palette.muted).textSelection(.enabled)
+                if item.state == .running, let progress = item.progress {
+                    if let fraction = progress.fractionCompleted, progress.phase == .converting {
+                        ProgressView(value: fraction).tint(Palette.accent)
+                            .accessibilityLabel(model.text("Conversion Progress", "Dönüşüm ilerlemesi"))
+                        Text("\(Int(fraction * 100))%")
+                            .font(.system(size: 10, design: .monospaced)).foregroundStyle(Palette.muted)
+                    }
+                    if progress.phase == .converting && progress.totalFiles > 1 {
+                        Text(model.text("\(progress.completedFiles) / \(progress.totalFiles) files processed", "\(progress.completedFiles) / \(progress.totalFiles) dosya işlendi"))
+                            .font(.system(size: 10)).foregroundStyle(Palette.muted)
+                    }
+                }
                 if !item.message.isEmpty { Text(item.message).font(.system(size: 11)).foregroundStyle(Palette.muted).textSelection(.enabled) }
                 if !item.outputs.isEmpty {
                     ForEach(item.outputs.prefix(4), id: \.self) { url in
@@ -74,6 +86,11 @@ struct ActivityRow: View {
             if active && !item.operation.id.hasPrefix("action.") {
                 Button { model.cancelJob(item.id) } label: { Image(systemName: "xmark.circle").foregroundStyle(Palette.muted) }
                     .buttonStyle(.plain).help(model.text("Cancel", "İptal et"))
+            } else if model.canRetry(item) {
+                Button { model.retryJob(item.id) } label: {
+                    Label(model.text("Retry", "Tekrar Dene"), systemImage: "arrow.clockwise")
+                        .font(.system(size: 11)).foregroundStyle(Palette.accent)
+                }.buttonStyle(.plain).help(model.text("Retry With The Same Settings", "Aynı ayarlarla tekrar dene"))
             } else if item.state == .succeeded && !item.outputs.isEmpty {
                 Button { model.reveal(item.outputs) } label: { Image(systemName: "folder").foregroundStyle(Palette.accent) }
                     .buttonStyle(.plain).help(model.text("Show in Finder", "Finder'da göster"))
@@ -83,7 +100,10 @@ struct ActivityRow: View {
     private var statusText: String {
         switch item.state {
         case .waiting: return model.text("Queued", "Sırada")
-        case .running: return model.text("Processing locally…", "Bu Mac'te işleniyor…")
+        case .running:
+            if item.progress?.phase == .preparing { return model.text("Preparing…", "Hazırlanıyor…") }
+            if item.progress?.phase == .publishing || item.progress?.phase == .finished { return model.text("Saving New Files…", "Yeni dosyalar kaydediliyor…") }
+            return model.text("Processing Locally…", "Bu Mac'te işleniyor…")
         case .succeeded: return model.text("Finished · \(item.outputs.count) output files", "Tamamlandı · \(item.outputs.count) çıktı dosyası")
         case .failed: return model.text("Could not complete", "Tamamlanamadı")
         case .cancelled: return model.text("Cancelled", "İptal edildi")

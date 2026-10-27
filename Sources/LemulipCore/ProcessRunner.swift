@@ -57,7 +57,8 @@ enum ProcessRunner {
     static func run(executable: URL, arguments: [String], currentDirectory: URL? = nil,
                     environment: [String: String] = [:], maximumOutputBytes: Int = 524_288,
                     timeout: TimeInterval = 900, denyNetwork: Bool = true,
-                    allowedUnixSockets: [URL] = []) async throws -> ProcessOutput {
+                    allowedUnixSockets: [URL] = [],
+                    standardOutputHandler: (@Sendable (Data) -> Void)? = nil) async throws -> ProcessOutput {
         try Task.checkCancellation()
         guard executable.isFileURL, maximumOutputBytes > 0, timeout > 0, timeout.isFinite,
               allowedUnixSockets.allSatisfy({ $0.isFileURL && $0.path != "/" && !$0.path.contains("\0") }) else {
@@ -66,7 +67,7 @@ enum ProcessRunner {
         var launchURL = executable
         var launchArguments = arguments
         #if os(macOS)
-        // This profile restricts optional converter processes; the app itself has no network client.
+        // This profile restricts optional converter processes; explicit engine installation uses a separate download path.
         if denyNetwork {
             guard FileManager.default.isExecutableFile(atPath: "/usr/bin/sandbox-exec") else {
                 throw LemulipError.unsupported("This macOS installation cannot enforce offline access for optional converters because sandbox-exec is unavailable. Built-in conversions remain available.")
@@ -87,7 +88,7 @@ enum ProcessRunner {
         #endif
         let state = ProcessState(executable: launchURL, arguments: launchArguments,
                                  currentDirectory: currentDirectory, environment: environment,
-                                 maximumOutputBytes: maximumOutputBytes, timeout: timeout)
+                                 maximumOutputBytes: maximumOutputBytes, timeout: timeout, standardOutputHandler: standardOutputHandler)
         return try await withTaskCancellationHandler(operation: {
             try await withCheckedThrowingContinuation { continuation in state.start(continuation) }
         }, onCancel: { state.cancel() })
@@ -95,9 +96,11 @@ enum ProcessRunner {
 
     static func checked(executable: URL, arguments: [String], currentDirectory: URL? = nil,
                         environment: [String: String] = [:], timeout: TimeInterval = 900,
-                        allowedUnixSockets: [URL] = []) async throws -> ProcessOutput {
+                        allowedUnixSockets: [URL] = [],
+                    standardOutputHandler: (@Sendable (Data) -> Void)? = nil) async throws -> ProcessOutput {
         let output = try await run(executable: executable, arguments: arguments, currentDirectory: currentDirectory,
-                                   environment: environment, timeout: timeout, allowedUnixSockets: allowedUnixSockets)
+                                   environment: environment, timeout: timeout, allowedUnixSockets: allowedUnixSockets,
+                                   standardOutputHandler: standardOutputHandler)
         guard output.exitCode == 0 else {
             let reason = output.errorText.isEmpty ? "Exit status \(output.exitCode)." : String(output.errorText.prefix(3_000))
             throw LemulipError.operationFailed("\(executable.lastPathComponent) could not complete the conversion. \(reason)")
@@ -114,6 +117,7 @@ private final class ProcessState: @unchecked Sendable {
     private let environment: [String: String]
     private let maximumOutputBytes: Int
     private let timeout: TimeInterval
+    private let standardOutputHandler: (@Sendable (Data) -> Void)?
     private var continuation: CheckedContinuation<ProcessOutput, Error>?
     private var processID: pid_t = 0
     private var outputPipe: Pipe?
@@ -128,9 +132,10 @@ private final class ProcessState: @unchecked Sendable {
     private var finished = false
 
     init(executable: URL, arguments: [String], currentDirectory: URL?, environment: [String: String],
-         maximumOutputBytes: Int, timeout: TimeInterval) {
+         maximumOutputBytes: Int, timeout: TimeInterval, standardOutputHandler: (@Sendable (Data) -> Void)?) {
         self.executable = executable; self.arguments = arguments; self.currentDirectory = currentDirectory
         self.environment = environment; self.maximumOutputBytes = maximumOutputBytes; self.timeout = timeout
+        self.standardOutputHandler = standardOutputHandler
     }
 
     func start(_ continuation: CheckedContinuation<ProcessOutput, Error>) {
@@ -223,6 +228,7 @@ private final class ProcessState: @unchecked Sendable {
         while true {
             let count = bytes.withUnsafeMutableBytes { read(descriptor, $0.baseAddress, $0.count) }
             if count > 0 {
+                if !isError { standardOutputHandler?(Data(bytes.prefix(count))) }
                 let existing = isError ? stderr.count : stdout.count
                 let available = min(count, max(0, maximumOutputBytes - existing))
                 if available > 0 {
