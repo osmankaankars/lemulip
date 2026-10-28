@@ -1,6 +1,7 @@
 #if os(macOS)
 import AppKit
 import SwiftUI
+import LemulipCore
 
 enum AppTheme: String, CaseIterable, Identifiable, Sendable {
     case orchardNight = "orchard"
@@ -63,6 +64,16 @@ enum Palette {
     static var mutedColor: NSColor { nsColor(theme.colors.muted) }
     static var accentColor: NSColor { nsColor(theme.colors.accent) }
     static var lineColor: NSColor { nsColor(theme.colors.line) }
+
+    static var editorCanvasColor: NSColor { nsColor(theme == .orchardNight ? 0x1C1F20 : 0xEBEDE9) }
+    static var editorCanvas: Color { Color(nsColor: editorCanvasColor) }
+    static func shortcutFill(_ mode: WheelMode) -> Color {
+        switch mode {
+        case .convert: return primaryAction.opacity(theme == .orchardNight ? 0.14 : 0.18)
+        case .tools: return color(0xEDAB76).opacity(theme == .orchardNight ? 0.17 : 0.20)
+        case .actions: return color(0xBBA4E2).opacity(theme == .orchardNight ? 0.17 : 0.20)
+        }
+    }
 
     static var background: Color { Color(nsColor: canvasColor) }
     static var panel: Color { Color(nsColor: panelColor) }

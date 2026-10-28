@@ -12,11 +12,15 @@ You do not need to hold the modifier key. Use Workspace or **Open Wheel** when a
 
 ## The Workspace
 
-Add files, select an operation, and use the job queue. **Activity** shows current-session results and errors. Click an output to reveal it in Finder. The floating shelf keeps selected files close.
+Add files and choose a format, tool, or file action. **⌘F** focuses **Find A Format Or Tool**; searching includes the operations available for the selected files across all three modes. Press Return when there is exactly one match.
+
+Use the pin beside an operation to keep it in **Pinned**. Pins remember only operation names, not files, and do not change the drag wheel's order. You can keep up to 12 pins.
+
+The **Keyboard Shortcuts** button offers **Try With A Sample**, which opens a disposable practice image in Finder. It does not use or replace your own files.
 
 ## Choose a Theme
 
-**Settings → Appearance → Theme** offers Orchard Night, Vivid Pistachio, and Lemon Drop. The choice is remembered across the workspace, wheel, and editors.
+**Settings → Appearance** offers Orchard Night, Vivid Pistachio, and Lemon Drop. The choice is remembered across the workspace, wheel, and editors.
 
 ## Set Options Before a Job
 
@@ -52,11 +56,13 @@ Compression creates a flattened image-based copy. Searchable text, links, forms,
 
 ## Find Results and Manage Jobs
 
-Activity lists completed outputs, notes, and errors for the current session. Preferences persist between launches; Activity does not.
+Activity lists completed outputs, progress, notes, and errors for the current session. Results can be revealed in Finder, explicitly copied, dragged to another app, or placed on the floating shelf. Failed and cancelled conversions offer **Retry** with the same settings.
+
+**Settings → Output → When Finished** offers **Stay Quiet**, **Show In Finder**, or **Show Result Card**. The result card is optional, never copies automatically, and does not activate the main window. Your previous Finder preference is retained. Preferences persist between launches; file lists and Activity do not.
 
 ### Choose an Output Folder
 
-By default, a job saves beside its first input. PDF merge uses the first retained document in the arranged list. Disable **Save in the First File's Folder** to choose a destination per job.
+By default, a job saves beside its first input. PDF merge uses the first retained document in the arranged list. Disable **Save Beside The Original** to choose a destination per job.
 
 ### File Actions
 
@@ -84,7 +90,7 @@ LibreOffice handles supported Word, Excel, and PowerPoint routes. Inspect import
 
 ## Optional Engines
 
-Use **Settings → Local Engines** to check support or install Pandoc. FFmpeg and ImageMagick are included in release downloads from 0.1.17. See [Installation](INSTALL.md#conversion-engines).
+Use **Settings → Format Support** to check support or install Pandoc. FFmpeg and ImageMagick are included in release downloads from 0.1.17. See [Installation](INSTALL.md#conversion-engines).
 
 ## Command-Line Use
 

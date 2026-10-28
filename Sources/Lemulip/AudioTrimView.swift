@@ -45,17 +45,15 @@ struct AudioTrimView: View {
                                 .font(.system(size: 11)).foregroundStyle(Palette.accent)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
-                        Text(model.text("Drag the handles to trim, or drag inside to move the selection. Focus the waveform: S selects Start, E selects End; arrow keys adjust by 0.01 s, Shift by 1 s. Space plays or pauses.",
+                        EditorHelp(language: model.language, explanation: model.text("Drag the handles to trim, or drag inside to move the selection. Focus the waveform: S selects Start, E selects End; arrow keys adjust by 0.01 s, Shift by 1 s. Space plays or pauses.",
                                             "Tutamaklarla kırp, seçimin içini sürükleyerek taşı. Dalga biçimine odaklan: S başlangıcı, E bitişi seçer; oklar 0,01 sn, Shift ile 1 sn ayarlar. Boşluk oynatır veya duraklatır."))
-                            .font(.system(size: 10)).foregroundStyle(Palette.muted)
-                            .fixedSize(horizontal: false, vertical: true)
                     }.padding(24)
                 }
             } else {
                 loadingState.frame(maxWidth: .infinity, maxHeight: .infinity).padding(40)
             }
             Rectangle().fill(Palette.line).frame(height: 1)
-            footer.padding(.horizontal, 24).padding(.vertical, 17)
+            footer
         }
         .frame(width: 820, height: 610)
         .background(Palette.background).foregroundStyle(Palette.ink).tint(Palette.accent)
@@ -67,7 +65,7 @@ struct AudioTrimView: View {
         HStack(spacing: 13) {
             Image(systemName: "waveform").font(.system(size: 24)).foregroundStyle(Palette.accent)
             VStack(alignment: .leading, spacing: 5) {
-                Text(model.text("Trim Audio", "Sesi kırp")).font(.system(size: 23, weight: .semibold)).tracking(-0.5)
+                Text(model.text("Trim Audio", "Sesi kırp")).font(.system(size: 21, weight: .semibold)).tracking(-0.5)
                 Text(inputs.count == 1 ? inputs[0].lastPathComponent : model.text("Choose a Single Audio File", "Tek bir ses dosyası seç"))
                     .font(.system(size: 11)).foregroundStyle(Palette.muted).lineLimit(1).truncationMode(.middle)
             }
@@ -162,17 +160,9 @@ struct AudioTrimView: View {
     }
 
     private var footer: some View {
-        HStack(spacing: 12) {
-            Label(model.text("Your Original Stays Untouched", "Orijinal dosyan korunur"), systemImage: "checkmark.shield")
-                .font(.system(size: 10)).foregroundStyle(Palette.muted)
-            Spacer()
-            Button(model.text("Cancel", "Vazgeç")) { playback.shutdown(); model.cancelPending() }
-                .keyboardShortcut(.cancelAction)
-            Button(model.text("Create Copy", "Kopya oluştur")) { submit() }
-                .buttonStyle(.borderedProminent).tint(Palette.primaryAction).foregroundStyle(Palette.onPrimary)
-                .keyboardShortcut(.defaultAction)
-                .disabled(selection == nil || validationError != nil || loadError != nil || preview.map({ availableFormats($0).isEmpty }) != false)
-        }
+        EditorFooter(language: model.language,
+            isEnabled: selection != nil && validationError == nil && loadError == nil && preview.map({ !availableFormats($0).isEmpty }) == true,
+            onCancel: { playback.shutdown(); model.cancelPending() }, onSubmit: { submit() })
     }
 
     private var parsedTimes: (start: Double, end: Double)? {
