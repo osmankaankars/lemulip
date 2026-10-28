@@ -1,0 +1,136 @@
+name: Verify Published Native Conversion Once
+on:
+  push:
+    branches: [verify/native-ui-20261028]
+    paths: [.github/workflows/native-conversion-once.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  review:
+    runs-on: macos-15
+    timeout-minutes: 8
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: Lemulip-macOS-universal
+          run-id: 40622450424
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/published
+          digest-mismatch: error
+      - name: Verify Published App And Exercise Native Controls
+        run: |
+          mkdir -p "$RUNNER_TEMP/conversion-review"
+          python3 - <<'PY'
+          import hashlib,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'published/Lemulip-0.1.17-macOS-universal.zip'
+          assert p.stat().st_size==153096832
+          assert hashlib.file_digest(p.open('rb'),'sha256').hexdigest()=='a48b8d36a606a85398dded5019326287218c8478fa479751ff4ad0e3a5d852d4'
+          PY
+          ditto -xk "$RUNNER_TEMP/published/Lemulip-0.1.17-macOS-universal.zip" "$RUNNER_TEMP/native-app"
+          cat > "$RUNNER_TEMP/probe.swift" <<'SWIFT'
+          import AppKit
+          import ApplicationServices
+          import CoreGraphics
+          import CryptoKit
+          import Foundation
+          let bundle = URL(fileURLWithPath: CommandLine.arguments[1])
+          let output = URL(fileURLWithPath: CommandLine.arguments[2], isDirectory: true)
+          let fixtures = output.appendingPathComponent("fixtures", isDirectory: true)
+          try FileManager.default.createDirectory(at: fixtures, withIntermediateDirectories: true)
+          func settle(_ seconds: Double) {
+              let end = Date().addingTimeInterval(seconds)
+              while Date() < end { RunLoop.current.run(until: Date().addingTimeInterval(0.05)) }
+          }
+          func attr(_ element: AXUIElement, _ name: String) -> AnyObject? {
+              var value: CFTypeRef?
+              guard AXUIElementCopyAttributeValue(element, name as CFString, &value) == .success else { return nil }
+              return value
+          }
+          func all(_ root: AXUIElement) -> [AXUIElement] {
+              var queue: [(AXUIElement, Int)] = [(root,0)], out: [AXUIElement] = []
+              while !queue.isEmpty && out.count < 800 {
+                  let (e,d) = queue.removeFirst(); out.append(e)
+                  if d < 14, let children = attr(e,kAXChildrenAttribute) as? [AXUIElement] { queue += children.map { ($0,d+1) } }
+              }
+              return out
+          }
+          func text(_ root: AXUIElement) -> [String] {
+              all(root).flatMap { e in [kAXTitleAttribute,kAXDescriptionAttribute,kAXValueAttribute].compactMap { attr(e,$0) as? String } }
+          }
+          func press(_ root: AXUIElement, _ title: String) -> Bool {
+              guard let button = all(root).first(where: { (attr($0,kAXRoleAttribute) as? String) == kAXButtonRole && text($0).contains(title) }) else { return false }
+              return AXUIElementPerformAction(button,kAXPressAction as CFString) == .success
+          }
+          func capture(_ pid: pid_t, _ name: String) -> Bool {
+              guard CGPreflightScreenCaptureAccess() else { return false }
+              let windows = CGWindowListCopyWindowInfo(.optionOnScreenOnly,kCGNullWindowID) as? [[String:Any]] ?? []
+              guard let window = windows.first(where: { ($0[kCGWindowOwnerPID as String] as? NSNumber)?.int32Value == pid && ($0[kCGWindowLayer as String] as? NSNumber)?.intValue == 0 }), let id = window[kCGWindowNumber as String] as? NSNumber else { return false }
+              let task = Process(); task.executableURL = URL(fileURLWithPath:"/usr/sbin/screencapture")
+              task.arguments = ["-x","-l",id.stringValue,output.appendingPathComponent(name+".png").path]
+              do { try task.run(); task.waitUntilExit(); return task.terminationStatus == 0 } catch { return false }
+          }
+          func digest(_ data: Data) -> String { SHA256.hash(data:data).map { String(format:"%02x",$0) }.joined() }
+          let source = fixtures.appendingPathComponent("native-ui-sample.png")
+          let bitmap = NSBitmapImageRep(bitmapDataPlanes:nil,pixelsWide:32,pixelsHigh:24,bitsPerSample:8,samplesPerPixel:4,hasAlpha:true,isPlanar:false,colorSpaceName:.deviceRGB,bytesPerRow:0,bitsPerPixel:0)!
+          for y in 0..<24 { for x in 0..<32 { bitmap.setColor(NSColor(srgbRed:Double(x)/32,green:Double(y)/24,blue:0.4,alpha:1),atX:x,y:y) } }
+          let original = bitmap.representation(using:.png,properties:[:])!
+          try original.write(to:source,options:.withoutOverwriting)
+          var report: [String:Any] = ["version":"0.1.17","sourceSHA256":digest(original),"accessibilityTrusted":AXIsProcessTrusted(),"permissionsModified":false,"inputMethod":"native open-file event, not a physical drag","manualVoiceOverReviewed":false]
+          var app: NSRunningApplication?, launchError: String?
+          let config = NSWorkspace.OpenConfiguration(); config.activates = true; config.createsNewApplicationInstance = true
+          NSWorkspace.shared.open([source],withApplicationAt:bundle,configuration:config) { opened,error in app = opened; launchError = error?.localizedDescription }
+          let until = Date().addingTimeInterval(20)
+          while app == nil && launchError == nil && Date() < until { settle(0.1) }
+          var checks: [[String:Any]] = []
+          if let app {
+              defer { app.terminate() }
+              settle(3)
+              report["launchAlive"] = !app.isTerminated
+              if AXIsProcessTrusted() {
+                  let root = AXUIElementCreateApplication(app.processIdentifier); AXUIElementSetMessagingTimeout(root,1)
+                  report["selectionText"] = text(root)
+                  report["sourceVisible"] = text(root).contains(source.lastPathComponent)
+                  let clicked = press(root,"WEBP")
+                  let result = fixtures.appendingPathComponent("native-ui-sample.webp")
+                  let end = Date().addingTimeInterval(30)
+                  while !FileManager.default.fileExists(atPath:result.path) && Date() < end && clicked { settle(0.2) }
+                  settle(1)
+                  var valid = false
+                  if let bytes = try? Data(contentsOf:result), bytes.count > 12 {
+                      valid = String(data:bytes.prefix(4),encoding:.ascii) == "RIFF" && String(data:bytes[8..<12],encoding:.ascii) == "WEBP"
+                      report["outputSHA256"] = digest(bytes); report["outputBytes"] = bytes.count
+                  }
+                  report["originalPreserved"] = (try Data(contentsOf:source)) == original
+                  checks.append(["name":"PNG To WebP Through Native Button","buttonPressed":clicked,"outputValid":valid,"status":clicked && valid ? "passed":"failed"])
+                  let activity = press(root,"Activity"); settle(1)
+                  let activityText = text(root)
+                  report["activityText"] = activityText
+                  checks.append(["name":"Activity Shows Conversion Output","status":activity && activityText.contains(where:{$0.contains("native-ui-sample.webp")}) ? "passed":"failed","captured":capture(app.processIdentifier,"activity-converted")])
+                  _ = press(root,"Settings"); settle(1)
+                  for title in ["Vivid Pistachio","Lemon Drop","Orchard Night"] {
+                      let changed = press(root,title); settle(0.7)
+                      let node = all(root).first { (attr($0,kAXRoleAttribute) as? String) == kAXButtonRole && text($0).contains(title) }
+                      let selected = node.map { text($0).contains("Selected") } ?? false
+                      checks.append(["name":title,"status":changed && selected ? "passed":"failed","captured":capture(app.processIdentifier,title.lowercased().replacingOccurrences(of:" ",with:"-"))])
+                  }
+              } else { report["navigationStatus"] = "not-run-permission-unavailable" }
+              report["aliveAfterChecks"] = !app.isTerminated
+          } else { report["launchError"] = launchError ?? "timeout" }
+          report["checks"] = checks
+          let data = try JSONSerialization.data(withJSONObject:report,options:[.prettyPrinted,.sortedKeys])
+          try data.write(to:output.appendingPathComponent("conversion-review.json"))
+          print(String(data:data,encoding:.utf8)!)
+          if checks.contains(where:{($0["status"] as? String) == "failed"}) { exit(1) }
+          SWIFT
+          xcrun swiftc "$RUNNER_TEMP/probe.swift" -o "$RUNNER_TEMP/probe"
+          "$RUNNER_TEMP/probe" "$RUNNER_TEMP/native-app/Lemulip-0.1.17-macOS-universal/Lemulip.app" "$RUNNER_TEMP/conversion-review"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: Lemulip-Native-Conversion-Review
+          path: ${{ runner.temp }}/conversion-review/
+          retention-days: 7
+          if-no-files-found: error
