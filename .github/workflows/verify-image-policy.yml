@@ -1,0 +1,72 @@
+name: Verify Image Policy Source
+on:
+  push:
+    branches: [verify/image-policy-source-20261028]
+    paths: [.github/workflows/verify-image-policy.yml]
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: c53819054d0694ccb88cd3a062425d99f6dc385c
+          persist-credentials: false
+      - name: Verify and apply exact reviewed source-only patch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64,hashlib,json,lzma,os,subprocess,urllib.request
+          request=urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/git/blobs/a933bf92d9ee65b618b829f8889254439465e8f6',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(request,timeout=30) as response:blob=json.load(response)
+          assert blob['encoding']=='base64'
+          packed=base64.b64decode(blob['content'])
+          assert len(packed)==6360 and hashlib.sha256(packed).hexdigest()=='752114edb07febb7d04583679a14134a3cd25c3dfe8116b0b90878044673309f'
+          decoder=lzma.LZMADecompressor(memlimit=64*1024*1024)
+          patch=decoder.decompress(packed,max_length=21360)
+          assert decoder.eof and not decoder.unused_data and len(patch)==21359
+          assert hashlib.sha256(patch).hexdigest()=='0b31fa91e0180e405c279f706172986d410b9b50b5bba8a12b798a4ec4cbf1be'
+          paths=set('Sources/LemulipCore/ExternalConverters.swift Tests/LemulipCoreTests/EngineIntegrationTests.swift script/build_image_engine.py script/build_media_engine.py script/smoke_bundled_engines.py script/test_build_image_engine.py script/test_build_media_engine.py'.split())
+          stats=subprocess.check_output(['git','apply','--numstat'],input=patch).decode()
+          assert {line.split('\t',2)[2] for line in stats.splitlines()}==paths
+          subprocess.run(['git','apply','--check'],input=patch,check=True)
+          subprocess.run(['git','apply'],input=patch,check=True)
+          subprocess.run(['git','add','--',*sorted(paths)],check=True)
+          assert subprocess.check_output(['git','write-tree'],text=True).strip()=='7263c9eda28442fe4c36d20429451687524660b7'
+      - name: Verify source contracts
+        run: |
+          for check in test_site test_branding test_public_images test_engine_packs test_build_media_engine test_build_image_engine test_release_engines; do
+            python3 "script/$check.py"
+          done
+          python3 script/privacy_check.py --staged
+          git diff --cached --check
+      - name: Store exact source objects without changing any ref
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64,hashlib,json,os,pathlib,subprocess,urllib.request
+          api='https://api.github.com/repos/osmankaankars/lemulip/git/'
+          def post(route,payload):
+              req=urllib.request.Request(api+route,data=json.dumps(payload).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+              with urllib.request.urlopen(req,timeout=30) as response:return json.load(response)
+          entries=[]
+          for path in subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines():
+              assert not path.startswith('.github/')
+              raw=pathlib.Path(path).read_bytes();expected=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              blob=post('blobs',{'encoding':'base64','content':base64.b64encode(raw).decode()});assert blob['sha']==expected
+              entries.append({'path':path,'mode':'100644','type':'blob','sha':expected})
+          tree=post('trees',{'base_tree':'c029fe878b144de3198ea880565410dee977c266','tree':entries})
+          assert tree['sha']=='7263c9eda28442fe4c36d20429451687524660b7'
+          folder=pathlib.Path(os.environ['RUNNER_TEMP'])/'proof';folder.mkdir()
+          (folder/'source-proof.json').write_text(json.dumps({'tree':tree['sha'],'files':entries},indent=2))
+          print('Verified source tree:',tree['sha'])
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Image-Policy-Source-Proof
+          path: ${{ runner.temp }}/proof/
+          retention-days: 7
+          if-no-files-found: error
