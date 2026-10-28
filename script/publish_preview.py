@@ -197,8 +197,61 @@ class PreviewPublisher:
         require(self.api.request("GET", self.prefix + "/releases/tags/" + self.tag, missing_ok=True) is None,
                 "A release already uses this version without the expected tag. It was preserved for review.")
 
+    def published_ancestor(self):
+        """Recognize a completed older release without moving or republishing it.
+
+        A maintenance commit keeps the app version until the next release is
+        deliberately prepared. An unrelated/conflicting tag is still an error.
+        This path makes GET requests only, including the old publication gate.
+        """
+        release = self.api.request("GET", self.prefix + "/releases/tags/" + self.tag, missing_ok=True)
+        if release is None:
+            return False
+        require(isinstance(release, dict), "The existing release could not be verified.")
+        source = release.get("target_commitish")
+        if source == self.sha:
+            return False  # Preserve the existing same-commit resume/draft path.
+        require(positive_integer(release.get("id")) and release.get("tag_name") == self.tag
+                and release.get("draft") is False
+                and isinstance(release.get("published_at"), str) and bool(release["published_at"])
+                and release.get("html_url") == REPO_URL + "/releases/tag/" + self.tag
+                and isinstance(source, str) and bool(re.fullmatch(r"[0-9a-f]{40}", source)),
+                "This version belongs to an unconfirmed release. It was preserved for review.")
+        previous = PreviewPublisher(self.api, source, self.tag[1:])
+        tag_object = previous.existing_tag()
+        require(tag_object is not None, "The published version tag is missing. No release action was taken.")
+        comparison = self.api.request("GET", self.prefix + "/compare/" + source + "..." + self.sha + "?per_page=1")
+        require(comparison.get("status") == "ahead" and positive_integer(comparison.get("ahead_by"))
+                and comparison.get("behind_by") == 0
+                and comparison.get("base_commit", {}).get("sha") == source
+                and comparison.get("merge_base_commit", {}).get("sha") == source,
+                "The published version is not a verified ancestor of main. It was preserved.")
+        names = {"Lemulip-" + self.tag[1:] + suffix for suffix in
+                 ("-macOS-universal.dmg", "-macOS-universal.zip", "-Source.zip")}
+        names.add("SHA256SUMS.txt")
+        assets = release.get("assets")
+        require(isinstance(assets, list) and len(assets) == len(names)
+                and all(isinstance(asset, dict) for asset in assets)
+                and {asset.get("name") for asset in assets} == names
+                and all(positive_integer(asset.get("id")) and positive_integer(asset.get("size"))
+                        and asset.get("state") == "uploaded"
+                        and bool(re.fullmatch(r"sha256:[0-9a-f]{64}", str(asset.get("digest", ""))))
+                        for asset in assets),
+                "The published download set is incomplete or unconfirmed. It was preserved for review.")
+        tagged = previous.latest_run("build.yml", self.tag)
+        previous.successful_jobs(tagged, BUILD_JOBS + ("Publish Tagged Release",), self.tag)
+        require(previous.existing_tag() == tag_object,
+                "The published version tag changed during verification. It was preserved.")
+        return True
+
     def run(self):
         checks = self.prerequisites()
+        if self.published_ancestor():
+            self.recheck_prerequisites(checks)
+            print(self.tag + " is already published from an earlier verified commit. "
+                  "Existing tags and downloads were left unchanged. "
+                  "New commits need a new app version before publication.", flush=True)
+            return
         existing = self.existing_tag()
         if existing is None:
             self.release_without_tag()
