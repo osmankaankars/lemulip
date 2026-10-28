@@ -1,0 +1,25 @@
+{
+  "file": "finder-conversion.mp4",
+  "origin": "Actual macOS screen recording",
+  "sourceCommit": "f9496dd2c040a3a538bb4fea650355defcb7058d",
+  "sourceWorkflowRun": 40740281239,
+  "sourceArtifact": 12839116953,
+  "sourceSHA256": "1f0a73eec6f29bedb3a74cba6865ac21b1a21f8c3545d1248b126fbb37b282dc",
+  "sourceSize": [
+    1024,
+    768
+  ],
+  "cropBox": [
+    24,
+    110,
+    1008,
+    620
+  ],
+  "width": 984,
+  "height": 510,
+  "durationSeconds": 11.2,
+  "audio": false,
+  "processing": "Desktop edges and system menu cropped; metadata removed. No temporal edits, generated frames or simulated app UI.",
+  "sha256": "16a9e5286b793c01e7378a3ab18b850f6a87d3f34d63bafae07a84ad9e709275",
+  "posterSHA256": "5dbdf9202eb3c1f9d0fea0e9ca0025df30a6193afcc8d85c13d6f0d1c4cafca3"
+}

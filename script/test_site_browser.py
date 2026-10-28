@@ -2,7 +2,8 @@
 """Test the product page and its deployed URL in Chromium or WebKit.
 
 Playwright is a test dependency only. All file operations on the website are
-sample state changes, not native app recordings or file conversions.
+sample state changes, not file conversions. The separate opt-in player shows an
+actual native Mac recording in the same stage.
 """
 from __future__ import annotations
 import argparse,functools,http.server,json,threading
@@ -181,11 +182,40 @@ def check_catalog_search(page):
     assert search.input_value()==''
     assert page.locator('.format-row').count()==9
     assert page.locator('#sample-grid [data-sample]').count()==9
-    assert page.locator('a[href$="Lemulip-0.1.17-macOS-universal.dmg"]').count()==3
+    assert page.locator('a[href$="Lemulip-0.1.18-macOS-universal.dmg"]').count()==3
+
+
+def check_native_recording(page,output,width):
+    player=page.locator('#native-video')
+    assert player.count()==1
+    assert player.evaluate('v=>v.paused')
+    assert not player.is_visible()
+    assert not player.get_attribute('autoplay')
+    assert player.get_attribute('preload')=='none'
+    before=page.locator('#features').evaluate('e=>e.getBoundingClientRect().top+scrollY')
+    page.locator('#watch-native').click()
+    assert player.is_visible()
+    assert page.locator('#desktop-demo').evaluate('e=>e.inert')
+    assert page.locator('#tour-toggle').get_attribute('aria-pressed')=='false'
+    page.wait_for_function('document.getElementById("native-video").currentTime > 0.1')
+    assert player.evaluate('v=>v.videoWidth > 0 && v.videoHeight > 0')
+    assert abs(page.locator('#features').evaluate('e=>e.getBoundingClientRect().top+scrollY')-before)<1
+    if width in (1440,390,320):
+        page.locator('#try').screenshot(path=str(output/f'native-recording-{width}.png'))
+    page.locator('#origin-finder').click()
+    assert player.evaluate('v=>v.paused')
+    assert not player.is_visible()
+    assert page.locator('#sample-grid [data-sample]:visible').count()==9
+    assert not page.locator('#desktop-demo').evaluate('e=>e.inert')
+    page.locator('#watch-native').focus();page.keyboard.press('Enter')
+    assert player.is_visible()
+    player.focus();page.keyboard.press('Escape')
+    assert not player.is_visible()
+    assert page.locator('#watch-native').evaluate('e=>e===document.activeElement')
 
 
 def exercise(page,output,width,height):
-    assert page.locator('html').get_attribute('data-site-version')=='20261028.2'
+    assert page.locator('html').get_attribute('data-site-version')=='20261028.3'
     assert 'Lemulip' in page.title()
     assert page.locator('#format-count').inner_text()=='35'
     assert page.locator('#tool-count').inner_text()=='26'
@@ -225,9 +255,10 @@ def exercise(page,output,width,height):
         page.locator('.wheel-choice').first.click()
         after=page.locator('#features').evaluate('e=>e.getBoundingClientRect().top+scrollY')
         assert abs(after-before)<1,(family,before,after)
-    for removed in ('#feature-panel','#run-example','#origin-workspace','video','.header .github-link'):
+    for removed in ('#feature-panel','#run-example','#origin-workspace','.header .github-link'):
         assert page.locator(removed).count()==0,removed
     assert page.locator('.product-demo').count()==1
+    check_native_recording(page,output,width)
     for target in ('features','formats'):
         page.locator('.header a[href="#'+target+'"]').click()
         assert page.url.endswith('#'+target)

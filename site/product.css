@@ -419,3 +419,15 @@ pre, code, .file-name, #output-name, #announcer, .verbatim, .requirements {text-
 @media(max-width:800px) {.hero{padding-top:20px;padding-bottom:28px}}
 @media(max-width:500px) {.demo-hint{min-width:0;font-size:10px}.catalog-search{margin-top:22px}}
 @media(prefers-reduced-motion:reduce) {.desktop-file{transition:none}}
+
+/* The recording occupies the existing stage without moving the next section. */
+.demo-stage {position:relative;min-width:0}
+.watching-native>.desktop {visibility:hidden}
+.native-recording {position:absolute;inset:0;display:flex;align-items:center;background:#080b09;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.native-recording video {display:block;width:100%;height:100%;object-fit:contain;border-radius:inherit}
+.native-recording video:focus-visible {outline-offset:-4px}
+.watch-native {flex-shrink:0;border:1px solid var(--line);border-radius:9px;padding:8px 12px;min-height:38px;background:transparent;color:var(--text);font-size:12px}
+.watch-native:hover,.watch-native[aria-pressed=true] {background:var(--raised)}
+.native-error {position:absolute;inset:auto 12px 48px;padding:10px;background:var(--panel);color:var(--text);border-radius:8px;font-size:12px}
+#demo-source {min-height:1.6em}
+@media(max-width:500px) {.watch-native{font-size:10px;padding:7px 8px}.native-recording{border-radius:12px}#demo-source{min-height:3.2em}}

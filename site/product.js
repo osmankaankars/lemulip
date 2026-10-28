@@ -44,6 +44,7 @@
     return sample().formats.filter(x => x !== input).map(ext => ({id:'convert.'+ext,title:ext.toUpperCase(),extension:ext,engine:engineFor(ext)}));
   }
   function stopTour() { autoplay = false; clearTimeout(timer); updatePlay(); }
+  document.addEventListener('lemulip:watch-native', () => { stopTour(); setStep(0); });
   function updatePlay() {
     $('tour-toggle').textContent = autoplay ? 'Ⅱ' : '▶';
     $('tour-toggle').setAttribute('aria-label', autoplay ? 'Pause Tour' : 'Play Tour');

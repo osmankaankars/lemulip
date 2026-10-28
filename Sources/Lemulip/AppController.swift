@@ -323,7 +323,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
         let selection = inputs ?? files
         guard !selection.isEmpty else { return }
         if let dependency = operation.dependency, !EngineLocator.isAvailable(dependency) {
-            alertMessage = text("This operation needs \(dependency). Open Settings → Engines for free installation instructions.", "Bu işlem için \(dependency) gerekiyor. Ücretsiz kurulum yönergelerini Ayarlar → Motorlar bölümünde bulabilirsin.")
+            alertMessage = text("This Operation Needs \(dependency). Open Settings → Format Support To Add It.", "Bu İşlem İçin \(dependency) Gerekiyor. Ayarlar → Biçim Desteği Bölümünden Ekleyebilirsin.")
             showMainWindow(); return
         }
         if operation.id.hasPrefix("action.") { performFileAction(operation, inputs: selection); return }
@@ -392,10 +392,12 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
                 }
                 guard let self else { return }
                 self.update(id) { $0.state = .succeeded; $0.retryRequest = nil; $0.outputs = result.outputs; $0.message = result.note ?? "" }
-                switch self.completionPresentation {
-                case .quiet: break
-                case .finder: self.reveal(result.outputs)
-                case .card: self.showResultCard(result.outputs)
+                if !result.outputs.isEmpty {
+                    switch self.completionPresentation {
+                    case .quiet: break
+                    case .finder: self.reveal(result.outputs)
+                    case .card: self.showResultCard(result.outputs)
+                    }
                 }
             } catch {
                 guard let self else { return }
