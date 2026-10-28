@@ -23,7 +23,7 @@ struct PDFOrganizeView: View {
                 loadingState.frame(maxWidth: .infinity, maxHeight: .infinity).padding(40)
             }
             separator
-            footer.padding(.horizontal, 24).padding(.vertical, 16)
+            footer
         }
         .frame(width: 860, height: 680)
         .background(Palette.background).foregroundStyle(Palette.ink).tint(Palette.accent)
@@ -286,20 +286,14 @@ struct PDFOrganizeView: View {
                     .padding(10).frame(maxWidth: .infinity, alignment: .leading)
                     .background(Palette.raised, in: RoundedRectangle(cornerRadius: 8))
             }
-            HStack(spacing: 12) {
-                Label(model.text("Your Original Stays Untouched", "Orijinal dosyan korunur"), systemImage: "checkmark.shield")
-                    .font(.system(size: 10)).foregroundStyle(Palette.muted)
-                Spacer(minLength: 12)
-                Button(model.text("Extract Selected", "Seçili sayfaları çıkar")) { submit(selectedOnly: true) }
+            HStack {
+                Spacer()
+                Button(model.text("Extract Selected", "Seçili Sayfaları Çıkar")) { submit(selectedOnly: true) }
                     .disabled(editor.exportPlan(selectedOnly: true) == nil)
-                    .help(model.text("Create a PDF With the Selected Pages in This Order", "Seçili sayfaları bu sırayla yeni bir PDF'e kaydet"))
-                Button(model.text("Cancel", "Vazgeç")) { editor.close(); model.cancelPending() }
-                    .keyboardShortcut(.cancelAction)
-                Button(model.text("Create Copy", "Kopya oluştur")) { submit(selectedOnly: false) }
-                    .buttonStyle(.borderedProminent).tint(Palette.primaryAction).foregroundStyle(Palette.onPrimary)
-                    .keyboardShortcut(.defaultAction)
-                    .disabled(editor.exportPlan(selectedOnly: false) == nil)
-            }
+                    .help(model.text("Create A PDF With Selected Pages", "Seçili Sayfalardan Bir PDF Oluştur"))
+            }.padding(.horizontal, 24)
+            EditorFooter(language: model.language, isEnabled: editor.exportPlan(selectedOnly: false) != nil,
+                onCancel: { editor.close(); model.cancelPending() }, onSubmit: { submit(selectedOnly: false) })
         }
     }
 

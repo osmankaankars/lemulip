@@ -3,6 +3,17 @@
 What's new in each Lemulip public preview. Release pages show the matching
 version below, followed by the installation note.
 
+## 0.1.18 · A Calmer Workspace
+
+- Give files and results more room with compact navigation and quieter Activity rows.
+- Use the same Create Copy and Cancel controls across crop, trim and PDF editors.
+- Find formats and tools with ⌘F and pin favorites without changing the wheel order.
+- Choose a small result card with explicit Copy, Float and Show In Finder actions.
+- Keep existing completion preferences and add an optional Finder practice file.
+- Group settings by purpose and show engine details only when needed.
+
+All three themes, original-safe conversions and local processing are preserved.
+
 ## 0.1.17 · Ready For More Files
 
 - Include FFmpeg and ImageMagick in the Mac download. No separate media or image engine installation.

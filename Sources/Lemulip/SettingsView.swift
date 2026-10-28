@@ -8,137 +8,147 @@ struct SettingsContent: View {
     @State private var copied: String?
     @State private var engineReports: [String: EngineReport] = [:]
     private let engines: [(String, String, String, String)] = [
-        ("ffmpeg", "FFmpeg", "Video & audio formats, compression, trim, speed", "brew install ffmpeg"),
-        ("imagemagick", "ImageMagick", "WebP, AVIF & additional image codecs", "brew install imagemagick"),
-        ("libreoffice", "LibreOffice", "Rich documents, existing workbooks & slides", "brew install --cask libreoffice"),
-        ("pandoc", "Pandoc", "EPUB & structured document conversion", "https://pandoc.org/installing.html")
+        ("ffmpeg", "FFmpeg", "Video & Audio", "brew install ffmpeg"),
+        ("imagemagick", "ImageMagick", "Images", "brew install imagemagick"),
+        ("pandoc", "Pandoc", "Advanced Documents", "https://pandoc.org/installing.html"),
+        ("libreoffice", "LibreOffice", "Office Documents", "brew install --cask libreoffice")
     ]
-    var body: some View {
-        VStack(alignment: .leading, spacing: 27) {
-            VStack(alignment: .leading, spacing: 10) {
-                Text(model.text("Small App. Your Rules.", "Küçük uygulama. Senin kuralların."))
-                    .font(.system(size: 30, weight: .semibold)).tracking(-0.9)
-                Text(model.text("No account, subscription, or daily quotas.", "Hesap, abonelik ya da günlük kota yok."))
-                    .font(.system(size: 12)).foregroundStyle(Palette.muted)
-            }
-            appearanceSettings
-            VStack(spacing: 0) {
-                settingRow(model.text("Language", "Dil"), subtitle: model.text("App interface language", "Uygulama arayüzünün dili")) {
-                    Picker("", selection: $model.language) { Text("English").tag("en"); Text("Türkçe").tag("tr") }.labelsHidden().frame(width: 132)
-                }
-                divider
-                settingRow(model.text("Drag Wheel", "Sürükleme çarkı"), subtitle: model.text("Start dragging, then tap ⇧, ⌘, or ⌃", "Sürüklemeye başla, ardından ⇧, ⌘ veya ⌃ tuşuna dokun")) {
-                    Toggle("", isOn: $model.wheelEnabled).labelsHidden().toggleStyle(.switch).controlSize(.small)
-                }
-                divider
-                settingRow(model.text("Save in the First File's Folder", "İlk dosyanın klasörüne kaydet"), subtitle: model.text("Turn off to choose a destination for each job", "Her işlemde hedef klasör seçmek için kapat")) {
-                    Toggle("", isOn: $model.outputAlongsideOriginal).labelsHidden().toggleStyle(.switch).controlSize(.small)
-                }
-                divider
-                settingRow(model.text("Reveal Finished Files", "Biten dosyaları göster"), subtitle: model.text("Show results in Finder after a successful job", "Tamamlanan işlemin sonuçlarını Finder'da göster")) {
-                    Toggle("", isOn: $model.revealWhenFinished).labelsHidden().toggleStyle(.switch).controlSize(.small)
-                }
-            }.background(Palette.panel, in: RoundedRectangle(cornerRadius: 13))
-                .overlay(RoundedRectangle(cornerRadius: 13).stroke(Palette.line))
 
-            VStack(alignment: .leading, spacing: 15) {
-                HStack {
-                    Text(model.text("Local Engines", "YEREL MOTORLAR")).font(.system(size: 10, weight: .medium, design: .monospaced)).tracking(1.4).foregroundStyle(Palette.muted)
-                    Spacer()
-                    Button { model.engineRefresh += 1 } label: { Label(model.text("Refresh", "Yenile"), systemImage: "arrow.clockwise") }
-                        .buttonStyle(.plain).foregroundStyle(Palette.accent).font(.system(size: 11))
+    var body: some View {
+        VStack(alignment: .leading, spacing: 28) {
+            appearanceSettings
+            settingRow(model.text("Language", "Dil"), subtitle: model.text("Interface Language", "Arayüz Dili")) {
+                Picker(model.text("Language", "Dil"), selection: $model.language) {
+                    Text("English").tag("en"); Text("Türkçe").tag("tr")
+                }.labelsHidden().frame(width: 132)
+            }.background(Palette.panel, in: RoundedRectangle(cornerRadius: 12))
+            settingsGroup(model.text("Drag & Shortcuts", "Sürükleme Ve Kısayollar")) {
+                settingRow(model.text("Drag Wheel", "Sürükleme Çarkı"), subtitle: model.text("Drag A File, Then Tap ⇧, ⌘ Or ⌃.", "Dosyayı Sürükle, Ardından ⇧, ⌘ Veya ⌃ Tuşuna Dokun.")) {
+                    Toggle(model.text("Drag Wheel", "Sürükleme Çarkı"), isOn: $model.wheelEnabled)
+                        .labelsHidden().toggleStyle(.switch).controlSize(.small)
                 }
-                Text(model.text("Images, PDFs, OCR, archives, subtitles, and basic text tools are built in. TXT, basic RTF, and basic Markdown to Word need no extra engine. Complex RTF needs LibreOffice; advanced Markdown needs Pandoc. CSV/TSV to Excel is built in and keeps every value as text. Add free engines for more formats; conversions stay local.", "Görsel, PDF, OCR, arşiv, altyazı ve temel metin araçları uygulamada hazır. TXT, temel RTF ve temel Markdown dosyalarından Word’e dönüşüm için ek motor gerekmez. Karmaşık RTF dosyaları LibreOffice, gelişmiş Markdown dosyaları Pandoc gerektirir. CSV/TSV’den Excel’e dönüşüm uygulamada hazırdır ve tüm değerleri metin olarak korur. Daha fazla biçim için ücretsiz motorlar ekleyebilirsin; dönüşümler yerelde çalışır."))
-                    .font(.system(size: 12)).foregroundStyle(Palette.muted).lineSpacing(4)
+            }
+            settingsGroup(model.text("Output", "Çıktı")) {
+                settingRow(model.text("Save Beside The Original", "Orijinalin Yanına Kaydet"), subtitle: model.text("Turn Off To Choose A Folder For Each Job.", "Her İşlemde Klasör Seçmek İçin Kapat.")) {
+                    Toggle(model.text("Save Beside The Original", "Orijinalin Yanına Kaydet"), isOn: $model.outputAlongsideOriginal)
+                        .labelsHidden().toggleStyle(.switch).controlSize(.small)
+                }
+                divider
+                settingRow(model.text("When Finished", "Tamamlandığında"), subtitle: model.text("Choose How Results Appear.", "Sonuçların Nasıl Görüneceğini Seç.")) {
+                    Picker(model.text("When Finished", "Tamamlandığında"), selection: $model.completionPresentation) {
+                        Text(model.text("Stay Quiet", "Sessiz Kal")).tag(CompletionPresentation.quiet)
+                        Text(model.text("Show In Finder", "Finder’da Göster")).tag(CompletionPresentation.finder)
+                        Text(model.text("Show Result Card", "Sonuç Kartını Göster")).tag(CompletionPresentation.card)
+                    }.labelsHidden().frame(width: 178).accessibilityIdentifier("settings.completion")
+                }
+            }
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Text(model.text("Format Support", "Biçim Desteği")).font(.system(size: 16, weight: .semibold))
+                    Spacer()
+                    Button { model.engineRefresh += 1 } label: {
+                        Label(model.text("Refresh", "Yenile"), systemImage: "arrow.clockwise")
+                    }.buttonStyle(.plain).foregroundStyle(Palette.accent).font(.system(size: 12))
+                }
                 VStack(spacing: 0) {
                     ForEach(engines, id: \.0) { engine in
-                        let report = engineReports[engine.0]
-                        let installed = report?.state == .ready
-                        HStack(alignment: .center, spacing: 14) {
-                            Image(systemName: installed ? "checkmark.circle.fill" : report?.state == .missing ? "plus.circle" : "exclamationmark.circle").font(.system(size: 19)).foregroundStyle(installed ? Palette.accent : Palette.muted)
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text(engine.1).font(.system(size: 13, weight: .semibold))
-                                if let report {
-                                    Text(engineStatus(report)).font(.system(size: 10, weight: .medium))
-                                        .foregroundStyle(installed ? Palette.accent : Palette.muted)
-                                    if report.state == .limited || report.state == .unusable {
-                                        Text(report.detail).font(.system(size: 10)).foregroundStyle(Palette.muted).textSelection(.enabled)
-                                    }
-                                } else {
-                                    Text(model.text("Checking…", "Kontrol ediliyor…")).font(.system(size: 10)).foregroundStyle(Palette.muted)
-                                }
-                                Text(engineSubtitle(engine.0, fallback: engine.2)).font(.system(size: 10)).foregroundStyle(Palette.muted)
-                                if engine.0 == "pandoc" {
-                                    Text(model.text("Official Package. No Terminal Needed.", "Resmî paket. Terminal gerekmez."))
-                                        .font(.system(size: 9)).foregroundStyle(Palette.muted)
-                                }
-                                if let path = EngineLocator.find(engine.0)?.path { Text(path).font(.system(size: 9, design: .monospaced)).foregroundStyle(Palette.muted).lineLimit(1).truncationMode(.middle) }
-                            }
-                            Spacer(minLength: 8)
-                            if engine.0 == "pandoc" {
-                                PandocInstallButton(model: model, installed: installed)
-                            } else if report != nil && !installed {
-                                Button {
-                                    NSPasteboard.general.clearContents()
-                                    NSPasteboard.general.setString(engine.3, forType: .string)
-                                    copied = engine.0
-                                } label: {
-                                    Text(copied == engine.0 ? model.text("Copied", "Kopyalandı") : model.text("Copy Install Command", "Kurulum komutunu kopyala"))
-                                        .font(.system(size: 10, weight: .medium)).foregroundStyle(Palette.accent).padding(.horizontal, 10).padding(.vertical, 7)
-                                        .background(Palette.accent.opacity(0.07), in: Capsule())
-                                }.buttonStyle(.plain)
-                            }
-                        }.padding(17)
+                        engineRow(engine)
                         if engine.0 != engines.last?.0 { divider }
                     }
-                }.task(id: model.engineRefresh) {
-                    engineReports = [:]
-                    for engine in engines {
-                        do {
-                            let report = try await EngineHealth.inspect(engine.0)
-                            try Task.checkCancellation()
-                            engineReports[engine.0] = report
-                        } catch { return }
+                }.background(Palette.panel, in: RoundedRectangle(cornerRadius: 12))
+                    .task(id: model.engineRefresh) {
+                        engineReports = [:]
+                        for engine in engines {
+                            do {
+                                let report = try await EngineHealth.inspect(engine.0)
+                                try Task.checkCancellation()
+                                engineReports[engine.0] = report
+                            } catch { return }
+                        }
                     }
-                }.background(Palette.panel, in: RoundedRectangle(cornerRadius: 13)).overlay(RoundedRectangle(cornerRadius: 13).stroke(Palette.line))
-                HStack {
-                    Text(model.text("Pandoc Downloads Only When You Choose Install. Other Install Commands Require Homebrew.", "Pandoc yalnızca Kur düğmesini seçtiğinde indirilir. Diğer kurulum komutları Homebrew gerektirir."))
-                        .font(.system(size: 10)).foregroundStyle(Palette.muted)
-                    Spacer()
-                    Link("Homebrew ↗", destination: URL(string: "https://brew.sh")!).font(.system(size: 10)).foregroundStyle(Palette.accent)
-                }
             }
-            VStack(alignment: .leading, spacing: 10) {
-                Label(model.text("Privacy by Design", "Gizlilik uygulamanın temelinde"), systemImage: "lock.shield").font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.accent)
-                Text(model.text("No analytics, file uploads, update pings, or persistent file history. Only your settings are saved. AirDrop shares files only when you explicitly choose it.", "Analitik, dosya yükleme, güncelleme sorgusu veya kalıcı dosya geçmişi yok. Yalnızca ayarların kaydedilir. AirDrop, sen seçtiğinde dosya paylaşır."))
-                    .font(.system(size: 11)).foregroundStyle(Palette.muted).lineSpacing(4)
-                HStack(spacing: 10) {
-                    AppMark(size: 32)
-                    VStack(alignment: .leading, spacing: 3) {
-                        AppWordmark(size: 16)
-                        Text("\(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Source Preview") · MIT License")
-                            .font(.system(size: 10, design: .monospaced)).foregroundStyle(Palette.muted)
-                    }
-                }.padding(.top, 4).accessibilityElement(children: .combine)
-            }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.accent.opacity(0.04), in: RoundedRectangle(cornerRadius: 13))
+            DisclosureGroup(model.text("About Lemulip", "Lemulip Hakkında")) {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("\(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Source Preview") · MIT License")
+                    Text(model.text("Free And Open Source. Files Are Processed On This Mac. Only Your Preferences Are Saved.",
+                                    "Ücretsiz Ve Açık Kaynak. Dosyalar Bu Mac’te İşlenir. Yalnızca Tercihlerin Kaydedilir."))
+                    Text(model.text("Optional Document Support Downloads Only With Your Approval. AirDrop Shares Only When You Choose It.",
+                                    "İsteğe Bağlı Belge Desteği Yalnızca Onayınla İndirilir. AirDrop Yalnızca Sen Seçtiğinde Paylaşır."))
+                }.font(.system(size: 12)).foregroundStyle(Palette.muted).padding(.top, 8)
+            }.font(.system(size: 13, weight: .medium)).foregroundStyle(Palette.muted)
         }
     }
 
-    private func engineStatus(_ report: EngineReport) -> String {
-        let status: String
-        switch report.state {
-        case .ready: status = model.text("Ready", "Hazır")
-        case .limited: status = model.text("Limited Support", "Kısmi destek")
-        case .unusable: status = model.text("Needs Attention", "Kontrol gerekli")
-        case .missing: status = model.text("Not Installed", "Kurulu değil")
+    private func settingsGroup<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title).font(.system(size: 16, weight: .semibold))
+            VStack(spacing: 0, content: content).background(Palette.panel, in: RoundedRectangle(cornerRadius: 12))
         }
-        return status + (report.version.map { " · " + $0 } ?? "")
+    }
+
+    private func engineRow(_ engine: (String, String, String, String)) -> some View {
+        let report = engineReports[engine.0]
+        let ready = report?.state == .ready
+        return VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 12) {
+                Image(systemName: ready ? "checkmark.circle.fill" : report?.state == .missing ? "plus.circle" : "circle.dotted")
+                    .font(.system(size: 18)).foregroundStyle(ready ? Palette.accent : Palette.muted)
+                Text(engineTitle(engine.0, fallback: engine.2)).font(.system(size: 13, weight: .medium))
+                Spacer(minLength: 8)
+                if engine.0 == "pandoc", report != nil, !ready {
+                    PandocInstallButton(model: model, installed: ready)
+                } else if let report {
+                    Text(engineStatus(report)).font(.system(size: 12))
+                        .foregroundStyle(ready ? Palette.accent : Palette.muted)
+                } else {
+                    Text(model.text("Checking…", "Kontrol Ediliyor…"))
+                        .font(.system(size: 12)).foregroundStyle(Palette.muted)
+                }
+            }
+            if let report, report.state == .limited || report.state == .unusable {
+                Text(report.detail).font(.system(size: 12)).foregroundStyle(Palette.muted).textSelection(.enabled)
+            }
+            DisclosureGroup(model.text("Details", "Ayrıntılar")) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(engine.1 + (report?.version.map { " · " + $0 } ?? ""))
+                        .font(.system(size: 12, weight: .medium))
+                    if let path = EngineLocator.find(engine.0)?.path {
+                        Text(path).font(.system(size: 11, design: .monospaced))
+                            .textSelection(.enabled).lineLimit(2).truncationMode(.middle)
+                    }
+                    if engine.0 == "pandoc" {
+                        Text(model.text("Official Package. Installed Only With Your Approval.", "Resmî Paket. Yalnızca Onayınla Kurulur."))
+                    } else if report != nil && !ready {
+                        Text(engine.3).font(.system(size: 11, design: .monospaced)).textSelection(.enabled)
+                        Button(copied == engine.0 ? model.text("Copied", "Kopyalandı") : model.text("Copy Install Command", "Kurulum Komutunu Kopyala")) {
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(engine.3, forType: .string)
+                            copied = engine.0
+                        }.buttonStyle(.plain).foregroundStyle(Palette.accent)
+                        Link(model.text("Homebrew Instructions", "Homebrew Yönergeleri"), destination: URL(string: "https://brew.sh")!)
+                    }
+                }.font(.system(size: 12)).foregroundStyle(Palette.muted).padding(.top, 8)
+            }.font(.system(size: 11)).foregroundStyle(Palette.muted)
+        }.padding(16)
+    }
+
+    private func engineTitle(_ id: String, fallback: String) -> String {
+        guard model.language == "tr" else { return fallback }
+        return ["ffmpeg": "Video Ve Ses", "imagemagick": "Görseller", "pandoc": "Gelişmiş Belgeler", "libreoffice": "Office Belgeleri"][id] ?? fallback
+    }
+
+    private func engineStatus(_ report: EngineReport) -> String {
+        switch report.state {
+        case .ready: return model.text("Ready", "Hazır")
+        case .limited: return model.text("Partial Support", "Kısmi Destek")
+        case .unusable: return model.text("Needs Attention", "Kontrol Gerekli")
+        case .missing: return model.text("Not Installed", "Kurulu Değil")
+        }
     }
 
     private var appearanceSettings: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(model.text("Appearance", "Görünüm")).font(.system(size: 16, weight: .semibold))
-            Text(model.text("Theme", "Tema")).font(.system(size: 11)).foregroundStyle(Palette.muted)
             HStack(spacing: 10) {
                 ForEach(AppTheme.allCases) { theme in
                     Button { model.theme = theme } label: {
@@ -174,17 +184,13 @@ struct SettingsContent: View {
         }
     }
 
-    private var divider: some View { Rectangle().fill(Palette.line).frame(height: 1).padding(.horizontal, 17) }
+    private var divider: some View { Rectangle().fill(Palette.line.opacity(0.55)).frame(height: 1).padding(.horizontal, 16) }
     private func settingRow<Control: View>(_ title: String, subtitle: String, @ViewBuilder control: () -> Control) -> some View {
         HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 5) { Text(title).font(.system(size: 12, weight: .medium)); Text(subtitle).font(.system(size: 10)).foregroundStyle(Palette.muted) }
+            VStack(alignment: .leading, spacing: 5) { Text(title).font(.system(size: 13, weight: .medium)); Text(subtitle).font(.system(size: 12)).foregroundStyle(Palette.muted) }
             Spacer(minLength: 16)
             control()
         }.padding(18)
-    }
-    private func engineSubtitle(_ id: String, fallback: String) -> String {
-        guard model.language == "tr" else { return fallback }
-        return ["ffmpeg": "Video ve ses biçimleri, sıkıştırma, kesme, hız", "imagemagick": "WebP, AVIF ve ek görsel biçimleri", "libreoffice": "Biçimlendirilmiş belgeler, mevcut çalışma kitapları ve sunumlar", "pandoc": "EPUB ve yapılandırılmış belge dönüşümü"][id] ?? fallback
     }
 }
 #endif

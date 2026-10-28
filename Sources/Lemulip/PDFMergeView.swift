@@ -23,7 +23,7 @@ struct PDFMergeView: View {
                 loadingState.frame(maxWidth: .infinity, maxHeight: .infinity).padding(40)
             }
             separator
-            footer.padding(.horizontal, 24).padding(.vertical, 16)
+            footer
         }
         .frame(width: 820, height: 660)
         .background(Palette.background).foregroundStyle(Palette.ink).tint(Palette.accent)
@@ -285,16 +285,8 @@ struct PDFMergeView: View {
                     .padding(10).frame(maxWidth: .infinity, alignment: .leading)
                     .background(Palette.raised, in: RoundedRectangle(cornerRadius: 8))
             }
-            HStack(spacing: 12) {
-                Label(model.text("Your Originals Stay Untouched", "Orijinal dosyaların korunur"), systemImage: "checkmark.shield")
-                    .font(.system(size: 10)).foregroundStyle(Palette.muted)
-                Spacer(minLength: 12)
-                Button(model.text("Cancel", "Vazgeç")) { editor.close(); model.cancelPending() }
-                    .keyboardShortcut(.cancelAction)
-                Button(model.text("Create Copy", "Kopya oluştur")) { submit() }
-                    .buttonStyle(.borderedProminent).tint(Palette.primaryAction).foregroundStyle(Palette.onPrimary)
-                    .keyboardShortcut(.defaultAction).disabled(editor.exportPlan() == nil)
-            }
+            EditorFooter(language: model.language, isEnabled: editor.exportPlan() != nil,
+                onCancel: { editor.close(); model.cancelPending() }, onSubmit: { submit() })
         }
     }
 

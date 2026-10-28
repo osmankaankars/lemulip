@@ -18,7 +18,7 @@ struct ActivityItem: Identifiable {
 }
 
 @MainActor
-final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
+final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NSMenuItemValidation {
     @Published var files: [URL] = []
     @Published var mode: WheelMode = .convert
     @Published var section = "workspace"
@@ -42,15 +42,50 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
     @Published var wheelEnabled = UserDefaults.standard.object(forKey: "wheelEnabled") as? Bool ?? true {
         didSet { UserDefaults.standard.set(wheelEnabled, forKey: "wheelEnabled"); wheel.enabled = wheelEnabled; rebuildStatusMenu() }
     }
-    @Published var revealWhenFinished = UserDefaults.standard.object(forKey: "revealWhenFinished") as? Bool ?? false {
-        didSet { UserDefaults.standard.set(revealWhenFinished, forKey: "revealWhenFinished") }
+    @Published var completionPresentation = CompletionPresentation.resolve(
+        stored: UserDefaults.standard.string(forKey: "completionPresentation"),
+        legacyReveal: UserDefaults.standard.bool(forKey: "revealWhenFinished")) {
+        didSet {
+            UserDefaults.standard.set(completionPresentation.rawValue, forKey: "completionPresentation")
+            UserDefaults.standard.set(completionPresentation == .finder, forKey: "revealWhenFinished")
+            if completionPresentation != .card { dismissResultCard() }
+        }
+    }
+    @Published private(set) var completionResults = CompletionResults()
+    var revealWhenFinished: Bool {
+        get { completionPresentation == .finder }
+        set { completionPresentation = newValue ? .finder : .quiet }
     }
     @Published var outputAlongsideOriginal = UserDefaults.standard.object(forKey: "outputAlongsideOriginal") as? Bool ?? true {
         didSet { UserDefaults.standard.set(outputAlongsideOriginal, forKey: "outputAlongsideOriginal") }
     }
     @Published var engineRefresh = 0
+    @Published var operationSearchRequest: UUID?
+    @Published private(set) var pinnedOperationIDs = OperationDiscovery.normalizedPins(UserDefaults.standard.stringArray(forKey: "pinnedOperationIDs") ?? [])
+    private var practiceURL: URL?
+
+    var availableOperations: [FileOperation] {
+        var seen = Set<String>()
+        return WheelMode.allCases.flatMap { Catalog.operations(for: files, mode: $0) }
+            .filter { seen.insert($0.id).inserted }
+    }
+
+    func togglePin(_ operation: FileOperation) {
+        guard availableOperations.contains(where: { $0.id == operation.id }) else { return }
+        if pinnedOperationIDs.contains(operation.id) { pinnedOperationIDs.removeAll { $0 == operation.id } }
+        else {
+            guard pinnedOperationIDs.count < 12 else {
+                alertMessage = text("Unpin An Action Before Adding Another. You Can Keep 12 Pinned Actions.",
+                                    "Yeni Bir İşlem Eklemek İçin Bir Sabitlemeyi Kaldır. 12 İşlem Sabitleyebilirsin.")
+                return
+            }
+            pinnedOperationIDs = OperationDiscovery.normalizedPins(pinnedOperationIDs + [operation.id])
+        }
+        UserDefaults.standard.set(pinnedOperationIDs, forKey: "pinnedOperationIDs")
+    }
 
     private var mainWindow: NSWindow?
+    private var resultPanel: NSPanel?
     private var statusItem: NSStatusItem?
     private var shelfWindows: [NSWindow] = []
     private var tasks: [UUID: Task<Void, Never>] = [:]
@@ -116,6 +151,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         NotificationCenter.default.removeObserver(self, name: NSApplication.didChangeScreenParametersNotification, object: NSApp)
+        dismissResultCard()
         wheel.stop(); tasks.values.forEach { $0.cancel() }
     }
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool { showMainWindow(); return true }
@@ -126,7 +162,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
     private func applyThemeAppearance() {
         // AppKit derives the high-contrast appearance from Aqua or Dark Aqua.
         NSApp.appearance = NSAppearance(named: theme.appearanceName)
-        for window in [mainWindow].compactMap({ $0 }) + shelfWindows {
+        for window in [mainWindow, resultPanel].compactMap({ $0 }) + shelfWindows {
             window.backgroundColor = Palette.canvasColor
             window.contentView?.needsDisplay = true
         }
@@ -135,14 +171,14 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
     }
 
     private func buildWindow() {
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1050, height: 720), styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1020, height: 700), styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
         window.title = "Lemulip"
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.backgroundColor = Palette.canvasColor
         window.isMovableByWindowBackground = true
         window.isReleasedWhenClosed = false
-        window.minSize = NSSize(width: 850, height: 620)
+        window.minSize = NSSize(width: 720, height: 560)
         window.contentView = NSHostingView(rootView: DashboardView(model: self))
         // Preserve the saved window position from the original application name.
         let restoredFrame = window.setFrameUsingName("FreewheelMainWindow")
@@ -171,7 +207,14 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         for (title, selector, key) in [("Cut", Selector(("cut:")), "x"), ("Copy", Selector(("copy:")), "c"), ("Paste", Selector(("paste:")), "v"), ("Select All", Selector(("selectAll:")), "a")] {
             editMenu.addItem(withTitle: title, action: selector, keyEquivalent: key)
         }
+        editMenu.addItem(.separator())
+        let findItem = NSMenuItem(title: "Find A Format Or Tool", action: #selector(findOperation), keyEquivalent: "f")
+        findItem.target = self; editMenu.addItem(findItem)
         editItem.submenu = editMenu; menu.addItem(editItem)
+        let helpItem = NSMenuItem(); let helpMenu = NSMenu(title: "Help")
+        let practiceItem = NSMenuItem(title: "Try With A Sample", action: #selector(tryPracticeFile), keyEquivalent: "")
+        practiceItem.target = self; helpMenu.addItem(practiceItem)
+        helpItem.submenu = helpMenu; menu.addItem(helpItem)
         applicationMenu.items.filter { $0.action == #selector(showSettings) || $0.action == #selector(showAbout) }.forEach { $0.target = self }
         NSApp.mainMenu = menu
     }
@@ -201,7 +244,10 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
 
-    @objc private func displayConfigurationChanged(_ notification: Notification) { recoverWorkspaceWindow() }
+    @objc private func displayConfigurationChanged(_ notification: Notification) {
+        recoverWorkspaceWindow()
+        if let resultPanel, resultPanel.isVisible { placeResultPanel(resultPanel) }
+    }
 
     private func recoverWorkspaceWindow() {
         guard let mainWindow, !mainWindow.styleMask.contains(.fullScreen) else { return }
@@ -214,6 +260,40 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
     @objc private func toggleWheel() { wheelEnabled.toggle() }
     @objc private func showAbout() {
         NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Lemulip", .applicationVersion: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Source Preview", .credits: NSAttributedString(string: "Free, open-source file conversion.\nCreated by Kaan Kars · MIT licensed\nAll processing happens on this Mac.")])
+    }
+
+    @objc func findOperation() {
+        guard !files.isEmpty, pendingOperation == nil else { return }
+        operationSearchRequest = UUID()
+        section = "workspace"; showMainWindow()
+    }
+
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        if menuItem.action == #selector(findOperation) { return !files.isEmpty && pendingOperation == nil }
+        if menuItem.action == #selector(tryPracticeFile) { return pendingOperation == nil }
+        return true
+    }
+
+    @objc func tryPracticeFile() {
+        guard pendingOperation == nil else { return }
+        do {
+            if let url = practiceURL, FileManager.default.fileExists(atPath: url.path) {
+                NSWorkspace.shared.activateFileViewerSelecting([url]); return
+            }
+            let directory = FileManager.default.temporaryDirectory.appendingPathComponent("Lemulip Practice-" + UUID().uuidString, isDirectory: true)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+            guard let image = NSApp.applicationIconImage, let tiff = image.tiffRepresentation, let bitmap = NSBitmapImageRep(data: tiff),
+                  let png = bitmap.representation(using: .png, properties: [:]) else {
+                try? FileManager.default.removeItem(at: directory)
+                throw LemulipError.invalidInput("The Practice Image Could Not Be Created.")
+            }
+            let url = directory.appendingPathComponent("Lemulip Practice.png")
+            try png.write(to: url, options: .withoutOverwriting)
+            practiceURL = url
+            NSWorkspace.shared.activateFileViewerSelecting([url])
+        } catch {
+            alertMessage = error.localizedDescription; showMainWindow()
+        }
     }
 
     @objc func chooseFiles() {
@@ -243,7 +323,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         let selection = inputs ?? files
         guard !selection.isEmpty else { return }
         if let dependency = operation.dependency, !EngineLocator.isAvailable(dependency) {
-            alertMessage = text("This operation needs \(dependency). Open Settings → Engines for free installation instructions.", "Bu işlem için \(dependency) gerekiyor. Ücretsiz kurulum yönergelerini Ayarlar → Motorlar bölümünde bulabilirsin.")
+            alertMessage = text("This Operation Needs \(dependency). Open Settings → Format Support To Add It.", "Bu İşlem İçin \(dependency) Gerekiyor. Ayarlar → Biçim Desteği Bölümünden Ekleyebilirsin.")
             showMainWindow(); return
         }
         if operation.id.hasPrefix("action.") { performFileAction(operation, inputs: selection); return }
@@ -312,7 +392,11 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
                 }
                 guard let self else { return }
                 self.update(id) { $0.state = .succeeded; $0.retryRequest = nil; $0.outputs = result.outputs; $0.message = result.note ?? "" }
-                if self.revealWhenFinished { NSWorkspace.shared.activateFileViewerSelecting(result.outputs) }
+                switch self.completionPresentation {
+                case .quiet: break
+                case .finder: self.reveal(result.outputs)
+                case .card: self.showResultCard(result.outputs)
+                }
             } catch {
                 guard let self else { return }
                 let cancelled = Task.isCancelled || error is CancellationError || (error as? LemulipError).map { if case .cancelled = $0 { return true }; return false } == true
@@ -351,7 +435,24 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
     }
 
     func clearActivity() { activity.removeAll { $0.state != .running && $0.state != .waiting } }
-    func reveal(_ urls: [URL]) { NSWorkspace.shared.activateFileViewerSelecting(urls) }
+    func reveal(_ urls: [URL]) {
+        guard validateOutputs(urls) else { return }
+        NSWorkspace.shared.activateFileViewerSelecting(urls)
+    }
+
+    private func validateOutputs(_ urls: [URL]) -> Bool {
+        guard !urls.isEmpty, urls.allSatisfy({ $0.isFileURL && FileManager.default.fileExists(atPath: $0.path) }) else {
+            alertMessage = text("The Output File Is No Longer Available.", "Çıktı Dosyası Artık Kullanılabilir Değil.")
+            showMainWindow(); return false
+        }
+        return true
+    }
+
+    func copyOutputs(_ urls: [URL]) {
+        guard validateOutputs(urls) else { return }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.writeObjects(urls.map { $0 as NSURL })
+    }
 
     private func performFileAction(_ operation: FileOperation, inputs: [URL]) {
         switch operation.id {
@@ -419,7 +520,47 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         }
     }
 
-    private func showShelf(_ urls: [URL]) {
+    private func showResultCard(_ urls: [URL]) {
+        let available = urls.filter { $0.isFileURL && FileManager.default.fileExists(atPath: $0.path) }
+        guard !available.isEmpty else { return }
+        if resultPanel?.isVisible != true { completionResults.removeAll() }
+        completionResults.append(available)
+        let panel: NSPanel
+        if let existing = resultPanel { panel = existing }
+        else {
+            panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 396, height: 286),
+                            styleMask: [.titled, .nonactivatingPanel, .utilityWindow], backing: .buffered, defer: false)
+            panel.title = "Lemulip"
+            panel.titleVisibility = .hidden
+            panel.titlebarAppearsTransparent = true
+            panel.isReleasedWhenClosed = false
+            panel.becomesKeyOnlyIfNeeded = true
+            panel.hidesOnDeactivate = false
+            panel.level = .floating
+            panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            panel.contentView = NSHostingView(rootView: ResultCardView(model: self))
+            resultPanel = panel
+        }
+        panel.backgroundColor = Palette.canvasColor
+        if !panel.isVisible { placeResultPanel(panel) }
+        // Never activate the app or make the window key on automatic completion.
+        panel.orderFrontRegardless()
+    }
+
+    private func placeResultPanel(_ panel: NSPanel) {
+        let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main
+        guard let frame = screen?.visibleFrame else { return }
+        panel.setFrameOrigin(NSPoint(x: max(frame.minX, frame.maxX - panel.frame.width - 18),
+                                     y: max(frame.minY, frame.minY + 18)))
+    }
+
+    func dismissResultCard() {
+        resultPanel?.orderOut(nil)
+        completionResults.removeAll()
+    }
+
+    func showShelf(_ urls: [URL]) {
+        guard validateOutputs(urls) else { return }
         shelfWindows.removeAll { !$0.isVisible }
         let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 330, height: min(400, 110 + urls.count * 58)), styleMask: [.titled, .closable, .resizable, .utilityWindow], backing: .buffered, defer: false)
         panel.title = text("File Shelf", "Dosya rafı")
