@@ -5,6 +5,9 @@ from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlsplit
 ROOT=Path(__file__).resolve().parent.parent
+# Advance only after verifying the new public release and both Mac downloads.
+# Never derive this from the pending application's Resources/Info.plist.
+PUBLISHED_VERSION='0.1.18'
 class Tags(HTMLParser):
     def __init__(self): super().__init__(); self.ids=[]; self.assets=[]
     def handle_starttag(self,tag,attrs):
@@ -48,12 +51,21 @@ class SiteTests(unittest.TestCase):
 
     def test_primary_downloads_use_reviewed_release_not_release_listing(self):
         page=(ROOT/'site/index.html').read_text()
-        expected='https://github.com/osmankaankars/lemulip/releases/download/v0.1.18/Lemulip-0.1.18-macOS-universal.dmg'
+        expected=f'https://github.com/osmankaankars/lemulip/releases/download/v{PUBLISHED_VERSION}/Lemulip-{PUBLISHED_VERSION}-macOS-universal.dmg'
         self.assertEqual(3,page.count('href="'+expected+'"'))
         self.assertIn('Release Notes',page)
-        self.assertIn('Apple Silicon &amp; Intel · v0.1.18',page)
+        self.assertIn('Apple Silicon &amp; Intel · v'+PUBLISHED_VERSION,page)
         self.assertNotIn('v0.1.17',page)
         self.assertIn('data-step=',page)
+
+    def test_release_metadata_changes_run_website_checks(self):
+        workflow=(ROOT/'.github/workflows/site-review.yml').read_text()
+        # Both push and pull_request filters must cover staged releases.
+        filters=re.findall(r'^    paths: (.+)$',workflow,re.M)
+        self.assertEqual(2,len(filters))
+        for paths in filters:
+            self.assertIn("'Resources/Info.plist'",paths)
+            self.assertIn("'docs/RELEASE_NOTES.md'",paths)
 
     def test_native_recording_shares_the_single_stage_and_requires_a_click(self):
         page=(ROOT/'site/index.html').read_text()
@@ -149,10 +161,8 @@ class SiteTests(unittest.TestCase):
         self.assertIn('ImageMagick',js)
         self.assertEqual(9,len(re.findall(r'data-sample="',page)))
     def test_published_media_and_image_engines_are_included(self):
-        import plistlib
         data=json.loads((ROOT/'site/catalog.js').read_text().split(' = ',1)[1].strip().removesuffix(';'))
-        version=plistlib.loads((ROOT/'Resources/Info.plist').read_bytes())['CFBundleShortVersionString']
-        self.assertEqual(version,data['version'])
+        self.assertEqual(PUBLISHED_VERSION,data['version'])
         js=(ROOT/'site/product.js').read_text()
         for sample in ('images','audio','video'):
             line=next(line for line in js.splitlines() if line.strip().startswith(sample+':['))
