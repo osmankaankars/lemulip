@@ -44,6 +44,7 @@
     return sample().formats.filter(x => x !== input).map(ext => ({id:'convert.'+ext,title:ext.toUpperCase(),extension:ext,engine:engineFor(ext)}));
   }
   function stopTour() { autoplay = false; clearTimeout(timer); updatePlay(); }
+  document.addEventListener('lemulip:watch-native', () => { stopTour(); setStep(0); });
   function updatePlay() {
     $('tour-toggle').textContent = autoplay ? 'Ⅱ' : '▶';
     $('tour-toggle').setAttribute('aria-label', autoplay ? 'Pause Tour' : 'Play Tour');
@@ -73,9 +74,11 @@
   function updateModes() {
     document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed',String(b.dataset.mode === mode)));
   }
-  const captions = ['Drag a file, or click it to begin.','Tap Shift for formats. The wheel comes to your drag.','Drop onto a segment, or click an operation.','A new sample copy, beside the original.'];
+  const captions = ['Drag A File, Or Click It To Begin.','Tap Shift For Formats.','Drop Onto A Segment, Or Click An Operation.','A New Sample Copy, Beside The Original.'];
+  const hints = ['Pick Up A File', 'Tap Shift', 'Choose An Operation', 'New Copy Created'];
   function setStep(value) {
     step = value; desktop.dataset.step = String(step);
+    $('demo-hint').textContent = hints[step];
     $('step-number').textContent = '0'+(step+1)+' / 04';
     $('demo-instruction').textContent = captions[step];
     $('floating-wheel').hidden = step !== 2;
@@ -186,9 +189,31 @@
   if('IntersectionObserver' in window)new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;schedule();},{threshold:.15}).observe(desktop);
 
   $('format-count').textContent=data.counts.formats;$('tool-count').textContent=data.counts.tools;$('action-count').textContent=data.counts.actions;
-  $('format-directory').innerHTML=data.samples.map(s=>'<div class="format-row"><h3>'+esc(s.label)+'</h3><p class="format-list">'+(s.formats.length?s.formats.map(x=>esc(x.toUpperCase())).join(' · '):'ZIP · TAR · GZIP · Extract')+'</p><div class="format-engine">'+renderNotes(nativeNotes[s.id])+'</div></div>').join('');
   const prefixes={image:'Image',pdf:'PDF',media:'Media',document:'Document',archive:'Archive',action:''};
-  $('tool-directory').innerHTML=[['File Tools',data.tools],['File Actions',data.actions]].map(([title,list])=>'<div><h3>'+title+'</h3><ul>'+list.map(op=>'<li>'+esc((prefixes[op.id.split('.')[0]]+' '+op.title).trim())+'</li>').join('')+'</ul></div>').join('');
+  let toolsWereOpen = false, searching = false;
+  function renderCatalog(query='') {
+    const active = query.trim().length > 0;
+    const result = window.LemulipCatalogSearch ? window.LemulipCatalogSearch.filter(data,query) : {families:data.samples,tools:data.tools,actions:data.actions};
+    $('format-directory').innerHTML=result.families.map(s=>'<div class="format-row" data-family="'+esc(s.id)+'"><h3>'+esc(s.label)+'</h3><p class="format-list">'+(s.formats.length?s.formats.map(x=>esc(x.toUpperCase())).join(' · '):'ZIP · TAR · GZIP · Extract')+'</p><div class="format-engine">'+renderNotes(nativeNotes[s.id])+'</div></div>').join('');
+    $('tool-directory').innerHTML=[['File Tools',result.tools],['File Actions',result.actions]].filter(([,list])=>list.length).map(([title,list])=>'<div><h3>'+title+'</h3><ul>'+list.map(op=>'<li>'+esc((prefixes[op.id.split('.')[0]]+' '+op.title).trim())+'</li>').join('')+'</ul></div>').join('');
+    const details=document.querySelector('.tool-directory');
+    if(active&&!searching)toolsWereOpen=details.open;
+    details.hidden=!result.tools.length&&!result.actions.length;
+    if(active)details.open=true;else if(searching)details.open=toolsWereOpen;
+    searching=active;
+    const count=result.families.length;
+    const total=result.tools.length+result.actions.length;
+    $('format-search-clear').hidden=!active;
+    $('format-search-status').textContent=active ? count||total ? count+' File '+(count===1?'Family':'Families')+' · '+total+' Matching '+(total===1?'Tool':'Tools') : 'No Matches. Try A Format Like WebP Or A Tool Like Trim.' : '';
+  }
+  renderCatalog();
+  if(window.LemulipCatalogSearch){
+    $('catalog-search').hidden=false;
+    $('format-search').addEventListener('input',e=>renderCatalog(e.target.value));
+    const clearSearch=()=>{$('format-search').value='';renderCatalog();$('format-search').focus({preventScroll:true});};
+    $('format-search-clear').addEventListener('click',clearSearch);
+    $('format-search').addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();clearSearch();}});
+  }
   const themes={orchard:'#14251D',pistachio:'#FFF9EB',lemonade:'#FFFAED'};
   function theme(value){const chosen=Object.hasOwn(themes,value)?value:'orchard';document.documentElement.dataset.theme=chosen;$('appearance').value=chosen;document.querySelector('meta[name="theme-color"]').content=themes[chosen];}
   try{theme(localStorage.getItem('lemulip.appearance'));}catch{theme('orchard');}

@@ -10,8 +10,9 @@ class Tags(HTMLParser):
     def handle_starttag(self,tag,attrs):
         a=dict(attrs)
         if 'id' in a:self.ids.append(a['id'])
-        if tag in ('img','script') and 'src' in a:self.assets.append(a['src'])
+        if tag in ('img','script','source') and 'src' in a:self.assets.append(a['src'])
         if tag=='link' and a.get('rel')=='stylesheet':self.assets.append(a['href'])
+        if tag=='video' and 'poster' in a:self.assets.append(a['poster'])
 class SiteTests(unittest.TestCase):
     def test_assets_and_unique_ids(self):
         parser=Tags();parser.feed((ROOT/'site/index.html').read_text())
@@ -36,6 +37,39 @@ class SiteTests(unittest.TestCase):
         self.assertEqual(35,data['counts']['formats']);self.assertEqual(26,data['counts']['tools']);self.assertEqual(6,data['counts']['actions'])
         self.assertEqual(9,len(data['samples']))
         self.assertEqual(ids,set(data['operationIDs']))
+    def test_format_search_is_local_accessible_and_clearable(self):
+        page=(ROOT/'site/index.html').read_text()
+        for marker in ('id="format-search"','id="format-search-clear"','id="format-search-status"','aria-controls="format-directory tool-directory"'):
+            self.assertIn(marker,page)
+        self.assertTrue((ROOT/'site/catalog-search.js').is_file())
+        js=(ROOT/'site/catalog-search.js').read_text()
+        self.assertNotRegex(js,r'fetch\s*\(|XMLHttpRequest|FileReader|localStorage')
+        subprocess.run(['node',str(ROOT/'script/test_catalog_search.js')],check=True,cwd=ROOT)
+
+    def test_primary_downloads_use_reviewed_release_not_release_listing(self):
+        page=(ROOT/'site/index.html').read_text()
+        expected='https://github.com/osmankaankars/lemulip/releases/download/v0.1.18/Lemulip-0.1.18-macOS-universal.dmg'
+        self.assertEqual(3,page.count('href="'+expected+'"'))
+        self.assertIn('Release Notes',page)
+        self.assertIn('Apple Silicon &amp; Intel · v0.1.18',page)
+        self.assertNotIn('v0.1.17',page)
+        self.assertIn('data-step=',page)
+
+    def test_native_recording_shares_the_single_stage_and_requires_a_click(self):
+        page=(ROOT/'site/index.html').read_text()
+        for marker in ('id="watch-native"', 'id="demo-stage"', 'id="native-recording"',
+                       'id="native-video"', 'id="demo-controls"', 'id="demo-source"'):
+            self.assertIn(marker,page)
+        self.assertEqual(1,page.count('<video '))
+        video=page.split('<video ',1)[1].split('>',1)[0]
+        self.assertIn('controls',video)
+        self.assertIn('playsinline',video)
+        self.assertIn('preload="none"',video)
+        self.assertNotRegex(video,r'\bautoplay\b|\bloop\b')
+        self.assertIn('lemulip:watch-native',(ROOT/'site/product.js').read_text())
+        self.assertEqual(1,page.count('class="product-demo"'))
+        subprocess.run(['node',str(ROOT/'script/test_demo_view.js')],check=True,cwd=ROOT)
+
     def test_product_preview_is_compact_and_not_a_site_snapshot(self):
         page=(ROOT/'README.md').read_text()
         self.assertIn('width="720"',page)
@@ -69,7 +103,11 @@ class SiteTests(unittest.TestCase):
             self.assertEqual(row['sha256'],hashlib.sha256(data).hexdigest())
             self.assertEqual(b'RIFF',data[:4]);self.assertEqual(b'WEBP',data[8:12])
             self.assertEqual(len(data),struct.unpack('<I',data[4:8])[0]+8)
-            self.assertEqual('User-provided native app screenshot',row['origin'])
+            self.assertIn(row['origin'], ('User-provided native app screenshot', 'Native app window capture'))
+            if row['origin'] == 'Native app window capture':
+                self.assertRegex(row['sourceCommit'], r'^[0-9a-f]{40}$')
+                self.assertGreater(row['sourceWorkflowRun'], 0)
+                self.assertEqual('Window capture without desktop or shadow', row['capture'])
             self.assertNotIn(b'EXIF',data);self.assertNotIn(b'XMP ',data)
     def test_documentation_does_not_expose_removed_roadmap_gates(self):
         roadmap=(ROOT/'docs/ROADMAP.md').read_text()
@@ -79,8 +117,8 @@ class SiteTests(unittest.TestCase):
             self.assertNotRegex(p.read_text(),r'(?i)developer id|notariz|ad hoc sign',str(p))
     def test_motion_and_stale_assets_are_explicit(self):
         page=(ROOT/'site/index.html').read_text(); js=(ROOT/'site/product.js').read_text()
-        self.assertIn('data-site-version="20261028.1"',page)
-        self.assertIn('product.js?v=20261028.1',page)
+        self.assertIn('data-site-version="20261028.3"',page)
+        self.assertIn('product.js?v=20261028.3',page)
         for event in ('visibilitychange','prefers-reduced-motion','pointercancel'):self.assertIn(event,js)
         self.assertIn('Browser Simulation',page)
         self.assertNotRegex(js,r'\b(FileReader|XMLHttpRequest)\s*\(')

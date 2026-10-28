@@ -2,7 +2,8 @@
 """Test the product page and its deployed URL in Chromium or WebKit.
 
 Playwright is a test dependency only. All file operations on the website are
-sample state changes, not native app recordings or file conversions.
+sample state changes, not file conversions. The separate opt-in player shows an
+actual native Mac recording in the same stage.
 """
 from __future__ import annotations
 import argparse,functools,http.server,json,threading
@@ -160,8 +161,61 @@ def check_gallery_without_javascript(page) -> None:
         assert link.get_attribute("href").endswith(".webp")
 
 
+def check_catalog_search(page):
+    search=page.locator('#format-search')
+    search.fill('crop')
+    assert page.locator('.format-row').count()==2
+    assert page.locator('.format-row').all_text_contents()[0].startswith('Images')
+    assert page.locator('#tool-directory li').count()==2
+    assert page.locator('#format-search-status').inner_text()=='2 File Families · 2 Matching Tools'
+    search.fill('EXCEL')
+    assert 'Spreadsheets' in page.locator('#format-directory').inner_text()
+    search.fill('<script>not-a-format</script>')
+    assert page.locator('.format-row').count()==0
+    assert 'No Matches' in page.locator('#format-search-status').inner_text()
+    assert page.locator('.tool-directory').is_hidden()
+    page.locator('#format-search-clear').click()
+    assert search.evaluate('e=>document.activeElement===e')
+    assert page.locator('.format-row').count()==9
+    assert page.locator('#tool-directory li').count()==32
+    search.fill('trim');search.press('Escape')
+    assert search.input_value()==''
+    assert page.locator('.format-row').count()==9
+    assert page.locator('#sample-grid [data-sample]').count()==9
+    assert page.locator('a[href$="Lemulip-0.1.18-macOS-universal.dmg"]').count()==3
+
+
+def check_native_recording(page,output,width):
+    player=page.locator('#native-video')
+    assert player.count()==1
+    assert player.evaluate('v=>v.paused')
+    assert not player.is_visible()
+    assert not player.get_attribute('autoplay')
+    assert player.get_attribute('preload')=='none'
+    before=page.locator('#features').evaluate('e=>e.getBoundingClientRect().top+scrollY')
+    page.locator('#watch-native').click()
+    assert player.is_visible()
+    assert page.locator('#desktop-demo').evaluate('e=>e.inert')
+    assert page.locator('#tour-toggle').get_attribute('aria-pressed')=='false'
+    page.wait_for_function('document.getElementById("native-video").currentTime > 0.1')
+    assert player.evaluate('v=>v.videoWidth > 0 && v.videoHeight > 0')
+    assert abs(page.locator('#features').evaluate('e=>e.getBoundingClientRect().top+scrollY')-before)<1
+    if width in (1440,390,320):
+        page.locator('#try').screenshot(path=str(output/f'native-recording-{width}.png'))
+    page.locator('#origin-finder').click()
+    assert player.evaluate('v=>v.paused')
+    assert not player.is_visible()
+    assert page.locator('#sample-grid [data-sample]:visible').count()==9
+    assert not page.locator('#desktop-demo').evaluate('e=>e.inert')
+    page.locator('#watch-native').focus();page.keyboard.press('Enter')
+    assert player.is_visible()
+    player.focus();page.keyboard.press('Escape')
+    assert not player.is_visible()
+    assert page.locator('#watch-native').evaluate('e=>e===document.activeElement')
+
+
 def exercise(page,output,width,height):
-    assert page.locator('html').get_attribute('data-site-version')=='20261028.1'
+    assert page.locator('html').get_attribute('data-site-version')=='20261028.3'
     assert 'Lemulip' in page.title()
     assert page.locator('#format-count').inner_text()=='35'
     assert page.locator('#tool-count').inner_text()=='26'
@@ -201,9 +255,10 @@ def exercise(page,output,width,height):
         page.locator('.wheel-choice').first.click()
         after=page.locator('#features').evaluate('e=>e.getBoundingClientRect().top+scrollY')
         assert abs(after-before)<1,(family,before,after)
-    for removed in ('#feature-panel','#run-example','#origin-workspace','video','.header .github-link'):
+    for removed in ('#feature-panel','#run-example','#origin-workspace','.header .github-link'):
         assert page.locator(removed).count()==0,removed
     assert page.locator('.product-demo').count()==1
+    check_native_recording(page,output,width)
     for target in ('features','formats'):
         page.locator('.header a[href="#'+target+'"]').click()
         assert page.url.endswith('#'+target)
@@ -236,8 +291,8 @@ def run(output:Path,engine:str,url:str|None,executable:str|None=None):
                     page=browser.new_page(viewport={'width':width,'height':height})
                     page.on('pageerror',lambda e:errors.append(str(e)))
                     page.on('response',lambda r:failures.append([r.status,r.url]) if r.status>=400 else None)
-                    page.goto(url,wait_until='networkidle');check_presentation(page,output,width,height);exercise(page,output,width,height);check_native_gallery(page,output,width,height)
-                    results.append({'viewport':f'{width}x{height}','nine_samples':'PASS','wheel':'PASS','single_demo':'PASS','stable_layout':'PASS','keyboard':'PASS','native_gallery_click_keys_focus_wrap':'PASS','themes':'PASS','overflow':'NONE'})
+                    page.goto(url,wait_until='networkidle');check_presentation(page,output,width,height);exercise(page,output,width,height);check_native_gallery(page,output,width,height);check_catalog_search(page)
+                    results.append({'viewport':f'{width}x{height}','nine_samples':'PASS','wheel':'PASS','single_demo':'PASS','stable_layout':'PASS','keyboard':'PASS','native_gallery_click_keys_focus_wrap':'PASS','themes':'PASS','local_catalog_search':'PASS','reviewed_direct_download':'PASS','overflow':'NONE'})
                     page.close()
                 page=browser.new_page(viewport={'width':1440,'height':1000})
                 page.goto(url,wait_until='networkidle')

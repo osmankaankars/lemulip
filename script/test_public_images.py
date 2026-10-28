@@ -45,8 +45,15 @@ class PublicImageTests(unittest.TestCase):
         for row in json.loads((ROOT/'site/assets/screenshots.json').read_text()):
             left, top, right, bottom = row['cropBox']
             width, height = row['sourceSize']
-            self.assertTrue(0 < left < right < width)
-            self.assertTrue(0 < top < bottom < height)
+            if row['origin'] == 'User-provided native app screenshot':
+                self.assertTrue(0 < left < right < width)
+                self.assertTrue(0 < top < bottom < height)
+            else:
+                self.assertEqual('Native app window capture', row['origin'])
+                self.assertEqual([0, 0, width, height], row['cropBox'])
+                self.assertEqual('Window capture without desktop or shadow', row['capture'])
+                self.assertRegex(row['sourceCommit'], r'^[0-9a-f]{40}$')
+                self.assertGreater(row['sourceWorkflowRun'], 0)
             self.assertIn('Window-only crop', row['processing'])
             self.assertEqual(round((bottom-top)*row['width']/(right-left)), row['height'])
 
@@ -71,6 +78,29 @@ class PublicImageTests(unittest.TestCase):
         for offset,value in ((20,0x02),(21,1),(24,0)):
             altered=bytearray(data);altered[offset]=value
             self.assertFalse(validator(bytes(altered)))
+
+    def test_reviewed_recording_is_exactly_allowlisted(self):
+        import privacy_check, hashlib, json
+        manifest_path = ROOT/'site/assets/native-recording.json'
+        self.assertTrue(manifest_path.is_file(), 'The real recording needs provenance')
+        manifest = json.loads(manifest_path.read_text())
+        name = 'site/assets/' + manifest['file']
+        data = (ROOT/name).read_bytes()
+        media = getattr(privacy_check, 'PUBLIC_MEDIA', {})
+        self.assertEqual({name}, set(media))
+        self.assertEqual(hashlib.sha256(data).hexdigest(), media[name])
+        self.assertEqual(media[name], manifest['sha256'])
+        self.assertEqual([], content_failures(name, data))
+        self.assertTrue(content_failures(name, data+b'x'))
+        self.assertTrue(content_failures('site/assets/other.mp4', data))
+        self.assertGreater(manifest['durationSeconds'], 3)
+        self.assertLess(manifest['durationSeconds'], 30)
+        self.assertEqual('Actual macOS screen recording', manifest['origin'])
+        self.assertFalse(manifest['audio'])
+        self.assertRegex(manifest['sourceCommit'], r'^[0-9a-f]{40}$')
+        self.assertGreater(manifest['sourceWorkflowRun'], 0)
+        self.assertIn('No temporal edits', manifest['processing'])
+        self.assertIn('site/assets/finder-conversion.webp', PUBLIC_IMAGES)
 
     def test_unapproved_binary_media_is_rejected(self):
         data = b'\x00\x00\x00\x18ftypmp42'

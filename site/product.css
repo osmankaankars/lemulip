@@ -396,3 +396,38 @@ pre, code, .file-name, #output-name, #announcer, .verbatim, .requirements {text-
 .desktop .sample-grid .desktop-file {padding: 3px 1px; gap: 3px; font-size: 8px; line-height: 1.2; min-height: 0;}
 .desktop .sample-grid .file-art {width: 28px; height: 32px;}
 }
+
+/* Refined hierarchy: one interaction, one active file, no moving targets. */
+.release-link {display:inline-block;margin-top:10px;font-size:12px;color:var(--muted)}
+.hero {padding-top:46px;padding-bottom:44px}
+.desktop {box-shadow:0 14px 40px #0002}
+.desktop-file {transition:background-color .16s ease,border-color .16s ease,opacity .16s ease}
+.desktop[data-step="1"] .desktop-file:not(.picked),
+.desktop[data-step="2"] .desktop-file:not(.picked) {opacity:.72}
+.desktop-file.picked {border-color:#bdf620;background:#bdf62018;box-shadow:0 0 0 1px #bdf62044}
+[data-origin=finder] .desktop-file:not(.picked) {opacity:1}
+.demo-hint {min-width:128px;text-align:right;color:var(--muted)}
+.catalog-search {max-width:540px;margin:28px 0 8px}
+.catalog-search label {display:block;font-size:13px;font-weight:600;margin-bottom:9px}
+.search-field {display:flex;align-items:center;gap:12px;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:5px 12px}
+.search-field>span {font-size:23px;color:var(--muted)}
+.search-field input {min-width:0;width:100%;padding:10px 0;color:var(--text);background:transparent;border:0;border-radius:6px;text-transform:none;font-size:14px}
+.search-field input::placeholder {color:var(--muted);opacity:1}
+.search-field input::-webkit-search-cancel-button {display:none}
+.search-field button {min-height:40px;border:0;background:transparent;color:var(--link);padding:6px;font-size:12px}
+.search-status {min-height:2.6em;padding-top:9px;font-size:12px;color:var(--muted)}
+@media(max-width:800px) {.hero{padding-top:20px;padding-bottom:28px}}
+@media(max-width:500px) {.demo-hint{min-width:0;font-size:10px}.catalog-search{margin-top:22px}}
+@media(prefers-reduced-motion:reduce) {.desktop-file{transition:none}}
+
+/* The recording occupies the existing stage without moving the next section. */
+.demo-stage {position:relative;min-width:0}
+.watching-native>.desktop {visibility:hidden}
+.native-recording {position:absolute;inset:0;display:flex;align-items:center;background:#080b09;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.native-recording video {display:block;width:100%;height:100%;object-fit:contain;border-radius:inherit}
+.native-recording video:focus-visible {outline-offset:-4px}
+.watch-native {flex-shrink:0;border:1px solid var(--line);border-radius:9px;padding:8px 12px;min-height:38px;background:transparent;color:var(--text);font-size:12px}
+.watch-native:hover,.watch-native[aria-pressed=true] {background:var(--raised)}
+.native-error {position:absolute;inset:auto 12px 48px;padding:10px;background:var(--panel);color:var(--text);border-radius:8px;font-size:12px}
+#demo-source {min-height:1.6em}
+@media(max-width:500px) {.watch-native{font-size:10px;padding:7px 8px}.native-recording{border-radius:12px}#demo-source{min-height:3.2em}}

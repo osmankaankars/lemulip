@@ -104,8 +104,16 @@ project. Third-party components and optional engines are documented above.
 
 `site/assets/morning-light.jpg` is a generated fictional sample landscape.
 `docs/assets/demo-preview.png` is an illustrated product preview.
-`site/assets/app-*.webp` are native app screenshots supplied by the project author.
-They are cropped to the app window and resized for the website, with transparent
-outer corners. The interfaces are not generated or repainted.
-The website's Desktop and Finder demo uses sample data, not native app recordings.
-These assets contain no customer files or personal photographs.
+`site/assets/app-*.webp` are actual Lemulip window captures from the native
+macOS verification run recorded in `site/assets/screenshots.json`. The desktop
+and window shadows are excluded; metadata is removed. No interface is generated
+or repainted.
+
+`site/assets/finder-conversion.mp4` is an actual, silent Finder-to-Lemulip screen
+recording. Only the desktop edges are cropped; playback timing is not accelerated.
+Its poster is extracted from the same recording. Capture and processing provenance
+is in `site/assets/native-recording.json`.
+
+The website's interactive Desktop and Finder demo uses sample data. It is separate
+from the opt-in native recording in the same display area. These assets contain
+only generated test files, not customer files or personal photographs.

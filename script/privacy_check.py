@@ -59,17 +59,23 @@ PUBLIC_IMAGES = {
     "site/assets/morning-light.jpg": "e79abf44c036845255ecfd5e62ec378ec142b5b731fcc900759a7c8931ec5652",
     "Resources/AppIcon.png": "f68b17dc79d0e13246fc425218031a3bc35db2d1e27d845ee657f17f423d8a45",
     "docs/assets/demo-preview.png": "8872c6e65528bf47bdf95e64b5313cd6ce6c25f8e22c111ac05574f0701f5870",
-    "site/assets/app-workspace.webp": "d41d5ee79656a769de38c03e3e19acb0cf95a6a64a20fcecf0ab82f83d640382",
-    "site/assets/app-crop-video.webp": "a8d298b2738e78f8a4e5b4aacd463837b2ee9e4aec11290e86e2e1b984249e54",
-    "site/assets/app-trim-audio.webp": "f34558db61c7ead7705a275e57d8331e8f5dcd6b33006c76b3d7f91b0f5ccf87",
-    "site/assets/app-activity.webp": "117952195d08f546a43cfe52a729ad40bca44d5d47b141a339967b9adb2b4ea0",
+    "site/assets/app-workspace.webp": "573edfebb566202c51d0fe448ee3805e8e7d48a589a7b28677917ce5cb3e1393",
+    "site/assets/app-crop-video.webp": "907260940370ef8683bde30182a847a3e99fdcb3824584a981c19f43747e9b35",
+    "site/assets/app-trim-audio.webp": "eaa7b154c0e28b4394cf7194495adf5300f9387b265b66658a0b9b3a48cf7a88",
+    "site/assets/app-activity.webp": "bd06c66d98f0591abb5aa43d7441e181fbf7f65b3f9893712deecd5a23028f47",
+    "site/assets/finder-conversion.webp": "5dbdf9202eb3c1f9d0fea0e9ca0025df30a6193afcc8d85c13d6f0d1c4cafca3",
+}
+# A single visually reviewed, silent native recording. Any byte change requires
+# a new review; this is an exact allowlist, not a general video upload exemption.
+PUBLIC_MEDIA = {
+    "site/assets/finder-conversion.mp4": "16a9e5286b793c01e7378a3ab18b850f6a87d3f34d63bafae07a84ad9e709275",
 }
 TEXT_SIZE_LIMIT = 2_000_000
 IMAGE_SIZE_LIMIT = 8_000_000
 
 
 def size_limit(name: str) -> int:
-    return IMAGE_SIZE_LIMIT if name in PUBLIC_IMAGES else TEXT_SIZE_LIMIT
+    return IMAGE_SIZE_LIMIT if name in PUBLIC_IMAGES or name in PUBLIC_MEDIA else TEXT_SIZE_LIMIT
 
 
 def jpeg_without_metadata(data: bytes) -> bool:
@@ -207,6 +213,10 @@ def content_failures(name: str, data: bytes) -> list[str]:
         return ["unexpected-large-file"]
     if name in PUBLIC_IMAGES:
         return [] if image_is_public(name, data) else ["unreviewed-or-invalid-public-image"]
+    if name in PUBLIC_MEDIA:
+        reviewed = (len(data) >= 24 and data[4:8] == b"ftyp"
+                    and hashlib.sha256(data).hexdigest() == PUBLIC_MEDIA[name])
+        return [] if reviewed else ["unreviewed-or-invalid-public-media"]
     failures = []
     try:
         data.decode("utf-8")
