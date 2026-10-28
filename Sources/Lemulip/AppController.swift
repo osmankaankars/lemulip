@@ -392,10 +392,12 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
                 }
                 guard let self else { return }
                 self.update(id) { $0.state = .succeeded; $0.retryRequest = nil; $0.outputs = result.outputs; $0.message = result.note ?? "" }
-                switch self.completionPresentation {
-                case .quiet: break
-                case .finder: self.reveal(result.outputs)
-                case .card: self.showResultCard(result.outputs)
+                if !result.outputs.isEmpty {
+                    switch self.completionPresentation {
+                    case .quiet: break
+                    case .finder: self.reveal(result.outputs)
+                    case .card: self.showResultCard(result.outputs)
+                    }
                 }
             } catch {
                 guard let self else { return }

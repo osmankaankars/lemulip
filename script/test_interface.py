@@ -100,6 +100,17 @@ class InterfaceTests(unittest.TestCase):
         self.assertIn('Settings → Format Support', source)
         self.assertIn('Ayarlar → Biçim Desteği', source)
 
+    def test_output_free_success_does_not_present_a_missing_file(self):
+        source = (APP/'AppController.swift').read_text()
+        completion = source.split('self.update(id) { $0.state = .succeeded;', 1)[1].split('} catch {', 1)[0]
+        self.assertIn('if !result.outputs.isEmpty {', completion)
+        before, guarded = completion.split('if !result.outputs.isEmpty {', 1)
+        self.assertNotIn('self.reveal(', before)
+        self.assertIn('case .finder: self.reveal(result.outputs)', guarded)
+        self.assertIn('case .card: self.showResultCard(result.outputs)', guarded)
+        # Skipping presentation must not return before queue cleanup/startNextJob.
+        self.assertNotIn('return', completion)
+
     def test_new_contract_runs_in_mac_ci(self):
         source = (ROOT/'.github/workflows/build.yml').read_text()
         self.assertIn('python3 script/test_interface.py', source)
