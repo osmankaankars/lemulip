@@ -1,0 +1,41 @@
+name: Prepare Native UI Source With Test Dependencies
+on:
+  push:
+    branches: [verify/ui-resume-20261028]
+    paths: [.github/workflows/ui-native-source-final.yml]
+permissions:
+  contents: write
+jobs:
+  source:
+    if: github.repository == 'osmankaankars/lemulip' && github.ref == 'refs/heads/verify/ui-resume-20261028'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: aca804b82db4e726ad6cb1be6ff9fa7afd66e927
+          persist-credentials: false
+      - name: Prepare the pinned source operation and its test dependencies
+        run: |
+          python3 - <<'PY'
+          import os,pathlib,textwrap
+          source=pathlib.Path('.github/workflows/ui-native-source.yml').read_text()
+          body=source.split('        run: |\n',1)[1].split('      - uses:',1)[0]
+          (pathlib.Path(os.environ['RUNNER_TEMP'])/'native-source.sh').write_text(textwrap.dedent(body))
+          PY
+          git fetch --no-tags --depth=1 origin f9496dd2c040a3a538bb4fea650355defcb7058d
+          git checkout --detach f9496dd2c040a3a538bb4fea650355defcb7058d
+          python3 -m venv "$RUNNER_TEMP/source-tools"
+          "$RUNNER_TEMP/source-tools/bin/pip" install playwright==1.61.0
+      - name: Validate before creating unreferenced source objects
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          export PATH="$RUNNER_TEMP/source-tools/bin:$PATH"
+          bash -euo pipefail "$RUNNER_TEMP/native-source.sh"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Native-Release-Source
+          path: ${{ runner.temp }}/native-source/
+          retention-days: 7
+          if-no-files-found: error
