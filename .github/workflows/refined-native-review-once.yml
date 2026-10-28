@@ -1,0 +1,94 @@
+name: Refined Native UI And Finder Recording
+on:
+  push:
+    branches: [verify/refined-native-ui-20261028]
+    paths: [.github/workflows/refined-native-review-once.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  review:
+    runs-on: macos-15
+    timeout-minutes: 14
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: f9496dd2c040a3a538bb4fea650355defcb7058d
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: Lemulip-Refined-Native-Preview
+          run-id: 40715797416
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/candidate
+          digest-mismatch: error
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: Lemulip-macOS-universal
+          run-id: 40622450424
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/published
+          digest-mismatch: error
+      - name: Prepare disposable app and fixtures without changing permissions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/ui-review" "$RUNNER_TEMP/Studio Samples"
+          python3 - <<'PY'
+          import base64,gzip,hashlib,json,math,os,pathlib,struct,urllib.request,wave
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          archive=root/'published/Lemulip-0.1.17-macOS-universal.zip'
+          assert archive.stat().st_size==153096832
+          assert hashlib.file_digest(archive.open('rb'),'sha256').hexdigest()=='a48b8d36a606a85398dded5019326287218c8478fa479751ff4ad0e3a5d852d4'
+          parts='546ba109c167dca534d24c9267f068af6e72c22e aebe9c50915d029c4abb82d74eec280540ac1a7e 06e3601863f45ad711531b1fa789733f6ed5b9f9 e5c20ac53fc4d2d9e353e4ebbc0a3f0195294c0d'.split()
+          packed=b''
+          for sha in parts:
+              request=urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/git/blobs/'+sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(request,timeout=30) as response:part=base64.b64decode(json.load(response)['content'])
+              assert hashlib.sha1(b'blob '+str(len(part)).encode()+b'\0'+part).hexdigest()==sha
+              packed+=part
+          assert len(packed)==5887 and hashlib.sha256(packed).hexdigest()=='81e193fc049a38d158535e385bebd794af7af4b1089f954f1f2122871f3b98fa'
+          source=gzip.decompress(packed)
+          assert hashlib.sha256(source).hexdigest()=='4bb231fba3ef9bfc2a514e6acbbf08eef60463a85331a96c5de5fb72d862fb5d'
+          (root/'native-review.swift').write_bytes(source)
+          with wave.open(str(root/'Studio Samples/studio-voice.wav'),'wb') as out:
+              out.setparams((1,2,48000,0,'NONE','not compressed'))
+              out.writeframes(b''.join(struct.pack('<h',int(10000*(0.45+0.4*math.sin(i/48000*3))*math.sin(2*math.pi*220*i/48000))) for i in range(48000*6)))
+          PY
+          ditto -xk "$RUNNER_TEMP/candidate/Lemulip-Refined-Preview.zip" "$RUNNER_TEMP/native"
+          ditto -xk "$RUNNER_TEMP/published/Lemulip-0.1.17-macOS-universal.zip" "$RUNNER_TEMP/engines"
+          APP="$RUNNER_TEMP/native/Lemulip.app"
+          OLD="$RUNNER_TEMP/engines/Lemulip-0.1.17-macOS-universal/Lemulip.app"
+          ditto "$OLD/Contents/Helpers" "$APP/Contents/Helpers"
+          ditto "$OLD/Contents/Resources/EngineSupport" "$APP/Contents/Resources/EngineSupport"
+          codesign --force --sign - "$APP"
+          sips -s format png site/assets/morning-light.jpg --out "$RUNNER_TEMP/Studio Samples/morning-light.png"
+          defaults write app.freewheel.Freewheel language -string en
+          defaults write app.freewheel.Freewheel theme -string orchard
+          defaults write app.freewheel.Freewheel completionPresentation -string card
+          defaults write app.freewheel.Freewheel outputAlongsideOriginal -bool true
+          defaults write app.freewheel.Freewheel wheelEnabled -bool true
+          xcrun swiftc "$RUNNER_TEMP/native-review.swift" -o "$RUNNER_TEMP/native-review"
+          "$RUNNER_TEMP/native-review" "$APP" "$RUNNER_TEMP/ui-review" "$RUNNER_TEMP/Studio Samples" 2>&1 | tee "$RUNNER_TEMP/ui-review/review.log"
+          ditto -ck --sequesterRsrc --keepParent "$APP" "$RUNNER_TEMP/ui-review/Lemulip-Refined-Test-App.zip"
+      - name: Require explicit successful native interaction
+        run: |
+          python3 - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'ui-review'
+          report=json.loads((p/'native-review.json').read_text())
+          assert report['status']=='passed',report
+          for key in ('realFinderDrag','originalPreserved','resultCardDoesNotStealFocus','noAutomaticClipboardWrite','explicitCopyAndFloat','turkishCompact','pinsSurviveRelaunch','noPersistentFileHistory','threeThemes','contextualSearchAndPins'):assert report[key] is True,key
+          assert (p/'finder-recording.mov').stat().st_size>10000
+          print(json.dumps(report,indent=2))
+          PY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: Lemulip-Refined-Native-Visual-Review
+          path: ${{ runner.temp }}/ui-review/
+          retention-days: 7
+          if-no-files-found: error
