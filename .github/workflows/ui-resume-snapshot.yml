@@ -1,0 +1,29 @@
+name: UI Resume Source Snapshot
+on:
+  push:
+    branches: [verify/ui-resume-20261028]
+    paths: [.github/workflows/ui-resume-snapshot.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: f9496dd2c040a3a538bb4fea650355defcb7058d
+          persist-credentials: false
+      - name: Archive tracked source only
+        run: |
+          git archive --format=tar.gz --output="$RUNNER_TEMP/ui-source.tar.gz" HEAD
+          git rev-parse HEAD HEAD^{tree} > "$RUNNER_TEMP/source-identity.txt"
+          sha256sum "$RUNNER_TEMP/ui-source.tar.gz" >> "$RUNNER_TEMP/source-identity.txt"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-UI-Resume-Source
+          path: |
+            ${{ runner.temp }}/ui-source.tar.gz
+            ${{ runner.temp }}/source-identity.txt
+          retention-days: 2
+          if-no-files-found: error
