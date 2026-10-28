@@ -84,7 +84,7 @@ LibreOffice handles supported Word, Excel, and PowerPoint routes. Inspect import
 
 ## Optional Engines
 
-Install the required helper, then use **Settings → Local Engines → Refresh**. See [Installation](INSTALL.md#optional-engines). Lemulip does not install engines automatically.
+Use **Settings → Local Engines** to check support or install Pandoc. FFmpeg and ImageMagick are included in release downloads from 0.1.17. See [Installation](INSTALL.md#conversion-engines).
 
 ## Command-Line Use
 

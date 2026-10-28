@@ -24,6 +24,11 @@ public enum EngineLocator {
         let bundled = bundleURL.appendingPathComponent("Contents/Helpers/Engines")
         // Signed CLI helpers live directly in Helpers; sources/notices are in Resources.
         var directories = [bundleURL.appendingPathComponent("Contents/Helpers").path]
+        // The release CLI sits beside Lemulip.app. Anchor to its bundle directory,
+        // never to the caller's current working directory or a shell search.
+        if bundleURL.pathExtension.lowercased() != "app" {
+            directories.append(bundleURL.appendingPathComponent("Lemulip.app/Contents/Helpers").path)
+        }
         directories += [bundled, managed].map { $0.appendingPathComponent(family).appendingPathComponent("bin").path }
         if let path = ProcessInfo.processInfo.environment["PATH"] {
             directories += path.split(separator: ":").map(String.init).filter { $0.hasPrefix("/") }

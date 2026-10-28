@@ -1,8 +1,5 @@
 name: Build Native Image Engine Pack
 on:
-  push:
-    branches: ['pack/image-engine-*']
-    paths: ['script/build_image_engine.py', 'script/image-engine-sources.json', 'script/test_build_image_engine.py', '.github/workflows/image-engine-pack.yml']
   workflow_dispatch:
 permissions:
   contents: read
@@ -38,15 +35,7 @@ jobs:
         env:
           HOMEBREW_NO_ANALYTICS: '1'
           HOMEBREW_NO_AUTO_UPDATE: '1'
-        run: |
-          missing=()
-          for tool in cmake nasm pkgconf autoconf automake libtool; do
-            brew list --versions "$tool" >/dev/null 2>&1 || missing+=("$tool")
-          done
-          if [ ${#missing[@]} -gt 0 ]; then
-            brew update
-            brew install "${missing[@]}"
-          fi
+        run: ./script/install_ci_build_tools.sh
       - name: Build source-pinned image pack and test relocation
         run: |
           set -o pipefail
@@ -57,11 +46,11 @@ jobs:
           LEMULIP_ENGINE_PACKS="$RUNNER_TEMP/image-packs" ./script/build_app.sh 2>&1 | tee "$RUNNER_TEMP/image-app.log"
           mkdir "$RUNNER_TEMP/image-review" "$RUNNER_TEMP/image-output"
           HELPER="$PWD/dist/Lemulip.app/Contents/Helpers"
-          PATH="$HELPER:/usr/bin:/bin:/usr/sbin:/sbin" dist/lemulip engines > "$RUNNER_TEMP/image-review/engine-health.txt"
+          PATH="/usr/bin:/bin:/usr/sbin:/sbin" dist/lemulip engines > "$RUNNER_TEMP/image-review/engine-health.txt"
           grep -F 'imagemagick: ready' "$RUNNER_TEMP/image-review/engine-health.txt"
           grep -F "$HELPER/magick" "$RUNNER_TEMP/image-review/engine-health.txt"
           for target in webp avif; do
-            PATH="$HELPER:/usr/bin:/bin:/usr/sbin:/sbin" dist/lemulip convert "$target" "$RUNNER_TEMP/image-build/smoke/source.png" --output "$RUNNER_TEMP/image-output" >> "$RUNNER_TEMP/image-review/app-conversion.txt"
+            PATH="/usr/bin:/bin:/usr/sbin:/sbin" dist/lemulip convert "$target" "$RUNNER_TEMP/image-build/smoke/source.png" --output "$RUNNER_TEMP/image-output" >> "$RUNNER_TEMP/image-review/app-conversion.txt"
           done
           test "$(find "$RUNNER_TEMP/image-output" -type f | wc -l | tr -d ' ')" = 2
           "$HELPER/magick" identify "$RUNNER_TEMP/image-output/"* > "$RUNNER_TEMP/image-review/outputs.txt"
@@ -92,6 +81,7 @@ jobs:
             ${{ runner.temp }}/image-app.log
             ${{ runner.temp }}/image-diagnostics/
             ${{ runner.temp }}/image-build/smoke/result.json
+            ${{ runner.temp }}/image-build/smoke/formats.txt
             ${{ runner.temp }}/image-build/relocated-smoke/result.json
           if-no-files-found: warn
           retention-days: 30

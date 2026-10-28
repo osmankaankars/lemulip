@@ -84,6 +84,18 @@ class ImagePackTests(unittest.TestCase):
         with self.assertRaises(ValueError): self.m.cmake_options('unknown')
         with self.assertRaises(ValueError): self.m.configure_arguments('unknown',Path('/prefix'))
 
+    def test_static_format_listing_without_module_column_is_supported(self):
+        listing='\n'.join(f'  {name}* rw+ sample' for name in self.m.REQUIRED_READ)
+        self.m.check_formats(listing)
+
+    def test_system_zlib_metadata_uses_sdk_version_and_no_extra_library_path(self):
+        self.assertTrue(hasattr(self.m,'sdk_zlib_metadata'), 'SDK zlib metadata is missing')
+        text=self.m.sdk_zlib_metadata('#define ZLIB_VERSION "1.2.12"\n')
+        self.assertIn('Version: 1.2.12',text)
+        self.assertIn('Libs: -lz',text)
+        self.assertNotIn('-L',text)
+        with self.assertRaises(ValueError):self.m.sdk_zlib_metadata('#define ZLIB_VERSION "unknown"')
+
     def test_upstream_copyright_filename_is_kept_as_a_license(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp)

@@ -3,13 +3,17 @@
 What's new in each Lemulip public preview. Release pages show the matching
 version below, followed by the installation note.
 
-## Unreleased · Website and Repository
+## 0.1.17 · Ready For More Files
 
-- Align source and test names with Lemulip while preserving installed settings.
-- Present one Desktop/Finder demo, visible sample files, and catalog-backed counts.
-- Simplify the product page, README, and supporting documentation.
+- Include FFmpeg and ImageMagick in the Mac download. No separate media or image engine installation.
+- Install Pandoc from Settings with explicit approval and checksum verification.
+- Show real conversion progress and retry failed or cancelled conversions with the same settings.
+- Stop helper processes when a conversion is cancelled or times out.
+- Check engine versions and supported codecs before conversion.
+- Keep the CLI connected to the engines inside its neighboring Lemulip.app.
+- Refresh the website and README with cropped, real Mac screenshots.
 
-Published 0.1.16 app downloads are unchanged.
+LibreOffice remains optional for richer Office conversions. Originals and saved settings are preserved.
 
 ## 0.1.16 · Easier to Navigate
 

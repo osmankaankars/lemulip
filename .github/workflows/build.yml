@@ -2,7 +2,7 @@ name: Build and Verify
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'pack/image-engine-*']
     tags: ['v*']
   pull_request:
   workflow_dispatch:
@@ -38,7 +38,9 @@ jobs:
       - name: Check Public Source Contents
         run: python3 script/privacy_check.py --staged
       - name: Validate Engine Pack Guardrails
-        run: python3 script/test_engine_packs.py
+        run: |
+          python3 script/test_engine_packs.py
+          python3 script/test_release_engines.py
       - name: Check Architecture, Toolchain, and Version
         env:
           EXPECTED_ARCH: ${{ matrix.arch }}
@@ -113,9 +115,87 @@ jobs:
           retention-days: 30
           compression-level: 0
 
+  native-engines:
+    name: Bundled Engines (${{ matrix.arch }})
+    if: github.event_name != 'pull_request'
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Check Engine Recipes And Native Architecture
+        run: |
+          test "$(uname -m)" = '${{ matrix.arch }}'
+          python3 script/test_build_media_engine.py
+          python3 script/test_build_image_engine.py
+          python3 script/test_release_engines.py
+      - name: Install Build Tools Only
+        env:
+          HOMEBREW_NO_ANALYTICS: '1'
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+        run: ./script/install_ci_build_tools.sh
+      - name: Build And Verify Both Native Engines
+        run: |
+          set -o pipefail
+          python3 script/build_media_engine.py --arch '${{ matrix.arch }}' --work "$RUNNER_TEMP/media-build" --output "$RUNNER_TEMP/native-packs/ffmpeg" 2>&1 | tee "$RUNNER_TEMP/media-build.log"
+          python3 script/build_image_engine.py --arch '${{ matrix.arch }}' --work "$RUNNER_TEMP/image-build" --output "$RUNNER_TEMP/native-packs/imagemagick" 2>&1 | tee "$RUNNER_TEMP/image-build.log"
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib,platform,subprocess,tarfile
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);out=root/'native-artifact';out.mkdir()
+          files={}
+          for name in ('ffmpeg','imagemagick'):
+              archive=out/(name+'.tar.gz')
+              with tarfile.open(archive,'w:gz') as tar:tar.add(root/'native-packs'/name,arcname=name)
+              files[archive.name]=hashlib.file_digest(archive.open('rb'),'sha256').hexdigest()
+          (out/'build.json').write_text(json.dumps({'schema':1,'commit':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'architecture':platform.machine(),'files':files},indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Native-Engines-${{ matrix.arch }}
+          path: ${{ runner.temp }}/native-artifact/
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - name: Retain Engine Diagnostics
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/engine-diagnostics"
+          python3 - <<'PY'
+          import os,pathlib,shutil
+          root=pathlib.Path(os.environ['RUNNER_TEMP']);out=root/'engine-diagnostics'
+          for name in ('media-build','image-build'):
+              base=root/name
+              for source in base.rglob('config.log'):
+                  target=out/name/source.relative_to(base);target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(source,target)
+              for name2 in ('smoke','relocated-smoke'):
+                  for filename in ('result.json','formats.txt'):
+                      source=base/name2/filename
+                      if source.is_file():
+                          target=out/name/name2/filename;target.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(source,target)
+          PY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: Lemulip-Native-Engine-Logs-${{ matrix.arch }}
+          path: |
+            ${{ runner.temp }}/media-build.log
+            ${{ runner.temp }}/image-build.log
+            ${{ runner.temp }}/engine-diagnostics/
+          if-no-files-found: ignore
+          retention-days: 14
+
   package:
     name: Universal macOS Package
-    needs: test
+    needs: [test, native-engines]
     if: github.event_name != 'pull_request'
     runs-on: macos-15
     timeout-minutes: 30
@@ -131,8 +211,36 @@ jobs:
           VERSION=$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' Resources/Info.plist)
           [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           printf 'version=%s\n' "$VERSION" >> "$GITHUB_OUTPUT"
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          pattern: Lemulip-Native-Engines-*
+          path: ${{ runner.temp }}/native-artifacts
+          digest-mismatch: error
+      - name: Merge Verified Native Engines Into Universal Packs
+        run: |
+          python3 - <<'PYCODE'
+          import hashlib,json,os,pathlib,subprocess,sys
+          sys.path.insert(0,'script')
+          from build_media_engine import extract_source
+          from merge_engine_packs import merge
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])
+          head=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          sources={}
+          for arch in ('arm64','x86_64'):
+              folder=root/'native-artifacts'/('Lemulip-Native-Engines-'+arch)
+              record=json.loads((folder/'build.json').read_text())
+              assert record['schema']==1 and record['commit']==head and record['architecture']==arch
+              assert set(record['files'])=={'ffmpeg.tar.gz','imagemagick.tar.gz'}
+              for engine in ('ffmpeg','imagemagick'):
+                  archive=folder/(engine+'.tar.gz')
+                  assert hashlib.file_digest(archive.open('rb'),'sha256').hexdigest()==record['files'][archive.name]
+                  sources[arch,engine]=extract_source(archive,root/'native-extracted'/arch/engine)
+          for engine in ('ffmpeg','imagemagick'):
+              merge(sources['arm64',engine],sources['x86_64',engine],root/'universal-engines'/engine)
+          PYCODE
       - name: Build Universal Release Once
         env:
+          LEMULIP_ENGINE_PACKS: ${{ runner.temp }}/universal-engines
           RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
         run: ./script/package_release.sh
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

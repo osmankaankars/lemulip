@@ -111,10 +111,11 @@ def check_formats(listing: str) -> None:
     reads, writes = set(), set()
     for line in listing.splitlines():
         parts = line.split()
-        if len(parts) >= 3 and re.fullmatch(r'[r-][w-][+\-]', parts[2]):
+        mode = next((p for p in parts[1:3] if re.fullmatch(r'[r-][w-][+\-]', p)), None)
+        if mode:
             name = parts[0].rstrip('*')
-            if parts[2][0] == 'r': reads.add(name)
-            if parts[2][1] == 'w': writes.add(name)
+            if mode[0] == 'r': reads.add(name)
+            if mode[1] == 'w': writes.add(name)
     if not REQUIRED_READ <= reads or not REQUIRED_WRITE <= writes:
         raise ValueError('Missing image capabilities: read '+str(sorted(REQUIRED_READ-reads))+' write '+str(sorted(REQUIRED_WRITE-writes)))
 
@@ -134,8 +135,8 @@ def smoke_test(pack: Path, work: Path, record: list) -> None:
         'MAGICK_CONFIGURE_PATH':str(profile),'MAGICK_TEMPORARY_PATH':str(profile)}
     magick = str(pack/'bin/magick')
     listing = subprocess.check_output([magick,'-list','format'],env=env,text=True,timeout=30)
-    check_formats(listing)
     (work/'formats.txt').write_text(listing)
+    check_formats(listing)
     original = work/'source.png'; synthetic_png(original); before=sha256(original)
     for extension in ('png','jpg','webp','avif','heic','tiff','bmp','gif','ico'):
         output=work/('output.'+extension)
@@ -165,6 +166,12 @@ def source_notices(source: Path) -> list[Path]:
                    or p.name.lower() == 'readme.ijg'))
 
 
+def sdk_zlib_metadata(header: str) -> str:
+    versions=re.findall(r'^#define[ \t]+ZLIB_VERSION[ \t]+"([0-9]+(?:\.[0-9]+){2,3})"',header,re.M)
+    if len(versions)!=1:raise ValueError('Cannot verify the macOS SDK zlib version')
+    return 'Name: macOS SDK zlib\nDescription: System zlib, not redistributed\nVersion: '+versions[0]+'\nLibs: -lz\nCflags:\n'
+
+
 def build(output: Path, work: Path, architecture: str) -> None:
     assert_host(platform.system(),platform.machine(),architecture)
     if output.exists() or output.is_symlink() or work.exists() or work.is_symlink(): raise ValueError('Output and work directories must be new')
@@ -183,6 +190,12 @@ def build(output: Path, work: Path, architecture: str) -> None:
     pkg=shutil.which('pkg-config',path=env['PATH'])
     wrapper=work/'pkg-config-static';wrapper.write_text('#!/bin/sh\nexec "'+pkg+'" --static "$@"\n');wrapper.chmod(0o755)
     env['PKG_CONFIG']=str(wrapper)
+    # macOS supplies zlib but no pkg-config file. Keep discovery isolated while
+    # allowing libpng/libtiff to link the SDK library, not a Homebrew substitute.
+    sdk=Path(subprocess.check_output(['/usr/bin/xcrun','--sdk','macosx','--show-sdk-path'],env=env,text=True).strip())
+    metadata=sdk_zlib_metadata((sdk/'usr/include/zlib.h').read_text())
+    pkgdir=prefix/'lib/pkgconfig';pkgdir.mkdir(parents=True,exist_ok=True)
+    (pkgdir/'zlib.pc').write_text(metadata)
     jobs=str(min(os.cpu_count() or 2,8));record=[];components=[]
     for component in lock['components']:
         name=component['name']; source,archive=fetch_source(component,work,stage/'sources',env,record)

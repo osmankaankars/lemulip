@@ -3,11 +3,11 @@
 The app catalog lists **35 distinct conversion output formats**, **26 file tools**,
 and **6 file actions**. These are unique entries, not a count of every possible
 input/output pair. The tool count includes ZIP, TAR and GZIP creation and archive
-extraction. Some routes require the optional local engines described below.
+extraction. FFmpeg and ImageMagick are included in release downloads from 0.1.17. Rich Office routes use optional document engines.
 
 Lemulip selects operations from the file extensions in your selection. A listed format is a supported route, not a promise that every codec or document feature will survive conversion.
 
-See [Installation](INSTALL.md#optional-engines) for optional engines and
+See [Installation](INSTALL.md#conversion-engines) for engine details and
 [User Guide](USER_GUIDE.md) for controls. Broader hands-on macOS testing and
 [Microsoft Office review](OFFICE_REVIEW.md) remain open.
 

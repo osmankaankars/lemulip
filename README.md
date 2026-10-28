@@ -16,7 +16,7 @@ Includes built-in and optional local engines.
 
 ## Install
 
-**macOS 13+ · Apple Silicon & Intel · 0.1.16 Public Preview**
+**macOS 13+ · Apple Silicon & Intel · Public Preview**
 
 Open the release DMG and drag Lemulip into Applications. The app ZIP also includes the command-line tool. [Installation and optional engines](docs/INSTALL.md).
 
@@ -34,7 +34,7 @@ Tap **⇧ Shift** for formats, **⌘ Command** for tools, or **⌃ Control** for
 
 ## Local Engines
 
-Common tools are built in. Optional **FFmpeg**, **ImageMagick**, **LibreOffice**, and **Pandoc** extend media, image, and document support. Engines are installed separately, not bundled. Refresh detection in **Settings → Local Engines** after installation.
+From 0.1.17, Mac downloads include **FFmpeg** and **ImageMagick**. **Pandoc** installs from Settings; **LibreOffice** remains optional for richer Office conversions.
 
 [User Guide](docs/USER_GUIDE.md) · [Formats](docs/FORMATS.md) · [Development](docs/DEVELOPMENT.md) · [Release Notes](docs/RELEASE_NOTES.md)
 
