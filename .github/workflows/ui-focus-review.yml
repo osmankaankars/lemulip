@@ -1,0 +1,94 @@
+name: Result Panel Focus Diagnostics
+on:
+  push:
+    branches: [verify/ui-resume-20261028]
+    paths: [.github/workflows/ui-focus-review.yml]
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: macos-15
+    timeout-minutes: 12
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: f9496dd2c040a3a538bb4fea650355defcb7058d
+          persist-credentials: false
+      - name: Download the unchanged public engine donor
+        run: |
+          mkdir -p "$RUNNER_TEMP/published"
+          curl --fail --location --proto '=https' --proto-redir '=https' --retry 2 --connect-timeout 30 --max-time 180 --max-filesize 153096832 'https://github.com/osmankaankars/lemulip/releases/download/v0.1.17/Lemulip-0.1.17-macOS-universal.zip' -o "$RUNNER_TEMP/published/Lemulip-0.1.17-macOS-universal.zip"
+      - name: Trace activation without changing panel behavior
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import base64,hashlib,json,os,pathlib,textwrap,urllib.request
+          sha='d84a2c975fc3b534354c35d91ff517430766fd57'
+          req=urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/git/blobs/'+sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(req,timeout=30) as response:raw=base64.b64decode(json.load(response)['content'])
+          assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==sha
+          body=textwrap.dedent(raw.decode().split('        run: |\n',1)[1].split('      - name: Require explicit',1)[0])
+          unpack='ditto -xk "$RUNNER_TEMP/candidate/Lemulip-Refined-Preview.zip" "$RUNNER_TEMP/native"'
+          assert body.count(unpack)==1
+          body=body.replace(unpack,'CONFIGURATION=debug ./script/build_app.sh\nditto dist/Lemulip.app "$RUNNER_TEMP/native/Lemulip.app"')
+          # Instrument the disposable checkout only. No focus-related behavior changes.
+          target=pathlib.Path('Sources/Lemulip/AppController.swift');s=target.read_text()
+          points=[('    @objc func showMainWindow() {','show-main'),('    private func showResultCard(_ urls: [URL]) {','card-entry'),('            panel.title = "Lemulip"','panel-created'),('            resultPanel = panel','content-created'),('        panel.orderFrontRegardless()','will-order')]
+          for marker,label in points:
+              assert s.count(marker)==1,marker
+              trace='        NSLog("LEMULIP_FOCUS '+label+' active=%d front=%@", NSApp.isActive ? 1 : 0, NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "none")\n'
+              s=s.replace(marker,marker+'\n'+trace if marker.endswith('{') else trace+marker)
+          target.write_text(s)
+          new='''func typeText(_ text: String, into field: AXUIElement) throws {
+              guard let r = elementFrame(field) else { throw ReviewFailure(message: "Text field has no bounds") }
+              application?.activate(); settle(0.15)
+              mouse(.mouseMoved, CGPoint(x: r.midX, y: r.midY))
+              mouse(.leftMouseDown, CGPoint(x: r.midX, y: r.midY))
+              mouse(.leftMouseUp, CGPoint(x: r.midX, y: r.midY)); settle(0.15)
+              key(0, flags: .maskCommand); key(51)
+              if !text.isEmpty {
+                  let chars = Array(text.utf16)
+                  for down in [true, false] {
+                      let e = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: down)!
+                      e.keyboardSetUnicodeString(stringLength: chars.count, unicodeString: chars)
+                      e.post(tap: .cghidEventTap)
+                  }
+              }
+              settle(0.5)
+          }
+          func writeSearch(_ text: String) throws {
+              guard let field = find("workspace.operation-search") else { throw ReviewFailure(message: "Search field missing") }
+              try typeText(text, into: field)
+          }
+          '''
+          edits={
+            'settle(1); try resize(1020, 700)':'try require(waitFor({ mainWindow() != nil }, seconds: 20), "Main window not ready"); try resize(1020, 700)',
+            'try require(AXUIElementSetAttributeValue(field, kAXValueAttribute as CFString, value as CFString) == .success, "Field edit failed")':'try typeText(value, into: field); key(48)',
+            'finder.activate(); key(19, flags: .maskCommand); settle(0.6)':'finder.activate(); key(19, flags: .maskCommand); settle(0.6); key(1, flags: [.maskCommand, .maskAlternate]); settle(0.4)',
+            'try require(report["resultCardDoesNotStealFocus"] as? Bool == true && report["noAutomaticClipboardWrite"] as? Bool == true, "Automatic results changed focus or clipboard")':'report["focusAfterResult"] = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "none"',
+            'report["status"] = "passed"':'report["status"] = report["resultCardDoesNotStealFocus"] as? Bool == true ? "passed" : "focus-failed"',
+            'try recorder.start(output.appendingPathComponent("finder-recording.mov")); settle(1)':'report["focusBeforeRecording"] = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "none"; try recorder.start(output.appendingPathComponent("finder-recording.mov")); settle(1)',
+            'shift(true); mouse(.leftMouseDragged, destination, .maskShift); settle(1)':'shift(true); mouse(.leftMouseDragged, destination, .maskShift); settle(1); report["focusDuringWheel"] = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "none"',
+            'let result = fixtures.appendingPathComponent("morning-light-converted.jpg")':'report["focusAfterDrop"] = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "none"; let result = fixtures.appendingPathComponent("morning-light-converted.jpg")'
+          }
+          snippet='import os,pathlib\np=pathlib.Path(os.environ["RUNNER_TEMP"])/"native-review.swift"\ns=p.read_text()\na=s.index("func writeSearch(");b=s.index("func editorReady()",a)\ns=s[:a]+'+repr(new)+'+s[b:]\nedits='+repr(edits)+'\nfor a,b in edits.items():\n assert s.count(a)==1,a\n s=s.replace(a,b)\np.write_text(s)\n'
+          marker='xcrun swiftc "$RUNNER_TEMP/native-review.swift"'
+          assert body.count(marker)==1
+          body=body.replace(marker,'python3 - <<\'PATCH\'\n'+snippet+'PATCH\n'+marker)
+          (pathlib.Path(os.environ['RUNNER_TEMP'])/'native-focus-review.sh').write_text(body)
+          PY
+          status=0
+          bash -euo pipefail "$RUNNER_TEMP/native-focus-review.sh" || status=$?
+          cp "$RUNNER_TEMP/native-review.swift" "$RUNNER_TEMP/ui-review/review-probe.swift"
+          /usr/bin/log show --last 8m --style compact --predicate 'eventMessage CONTAINS "LEMULIP_FOCUS"' > "$RUNNER_TEMP/ui-review/focus-events.log" 2>/dev/null || true
+          exit "$status"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: Lemulip-UI-Focus-Diagnostics
+          path: ${{ runner.temp }}/ui-review/
+          retention-days: 7
+          if-no-files-found: error
