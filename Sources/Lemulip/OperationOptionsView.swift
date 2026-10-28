@@ -14,11 +14,12 @@ struct OperationOptionsView: View {
     @State private var flattenAcknowledged = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 24) {
             HStack(spacing: 13) {
                 Image(systemName: operation.symbol).font(.system(size: 24)).foregroundStyle(Palette.accent)
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(OperationNames.title(operation, language: model.language)).font(.system(size: 23, weight: .semibold)).tracking(-0.5)
+                    Text(OperationNames.title(operation, language: model.language)).font(.system(size: 21, weight: .semibold)).tracking(-0.5)
                     Text(model.text("A new copy will be created.", "Yeni bir kopya oluşturulur.")).font(.system(size: 11)).foregroundStyle(Palette.muted)
                 }
             }
@@ -58,13 +59,12 @@ struct OperationOptionsView: View {
                 }
                 if let validationError { Text(validationError).font(.system(size: 11)).foregroundStyle(.orange) }
             }.font(.system(size: 12))
-            HStack {
-                Spacer()
-                Button(model.text("Cancel", "Vazgeç")) { model.cancelPending() }.keyboardShortcut(.cancelAction)
-                Button(model.text("Create Copy", "Kopya oluştur")) { submit() }.buttonStyle(.borderedProminent).tint(Palette.lime).foregroundStyle(Palette.onLime)
-                    .keyboardShortcut(.defaultAction).disabled(validationError != nil || (operation.id == "pdf.compress" && !flattenAcknowledged))
-            }
-        }.padding(29).frame(width: 470).background(Palette.background).tint(Palette.accent)
+            }.padding(24)
+            Divider().overlay(Palette.line)
+            EditorFooter(language: model.language,
+                         isEnabled: validationError == nil && !(operation.id == "pdf.compress" && !flattenAcknowledged),
+                         onCancel: { model.cancelPending() }, onSubmit: submit)
+        }.frame(width: 520).background(Palette.background).foregroundStyle(Palette.ink).tint(Palette.accent)
     }
     private func field(_ title: String, value: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 7) { Text(title).font(.system(size: 11)).foregroundStyle(Palette.muted); TextField("", text: value).textFieldStyle(.roundedBorder) }

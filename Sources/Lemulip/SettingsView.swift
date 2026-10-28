@@ -34,9 +34,12 @@ struct SettingsContent: View {
                         .labelsHidden().toggleStyle(.switch).controlSize(.small)
                 }
                 divider
-                settingRow(model.text("Reveal Finished Files", "Biten Dosyaları Göster"), subtitle: model.text("Open Results In Finder.", "Sonuçları Finder’da Aç.")) {
-                    Toggle(model.text("Reveal Finished Files", "Biten Dosyaları Göster"), isOn: $model.revealWhenFinished)
-                        .labelsHidden().toggleStyle(.switch).controlSize(.small)
+                settingRow(model.text("When Finished", "Tamamlandığında"), subtitle: model.text("Choose How Results Appear.", "Sonuçların Nasıl Görüneceğini Seç.")) {
+                    Picker(model.text("When Finished", "Tamamlandığında"), selection: $model.completionPresentation) {
+                        Text(model.text("Stay Quiet", "Sessiz Kal")).tag(CompletionPresentation.quiet)
+                        Text(model.text("Show In Finder", "Finder’da Göster")).tag(CompletionPresentation.finder)
+                        Text(model.text("Show Result Card", "Sonuç Kartını Göster")).tag(CompletionPresentation.card)
+                    }.labelsHidden().frame(width: 178).accessibilityIdentifier("settings.completion")
                 }
             }
             VStack(alignment: .leading, spacing: 12) {

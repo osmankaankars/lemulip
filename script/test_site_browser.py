@@ -160,8 +160,32 @@ def check_gallery_without_javascript(page) -> None:
         assert link.get_attribute("href").endswith(".webp")
 
 
+def check_catalog_search(page):
+    search=page.locator('#format-search')
+    search.fill('crop')
+    assert page.locator('.format-row').count()==2
+    assert page.locator('.format-row').all_text_contents()[0].startswith('Images')
+    assert page.locator('#tool-directory li').count()==2
+    assert page.locator('#format-search-status').inner_text()=='2 File Families · 2 Matching Tools'
+    search.fill('EXCEL')
+    assert 'Spreadsheets' in page.locator('#format-directory').inner_text()
+    search.fill('<script>not-a-format</script>')
+    assert page.locator('.format-row').count()==0
+    assert 'No Matches' in page.locator('#format-search-status').inner_text()
+    assert page.locator('.tool-directory').is_hidden()
+    page.locator('#format-search-clear').click()
+    assert search.evaluate('e=>document.activeElement===e')
+    assert page.locator('.format-row').count()==9
+    assert page.locator('#tool-directory li').count()==32
+    search.fill('trim');search.press('Escape')
+    assert search.input_value()==''
+    assert page.locator('.format-row').count()==9
+    assert page.locator('#sample-grid [data-sample]').count()==9
+    assert page.locator('a[href$="Lemulip-0.1.17-macOS-universal.dmg"]').count()==3
+
+
 def exercise(page,output,width,height):
-    assert page.locator('html').get_attribute('data-site-version')=='20261028.1'
+    assert page.locator('html').get_attribute('data-site-version')=='20261028.2'
     assert 'Lemulip' in page.title()
     assert page.locator('#format-count').inner_text()=='35'
     assert page.locator('#tool-count').inner_text()=='26'
@@ -236,8 +260,8 @@ def run(output:Path,engine:str,url:str|None,executable:str|None=None):
                     page=browser.new_page(viewport={'width':width,'height':height})
                     page.on('pageerror',lambda e:errors.append(str(e)))
                     page.on('response',lambda r:failures.append([r.status,r.url]) if r.status>=400 else None)
-                    page.goto(url,wait_until='networkidle');check_presentation(page,output,width,height);exercise(page,output,width,height);check_native_gallery(page,output,width,height)
-                    results.append({'viewport':f'{width}x{height}','nine_samples':'PASS','wheel':'PASS','single_demo':'PASS','stable_layout':'PASS','keyboard':'PASS','native_gallery_click_keys_focus_wrap':'PASS','themes':'PASS','overflow':'NONE'})
+                    page.goto(url,wait_until='networkidle');check_presentation(page,output,width,height);exercise(page,output,width,height);check_native_gallery(page,output,width,height);check_catalog_search(page)
+                    results.append({'viewport':f'{width}x{height}','nine_samples':'PASS','wheel':'PASS','single_demo':'PASS','stable_layout':'PASS','keyboard':'PASS','native_gallery_click_keys_focus_wrap':'PASS','themes':'PASS','local_catalog_search':'PASS','reviewed_direct_download':'PASS','overflow':'NONE'})
                     page.close()
                 page=browser.new_page(viewport={'width':1440,'height':1000})
                 page.goto(url,wait_until='networkidle')

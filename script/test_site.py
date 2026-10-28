@@ -36,6 +36,22 @@ class SiteTests(unittest.TestCase):
         self.assertEqual(35,data['counts']['formats']);self.assertEqual(26,data['counts']['tools']);self.assertEqual(6,data['counts']['actions'])
         self.assertEqual(9,len(data['samples']))
         self.assertEqual(ids,set(data['operationIDs']))
+    def test_format_search_is_local_accessible_and_clearable(self):
+        page=(ROOT/'site/index.html').read_text()
+        for marker in ('id="format-search"','id="format-search-clear"','id="format-search-status"','aria-controls="format-directory tool-directory"'):
+            self.assertIn(marker,page)
+        self.assertTrue((ROOT/'site/catalog-search.js').is_file())
+        js=(ROOT/'site/catalog-search.js').read_text()
+        self.assertNotRegex(js,r'fetch\s*\(|XMLHttpRequest|FileReader|localStorage')
+        subprocess.run(['node',str(ROOT/'script/test_catalog_search.js')],check=True,cwd=ROOT)
+
+    def test_primary_downloads_use_reviewed_release_not_release_listing(self):
+        page=(ROOT/'site/index.html').read_text()
+        expected='https://github.com/osmankaankars/lemulip/releases/download/v0.1.17/Lemulip-0.1.17-macOS-universal.dmg'
+        self.assertEqual(3,page.count('href="'+expected+'"'))
+        self.assertIn('Release Notes',page)
+        self.assertIn('data-step=',page)
+
     def test_product_preview_is_compact_and_not_a_site_snapshot(self):
         page=(ROOT/'README.md').read_text()
         self.assertIn('width="720"',page)
@@ -79,8 +95,8 @@ class SiteTests(unittest.TestCase):
             self.assertNotRegex(p.read_text(),r'(?i)developer id|notariz|ad hoc sign',str(p))
     def test_motion_and_stale_assets_are_explicit(self):
         page=(ROOT/'site/index.html').read_text(); js=(ROOT/'site/product.js').read_text()
-        self.assertIn('data-site-version="20261028.1"',page)
-        self.assertIn('product.js?v=20261028.1',page)
+        self.assertIn('data-site-version="20261028.2"',page)
+        self.assertIn('product.js?v=20261028.2',page)
         for event in ('visibilitychange','prefers-reduced-motion','pointercancel'):self.assertIn(event,js)
         self.assertIn('Browser Simulation',page)
         self.assertNotRegex(js,r'\b(FileReader|XMLHttpRequest)\s*\(')

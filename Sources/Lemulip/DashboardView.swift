@@ -186,15 +186,8 @@ struct DashboardView: View {
                     .help(model.text("Open Wheel", "Çarkı Aç"))
                     .accessibilityLabel(model.text("Open Wheel", "Çarkı Aç"))
             }
-            if model.operations.isEmpty {
-                Text(model.text("Choose Files Of The Same Type For A Conversion. Actions Work With Any Selection.",
-                                "Birlikte Dönüştürmek İçin Aynı Türde Dosyalar Seç. İşlemler Her Seçimle Çalışır."))
-                    .font(.system(size: 13)).foregroundStyle(Palette.muted).padding(.vertical, 16)
-            } else {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 10)], spacing: 10) {
-                    ForEach(model.operations) { operation in OperationCard(operation: operation, model: model) }
-                }
-            }
+            OperationBrowser(model: model)
+
         }
     }
 
@@ -258,25 +251,37 @@ struct OperationCard: View {
     @ObservedObject var model: AppController
     @State private var hover = false
     private var missing: Bool { operation.dependency.map { !EngineLocator.isAvailable($0) } ?? false }
+    private var pinned: Bool { model.pinnedOperationIDs.contains(operation.id) }
     var body: some View {
-        Button { model.begin(operation) } label: {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack {
-                    Image(systemName: operation.symbol).font(.system(size: 20, weight: .regular)).foregroundStyle(missing ? Palette.muted : Palette.accent)
-                    Spacer()
-                    Image(systemName: missing ? "plus.circle" : "arrow.up.right").font(.system(size: 11)).foregroundStyle(Palette.muted)
-                }
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(OperationNames.title(operation, language: model.language)).font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.ink)
-                    Text(missing ? model.text("Add \(operation.dependency ?? "engine")", "\(operation.dependency ?? "Motor") ekle") : OperationNames.detail(operation, language: model.language))
-                        .font(.system(size: 10)).foregroundStyle(Palette.muted).lineLimit(2).frame(height: 27, alignment: .topLeading)
-                }
-            }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
-                .background(hover ? Palette.raised : Palette.panel, in: RoundedRectangle(cornerRadius: 11))
-                .overlay(RoundedRectangle(cornerRadius: 11).stroke(hover ? Palette.accent.opacity(0.5) : Palette.line, lineWidth: 1))
-                .contentShape(RoundedRectangle(cornerRadius: 11))
-        }.buttonStyle(.plain).onHover { hover = $0 }.help(operation.detail)
-            .accessibilityLabel(OperationNames.title(operation, language: model.language))
+        ZStack(alignment: .topTrailing) {
+            Button { model.begin(operation) } label: {
+                VStack(alignment: .leading, spacing: 14) {
+                    Image(systemName: operation.symbol).font(.system(size: 20))
+                        .foregroundStyle(missing ? Palette.muted : Palette.accent).frame(height: 25)
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text(OperationNames.title(operation, language: model.language))
+                            .font(.system(size: 13, weight: .semibold)).foregroundStyle(Palette.ink)
+                        Text(missing ? model.text("Add Support", "Destek Ekle") : OperationNames.detail(operation, language: model.language))
+                            .font(.system(size: 11)).foregroundStyle(Palette.muted).lineLimit(2)
+                            .frame(height: 30, alignment: .topLeading)
+                    }
+                }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
+                    .contentShape(RoundedRectangle(cornerRadius: 11))
+            }.buttonStyle(.plain).help(OperationNames.detail(operation, language: model.language))
+                .accessibilityLabel(OperationNames.title(operation, language: model.language))
+                .accessibilityIdentifier("operation." + operation.id)
+            Button { model.togglePin(operation) } label: {
+                Image(systemName: pinned ? "pin.fill" : "pin")
+                    .font(.system(size: 12)).foregroundStyle(pinned ? Palette.accent : Palette.muted)
+                    .frame(width: 30, height: 30).contentShape(Rectangle())
+            }.buttonStyle(.plain).padding(6)
+                .help(model.text(pinned ? "Unpin" : "Pin This Action", pinned ? "Sabitlemeyi Kaldır" : "Bu İşlemi Sabitle"))
+                .accessibilityLabel(model.text(pinned ? "Unpin " : "Pin ", pinned ? "Sabitlemeyi Kaldır: " : "Sabitle: ") + OperationNames.title(operation, language: model.language))
+                .accessibilityIdentifier("pin." + operation.id)
+        }
+        .background(hover ? Palette.raised : Palette.panel, in: RoundedRectangle(cornerRadius: 11))
+        .overlay(RoundedRectangle(cornerRadius: 11).stroke(hover ? Palette.accent.opacity(0.5) : Palette.line))
+        .onHover { hover = $0 }
     }
 }
 

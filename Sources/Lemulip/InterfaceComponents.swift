@@ -75,6 +75,11 @@ struct ShortcutHelp: View {
             }
             Text(model.text("Drop On An Action To Begin. Escape Cancels.", "Başlatmak İçin İşlemin Üzerine Bırak. Escape İptal Eder."))
                 .font(.system(size: 12)).foregroundStyle(Palette.muted)
+            Button(model.text("Try With A Sample", "Örnek Dosyayla Dene")) { model.tryPracticeFile() }
+                .buttonStyle(.borderedProminent).tint(Palette.primaryAction).foregroundStyle(Palette.onPrimary)
+                .accessibilityIdentifier("help.practice")
+            Text(model.text("Opens A Practice Image In Finder. Your Files Stay As They Are.", "Finder’da Bir Örnek Görsel Açılır. Dosyaların Değişmez."))
+                .font(.system(size: 11)).foregroundStyle(Palette.muted)
         }.foregroundStyle(Palette.ink)
     }
 }

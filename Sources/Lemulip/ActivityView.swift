@@ -8,6 +8,13 @@ struct ActivityContent: View {
     private var activeCount: Int { model.activity.filter { $0.state == .running || $0.state == .waiting }.count }
     private var failedCount: Int { model.activity.filter { $0.state == .failed }.count }
 
+    private var summary: String {
+        var parts = [model.text("\(model.completedCount) Completed", "\(model.completedCount) Tamamlandı")]
+        if activeCount > 0 { parts.append(model.text("\(activeCount) Processing", "\(activeCount) İşleniyor")) }
+        if failedCount > 0 { parts.append(model.text("\(failedCount) Needs Attention", "\(failedCount) Kontrol Bekliyor")) }
+        return parts.joined(separator: " · ")
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             if model.activity.isEmpty {
@@ -22,18 +29,10 @@ struct ActivityContent: View {
                 }.frame(maxWidth: .infinity).padding(.vertical, 54)
             } else {
                 HStack(spacing: 12) {
-                    Text(model.text("\(model.completedCount) Completed", "\(model.completedCount) Tamamlandı"))
-                    if activeCount > 0 {
-                        Text("·").accessibilityHidden(true)
-                        Text(model.text("\(activeCount) Processing", "\(activeCount) İşleniyor"))
-                    }
-                    if failedCount > 0 {
-                        Text("·").accessibilityHidden(true)
-                        Text(model.text("\(failedCount) Needs Attention", "\(failedCount) Kontrol Bekliyor"))
-                    }
+                    Text(summary).fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: 8)
                     Button(model.text("Clear Finished", "Bitenleri Temizle")) { model.clearActivity() }
-                        .buttonStyle(.plain).foregroundStyle(Palette.accent)
+                        .buttonStyle(.plain).foregroundStyle(Palette.accent).fixedSize()
                 }.font(.system(size: 12)).foregroundStyle(Palette.muted)
                 LazyVStack(spacing: 10) {
                     ForEach(model.activity) { ActivityRow(item: $0, model: model) }

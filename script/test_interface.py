@@ -36,7 +36,7 @@ class InterfaceTests(unittest.TestCase):
 
     def test_editor_controls_use_one_shared_footer(self):
         for name in ('ImageCropView', 'VideoCropView', 'AudioTrimView', 'VideoTrimView',
-                     'PDFOrganizeView', 'PDFMergeView'):
+                     'PDFOrganizeView', 'PDFMergeView', 'OperationOptionsView'):
             with self.subTest(view=name):
                 self.assertIn('EditorFooter(', (APP/(name+'.swift')).read_text())
         shared = APP/'InterfaceComponents.swift'
@@ -55,6 +55,35 @@ class InterfaceTests(unittest.TestCase):
         self.assertIn('EngineLocator.find', source)
         self.assertIn('PandocInstallButton', source)
         self.assertIn('engineStatus(report)', source)
+
+    def test_result_card_is_opt_in_and_never_activates_on_completion(self):
+        source = (APP/'AppController.swift').read_text()
+        body = source.split('private func showResultCard(', 1)[1].split('private func placeResultPanel', 1)[0]
+        self.assertIn('.nonactivatingPanel', body)
+        self.assertNotIn('makeKeyAndOrderFront', body)
+        self.assertNotIn('NSApp.activate', body)
+        self.assertIn('legacyReveal:', source)
+        self.assertIn('case .card:', source)
+        self.assertIn('guard validateOutputs(urls)', source)
+        settings = (APP/'SettingsView.swift').read_text()
+        self.assertIn('$model.completionPresentation', settings)
+
+    def test_search_request_survives_navigation_and_practice_image_is_checked(self):
+        source = (APP/'OperationBrowser.swift').read_text()
+        self.assertIn('.onAppear', source)
+        self.assertIn('consumeSearchRequest', source)
+        controller = (APP/'AppController.swift').read_text()
+        self.assertNotIn('NSApp.applicationIconImage!', controller)
+        self.assertIn('pinnedOperationIDs', controller)
+        self.assertIn('OperationDiscovery.normalizedPins', controller)
+        self.assertIn('posixPermissions: 0o700', controller)
+
+    def test_generic_editor_preserves_flatten_confirmation(self):
+        source = (APP/'OperationOptionsView.swift').read_text()
+        self.assertIn('!flattenAcknowledged', source)
+        self.assertIn('flattenAcknowledged', source)
+        self.assertIn('16...16000', source)
+        self.assertIn('accessibility tags', source)
 
     def test_new_contract_runs_in_mac_ci(self):
         source = (ROOT/'.github/workflows/build.yml').read_text()

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-repository="" data-theme="orchard" data-site-version="20261028.1">
+<html lang="en" data-repository="" data-theme="orchard" data-site-version="20261028.2">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,18 +10,19 @@
   <meta property="og:description" content="35 conversion output formats. 26 tools. 6 file actions. Free, open source, and local to your Mac.">
   <title>Lemulip · File Tools, Right Where You Drag.</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./product.css?v=20261028.1">
-  <script src="./catalog.js?v=20261028.1" defer></script>
-  <script src="./product.js?v=20261028.1" defer></script>
-  <link rel="stylesheet" href="./gallery.css?v=20261028.1">
-  <script src="./gallery.js?v=20261028.1" defer></script>
+  <link rel="stylesheet" href="./product.css?v=20261028.2">
+  <script src="./catalog.js?v=20261028.2" defer></script>
+  <script src="./catalog-search.js?v=20261028.2" defer></script>
+  <script src="./product.js?v=20261028.2" defer></script>
+  <link rel="stylesheet" href="./gallery.css?v=20261028.2">
+  <script src="./gallery.js?v=20261028.2" defer></script>
 </head>
 <body>
 <a class="skip" href="#try">Skip to interactive demo</a>
 <header class="shell header">
   <a class="brand" href="#" aria-label="Lemulip home"><img src="../Resources/AppIcon.png" width="42" height="42" alt=""><span class="wordmark">Lemulip</span></a>
   <label class="theme-label" for="appearance">Appearance <select id="appearance"><option value="orchard">Orchard Night</option><option value="pistachio">Vivid Pistachio</option><option value="lemonade">Lemon Drop</option></select></label>
-  <nav aria-label="Main navigation"><a href="#features">Features</a><a href="#formats">Formats</a><a class="button primary nav-download" href="https://github.com/osmankaankars/lemulip/releases">Download For Mac <span aria-hidden="true">↗</span></a></nav>
+  <nav aria-label="Main navigation"><a href="#features">Features</a><a href="#formats">Formats</a><a class="button primary nav-download" href="https://github.com/osmankaankars/lemulip/releases/download/v0.1.17/Lemulip-0.1.17-macOS-universal.dmg">Download For Mac <span aria-hidden="true">↗</span></a></nav>
 </header>
 <main>
 <section class="shell hero" aria-labelledby="hero-title">
@@ -29,11 +30,12 @@
     <h1 id="hero-title">File Tools.<br><em>Right Where<br>You Drag.</em></h1>
     <p class="lead">On Your Desktop. In Finder.</p>
     <p class="intro">Convert, Crop, Trim And Arrange.<br>All On Your Mac.</p>
-    <a class="button primary" href="https://github.com/osmankaankars/lemulip/releases">Download For Mac <span aria-hidden="true">↓</span></a>
-    <p class="requirements">Free &amp; Open Source · <span class="verbatim">macOS</span> 13+<br>Apple Silicon &amp; Intel</p>
+    <a class="button primary" href="https://github.com/osmankaankars/lemulip/releases/download/v0.1.17/Lemulip-0.1.17-macOS-universal.dmg">Download For Mac <span aria-hidden="true">↓</span></a>
+    <p class="requirements">Free &amp; Open Source · <span class="verbatim">macOS</span> 13+<br>Apple Silicon &amp; Intel · v0.1.17</p>
+    <a class="release-link" href="https://github.com/osmankaankars/lemulip/releases/tag/v0.1.17">Release Notes</a>
   </div>
   <div class="product-demo" id="try">
-    <div class="demo-heading"><div class="origin-picker" role="group" aria-label="Demo Location"><button id="origin-desktop" aria-pressed="true">Desktop</button><button id="origin-finder" aria-pressed="false">Finder</button></div><span class="demo-hint">Pick Up A File</span></div>
+    <div class="demo-heading"><div class="origin-picker" role="group" aria-label="Demo Location"><button id="origin-desktop" aria-pressed="true">Desktop</button><button id="origin-finder" aria-pressed="false">Finder</button></div><span class="demo-hint" id="demo-hint">Pick Up A File</span></div>
     <div class="desktop" id="desktop-demo" data-step="0" data-origin="desktop" tabindex="0" aria-label="Interactive desktop illustration. Pick a sample file, choose a mode, then choose a wheel operation.">
       <div class="mac-menubar" aria-hidden="true"><strong>Finder</strong><span>File</span><span>Edit</span><span>View</span><span>Go</span><span class="menu-app">Lemulip <i></i></span></div>
       <div class="finder-window" aria-hidden="true"><div class="finder-title"><span class="traffic">● ● ●</span><b>Downloads</b></div><div class="finder-sidebar">Favorites<br><br>Desktop<br><br><b>Downloads</b><br><br>Documents</div></div>
@@ -66,7 +68,7 @@
   <div><strong id="format-count">35</strong><h2>Conversion output formats</h2><p>Images, media, documents &amp; more.</p></div>
   <div><strong id="tool-count">26</strong><h2>File tools</h2><p>Crop, trim, merge, split &amp; more.</p></div>
   <div><strong id="action-count">6</strong><h2>File actions</h2><p>Share, float, copy, move &amp; more.</p></div>
-  <p class="count-note">Built In And Optional Local Engines. <a href="#formats">See exactly what’s included →</a></p>
+  <p class="count-note"><a href="#formats">Explore The Formats And Tools →</a></p>
 </section>
 <section class="shell shortcuts" id="features" aria-labelledby="shortcuts-title"><div><h2 id="shortcuts-title">Start With A Drag.<br>Finish With A Drop.</h2><p>Keep Your Files Where They Are.<br>Bring The Right Tool To Them.</p></div><div class="shortcut-list"><div class="shortcut-convert"><kbd>⇧</kbd><h3>Convert</h3><p>Choose a new format.</p></div><div class="shortcut-tools"><kbd>⌘</kbd><h3>Tools</h3><p>Choose an edit or file tool.</p></div><div class="shortcut-actions"><kbd>⌃</kbd><h3>Actions</h3><p>Move, share, or keep a file close.</p></div></div></section>
 <section class="shell app-gallery" id="app-gallery" aria-labelledby="gallery-title">
@@ -109,8 +111,12 @@
   <p class="gallery-caption" id="gallery-caption" role="status" aria-live="polite">Workspace</p>
   <noscript><p><a href="./assets/app-workspace.webp">Workspace</a> · <a href="./assets/app-crop-video.webp">Crop Video</a> · <a href="./assets/app-trim-audio.webp">Trim Audio</a> · <a href="./assets/app-activity.webp">Activity</a></p></noscript>
 </section>
-<section class="shell format-section" id="formats" aria-labelledby="formats-title"><div class="section-heading"><h2 id="formats-title">The Formats.<br>The Tools. The Details.</h2></div><div id="format-directory" class="format-directory"><p>PNG · JPG · HEIC · TIFF · WebP · AVIF · BMP · PDF · MP3 · M4A · WAV · FLAC · OGG · Opus · AIFF · MP4 · MOV · MKV · WebM · GIF · DOCX · ODT · RTF · HTML · TXT · Markdown · EPUB · PPTX · ODP · XLSX · ODS · CSV · TSV · SRT · VTT</p></div><details class="tool-directory"><summary>Tools And File Actions</summary><div id="tool-directory"></div></details><p class="simulation-note">Engine and codec availability depend on your Mac and selected files. <a href="https://github.com/osmankaankars/lemulip/blob/main/docs/FORMATS.md">Full format guide and limits →</a></p></section>
-<section class="shell final-section"><div><h2>Your Files Stay<br><em>On Your Mac.</em></h2><p>No Account. No Subscription. No Uploads.</p></div><div><a class="button primary" href="https://github.com/osmankaankars/lemulip/releases">Get Lemulip for Mac ↓</a><p class="requirements">macOS 13+ · Apple Silicon &amp; Intel</p></div></section>
+<section class="shell format-section" id="formats" aria-labelledby="formats-title"><div class="section-heading"><h2 id="formats-title">The Formats.<br>The Tools. The Details.</h2></div><div class="catalog-search" id="catalog-search" hidden>
+  <label for="format-search">Find A Format Or Tool</label>
+  <div class="search-field"><span aria-hidden="true">⌕</span><input id="format-search" type="search" placeholder="WebP, Trim, Excel…" autocomplete="off" spellcheck="false" maxlength="512" aria-controls="format-directory tool-directory"><button type="button" id="format-search-clear" aria-label="Clear Format Search" hidden>Clear</button></div>
+  <p id="format-search-status" class="search-status" role="status" aria-live="polite" aria-atomic="true"></p>
+</div><div id="format-directory" class="format-directory"><p>PNG · JPG · HEIC · TIFF · WebP · AVIF · BMP · PDF · MP3 · M4A · WAV · FLAC · OGG · Opus · AIFF · MP4 · MOV · MKV · WebM · GIF · DOCX · ODT · RTF · HTML · TXT · Markdown · EPUB · PPTX · ODP · XLSX · ODS · CSV · TSV · SRT · VTT</p></div><details class="tool-directory"><summary>Tools And File Actions</summary><div id="tool-directory"></div></details><p class="simulation-note">Engine and codec availability depend on your Mac and selected files. <a href="https://github.com/osmankaankars/lemulip/blob/main/docs/FORMATS.md">Full format guide and limits →</a></p></section>
+<section class="shell final-section"><div><h2>Your Files Stay<br><em>On Your Mac.</em></h2><p>No Account. No Subscription. No Uploads.</p></div><div><a class="button primary" href="https://github.com/osmankaankars/lemulip/releases/download/v0.1.17/Lemulip-0.1.17-macOS-universal.dmg">Get Lemulip for Mac ↓</a><p class="requirements">macOS 13+ · Apple Silicon &amp; Intel</p></div></section>
 </main>
 <footer class="shell footer"><span>Lemulip · Made by <a href="https://github.com/osmankaankars">Kaan Kars</a></span><div><a href="https://github.com/osmankaankars/lemulip/blob/main/docs/USER_GUIDE.md">User guide</a><a href="https://github.com/osmankaankars/lemulip/blob/main/THIRD_PARTY_NOTICES.md">Third-Party Notices</a><a href="https://github.com/osmankaankars/lemulip/blob/main/LICENSE">MIT license</a></div></footer>
 <p id="announcer" class="sr-only" role="status" aria-live="polite"></p>
