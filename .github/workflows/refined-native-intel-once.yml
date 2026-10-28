@@ -1,0 +1,53 @@
+name: Refined Native Intel Acceptance
+on:
+  push:
+    branches: [verify/refined-native-ui-20261028]
+    paths: [.github/workflows/refined-native-intel-once.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  review:
+    runs-on: macos-15-intel
+    timeout-minutes: 18
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: c2cace03eac653ad8d2623c1394d3b8a6ad604fd
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: Lemulip-macOS-universal
+          run-id: 40622450424
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/published
+          digest-mismatch: error
+      - name: Execute the same strict UI probe on a native Intel build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os,pathlib,textwrap
+          source=pathlib.Path('.github/workflows/refined-native-review-once.yml').read_text()
+          body=source.split('        run: |\n',1)[1].split('      - name: Require explicit',1)[0]
+          line='ditto -xk "$RUNNER_TEMP/candidate/Lemulip-Refined-Preview.zip" "$RUNNER_TEMP/native"'
+          assert body.count(line)==1
+          body=body.replace(line,'CONFIGURATION=debug ./script/build_app.sh\n          ditto dist/Lemulip.app "$RUNNER_TEMP/native/Lemulip.app"')
+          (pathlib.Path(os.environ['RUNNER_TEMP'])/'native-intel-review.sh').write_text(textwrap.dedent(body))
+          PY
+          bash -euo pipefail "$RUNNER_TEMP/native-intel-review.sh"
+          python3 - <<'PY'
+          import json,os,pathlib
+          result=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'ui-review/native-review.json').read_text())
+          assert result['status']=='passed',result
+          print(json.dumps(result,indent=2))
+          PY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: Lemulip-Refined-Intel-Visual-Review
+          path: ${{ runner.temp }}/ui-review/
+          retention-days: 7
+          if-no-files-found: error
