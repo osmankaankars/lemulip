@@ -158,6 +158,13 @@ def smoke_test(pack: Path, work: Path, record: list) -> None:
     (work/'result.json').write_text(json.dumps({'formats':9,'svg':True,'edits':3,'blockedInputs':3,'originalSHA256':before},indent=2)+'\n')
 
 
+def source_notices(source: Path) -> list[Path]:
+    # Upstreams use several spellings, including libxml2's mixed-case Copyright.
+    return sorted(p for p in source.iterdir() if p.is_file() and
+                  (p.name.lower().startswith(('copying','copyright','license','licence','notice','patents','authors'))
+                   or p.name.lower() == 'readme.ijg'))
+
+
 def build(output: Path, work: Path, architecture: str) -> None:
     assert_host(platform.system(),platform.machine(),architecture)
     if output.exists() or output.is_symlink() or work.exists() or work.is_symlink(): raise ValueError('Output and work directories must be new')
@@ -179,9 +186,7 @@ def build(output: Path, work: Path, architecture: str) -> None:
     jobs=str(min(os.cpu_count() or 2,8));record=[];components=[]
     for component in lock['components']:
         name=component['name']; source,archive=fetch_source(component,work,stage/'sources',env,record)
-        notices=[]
-        for pattern in ('COPYING*','LICENSE*','NOTICE*','PATENTS*','AUTHORS*','README.ijg'):
-            notices.extend(p for p in source.glob(pattern) if p.is_file())
+        notices=source_notices(source)
         if not notices: raise ValueError('No source notices: '+name)
         notice=stage/'licenses'/(name+'.txt')
         with notice.open('wb') as stream:

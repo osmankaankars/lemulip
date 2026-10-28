@@ -84,6 +84,15 @@ class ImagePackTests(unittest.TestCase):
         with self.assertRaises(ValueError): self.m.cmake_options('unknown')
         with self.assertRaises(ValueError): self.m.configure_arguments('unknown',Path('/prefix'))
 
+    def test_upstream_copyright_filename_is_kept_as_a_license(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            for name in ('Copyright','COPYING.LESSER','LICENSE.md','PATENTS','README.ijg','unrelated.c'):
+                (root/name).write_text(name)
+            self.assertTrue(hasattr(self.m, 'source_notices'), 'libxml2 Copyright notice is not collected')
+            names={p.name for p in self.m.source_notices(root)}
+            self.assertEqual({'Copyright','COPYING.LESSER','LICENSE.md','PATENTS','README.ijg'}, names)
+
     def test_source_helpers_are_shared_not_reimplemented(self):
         self.assertEqual('build_media_engine',self.m.fetch_source.__module__)
         self.assertEqual('build_media_engine',self.m.sha256.__module__)
