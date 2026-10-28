@@ -1,0 +1,208 @@
+name: Published Finder Drag Review
+on:
+  push:
+    branches: [verify/remaining-checks-20261028]
+    paths: [.github/workflows/finder-drag-once.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  review:
+    runs-on: macos-15
+    timeout-minutes: 8
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: Lemulip-macOS-universal
+          run-id: 40622450424
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/published
+          digest-mismatch: error
+      - name: Verify the published app and prepare a disposable Finder test
+        run: |
+          mkdir -p "$RUNNER_TEMP/finder-review"
+          python3 - <<'PY'
+          import hashlib,os,pathlib
+          p=pathlib.Path(os.environ['RUNNER_TEMP'])/'published/Lemulip-0.1.17-macOS-universal.zip'
+          assert p.stat().st_size==153096832
+          assert hashlib.file_digest(p.open('rb'),'sha256').hexdigest()=='a48b8d36a606a85398dded5019326287218c8478fa479751ff4ad0e3a5d852d4'
+          PY
+          ditto -xk "$RUNNER_TEMP/published/Lemulip-0.1.17-macOS-universal.zip" "$RUNNER_TEMP/native-app"
+          cat > "$RUNNER_TEMP/finder-probe.swift" <<'SWIFT'
+          import AppKit
+          import ApplicationServices
+          import CoreGraphics
+          import CryptoKit
+          import Foundation
+          let bundle = URL(fileURLWithPath:CommandLine.arguments[1])
+          let output = URL(fileURLWithPath:CommandLine.arguments[2],isDirectory:true)
+          var report: [String:Any] = ["appVersion":"0.1.17","macOS":ProcessInfo.processInfo.operatingSystemVersionString,"permissionsModified":false,"inputMethod":"CGEvent pointer and keyboard events in real Finder, no direct file-open event to Lemulip and no pasteboard injection","physicalHumanGesture":false]
+          var stage = "permissions"
+          func settle(_ seconds:Double) {
+              let until=Date().addingTimeInterval(seconds)
+              while Date()<until { RunLoop.current.run(until:Date().addingTimeInterval(0.04)) }
+          }
+          func attr(_ e:AXUIElement,_ key:String)->CFTypeRef? {
+              var value:CFTypeRef?
+              return AXUIElementCopyAttributeValue(e,key as CFString,&value) == .success ? value:nil
+          }
+          func nodes(_ root:AXUIElement)->[AXUIElement] {
+              var todo:[(AXUIElement,Int)]=[(root,0)],found:[AXUIElement]=[]
+              while !todo.isEmpty && found.count<1200 {
+                  let (e,depth)=todo.removeFirst();found.append(e)
+                  if depth<18,let c=attr(e,kAXChildrenAttribute) as? [AXUIElement] { todo += c.map{($0,depth+1)} }
+              }
+              return found
+          }
+          func directText(_ e:AXUIElement)->[String] {
+              [kAXTitleAttribute,kAXDescriptionAttribute,kAXValueAttribute].compactMap{attr(e,$0) as? String}
+          }
+          func frame(_ e:AXUIElement)->CGRect? {
+              guard let p=attr(e,kAXPositionAttribute),let s=attr(e,kAXSizeAttribute),CFGetTypeID(p)==AXValueGetTypeID(),CFGetTypeID(s)==AXValueGetTypeID() else{return nil}
+              var point=CGPoint.zero,size=CGSize.zero
+              guard AXValueGetValue(p as! AXValue,.cgPoint,&point),AXValueGetValue(s as! AXValue,.cgSize,&size) else{return nil}
+              return CGRect(origin:point,size:size)
+          }
+          func press(_ root:AXUIElement,_ title:String)->Bool {
+              guard let e=nodes(root).first(where:{(attr($0,kAXRoleAttribute) as? String)==kAXButtonRole && directText($0).contains(title)}) else{return false}
+              return AXUIElementPerformAction(e,kAXPressAction as CFString)==.success
+          }
+          let eventSource=CGEventSource(stateID:.hidSystemState)
+          var pointer=CGPoint.zero,mouseDown=false,shiftDown=false
+          func mouse(_ type:CGEventType,_ point:CGPoint,_ flags:CGEventFlags=[]) {
+              pointer=point
+              let e=CGEvent(mouseEventSource:eventSource,mouseType:type,mouseCursorPosition:point,mouseButton:.left)!
+              e.flags=flags;e.setIntegerValueField(.mouseEventNumber,value:91)
+              if type == .leftMouseDown || type == .leftMouseUp {e.setIntegerValueField(.mouseEventClickState,value:1)}
+              e.post(tap:.cghidEventTap)
+              if type == .leftMouseDown {mouseDown=true}
+              if type == .leftMouseUp {mouseDown=false}
+          }
+          func key(_ code:CGKeyCode,_ down:Bool,_ flags:CGEventFlags=[]) {
+              let e=CGEvent(keyboardEventSource:eventSource,virtualKey:code,keyDown:down)!
+              e.flags=flags;e.post(tap:.cghidEventTap)
+              if code==56 {shiftDown=down}
+          }
+          func move(_ from:CGPoint,_ to:CGPoint,_ flags:CGEventFlags=[]) {
+              for step in 1...24 {
+                  let f=Double(step)/24
+                  mouse(.leftMouseDragged,CGPoint(x:from.x+(to.x-from.x)*f,y:from.y+(to.y-from.y)*f),flags)
+                  settle(0.025)
+              }
+          }
+          func windows(_ pid:pid_t)->[[String:Any]] {
+              (CGWindowListCopyWindowInfo(.optionOnScreenOnly,kCGNullWindowID) as? [[String:Any]] ?? []).filter{($0[kCGWindowOwnerPID as String] as? NSNumber)?.int32Value==pid}
+          }
+          func bounds(_ w:[String:Any])->CGRect? {
+              guard let d=w[kCGWindowBounds as String] as? NSDictionary else{return nil}
+              return CGRect(dictionaryRepresentation:d)
+          }
+          func capture(_ w:[String:Any],_ name:String)->Bool {
+              guard CGPreflightScreenCaptureAccess(),let id=w[kCGWindowNumber as String] as? NSNumber else{return false}
+              let p=Process();p.executableURL=URL(fileURLWithPath:"/usr/sbin/screencapture")
+              p.arguments=["-x","-l",id.stringValue,output.appendingPathComponent(name+".png").path]
+              do{try p.run();p.waitUntilExit();return p.terminationStatus==0}catch{return false}
+          }
+          struct ProbeFailure:Error {let reason:String}
+          func require(_ ok:Bool,_ reason:String)throws{if !ok {throw ProbeFailure(reason:reason)}}
+          var app:NSRunningApplication?,finderWindow:AXUIElement?
+          func cleanup(){
+              if mouseDown {mouse(.leftMouseUp,pointer)}
+              if shiftDown {key(56,false)}
+              if let w=finderWindow,let button=attr(w,kAXCloseButtonAttribute){AXUIElementPerformAction(button as! AXUIElement,kAXPressAction as CFString)}
+              app?.terminate()
+          }
+          do {
+              let trusted=AXIsProcessTrusted(),post=CGPreflightPostEventAccess()
+              report["accessibilityTrusted"]=trusted;report["postEventAllowed"]=post;report["captureAllowed"]=CGPreflightScreenCaptureAccess()
+              try require(trusted && post,"Existing pointer/accessibility permission unavailable; no permission request made")
+              let fixtures=output.appendingPathComponent("Lemulip-Finder-Fixture",isDirectory:true)
+              try FileManager.default.createDirectory(at:fixtures,withIntermediateDirectories:true)
+              let source=fixtures.appendingPathComponent("finder-input.png")
+              let bitmap=NSBitmapImageRep(bitmapDataPlanes:nil,pixelsWide:32,pixelsHigh:24,bitsPerSample:8,samplesPerPixel:4,hasAlpha:true,isPlanar:false,colorSpaceName:.deviceRGB,bytesPerRow:0,bitsPerPixel:0)!
+              for y in 0..<24 {for x in 0..<32 {bitmap.setColor(NSColor(srgbRed:Double(x)/32,green:Double(y)/24,blue:0.4,alpha:1),atX:x,y:y)}}
+              let original=bitmap.representation(using:.png,properties:[:])!
+              try original.write(to:source,options:.withoutOverwriting)
+              stage="launch"
+              let config=NSWorkspace.OpenConfiguration();config.activates=true;config.createsNewApplicationInstance=true
+              var launchFailed=false
+              NSWorkspace.shared.openApplication(at:bundle,configuration:config){opened,error in app=opened;launchFailed=error != nil}
+              let deadline=Date().addingTimeInterval(20)
+              while app==nil && !launchFailed && Date()<deadline {settle(0.1)}
+              try require(app != nil,"Published app did not launch")
+              let running=app!;let root=AXUIElementCreateApplication(running.processIdentifier)
+              AXUIElementSetMessagingTimeout(root,1);settle(2)
+              stage="finder-selection"
+              NSWorkspace.shared.activateFileViewerSelecting([source]);settle(2)
+              guard let finder=NSRunningApplication.runningApplications(withBundleIdentifier:"com.apple.finder").first else{throw ProbeFailure(reason:"Finder unavailable")}
+              let finderRoot=AXUIElementCreateApplication(finder.processIdentifier);AXUIElementSetMessagingTimeout(finderRoot,1)
+              let fw=attr(finderRoot,kAXWindowsAttribute) as? [AXUIElement] ?? []
+              finderWindow=fw.first{directText($0).contains("Lemulip-Finder-Fixture")}
+              try require(finderWindow != nil,"Disposable fixture Finder window unavailable")
+              let window=finderWindow!
+              var position=CGPoint(x:30,y:90),size=CGSize(width:530,height:440)
+              if let v=AXValueCreate(.cgPoint,&position){AXUIElementSetAttributeValue(window,kAXPositionAttribute as CFString,v)}
+              if let v=AXValueCreate(.cgSize,&size){AXUIElementSetAttributeValue(window,kAXSizeAttribute as CFString,v)}
+              finder.activate(options:.activateIgnoringOtherApps);settle(0.5)
+              key(19,true,.maskCommand);key(19,false,.maskCommand);settle(1)
+              let candidates=nodes(window).filter{directText($0).contains(source.lastPathComponent)}
+              report["matchingFinderElements"]=candidates.compactMap{e -> [String:Any]? in
+                  guard let r=frame(e) else{return nil}
+                  return ["role":attr(e,kAXRoleAttribute) as? String ?? "unknown","x":r.minX,"y":r.minY,"width":r.width,"height":r.height]
+              }
+              guard let cell=candidates.first(where:{e in guard let r=frame(e) else{return false};return r.width>10 && r.height>8 && r.width<500 && r.height<100}),let cellFrame=frame(cell) else{throw ProbeFailure(reason:"Fixture row cannot be located without guessing")}
+              let start=CGPoint(x:cellFrame.midX,y:cellFrame.midY)
+              let screen=CGDisplayBounds(CGMainDisplayID())
+              let destination=CGPoint(x:screen.maxX-245,y:max(screen.minY+240,screen.midY))
+              report["screenWidth"]=screen.width;report["screenHeight"]=screen.height
+              stage="finder-drag"
+              let board=NSPasteboard(name:.drag),before=board.changeCount
+              mouse(.mouseMoved,start);settle(0.1);mouse(.leftMouseDown,start);settle(0.25)
+              move(start,CGPoint(x:start.x+35,y:start.y+12));move(pointer,destination);settle(0.4)
+              let urls=board.readObjects(forClasses:[NSURL.self],options:[.urlReadingFileURLsOnly:true]) as? [URL] ?? []
+              let actualDrag=board.changeCount != before && urls.contains{ $0.standardizedFileURL==source.standardizedFileURL }
+              report["realFinderDragPayload"]=actualDrag
+              report["leftButtonObserved"]=NSEvent.pressedMouseButtons & 1 != 0
+              try require(actualDrag,"Finder did not start a real file drag")
+              stage="shift-wheel"
+              key(56,true,.maskShift);mouse(.leftMouseDragged,destination,.maskShift);settle(0.6)
+              guard let wheel=windows(running.processIdentifier).first(where:{w in guard let r=bounds(w) else{return false};return abs(r.width-420)<2 && abs(r.height-420)<2}),let wheelRect=bounds(wheel) else{throw ProbeFailure(reason:"Wheel not visible during the tracked Shift drag")}
+              report["wheelVisible"]=true;report["wheelCaptured"]=capture(wheel,"finder-drag-wheel")
+              stage="drop"
+              let drop=CGPoint(x:wheelRect.midX,y:wheelRect.midY-115)
+              move(pointer,drop,.maskShift);settle(0.4);mouse(.leftMouseUp,drop,.maskShift);key(56,false);settle(0.5)
+              let result=fixtures.appendingPathComponent("finder-input.jpg")
+              let end=Date().addingTimeInterval(30)
+              while !FileManager.default.fileExists(atPath:result.path) && Date()<end {settle(0.2)}
+              let bytes=try Data(contentsOf:result)
+              guard let decoded=NSBitmapImageRep(data:bytes) else{throw ProbeFailure(reason:"Dropped conversion did not create a readable image")}
+              report["outputWidth"]=decoded.pixelsWide;report["outputHeight"]=decoded.pixelsHigh
+              report["outputSHA256"]=SHA256.hash(data:bytes).map{String(format:"%02x",$0)}.joined()
+              let preserved=(try Data(contentsOf:source))==original;report["originalPreserved"]=preserved
+              try require(decoded.pixelsWide==32 && decoded.pixelsHigh==24 && preserved,"Output dimensions or original preservation failed")
+              _=press(root,"Activity");settle(1)
+              report["activityShowsOutput"]=nodes(root).flatMap{directText($0)}.contains{$0.contains("finder-input.jpg")}
+              if let w=windows(running.processIdentifier).first(where:{($0[kCGWindowLayer as String] as? NSNumber)?.intValue==0}){report["activityCaptured"]=capture(w,"finder-drag-result")}
+              report["appAlive"]=!running.isTerminated;report["status"]="passed"
+          } catch let error as ProbeFailure {
+              report["status"] = stage=="permissions" ? "not-run":"failed"
+              report["reason"]=error.reason;report["stage"]=stage
+          } catch {
+              report["status"]="failed";report["stage"]=stage;report["reason"]="Fixture or output operation failed"
+          }
+          cleanup()
+          let data=try JSONSerialization.data(withJSONObject:report,options:[.prettyPrinted,.sortedKeys])
+          try data.write(to:output.appendingPathComponent("finder-review.json"));print(String(data:data,encoding:.utf8)!)
+          if report["status"] as? String == "failed" {exit(1)}
+          SWIFT
+          xcrun swiftc "$RUNNER_TEMP/finder-probe.swift" -o "$RUNNER_TEMP/finder-probe"
+          "$RUNNER_TEMP/finder-probe" "$RUNNER_TEMP/native-app/Lemulip-0.1.17-macOS-universal/Lemulip.app" "$RUNNER_TEMP/finder-review"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: Lemulip-Finder-Drag-Review
+          path: ${{ runner.temp }}/finder-review/
+          if-no-files-found: error
+          retention-days: 7
