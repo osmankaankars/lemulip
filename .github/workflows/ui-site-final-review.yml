@@ -1,0 +1,93 @@
+name: Refined Website And Native Recording Review
+on:
+  push:
+    branches: [verify/ui-resume-20261028]
+    paths: [.github/workflows/ui-site-final-review.yml]
+permissions:
+  contents: write
+jobs:
+  review:
+    if: github.repository == 'osmankaankars/lemulip' && github.ref == 'refs/heads/verify/ui-resume-20261028'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: f9496dd2c040a3a538bb4fea650355defcb7058d
+          persist-credentials: false
+      - name: Install isolated test dependencies
+        run: |
+          python3 -m venv "$RUNNER_TEMP/site-tools"
+          "$RUNNER_TEMP/site-tools/bin/pip" install playwright==1.61.0
+          "$RUNNER_TEMP/site-tools/bin/python" -m playwright install --with-deps chromium webkit
+      - name: Reconstruct and verify only the reviewed source tree
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          "$RUNNER_TEMP/site-tools/bin/python" - <<'PY'
+          import base64,gzip,hashlib,json,os,pathlib,subprocess,urllib.request
+          prefix='https://api.github.com/repos/osmankaankars/lemulip/'
+          def api(path,payload=None):
+              assert path.startswith('git/blobs') or path=='git/trees'
+              request=urllib.request.Request(prefix+path,method='GET' if payload is None else 'POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'},data=None if payload is None else json.dumps(payload).encode())
+              with urllib.request.urlopen(request,timeout=30) as response:return json.load(response)
+          def blob(sha):
+              data=base64.b64decode(api('git/blobs/'+sha)['content'])
+              assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()==sha
+              return data
+          parts='cd6ddf7e9d8cd778fd5cdd6d313c19c806bd4f35 c3ce848aa6e7e1f3ed2782ec99b2280408dd470a 0f68b9333f58e0b85bdca738828569feff22a27b f7eace52a3f02ea83b57d4a2f6f69a93665b2673'.split()
+          packed=base64.b64decode(b''.join(blob(sha) for sha in parts),validate=True)
+          assert len(packed)==11310 and hashlib.sha256(packed).hexdigest()=='2ea6f7d2571845dd3a5ce983a9005c606b428f8323953f5feaf2085274d97006'
+          patch=gzip.decompress(packed)
+          assert len(patch)==35901 and hashlib.sha256(patch).hexdigest()=='136cb6a1488483b778b332821435f822fe76e363436ae5a9a9b9f41e64ba4022'
+          subprocess.run(['git','apply','--index','-'],input=patch,check=True)
+          known={
+            'Sources/Lemulip/AppController.swift':'0f50e609d8cdce67b3f91ec174209d2f2a4d6dfe',
+            'docs/USER_GUIDE.md':'34e8a218e3ad6eee16c85e9961499b38397f05e6',
+            'script/test_interface.py':'a62249fe775b254fc64f1491caab3929989d8d42',
+            'Resources/Info.plist':'8e9b7f9e5a76930cd228db21f86bc218cef80ee5',
+            'docs/RELEASE_NOTES.md':'b02bf293415e2f72523488078cbab73095769d12',
+            'site/catalog.js':'72a2f07a8479dcbae2097ebf2501afd00307238b',
+            'site/assets/app-activity.webp':'97e854131f4fd6a7b9e54cd35813e4407ca93c77',
+            'site/assets/app-crop-video.webp':'312ae5d56cc0960666b90817e9da7f319ae8a9b7',
+            'site/assets/app-trim-audio.webp':'570d9b25e10944170d4d6c0577c7f568a4b907c0',
+            'site/assets/app-workspace.webp':'9c7b6043252a7b37261e88b24833369b74eb7cf2',
+            'site/assets/finder-conversion.mp4':'cc9e7baf27aecf4d70cacd57ec6b1a1c6453085a',
+            'site/assets/finder-conversion.webp':'74befd17486bfaf3b9f1a75fc8b9afe4fd973006',
+            'site/assets/native-recording.json':'c5305399eec3a1ea0d4cf9c2e26974e3129beb30',
+            'site/assets/screenshots.json':'bdab26dc4c3cbedd9e1bf4f00cf05d4086c93a3e'}
+          for path,sha in known.items():pathlib.Path(path).write_bytes(blob(sha))
+          subprocess.run(['git','add','--',*known],check=True)
+          expected='cc1ca790e88df684fc2128f36d94b45a2a7a4766'
+          assert subprocess.check_output(['git','write-tree'],text=True).strip()==expected
+          subprocess.run([os.environ['RUNNER_TEMP']+'/site-tools/bin/python','-m','unittest','discover','-s','script','-p','test_*.py'],check=True)
+          subprocess.run(['python3','script/privacy_check.py','--staged'],check=True)
+          subprocess.run(['git','diff','--cached','--check'],check=True)
+          changes=subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines();assert len(changes)==24
+          entries=[]
+          for path in changes:
+              mode,sha,rest=subprocess.check_output(['git','ls-files','--stage','--',path],text=True).strip().split(' ',2)
+              assert rest=='0\t'+path
+              if path not in known:
+                  data=pathlib.Path(path).read_bytes();data.decode('utf-8')
+                  assert api('git/blobs',dict(content=base64.b64encode(data).decode(),encoding='base64'))['sha']==sha
+              entries.append(dict(path=path,mode=mode,type='blob',sha=sha))
+          result=api('git/trees',dict(base_tree='108681cabd64c60a1f4b03f18b90bd83db2ae1bd',tree=entries));assert result['sha']==expected
+          folder=pathlib.Path(os.environ['RUNNER_TEMP'])/'site-review';folder.mkdir()
+          (folder/'source-result.json').write_text(json.dumps(dict(tree=expected,base='f9496dd2c040a3a538bb4fea650355defcb7058d',files=entries),indent=2)+'\n')
+          print('Exact reviewed source verified:',expected)
+          PY
+      - name: Verify Chromium including real native video playback
+        run: |
+          "$RUNNER_TEMP/site-tools/bin/python" script/test_site_browser.py --engine chromium --output "$RUNNER_TEMP/site-review/chromium"
+      - name: Verify WebKit including real native video playback
+        if: success() || failure()
+        run: |
+          "$RUNNER_TEMP/site-tools/bin/python" script/test_site_browser.py --engine webkit --output "$RUNNER_TEMP/site-review/webkit"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: Lemulip-Refined-Site-Final-Review
+          path: ${{ runner.temp }}/site-review/
+          retention-days: 7
+          if-no-files-found: error
