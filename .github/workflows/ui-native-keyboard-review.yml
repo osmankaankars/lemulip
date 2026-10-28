@@ -38,10 +38,9 @@ jobs:
           unpack='ditto -xk "$RUNNER_TEMP/candidate/Lemulip-Refined-Preview.zip" "$RUNNER_TEMP/native"'
           assert body.count(unpack)==1
           body=body.replace(unpack,'CONFIGURATION=debug ./script/build_app.sh\nditto dist/Lemulip.app "$RUNNER_TEMP/native/Lemulip.app"')
-          old='''    try require(AXUIElementSetAttributeValue(field, kAXValueAttribute as CFString, text as CFString) == .success, "Search value rejected")
-              settle(0.4)'''
-          new='''    guard let r = elementFrame(field) else { throw ReviewFailure(message: "Search has no bounds") }
-              application?.activate()
+          new='''func writeSearch(_ text: String) throws {
+              guard let field = find("workspace.operation-search"), let r = elementFrame(field) else { throw ReviewFailure(message: "Search field missing") }
+              application?.activate(); settle(0.15)
               mouse(.mouseMoved, CGPoint(x: r.midX, y: r.midY))
               mouse(.leftMouseDown, CGPoint(x: r.midX, y: r.midY))
               mouse(.leftMouseUp, CGPoint(x: r.midX, y: r.midY)); settle(0.15)
@@ -54,9 +53,10 @@ jobs:
                       e.post(tap: .cghidEventTap)
                   }
               }
-              settle(0.5)'''
-          old=textwrap.dedent(old);new=textwrap.dedent(new)
-          snippet='import os,pathlib\np=pathlib.Path(os.environ["RUNNER_TEMP"])/"native-review.swift"\ns=p.read_text()\nold='+repr(old)+'\nnew='+repr(new)+'\nassert s.count(old)==1\ns=s.replace(old,new)\nassert s.count("settle(1); try resize(1020, 700)")==1\ns=s.replace("settle(1); try resize(1020, 700)",\'try require(waitFor({ mainWindow() != nil }, seconds: 20), "Main window not ready"); try resize(1020, 700)\')\np.write_text(s)\n'
+              settle(0.5)
+          }
+          '''
+          snippet='import os,pathlib\np=pathlib.Path(os.environ["RUNNER_TEMP"])/"native-review.swift"\ns=p.read_text()\na=s.index("func writeSearch(");b=s.index("func editorReady()",a)\ns=s[:a]+'+repr(new)+'+s[b:]\nassert s.count("settle(1); try resize(1020, 700)")==1\ns=s.replace("settle(1); try resize(1020, 700)",\'try require(waitFor({ mainWindow() != nil }, seconds: 20), "Main window not ready"); try resize(1020, 700)\')\np.write_text(s)\n'
           marker='xcrun swiftc "$RUNNER_TEMP/native-review.swift"'
           assert body.count(marker)==1
           body=body.replace(marker,'python3 - <<\'PATCH\'\n'+snippet+'PATCH\n'+marker)
