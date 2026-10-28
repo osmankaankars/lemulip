@@ -38,8 +38,6 @@ jobs:
                       line=next(line for line in js.splitlines() if line.strip().startswith(sample+':['))
                       self.assertIn("['Optional',",line)
           '''
-          # Remove the workflow's Python indentation from every continuation.
-          test='\n'.join(line[10:] if line.startswith('          ') else line for line in test.split('\n'))
           for name,(before,after) in expected.items():
               path=pathlib.Path(name);raw=path.read_bytes()
               assert hashlib.sha256(raw).hexdigest()==before,name
