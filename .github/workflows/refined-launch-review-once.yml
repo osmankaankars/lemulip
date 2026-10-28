@@ -1,0 +1,79 @@
+name: Native Launch Readiness Review
+on:
+  push:
+    branches: [verify/refined-native-ui-20261028]
+    paths: [.github/workflows/refined-launch-review-once.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  review:
+    runs-on: macos-15-intel
+    timeout-minutes: 16
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: c2cace03eac653ad8d2623c1394d3b8a6ad604fd
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          name: Lemulip-macOS-universal
+          run-id: 40622450424
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/published
+          digest-mismatch: error
+      - name: Wait for the actual native window and retain launch diagnostics
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os,pathlib,textwrap
+          source=pathlib.Path('.github/workflows/refined-native-review-once.yml').read_text()
+          body=textwrap.dedent(source.split('        run: |\n',1)[1].split('      - name: Require explicit',1)[0])
+          line='ditto -xk "$RUNNER_TEMP/candidate/Lemulip-Refined-Preview.zip" "$RUNNER_TEMP/native"'
+          assert body.count(line)==1
+          body=body.replace(line,'CONFIGURATION=debug ./script/build_app.sh\nditto dist/Lemulip.app "$RUNNER_TEMP/native/Lemulip.app"')
+          old='settle(1); try resize(1020, 700)'
+          new='''phase = "launch-window"
+              let appeared = waitFor({ mainWindow() != nil || application!.isTerminated }, seconds: 20)
+              report["boundedLaunchWaitEnded"] = appeared
+              report["launchProcessAlive"] = !application!.isTerminated
+              var axWindows: CFTypeRef?
+              report["windowAccessResult"] = AXUIElementCopyAttributeValue(root!, kAXWindowsAttribute as CFString, &axWindows).rawValue
+              let accessible = axWindows as? [AXUIElement] ?? []
+              report["launchWindowCount"] = accessible.count
+              report["nativeWindowBounds"] = accessible.compactMap { element -> [String: Double]? in
+                  guard let r = elementFrame(element) else { return nil }
+                  return ["x": r.minX, "y": r.minY, "width": r.width, "height": r.height]
+              }
+              report["renderedWindows"] = windows().map { w -> [String: String] in
+                  ["name": w[kCGWindowName as String] as? String ?? "", "bounds": String(describing: bounds(w))]
+              }
+              try JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys]).write(to: output.appendingPathComponent("launch-diagnostic.json"))
+              try resize(1020, 700)'''
+          snippet='import os,pathlib\np=pathlib.Path(os.environ["RUNNER_TEMP"])/"native-review.swift"\ns=p.read_text()\nassert s.count('+repr(old)+')==1\np.write_text(s.replace('+repr(old)+','+repr(new)+'))\n'
+          marker='xcrun swiftc "$RUNNER_TEMP/native-review.swift"'
+          assert body.count(marker)==1
+          body=body.replace(marker,'ditto -ck --sequesterRsrc --keepParent "$APP" "$RUNNER_TEMP/ui-review/Lemulip-Refined-Test-App.zip"\npython3 - <<\'PATCH\'\n'+snippet+'PATCH\n'+marker)
+          (pathlib.Path(os.environ['RUNNER_TEMP'])/'launch-review.sh').write_text(body)
+          PY
+          status=0
+          bash -euo pipefail "$RUNNER_TEMP/launch-review.sh" || status=$?
+          /usr/bin/log show --last 5m --style compact --predicate 'process == "Lemulip"' > "$RUNNER_TEMP/ui-review/launch-system.log" 2>/dev/null || true
+          cp "$RUNNER_TEMP/native-review.swift" "$RUNNER_TEMP/ui-review/review-probe.swift"
+          python3 - <<'PY'
+          import os,pathlib,shutil
+          target=pathlib.Path(os.environ['RUNNER_TEMP'])/'ui-review'
+          for p in (pathlib.Path.home()/'Library/Logs/DiagnosticReports').glob('Lemulip*'):
+              if p.is_file() and p.stat().st_size<1000000:shutil.copy2(p,target/p.name)
+          PY
+          exit "$status"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: Lemulip-Refined-Launch-Review
+          path: ${{ runner.temp }}/ui-review/
+          retention-days: 7
+          if-no-files-found: error
