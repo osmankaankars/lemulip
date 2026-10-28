@@ -42,6 +42,7 @@ jobs:
           python3 script/test_engine_packs.py
           python3 script/test_release_engines.py
           python3 script/test_publish_preview.py
+          python3 script/test_interface.py
       - name: Check Architecture, Toolchain, and Version
         env:
           EXPECTED_ARCH: ${{ matrix.arch }}
