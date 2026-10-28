@@ -79,8 +79,8 @@ class SiteTests(unittest.TestCase):
             self.assertNotRegex(p.read_text(),r'(?i)developer id|notariz|ad hoc sign',str(p))
     def test_motion_and_stale_assets_are_explicit(self):
         page=(ROOT/'site/index.html').read_text(); js=(ROOT/'site/product.js').read_text()
-        self.assertIn('data-site-version="20261027.1"',page)
-        self.assertIn('product.js?v=20261027.1',page)
+        self.assertIn('data-site-version="20261028.1"',page)
+        self.assertIn('product.js?v=20261028.1',page)
         for event in ('visibilitychange','prefers-reduced-motion','pointercancel'):self.assertIn(event,js)
         self.assertIn('Browser Simulation',page)
         self.assertNotRegex(js,r'\b(FileReader|XMLHttpRequest)\s*\(')
@@ -110,6 +110,20 @@ class SiteTests(unittest.TestCase):
         self.assertIn('class="engine-note"',js)
         self.assertIn('ImageMagick',js)
         self.assertEqual(9,len(re.findall(r'data-sample="',page)))
+    def test_published_media_and_image_engines_are_included(self):
+        import plistlib
+        data=json.loads((ROOT/'site/catalog.js').read_text().split(' = ',1)[1].strip().removesuffix(';'))
+        version=plistlib.loads((ROOT/'Resources/Info.plist').read_bytes())['CFBundleShortVersionString']
+        self.assertEqual(version,data['version'])
+        js=(ROOT/'site/product.js').read_text()
+        for sample in ('images','audio','video'):
+            line=next(line for line in js.splitlines() if line.strip().startswith(sample+':['))
+            self.assertIn("['Included',",line)
+            self.assertNotIn("['Optional',",line)
+        for sample in ('documents','spreadsheets','presentations'):
+            line=next(line for line in js.splitlines() if line.strip().startswith(sample+':['))
+            self.assertIn("['Optional',",line)
+
     def test_readme_is_one_product_summary(self):
         readme=(ROOT/'README.md').read_text()
         self.assertLess(len(readme.split()),450)
