@@ -23,6 +23,24 @@ final class EngineHealthTests: XCTestCase {
         try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: probe.path)
         XCTAssertEqual(EngineLocator.find("ffprobe", bundleURL: root.appendingPathComponent("Lemulip.app"), homeDirectory: root), probe)
     }
+    func testFlatSignedHelpersTakePriorityOverLegacyAndManagedEngines() throws {
+        let root = try engine("exit 0").deletingLastPathComponent()
+        let app = root.appendingPathComponent("Lemulip.app")
+        let helpers = app.appendingPathComponent("Contents/Helpers")
+        let legacy = helpers.appendingPathComponent("Engines/ffmpeg/bin")
+        let managed = root.appendingPathComponent("Library/Application Support/Lemulip/Engines/ffmpeg/bin")
+        for folder in [helpers, legacy, managed] {
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            for name in ["ffmpeg", "ffprobe"] {
+                let path = folder.appendingPathComponent(name)
+                try "#!/bin/sh\nexit 0\n".write(to: path, atomically: true, encoding: .utf8)
+                try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: path.path)
+            }
+        }
+        for name in ["ffmpeg", "ffprobe"] {
+            XCTAssertEqual(EngineLocator.find(name, bundleURL: app, homeDirectory: root), helpers.appendingPathComponent(name))
+        }
+    }
     func testRequiredCodecCheckFailsBeforeConversion() throws {
         let report = EngineReport(name: "ffmpeg", executable: URL(fileURLWithPath: "/tmp/ffmpeg"), state: .limited,
                                   version: "8", capabilities: ["aac"], detail: "")
