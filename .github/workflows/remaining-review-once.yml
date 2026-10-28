@@ -16,8 +16,8 @@ jobs:
           ref: 49adb3d6b630cbb3a65f4584bc80163cc0f69cd7
           fetch-depth: 2
           persist-credentials: false
-      - name: Run all Python checks
-        run: python3 -m unittest discover -s script -p 'test_*.py'
+      - name: Run the complete release coordinator regression suite
+        run: python3 script/test_publish_preview.py
       - name: Reproduce old failure and verify new read-only result
         env:
           GH_TOKEN: ${{ github.token }}
