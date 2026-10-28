@@ -1,0 +1,75 @@
+name: Read-Only Release Coordinator Review
+on:
+  push:
+    branches: [verify/remaining-checks-20261028]
+    paths: [.github/workflows/remaining-review-once.yml]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: 49adb3d6b630cbb3a65f4584bc80163cc0f69cd7
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Run all Python checks
+        run: python3 -m unittest discover -s script -p 'test_*.py'
+      - name: Reproduce old failure and verify new read-only result
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import hashlib,io,json,os,pathlib,plistlib,subprocess,sys,types
+          from contextlib import redirect_stdout
+          sys.path.insert(0,'script')
+          import publish_preview as fixed
+          reviewed='aba2763cbf066e2a27abad5629f30ed8cb45dbf7'
+          class ReadOnly(fixed.GitHub):
+              def __init__(self):
+                  super().__init__(os.environ['GH_TOKEN']);self.reads=0;self.writes=0
+              def request(self,method,endpoint,payload=None,missing_ok=False):
+                  if method!='GET' or payload is not None:
+                      self.writes+=1
+                      raise AssertionError('A write was blocked by the review adapter')
+                  self.reads+=1
+                  return super().request(method,endpoint,payload,missing_ok)
+          api=ReadOnly();prefix='repos/'+fixed.REPOSITORY
+          version=plistlib.loads(pathlib.Path('Resources/Info.plist').read_bytes())['CFBundleShortVersionString']
+          def snapshot():
+              release=api.request('GET',prefix+'/releases/tags/v'+version)
+              tag=api.request('GET',prefix+'/git/ref/tags/v'+version)
+              return {'id':release['id'],'target':release['target_commitish'],'draft':release['draft'],
+                      'published':release['published_at'],'tag':tag['object'],
+                      'assets':sorted((a['id'],a['name'],a['size'],a['digest']) for a in release['assets'])}
+          before=snapshot()
+          old=types.ModuleType('old_preview')
+          exec(compile(subprocess.check_output(['git','show',reviewed+':script/publish_preview.py']),'<old-preview>','exec'),old.__dict__)
+          reproduced=False
+          try:
+              with redirect_stdout(io.StringIO()):old.PreviewPublisher(api,reviewed,version).run()
+          except old.PreviewError as error:
+              reproduced='different target, tagger, or annotation' in str(error)
+          assert reproduced,'The original version/tag conflict did not reproduce'
+          output=io.StringIO()
+          with redirect_stdout(output):fixed.PreviewPublisher(api,reviewed,version).run()
+          assert 'already published' in output.getvalue()
+          assert before==snapshot(),'A public tag or download changed'
+          assert api.writes==0
+          result={'reviewed_main':reviewed,'tested_code':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+                  'original_failure_reproduced':reproduced,'fixed_exit':'success','api_reads':api.reads,
+                  'api_writes':api.writes,'release_and_assets_unchanged':True,'message':output.getvalue().strip(),
+                  'published_release':before}
+          folder=pathlib.Path(os.environ['RUNNER_TEMP'])/'coordinator-review';folder.mkdir()
+          (folder/'result.json').write_text(json.dumps(result,indent=2)+'\n')
+          print(json.dumps(result,indent=2))
+          PY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Coordinator-Read-Only-Review
+          path: ${{ runner.temp }}/coordinator-review/result.json
+          if-no-files-found: error
+          retention-days: 7
