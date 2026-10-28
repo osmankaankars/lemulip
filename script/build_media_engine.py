@@ -10,6 +10,7 @@ import argparse
 import difflib
 import hashlib
 import json
+import math
 import os
 from pathlib import Path, PurePosixPath
 import platform
@@ -92,6 +93,8 @@ def extract_source(archive: Path, destination: Path, maximum_bytes: int = 1_000_
                 raise ValueError('Duplicate or invalid source path')
             if not item.isfile() and not item.isdir(): raise ValueError('Source links and special files are refused')
             if item.size < 0: raise ValueError('Negative source size')
+            if not isinstance(item.mtime,(int,float)) or not math.isfinite(item.mtime) or not 0 <= item.mtime <= 4102444800:
+                raise ValueError('Invalid source timestamp')
             names.add(name); roots.add(parts[0]); total += item.size
             if total > maximum_bytes: raise ValueError('Source expansion budget exceeded')
         if len(roots) != 1: raise ValueError('Expected one source root')
@@ -109,6 +112,10 @@ def extract_source(archive: Path, destination: Path, maximum_bytes: int = 1_000_
                 with tar.extractfile(item) as source, target.open('xb') as output:
                     shutil.copyfileobj(source, output)
                 target.chmod(0o755 if item.mode & 0o111 else 0o644)
+                # Autotools release archives contain generated files whose order
+                # matters. Fresh extraction times must not request a different
+                # aclocal version or silently regenerate the pinned build recipe.
+                os.utime(target,(item.mtime,item.mtime),follow_symlinks=False)
         except Exception:
             shutil.rmtree(destination)
             raise

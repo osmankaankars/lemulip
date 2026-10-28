@@ -39,6 +39,14 @@ def check(package: Path) -> dict:
             if len(files)!=1 or not files[0].is_file() or files[0].suffix!='.'+target:raise ValueError('Missing image output')
             if capture([magick,'identify','-format','%w %h',files[0]]) != '64 48':raise ValueError('Invalid image result')
             results[target]=digest(files[0])
+        vector=root/'simple vector.svg'
+        vector.write_text('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="48"><rect width="64" height="48" fill="green"/></svg>')
+        vector_hash=digest(vector);directory=outputs/'svg';directory.mkdir()
+        capture([cli,'convert','png',vector,'--output',directory])
+        files=list(directory.iterdir())
+        if len(files)!=1 or capture([magick,'identify','-format','%w %h',files[0]])!='64 48':raise ValueError('Invalid SVG result')
+        if digest(vector)!=vector_hash:raise ValueError('Original SVG changed')
+        results['svg']=digest(files[0])
         media=root/'sample video.mkv'
         capture([ffmpeg,'-v','error','-f','lavfi','-i','testsrc2=size=128x96:rate=10:duration=0.5',
             '-f','lavfi','-i','sine=frequency=440:duration=0.5','-c:v','ffv1','-c:a','pcm_s16le',media])

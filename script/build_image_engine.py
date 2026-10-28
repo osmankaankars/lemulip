@@ -127,6 +127,26 @@ def synthetic_png(path: Path) -> None:
     path.write_bytes(b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',64,48,8,6,0,0,0))+chunk(b'IDAT',zlib.compress(pixels))+chunk(b'IEND',b''))
 
 
+def scoped_svg_policy(work: Path) -> str:
+    # ImageMagick's policy parser does not decode XML entities in path patterns.
+    # Build jobs have controlled paths; refuse anything that cannot be represented.
+    path=str(work)
+    if not work.is_absolute() or any(c in path for c in '&"<>\n\r\t'):
+        raise ValueError('Unsafe SVG policy work path')
+    pattern=''.join('\\'+c if c in '\\*?[]{}' else c for c in path)
+    rules=f"""
+  <policy domain="path" rights="none" pattern="*"/>
+  <policy domain="path" rights="read|write" pattern="{pattern}/*"/>
+  <policy domain="path" rights="write" pattern="-"/>
+  <policy domain="path" rights="none" pattern="*../*"/>
+  <policy domain="path" rights="none" pattern="@*"/>
+  <policy domain="system" name="symlink" rights="none" pattern="follow"/>
+  <policy domain="system" name="svg" rights="none" pattern="substitute-entities"/>
+  <policy domain="coder" rights="read" pattern="MVG"/>
+"""
+    return POLICY.replace('</policymap>',rules+'</policymap>')
+
+
 def smoke_test(pack: Path, work: Path, record: list) -> None:
     work.mkdir(parents=True)
     profile = work/'policy'; profile.mkdir(mode=0o700)
@@ -146,7 +166,16 @@ def smoke_test(pack: Path, work: Path, record: list) -> None:
         run([magick,str(output)+'[0]',str(work/('decoded-'+extension+'.png'))],work,env,record)
     vector=work/'sample.svg'
     vector.write_text('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="48"><rect width="64" height="48" fill="green"/></svg>')
-    run([magick,'MSVG:'+str(vector),str(work/'vector.png')],work,env,record)
+    (profile/'policy.xml').write_text(scoped_svg_policy(work))
+    try:
+        run([magick,'MSVG:'+str(vector),str(work/'vector.png')],work,env,record)
+        outside=work.parent/'outside.png';synthetic_png(outside)
+        for argv in ([str(outside),str(work/'forbidden.png')],
+                     [str(original),str(work.parent/'forbidden.png')]):
+            denied=subprocess.run([magick,*argv],cwd=work,env=env,capture_output=True,timeout=30)
+            if denied.returncode==0 or Path(argv[-1]).exists():raise ValueError('SVG job escaped its private file scope')
+    finally:
+        (profile/'policy.xml').write_text(POLICY)
     for argv in ([str(original),'-resize','32x24',str(work/'resized.png')],
                  [str(original),'-crop','32x24+0+0','+repage',str(work/'cropped.png')],
                  [str(original),'-rotate','90',str(work/'rotated.png')]):

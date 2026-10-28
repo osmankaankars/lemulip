@@ -105,6 +105,17 @@ class ImagePackTests(unittest.TestCase):
             names={p.name for p in self.m.source_notices(root)}
             self.assertEqual({'Copyright','COPYING.LESSER','LICENSE.md','PATENTS','README.ijg'}, names)
 
+    def test_internal_svg_drawing_permission_is_bounded_to_private_work(self):
+        self.assertTrue(hasattr(self.m,'scoped_svg_policy'))
+        import xml.etree.ElementTree as ET
+        rules=ET.fromstring(self.m.scoped_svg_policy(Path('/tmp/private-job'))).findall('policy')
+        self.assertTrue(any(r.get('domain')=='path' and r.get('pattern')=='*' and r.get('rights')=='none' for r in rules))
+        self.assertTrue(any(r.get('domain')=='path' and r.get('pattern')=='/tmp/private-job/*' and r.get('rights')=='read|write' for r in rules))
+        self.assertTrue(any(r.get('domain')=='coder' and r.get('pattern')=='MVG' and r.get('rights')=='read' for r in rules))
+        default=ET.fromstring(self.m.POLICY).findall('policy')
+        self.assertFalse(any(r.get('pattern')=='MVG' and r.get('rights')=='read' for r in default))
+        with self.assertRaises(ValueError): self.m.scoped_svg_policy(Path('/tmp/invalid&path'))
+
     def test_source_helpers_are_shared_not_reimplemented(self):
         self.assertEqual('build_media_engine',self.m.fetch_source.__module__)
         self.assertEqual('build_media_engine',self.m.sha256.__module__)
