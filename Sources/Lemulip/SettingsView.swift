@@ -77,7 +77,7 @@ struct SettingsContent: View {
                             Spacer(minLength: 8)
                             if engine.0 == "pandoc" {
                                 PandocInstallButton(model: model, installed: installed)
-                            } else {
+                            } else if report != nil && !installed {
                                 Button {
                                     NSPasteboard.general.clearContents()
                                     NSPasteboard.general.setString(engine.3, forType: .string)

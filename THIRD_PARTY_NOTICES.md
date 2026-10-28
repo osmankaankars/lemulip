@@ -63,12 +63,23 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ```
 
-## Optional, Independently Installed Engines
+## Conversion Engines
 
-Lemulip detects locally installed tools. Pandoc can also be downloaded from its
-official GitHub release after explicit user approval; the pinned archive is
-checksum-verified before installation. No engine binary is included in this
-source repository. Their own licenses and notices apply:
+Mac release packages from 0.1.17 include standalone FFmpeg and ImageMagick helpers.
+Their complete component notices, original source archives, build recipes and
+architecture-specific build records are inside the app at
+`Contents/Resources/EngineSupport/ffmpeg` and
+`Contents/Resources/EngineSupport/imagemagick`.
+
+The FFmpeg build enables GPL components including libx264; nonfree components
+are disabled. ImageMagick includes separately licensed image codecs, including
+LGPL libheif and libde265. Corresponding source and rebuild instructions are
+provided for the complete helpers. These licenses apply to the included
+components; Lemulip's original source remains under its MIT license.
+
+LibreOffice remains independently installed. Pandoc can be downloaded from its
+official GitHub release after explicit user approval and checksum verification.
+No engine binary is committed to this source repository. Upstream references:
 
 | Engine | Project and licensing information |
 | --- | --- |

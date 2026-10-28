@@ -30,6 +30,7 @@ verify_bundle() {
   verify_binary "$1/Contents/MacOS/Lemulip"
   cmp LICENSE "$1/Contents/Resources/LICENSE"
   cmp THIRD_PARTY_NOTICES.md "$1/Contents/Resources/THIRD_PARTY_NOTICES.md"
+  python3 script/verify_bundled_engines.py --app "$1" --architectures arm64 x86_64
 }
 
 copy_public_guides() {
@@ -112,6 +113,7 @@ PY
   verify_binary "$PACKAGE_DIRECTORY/lemulip"
   verify_public_guides "$PACKAGE_DIRECTORY"
   "$PACKAGE_DIRECTORY/lemulip" --help
+  python3 script/smoke_bundled_engines.py --package "$PACKAGE_DIRECTORY"
   mkdir "$VERIFY_STAGE/output" "$VERIFY_STAGE/volume"
   printf '1\n00:00:00,000 --> 00:00:01,000\nRelease smoke check\n' > "$VERIFY_STAGE/sample.srt"
   "$PACKAGE_DIRECTORY/lemulip" convert vtt "$VERIFY_STAGE/sample.srt" --output "$VERIFY_STAGE/output"

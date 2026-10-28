@@ -50,25 +50,20 @@ download came from this repository before opening it.
 Apple's [guide to safely opening apps](https://support.apple.com/en-us/102445) explains first-launch controls. Lemulip does not disable Gatekeeper, remove quarantine attributes, or change system security settings.
 
 
-## Optional Engines
+## Conversion Engines
 
-Image, PDF, OCR, archive, subtitle, and basic text tools cover many tasks without
-extra software. TXT, basic RTF, and basic Markdown → DOCX, plus CSV/TSV → XLSX,
-are also built in.
-Install only the engines needed for your other [formats](FORMATS.md).
+From 0.1.17, Mac downloads include **FFmpeg** and **ImageMagick**. Media and image
+conversions need no Homebrew installation. The source-only build can also use
+locally installed engines.
 
-| Engine | Adds | Install |
-| --- | --- | --- |
-| FFmpeg | More audio/video formats and media tools | `brew install ffmpeg` |
-| ImageMagick | WebP, AVIF, and additional image codecs | `brew install imagemagick` |
-| LibreOffice | HTML → DOCX, complex RTF, existing Office documents, workbooks, and slides | `brew install --cask libreoffice` |
-| Pandoc | Richer Markdown → DOCX, Markdown → HTML/ODT, and EPUB | [Official macOS installer](https://pandoc.org/installing.html) |
+**Pandoc:** Open **Settings → Local Engines → Install**. The app asks for approval,
+downloads the official package and verifies its checksum before installation.
 
-The `brew` commands require [Homebrew](https://brew.sh). Each engine has its own OS requirements. Installers need internet access; Lemulip's conversions run locally.
+**LibreOffice:** Install the [Mac application](https://www.libreoffice.org/download/download-libreoffice/)
+for richer Office conversions, then click **Refresh** in Local Engines.
 
-For Pandoc, use a build with embedded data files, such as its official installer. Lemulip keeps [Pandoc's sandbox](https://pandoc.org/MANUAL.html#option--sandbox) enabled. A missing EPUB, DOCX, or ODT template usually means the installed binary lacks the needed embedded files.
-
-Open **Settings → Local Engines** and click **Refresh** after installation. The app checks standard Homebrew and system locations, its process PATH, and LibreOffice's application bundle. It does not install helpers automatically.
+Optional installation needs internet access. File conversions stay on your Mac.
+The ZIP's CLI finds the bundled engines while it remains beside **Lemulip.app**.
 
 ## Troubleshooting
 

@@ -72,7 +72,7 @@ Build and Verify plus CodeQL must pass on the exact source commit. The release c
 For an interrupted release, inspect the failed stage. The coordinator does not automatically retry failed tagged builds. Matching incomplete drafts retain verified assets; conflicting tags or metadata need review rather than replacement.
 
 ```bash
-./script/package_release.sh
+LEMULIP_ENGINE_PACKS=/absolute/path/to/universal-packs ./script/package_release.sh
 ./script/package_release.sh --verify dist
 ```
 
@@ -82,4 +82,4 @@ Source-only packaging uses `python3 script/package_source.py --output PATH`. Web
 
 `LEMULIP_ENGINE_PACKS=/absolute/path/to/reviewed-packs ./script/build_app.sh --universal` stages prepared engines before the app is signed. The default build stays lightweight.
 
-Each engine folder needs `manifest.json` with schema `1`, engine/version, architectures, minimumMacOS, executables, buildFlags, SHA-256 file inventory, and components identifying their notice, exact source archive, and build instructions. `script/bundle_engines.py` rejects changed/unlisted files, symlinks, nonfree builds, missing helpers, newer deployment targets, and non-portable binary dependencies. It does not download engines or certify license compliance. Actual distributable packs still require source/license review and conversion tests on both architectures.
+Each engine folder needs `manifest.json` with schema `1`, engine/version, architectures, minimumMacOS, executables, buildFlags, SHA-256 file inventory, and components identifying their notice, exact source archive, and build instructions. `script/bundle_engines.py` rejects changed/unlisted files, symlinks, nonfree builds, missing helpers, newer deployment targets, and non-portable binary dependencies. It does not download engines or certify license compliance. CI builds pinned media and image sources on each architecture, runs conversion and relocation checks, then combines validated packs with `script/merge_engine_packs.py`. The release verifier checks installed inventories and exercises the downloaded CLI with only system paths.

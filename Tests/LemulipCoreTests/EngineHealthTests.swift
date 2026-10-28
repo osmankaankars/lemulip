@@ -41,6 +41,26 @@ final class EngineHealthTests: XCTestCase {
             XCTAssertEqual(EngineLocator.find(name, bundleURL: app, homeDirectory: root), helpers.appendingPathComponent(name))
         }
     }
+    func testReleaseCLIUsesSiblingAppHelpersWithoutAPathOverride() throws {
+        let root = try engine("exit 0").deletingLastPathComponent()
+        let helpers = root.appendingPathComponent("Lemulip.app/Contents/Helpers")
+        try FileManager.default.createDirectory(at: helpers, withIntermediateDirectories: true)
+        for name in ["ffmpeg", "ffprobe", "magick"] {
+            let executable = helpers.appendingPathComponent(name)
+            try "#!/bin/sh\nexit 0\n".write(to: executable, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: executable.path)
+            XCTAssertEqual(EngineLocator.find(name, bundleURL: root, homeDirectory: root), executable)
+        }
+    }
+    func testAppBundleDoesNotDiscoverANestedSiblingApp() throws {
+        let root = try engine("exit 0").deletingLastPathComponent()
+        let app = root.appendingPathComponent("Lemulip.app")
+        let nested = app.appendingPathComponent("Lemulip.app/Contents/Helpers/lemulip-test-helper")
+        try FileManager.default.createDirectory(at: nested.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try "#!/bin/sh\nexit 0\n".write(to: nested, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: nested.path)
+        XCTAssertNil(EngineLocator.find("lemulip-test-helper", bundleURL: app, homeDirectory: root))
+    }
     func testRequiredCodecCheckFailsBeforeConversion() throws {
         let report = EngineReport(name: "ffmpeg", executable: URL(fileURLWithPath: "/tmp/ffmpeg"), state: .limited,
                                   version: "8", capabilities: ["aac"], detail: "")

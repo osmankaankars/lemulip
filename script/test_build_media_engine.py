@@ -69,6 +69,16 @@ class MediaBuildTests(unittest.TestCase):
         self.assertEqual(b'data', (root / 'configure').read_bytes())
         self.assertTrue((root / 'configure').stat().st_mode & 0o111)
 
+    def test_source_timestamps_do_not_force_unplanned_autotools_regeneration(self):
+        archive=self.root/'timestamps.tar'
+        with tarfile.open(archive,'w') as tar:
+            for index,name in enumerate(('configure.ac','aclocal.m4','Makefile.in','configure')):
+                item=tarfile.TarInfo('source/'+name);item.size=4;item.mtime=1700000000+index
+                tar.addfile(item,io.BytesIO(b'data'))
+        output=self.m.extract_source(archive,self.root/'preserved')
+        for index,name in enumerate(('configure.ac','aclocal.m4','Makefile.in','configure')):
+            self.assertEqual(1700000000+index,(output/name).stat().st_mtime)
+
     def test_traversal_links_devices_and_duplicate_paths_are_rejected(self):
         cases = [[('../escape', 'file')], [('/absolute', 'file')], [('source/link', tarfile.SYMTYPE)],
                  [('source/link', tarfile.LNKTYPE)], [('source/device', tarfile.CHRTYPE)],

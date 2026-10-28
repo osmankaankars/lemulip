@@ -82,6 +82,58 @@ final class EngineIntegrationTests: XCTestCase {
         } catch LemulipError.invalidInput { }
     }
 
+    func testImageMagickSelfContainedSVGAndScopedInputDecoding() async throws {
+        try require("imagemagick")
+        // Exercise path-policy quoting as well as the internal SVG renderer.
+        let destination = root.appendingPathComponent("Images [one] {two} & three", isDirectory: true)
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: false)
+        let svg = "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"64\" height=\"48\"><rect width=\"64\" height=\"48\" fill=\"green\"/></svg>"
+        let input = root.appendingPathComponent("shapes.svg")
+        try svg.write(to: input, atomically: true, encoding: .utf8)
+        let stage = try OutputStore.prepare(destination: destination)
+        let converted = try await ExternalConverters.image([input], operation: FileOperation(id: "convert.png", title: "PNG"), options: ConversionOptions(), directory: stage)
+        let data = try Data(contentsOf: converted.outputs[0])
+        XCTAssertEqual(data.prefix(8), Data([137,80,78,71,13,10,26,10]))
+        XCTAssertEqual(Array(data[16..<24]), [0,0,0,64,0,0,0,48])
+        XCTAssertEqual(try String(contentsOf: input, encoding: .utf8), svg)
+        var options = ConversionOptions(); options.width = 16; options.height = 16
+        let cropped = try await ExternalConverters.image(converted.outputs, operation: FileOperation(id: "image.crop", title: "Crop"), options: options, directory: stage)
+        XCTAssertEqual(Array(try Data(contentsOf: cropped.outputs[0])[16..<24]), [0,0,0,16,0,0,0,16])
+        // Raster extensions must never trigger the SVG/MVG parser via sniffing.
+        for contents in [svg, "push graphic-context\nviewbox 0 0 64 48\nfill green\nrectangle 0,0 64,48\npop graphic-context"] {
+            let renamed = root.appendingPathComponent("renamed-\(UUID().uuidString).png")
+            try contents.write(to: renamed, atomically: true, encoding: .utf8)
+            do {
+                _ = try await ExternalConverters.image([renamed], operation: FileOperation(id: "convert.webp", title: "WebP"), options: ConversionOptions(), directory: stage)
+                XCTFail("Autodetected a non-PNG input through a raster extension")
+            } catch { }
+        }
+        XCTAssertFalse(try FileManager.default.contentsOfDirectory(atPath: stage.path).contains(where: { $0.hasPrefix(".image-policy-") }))
+    }
+
+    func testImageMagickSVGPolicyDoesNotGrantOutsideFileAccess() async throws {
+        try require("imagemagick")
+        let magick = try XCTUnwrap(EngineLocator.find("magick"))
+        let profile = root.appendingPathComponent("private-job", isDirectory: true)
+        try FileManager.default.createDirectory(at: profile, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
+        let canonical = URL(fileURLWithPath: try ProcessRunner.canonicalDirectoryPath(profile), isDirectory: true)
+        try ExternalConverters.imagePolicy(profile: canonical, allowsSVG: true).write(to: profile.appendingPathComponent("policy.xml"), atomically: true, encoding: .utf8)
+        let bytes = try XCTUnwrap(Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAAGUlEQVR4nGN8lmLEQApgIkn1qIZRDUNKAwC9yAGc4I0KFwAAAABJRU5ErkJggg=="))
+        let inside = canonical.appendingPathComponent("inside.png")
+        let outside = root.appendingPathComponent("outside.png")
+        try bytes.write(to: inside); try bytes.write(to: outside)
+        let environment = ["MAGICK_CONFIGURE_PATH": canonical.path, "MAGICK_TEMPORARY_PATH": canonical.path]
+        for arguments in [[outside.path, canonical.appendingPathComponent("bad.png").path],
+                          [inside.path, root.appendingPathComponent("bad.png").path],
+                          [canonical.path + "/../outside.png", canonical.appendingPathComponent("bad.png").path]] {
+            let result = try await ProcessRunner.run(executable: magick, arguments: arguments, currentDirectory: canonical, environment: environment, timeout: 30)
+            XCTAssertNotEqual(result.exitCode, 0)
+            XCTAssertFalse(FileManager.default.fileExists(atPath: arguments[1]))
+        }
+        XCTAssertEqual(try Data(contentsOf: outside), bytes)
+        XCTAssertFalse(ExternalConverters.imagePolicy(profile: canonical, allowsSVG: false).contains("pattern=\"MVG\""))
+    }
+
     func testPandocMarkdownHTMLAndEPUBRoundTrip() async throws {
         try require("pandoc")
         let input = root.appendingPathComponent("sample.md")

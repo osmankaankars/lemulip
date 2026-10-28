@@ -1,0 +1,88 @@
+name: Build Native Image Engine Pack
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: image-pack-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+jobs:
+  build:
+    name: Image Pack (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Verify source and packaging contracts
+        run: |
+          test "$(uname -m)" = '${{ matrix.arch }}'
+          python3 script/test_build_image_engine.py
+          python3 script/test_engine_packs.py
+          python3 script/privacy_check.py --staged
+      - name: Install build-only tools
+        env:
+          HOMEBREW_NO_ANALYTICS: '1'
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+        run: ./script/install_ci_build_tools.sh
+      - name: Build source-pinned image pack and test relocation
+        run: |
+          set -o pipefail
+          python3 script/build_image_engine.py --arch '${{ matrix.arch }}' --work "$RUNNER_TEMP/image-build" --output "$RUNNER_TEMP/image-packs/imagemagick" 2>&1 | tee "$RUNNER_TEMP/image-build.log"
+      - name: Build application and exercise the bundled image engine
+        run: |
+          set -o pipefail
+          LEMULIP_ENGINE_PACKS="$RUNNER_TEMP/image-packs" ./script/build_app.sh 2>&1 | tee "$RUNNER_TEMP/image-app.log"
+          mkdir "$RUNNER_TEMP/image-review" "$RUNNER_TEMP/image-output"
+          HELPER="$PWD/dist/Lemulip.app/Contents/Helpers"
+          PATH="/usr/bin:/bin:/usr/sbin:/sbin" dist/lemulip engines > "$RUNNER_TEMP/image-review/engine-health.txt"
+          grep -F 'imagemagick: ready' "$RUNNER_TEMP/image-review/engine-health.txt"
+          grep -F "$HELPER/magick" "$RUNNER_TEMP/image-review/engine-health.txt"
+          for target in webp avif; do
+            PATH="/usr/bin:/bin:/usr/sbin:/sbin" dist/lemulip convert "$target" "$RUNNER_TEMP/image-build/smoke/source.png" --output "$RUNNER_TEMP/image-output" >> "$RUNNER_TEMP/image-review/app-conversion.txt"
+          done
+          test "$(find "$RUNNER_TEMP/image-output" -type f | wc -l | tr -d ' ')" = 2
+          "$HELPER/magick" identify "$RUNNER_TEMP/image-output/"* > "$RUNNER_TEMP/image-review/outputs.txt"
+          cp "$RUNNER_TEMP/image-packs/imagemagick/manifest.json" "$RUNNER_TEMP/image-review/manifest.json"
+          cp dist/Lemulip.app/Contents/Resources/EngineSupport/imagemagick/installed-manifest.json "$RUNNER_TEMP/image-review/installed-manifest.json"
+          git rev-parse HEAD > "$RUNNER_TEMP/image-review/source-commit.txt"
+          tar -czf "$RUNNER_TEMP/image-review/Lemulip-ImageMagick-${{ matrix.arch }}.tar.gz" -C "$RUNNER_TEMP/image-packs" imagemagick
+          ditto -c -k --sequesterRsrc --keepParent dist/Lemulip.app "$RUNNER_TEMP/image-review/Lemulip-With-ImageMagick-${{ matrix.arch }}.zip"
+          cd "$RUNNER_TEMP/image-review"
+          shasum -a 256 *.tar.gz *.zip > SHA256SUMS.txt
+      - name: Retain native diagnostics
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/image-diagnostics"
+          binary="$RUNNER_TEMP/image-build/pack/bin/magick"
+          if [ -f "$binary" ]; then
+            otool -l "$binary" > "$RUNNER_TEMP/image-diagnostics/load-commands.txt"
+            otool -L "$binary" > "$RUNNER_TEMP/image-diagnostics/runtime-libraries.txt"
+          fi
+          find "$RUNNER_TEMP/image-build" -name config.log -exec cp {} "$RUNNER_TEMP/image-diagnostics/" \; 2>/dev/null || true
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: Lemulip-Image-Pack-${{ matrix.arch }}
+          path: |
+            ${{ runner.temp }}/image-review/
+            ${{ runner.temp }}/image-build.log
+            ${{ runner.temp }}/image-app.log
+            ${{ runner.temp }}/image-diagnostics/
+            ${{ runner.temp }}/image-build/smoke/result.json
+            ${{ runner.temp }}/image-build/smoke/formats.txt
+            ${{ runner.temp }}/image-build/relocated-smoke/result.json
+          if-no-files-found: warn
+          retention-days: 30
+          compression-level: 0

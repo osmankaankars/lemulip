@@ -165,29 +165,12 @@ enum ExternalConverters {
     static func image(_ inputs: [URL], operation: FileOperation, options: ConversionOptions, directory: URL) async throws -> ConversionResult {
         let health = try await EngineHealth.inspect("imagemagick")
         let magick = try EngineHealth.require(health)
-        let profile = directory.appendingPathComponent(".image-policy-\(UUID().uuidString)", isDirectory: true)
+        // ImageMagick does not decode XML entities in path-policy patterns.
+        // Keep its private staging path independent of user-chosen folder names.
+        let temporaryRoot = URL(fileURLWithPath: try ProcessRunner.canonicalDirectoryPath(URL(fileURLWithPath: "/tmp", isDirectory: true)), isDirectory: true)
+        let profile = temporaryRoot.appendingPathComponent("lemulip-image-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: profile, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
         defer { try? FileManager.default.removeItem(at: profile) }
-        let policy = """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <policymap>
-          <policy domain="resource" name="memory" value="256MiB"/>
-          <policy domain="resource" name="map" value="512MiB"/>
-          <policy domain="resource" name="disk" value="1GiB"/>
-          <policy domain="resource" name="width" value="32768"/>
-          <policy domain="resource" name="height" value="32768"/>
-          <policy domain="resource" name="list-length" value="256"/>
-          <policy domain="resource" name="time" value="120"/>
-          <policy domain="resource" name="thread" value="4"/>
-          <policy domain="delegate" rights="none" pattern="*"/>
-          <policy domain="filter" rights="none" pattern="*"/>
-          <policy domain="path" rights="none" pattern="@*"/>
-          <policy domain="coder" rights="none" pattern="*"/>
-          <policy domain="coder" rights="read|write" pattern="{PNG,JPEG,JPG,WEBP,AVIF,HEIC,HEIF,TIFF,TIF,BMP,GIF,ICO,SVG,MSVG}"/>
-          <policy domain="coder" rights="write" pattern="INFO"/>
-        </policymap>
-        """
-        try policy.write(to: profile.appendingPathComponent("policy.xml"), atomically: true, encoding: .utf8)
         var outputs: [URL] = []
         for input in inputs {
             try Task.checkCancellation()
@@ -200,13 +183,14 @@ enum ExternalConverters {
             }
             let aliases = ["jpg": "JPEG", "jpeg": "JPEG", "tif": "TIFF", "heif": "HEIC", "svg": "MSVG"]
             _ = try EngineHealth.require(health, capabilities: ["read:\(aliases[source] ?? source.uppercased())", "write:\(aliases[target] ?? target.uppercased())"])
-            if source == "svg" { try validateSVG(try TextCodec.read(input)) }
             let copy = profile.appendingPathComponent("source-\(UUID().uuidString).\(source)")
             try FileManager.default.copyItem(at: input, to: copy)
+            if source == "svg" { try validateSVG(try TextCodec.read(copy)) }
+            try imagePolicy(profile: profile, allowsSVG: source == "svg").write(to: profile.appendingPathComponent("policy.xml"), atomically: true, encoding: .utf8)
             let temporaryOutput = profile.appendingPathComponent("output-\(UUID().uuidString).\(target)")
-            let inputSpec = source == "svg" ? "MSVG:\(copy.path)[0]" : copy.path + "[0]"
+            let inputSpec = "\(aliases[source] ?? source.uppercased()):\(copy.path)[0]"
             if operation.id == "image.crop" {
-                let dimensions = try await ProcessRunner.checked(executable: magick, arguments: [inputSpec, "-auto-orient", "-format", "%w %h", "info:"], currentDirectory: profile,
+                let dimensions = try await ProcessRunner.checked(executable: magick, arguments: [inputSpec, "-auto-orient", "-format", "%w %h", "info:-"], currentDirectory: profile,
                     environment: ["MAGICK_CONFIGURE_PATH": profile.path, "MAGICK_TEMPORARY_PATH": profile.path], timeout: 120)
                 let numbers = String(decoding: dimensions.standardOutput, as: UTF8.self).split(whereSeparator: \.isWhitespace).compactMap { Int($0) }
                 guard numbers.count == 2, options.width <= numbers[0], options.height <= numbers[1] else {
@@ -232,6 +216,44 @@ enum ExternalConverters {
             ConversionProgressScope.complete(input)
         }
         return ConversionResult(outputs: outputs, note: inputs.contains(where: { $0.pathExtension.lowercased() == "gif" }) ? "Image conversion uses the first frame of animated images." : nil)
+    }
+
+    /// SVG's internal renderer uses MVG drawing commands. Permit that reader only
+    /// for validated SVG jobs, bounded to the private working directory. Raster
+    /// inputs use explicit coders and never gain this exception through sniffing.
+    static func imagePolicy(profile: URL, allowsSVG: Bool) -> String {
+        let globSpecial = Set("\\*?[]{}")
+        var escaped = profile.path.map { globSpecial.contains($0) ? "\\\($0)" : String($0) }.joined()
+        for (character, entity) in [("&", "&amp;"), ("\"", "&quot;"), ("<", "&lt;"), (">", "&gt;"), ("\n", "&#10;"), ("\r", "&#13;"), ("\t", "&#9;")] {
+            escaped = escaped.replacingOccurrences(of: character, with: entity)
+        }
+        let svgDrawing = allowsSVG ? "<policy domain=\"coder\" rights=\"read\" pattern=\"MVG\"/>" : ""
+        return """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <policymap>
+          <policy domain="resource" name="memory" value="256MiB"/>
+          <policy domain="resource" name="map" value="512MiB"/>
+          <policy domain="resource" name="disk" value="1GiB"/>
+          <policy domain="resource" name="width" value="32768"/>
+          <policy domain="resource" name="height" value="32768"/>
+          <policy domain="resource" name="list-length" value="256"/>
+          <policy domain="resource" name="time" value="120"/>
+          <policy domain="resource" name="thread" value="4"/>
+          <policy domain="delegate" rights="none" pattern="*"/>
+          <policy domain="filter" rights="none" pattern="*"/>
+          <policy domain="path" rights="none" pattern="*"/>
+          <policy domain="path" rights="read|write" pattern="\(escaped)/*"/>
+          <policy domain="path" rights="write" pattern="-"/>
+          <policy domain="path" rights="none" pattern="*../*"/>
+          <policy domain="path" rights="none" pattern="@*"/>
+          <policy domain="system" name="symlink" rights="none" pattern="follow"/>
+          <policy domain="system" name="svg" rights="none" pattern="substitute-entities"/>
+          <policy domain="coder" rights="none" pattern="*"/>
+          <policy domain="coder" rights="read|write" pattern="{PNG,JPEG,JPG,WEBP,AVIF,HEIC,HEIF,TIFF,TIF,BMP,GIF,ICO,SVG,MSVG}"/>
+          <policy domain="coder" rights="write" pattern="INFO"/>
+          \(svgDrawing)
+        </policymap>
+        """
     }
 
     private static func validateSVG(_ text: String) throws {
