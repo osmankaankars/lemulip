@@ -8,6 +8,8 @@ from pathlib import Path
 import tarfile
 import tempfile
 import unittest
+from unittest.mock import patch
+import subprocess
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -62,6 +64,58 @@ class MediaBuildTests(unittest.TestCase):
         p = self.archive([('source/configure', 'file')])
         with self.assertRaises(ValueError): self.m.verify_digest(p, '0' * 64)
         self.assertEqual(hashlib.sha256(p.read_bytes()).hexdigest(), self.m.verify_digest(p, hashlib.sha256(p.read_bytes()).hexdigest()))
+
+    def source_download_fixture(self):
+        payload = self.archive([('source/configure', 'file')]).read_bytes()
+        work = self.root / 'download-work'; work.mkdir()
+        sources = self.root / 'sources'; sources.mkdir()
+        component = {'name': 'ffmpeg', 'kind': 'archive',
+                     'url': 'https://example.invalid/ffmpeg.tar',
+                     'sha256': hashlib.sha256(payload).hexdigest()}
+        return payload, work, sources, component
+
+    def test_source_download_retries_connection_resets_with_bounded_https(self):
+        payload, work, sources, component = self.source_download_fixture()
+        calls = []
+        def transfer(argv, **kwargs):
+            calls.append(argv)
+            self.assertTrue(kwargs['check'])
+            Path(argv[argv.index('--output') + 1]).write_bytes(payload)
+        with patch.object(self.m.subprocess, 'run', side_effect=transfer):
+            extracted, archive = self.m.fetch_source(component, work, sources, {}, [])
+        self.assertEqual(b'data', (extracted / 'configure').read_bytes())
+        self.assertEqual(component['sha256'], self.m.sha256(archive))
+        self.assertEqual(1, len(calls))
+        args = calls[0]
+        self.assertIn('--retry-all-errors', args)
+        for flag, value in {'--retry': '2', '--connect-timeout': '30',
+                            '--retry-max-time': '480', '--max-time': '240',
+                            '--max-filesize': '200000000', '--proto': '=https',
+                            '--proto-redir': '=https'}.items():
+            self.assertEqual(value, args[args.index(flag) + 1])
+        self.assertNotIn('--insecure', args)
+        self.assertNotIn('-k', args)
+        self.assertEqual(component['url'], args[-1])
+
+    def test_exhausted_transfer_never_extracts_partial_source(self):
+        _, work, sources, component = self.source_download_fixture()
+        def interrupted(argv, **kwargs):
+            Path(argv[argv.index('--output') + 1]).write_bytes(b'partial transfer')
+            raise subprocess.CalledProcessError(35, argv)
+        with patch.object(self.m.subprocess, 'run', side_effect=interrupted):
+            with self.assertRaises(subprocess.CalledProcessError):
+                self.m.fetch_source(component, work, sources, {}, [])
+        self.assertFalse((work / 'ffmpeg-source').exists())
+
+    def test_successful_transfer_with_wrong_digest_is_not_extracted(self):
+        payload, work, sources, component = self.source_download_fixture()
+        component['sha256'] = '0' * 64
+        def transfer(argv, **kwargs):
+            Path(argv[argv.index('--output') + 1]).write_bytes(payload)
+        with patch.object(self.m.subprocess, 'run', side_effect=transfer):
+            with self.assertRaisesRegex(ValueError, 'checksum mismatch'):
+                self.m.fetch_source(component, work, sources, {}, [])
+        self.assertFalse((work / 'ffmpeg-source').exists())
 
     def test_regular_sources_preserve_executable_mode(self):
         p = self.archive([('source/configure', 'file'), ('source/src/main.c', 'file')])
