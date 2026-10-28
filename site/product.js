@@ -15,10 +15,10 @@
   const stem = name => name.replace(/\.[^.]+$/, '');
   const announce = text => { $('announcer').textContent = text; };
   const nativeNotes = {
-    images:[['Built In','PNG, JPG, HEIC, TIFF, BMP And PDF.'],['Optional','ImageMagick For WebP And AVIF.']],
+    images:[['Built In','PNG, JPG, HEIC, TIFF, BMP And PDF.'],['Included','ImageMagick For WebP And AVIF.']],
     pdf:[['Built In','PDF Tools And Offline OCR.'],['Text','Selectable Text Or OCR Required.']],
-    audio:[['Built In','M4A, WAV And AIFF Where Codecs Allow.'],['Optional','FFmpeg For Other Targets.']],
-    video:[['Built In','MP4, MOV And M4A Where Codecs Allow.'],['Optional','FFmpeg For Other Targets.']],
+    audio:[['Built In','M4A, WAV And AIFF Where Codecs Allow.'],['Included','FFmpeg For Other Targets.']],
+    video:[['Built In','MP4, MOV And M4A Where Codecs Allow.'],['Included','FFmpeg For Other Targets.']],
     documents:[['Built In','Basic Markdown, TXT And Basic RTF To DOCX.'],['Optional','LibreOffice Or Pandoc For Richer Documents.']],
     spreadsheets:[['Built In','CSV / TSV To XLSX. CSV And TSV Interchange.'],['Optional','LibreOffice For Other Workbook Routes.']],
     presentations:[['Optional','LibreOffice For Presentation Conversions.']],

@@ -161,7 +161,7 @@ def check_gallery_without_javascript(page) -> None:
 
 
 def exercise(page,output,width,height):
-    assert page.locator('html').get_attribute('data-site-version')=='20261027.1'
+    assert page.locator('html').get_attribute('data-site-version')=='20261028.1'
     assert 'Lemulip' in page.title()
     assert page.locator('#format-count').inner_text()=='35'
     assert page.locator('#tool-count').inner_text()=='26'
