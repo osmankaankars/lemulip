@@ -1,0 +1,136 @@
+name: Refined UI Closeout Checks
+on:
+  push:
+    branches: [verify/ui-resume-20261028]
+    paths: [.github/workflows/ui-closeout-checks.yml]
+permissions:
+  contents: read
+jobs:
+  site-source:
+    if: github.repository == 'osmankaankars/lemulip' && github.ref == 'refs/heads/verify/ui-resume-20261028'
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - name: Preserve verified site bytes and correct the visible version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64,hashlib,json,os,pathlib,urllib.request
+          def api(path,payload=None):
+              assert path.startswith('git/blobs') or path=='git/trees'
+              r=urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/'+path,method='GET' if payload is None else 'POST',headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'},data=None if payload is None else json.dumps(payload).encode())
+              with urllib.request.urlopen(r,timeout=30) as response:return json.load(response)
+          def get(sha):
+              b=base64.b64decode(api('git/blobs/'+sha)['content']);assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==sha
+              return b.decode()
+          html=get('9fc69b3c60a5ea623a4c753c4693d6505824f3b8');assert html.count('v0.1.17')==1;html=html.replace('v0.1.17','v0.1.18')
+          tests=get('b6a732f5ee9e2115537812e0041b5a16ee009b56')
+          old="        self.assertIn('Release Notes',page)\n        self.assertIn('data-step=',page)"
+          new="        self.assertIn('Release Notes',page)\n        self.assertIn('Apple Silicon &amp; Intel · v0.1.18',page)\n        self.assertNotIn('v0.1.17',page)\n        self.assertIn('data-step=',page)"
+          assert tests.count(old)==1;tests=tests.replace(old,new)
+          entries=[dict(path='Sources/Lemulip/AppController.swift',mode='100644',type='blob',sha='efcbb926dc43477886ef89b3e0f61f885e908035'),dict(path='script/test_interface.py',mode='100644',type='blob',sha='3c71a65505fb5b19c928d667789bdfac172473db')]
+          for path,text,sha in [('site/index.html',html,'58e88a3e0d7e1030c2827556bd45fd19878a9e96'),('script/test_site.py',tests,'185618d8d426ee3f402698f42a9467c8f7884581')]:
+              data=text.encode();assert hashlib.sha1(b'blob '+str(len(data)).encode()+b'\0'+data).hexdigest()==sha
+              assert api('git/blobs',dict(content=text,encoding='utf-8'))['sha']==sha
+              entries.append(dict(path=path,mode='100644',type='blob',sha=sha))
+          tree=api('git/trees',dict(base_tree='cc1ca790e88df684fc2128f36d94b45a2a7a4766',tree=entries))['sha'];assert tree=='3395adebfec20e675728ece7de029d712278cb3d'
+          folder=pathlib.Path(os.environ['RUNNER_TEMP'])/'source';folder.mkdir()
+          (folder/'result.json').write_text(json.dumps(dict(tree=tree,entries=entries),indent=2)+'\n');print(tree)
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Refined-Site-Source
+          path: ${{ runner.temp }}/source/
+          retention-days: 7
+  word-count:
+    runs-on: macos-15
+    timeout-minutes: 10
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: d37620cc24735a056ed473eb343565650d9e5548
+          persist-credentials: false
+      - name: Build the exact reviewed application
+        run: CONFIGURATION=debug ./script/build_app.sh
+      - name: Exercise successful note-only operations under both presentation preferences
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/word-count-review"
+          python3 - <<'PY'
+          import base64,hashlib,json,os,pathlib,textwrap,urllib.request
+          sha='d84a2c975fc3b534354c35d91ff517430766fd57'
+          req=urllib.request.Request('https://api.github.com/repos/osmankaankars/lemulip/git/blobs/'+sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+          with urllib.request.urlopen(req,timeout=30) as r:raw=base64.b64decode(json.load(r)['content'])
+          assert hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==sha
+          body=textwrap.dedent(raw.decode().split('        run: |\n',1)[1].split('      - name: Require explicit',1)[0])
+          code=body.split("<<'SWIFT'\n",1)[1].split('\nSWIFT\n',1)[0].split('let recorder = Recorder()',1)[0]
+          (pathlib.Path(os.environ['RUNNER_TEMP'])/'word-count.swift').write_text(code)
+          PY
+          cat >> "$RUNNER_TEMP/word-count.swift" <<'SWIFT'
+          do {
+              try require(AXIsProcessTrusted() && CGPreflightPostEventAccess(), "Existing UI permission unavailable")
+              try FileManager.default.createDirectory(at: fixtures, withIntermediateDirectories: true)
+              let source = fixtures.appendingPathComponent("word-count.txt")
+              let original = Data("one two three four".utf8)
+              try original.write(to: source, options: .withoutOverwriting)
+              let config = NSWorkspace.OpenConfiguration(); config.createsNewApplicationInstance = true
+              var launched = false
+              NSWorkspace.shared.openApplication(at: appURL, configuration: config) { app, _ in application = app; launched = true }
+              try require(waitFor({ launched && application != nil }, seconds: 20), "Application did not launch")
+              root = AXUIElementCreateApplication(application!.processIdentifier)
+              AXUIElementSetMessagingTimeout(root!, 1)
+              try require(waitFor({ mainWindow() != nil }, seconds: 20), "Workspace not ready")
+              try openFile("word-count.txt")
+              guard let field = find("workspace.operation-search"), let rect = elementFrame(field) else { throw ReviewFailure(message: "Search missing") }
+              let point = CGPoint(x: rect.midX, y: rect.midY)
+              mouse(.mouseMoved, point); mouse(.leftMouseDown, point); mouse(.leftMouseUp, point); settle(0.2)
+              let chars = Array("word count".utf16)
+              for down in [true, false] {
+                  let event = CGEvent(keyboardEventSource: nil, virtualKey: 0, keyDown: down)!
+                  event.keyboardSetUnicodeString(stringLength: chars.count, unicodeString: chars); event.post(tap: .cghidEventTap)
+              }
+              try require(waitFor({ find("operation.document.wordCount") != nil }), "Word Count not available")
+              try press("operation.document.wordCount"); settle(0.6)
+              try require(!containsText("The Output File Is No Longer Available"), "Successful Word Count showed a missing-file alert")
+              try press("navigation.activity")
+              try require(waitFor({ containsText("4 words") && containsText("1 Completed") }), "First note-only result missing")
+              try press("navigation.workspace")
+              try press("operation.document.wordCount"); settle(0.6)
+              try press("navigation.activity")
+              try require(waitFor({ containsText("2 Completed") }), "Queue did not continue after the first note-only operation")
+              try require(!containsText("The Output File Is No Longer Available"), "Second note-only operation showed an error")
+              try require(!windows().contains { abs((bounds($0)?.width ?? 0) - 396) < 2 }, "Note-only operation opened an empty result card")
+              let unchanged = (try Data(contentsOf: source)) == original
+              try require(unchanged, "Original note changed")
+              try require(try FileManager.default.contentsOfDirectory(atPath: fixtures.path) == ["word-count.txt"], "Note-only operation generated an unexpected file")
+              try capture("word-count-" + CommandLine.arguments[4])
+              report["status"] = "passed"; report["originalPreserved"] = true
+              report["twoCompletedWithoutAlert"] = true; report["queueContinues"] = true
+              report["noOutputFileOrEmptyCard"] = true; report["preference"] = CommandLine.arguments[4]
+          } catch let error as ReviewFailure { report["status"] = "failed"; report["reason"] = error.message }
+          catch { report["status"] = "failed"; report["reason"] = "Native regression probe failed" }
+          application?.terminate(); _ = waitFor({ application?.isTerminated ?? true }, seconds: 10)
+          let data = try JSONSerialization.data(withJSONObject: report, options: [.prettyPrinted, .sortedKeys])
+          try data.write(to: output.appendingPathComponent("word-count-" + CommandLine.arguments[4] + ".json"))
+          print(String(data: data, encoding: .utf8)!)
+          if report["status"] as? String != "passed" { exit(1) }
+          SWIFT
+          xcrun swiftc "$RUNNER_TEMP/word-count.swift" -o "$RUNNER_TEMP/word-count"
+          for mode in finder card; do
+            defaults write app.freewheel.Freewheel language -string en
+            defaults write app.freewheel.Freewheel completionPresentation -string "$mode"
+            "$RUNNER_TEMP/word-count" "$PWD/dist/Lemulip.app" "$RUNNER_TEMP/word-count-review" "$RUNNER_TEMP/word-fixture-$mode" "$mode"
+          done
+          git diff --exit-code
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: Lemulip-Native-Word-Count-Review
+          path: ${{ runner.temp }}/word-count-review/
+          retention-days: 7
+          if-no-files-found: error
