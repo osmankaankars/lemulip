@@ -1,0 +1,93 @@
+name: Verify Post Release Website Copy
+on:
+  push:
+    branches: [site/bundled-engines-0.1.17]
+    paths: [.github/workflows/verify-site-copy.yml]
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: da8e14d9808a9ee367b9b851359628869df4eda4
+          persist-credentials: false
+      - name: Apply and verify exact reviewed copy changes
+        shell: python
+        run: |
+          import hashlib,pathlib,subprocess
+          expected={
+          'script/test_site.py':('95af137671522095c6fd4dd3d23bef50bb3a5a97e67ac81c07a6a2ff4fc4fe01','b23a2d698e40cd67c6663a2ec6321959a7cf14a752edeb0cf2b24d2010db1305'),
+          'script/test_site_browser.py':('729baa0cea52dff1255a9f553f918cc37454df3830aa69a5b67ced42a0c2712c','3035c44210efac55962d60bccdfed55748420450f490edfc641e3312e3d4f880'),
+          'site/catalog.js':('ec9cee7b207cdc98279d169782f3e34bb217fb70a07eb42337911d2054ccc316','f6b163db4ae195b15a57ca6fb63e7ded80cbe735a40fcfbca8c36afdf50bc775'),
+          'site/index.html':('933bb19466bc1792e0182f7c6a4d5592c037cc3f4b78570b653db309b8440264','d8b568169245e51de50916df806c1e120bcc4628dd6907bec73f11148380b10e'),
+          'site/product.js':('eff32d05e945a1787d22a64a0eaed9a70b4457c198147e7257b807c43d27493f','b26bf1cf6ee4e5da0c2302291d8c2c25f978bde2c16a143fab42e0bc8009c37a')}
+          test='''    def test_published_media_and_image_engines_are_included(self):
+                  import plistlib
+                  data=json.loads((ROOT/'site/catalog.js').read_text().split(' = ',1)[1].strip().removesuffix(';'))
+                  version=plistlib.loads((ROOT/'Resources/Info.plist').read_bytes())['CFBundleShortVersionString']
+                  self.assertEqual(version,data['version'])
+                  js=(ROOT/'site/product.js').read_text()
+                  for sample in ('images','audio','video'):
+                      line=next(line for line in js.splitlines() if line.strip().startswith(sample+':['))
+                      self.assertIn("['Included',",line)
+                      self.assertNotIn("['Optional',",line)
+                  for sample in ('documents','spreadsheets','presentations'):
+                      line=next(line for line in js.splitlines() if line.strip().startswith(sample+':['))
+                      self.assertIn("['Optional',",line)
+          '''
+          # Remove the workflow's Python indentation from every continuation.
+          test='\n'.join(line[10:] if line.startswith('          ') else line for line in test.split('\n'))
+          for name,(before,after) in expected.items():
+              path=pathlib.Path(name);raw=path.read_bytes()
+              assert hashlib.sha256(raw).hexdigest()==before,name
+              text=raw.decode()
+              if name in ('script/test_site.py','script/test_site_browser.py','site/index.html'):
+                  text=text.replace('20261027.1','20261028.1')
+              if name=='script/test_site.py':
+                  marker='    def test_readme_is_one_product_summary(self):'
+                  assert text.count(marker)==1
+                  text=text.replace(marker,test+'\n'+marker)
+              if name=='site/catalog.js':
+                  assert text.count('0.1.16')==1
+                  text=text.replace('0.1.16','0.1.17')
+              if name=='site/product.js':
+                  for sample in ('images','audio','video'):
+                      old=next(line for line in text.splitlines() if line.strip().startswith(sample+':['))
+                      assert old.count("['Optional',")==1
+                      text=text.replace(old,old.replace("['Optional',","['Included',"))
+              assert hashlib.sha256(text.encode()).hexdigest()==after,name
+              path.write_text(text)
+          subprocess.run(['git','add','--',*sorted(expected)],check=True)
+          assert subprocess.check_output(['git','write-tree'],text=True).strip()=='a4459d67c708d95619b0e93c9f8f0ee4ba9b231b'
+      - name: Check public source and website
+        run: |
+          python3 script/test_site.py
+          python3 script/test_branding.py
+          python3 script/test_public_images.py
+          python3 script/privacy_check.py --staged
+          node --check site/product.js
+          node --check site/catalog.js
+          node --check site/gallery.js
+          git diff --cached --check
+      - name: Store verified objects without updating any branch or release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64,hashlib,json,os,pathlib,subprocess,urllib.request
+          api='https://api.github.com/repos/osmankaankars/lemulip/git/'
+          def post(route,payload):
+              req=urllib.request.Request(api+route,data=json.dumps(payload).encode(),headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json'})
+              with urllib.request.urlopen(req,timeout=30) as response:return json.load(response)
+          entries=[]
+          for path in subprocess.check_output(['git','diff','--cached','--name-only'],text=True).splitlines():
+              assert path.startswith(('site/','script/test_site'))
+              raw=pathlib.Path(path).read_bytes();expected=hashlib.sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()
+              blob=post('blobs',{'encoding':'base64','content':base64.b64encode(raw).decode()});assert blob['sha']==expected
+              entries.append({'path':path,'mode':'100644','type':'blob','sha':expected})
+          tree=post('trees',{'base_tree':'7263c9eda28442fe4c36d20429451687524660b7','tree':entries})
+          assert tree['sha']=='a4459d67c708d95619b0e93c9f8f0ee4ba9b231b'
+          print('Verified exact post-release site tree:',tree['sha'])
