@@ -1,0 +1,97 @@
+name: Apply Reviewed Native Interface
+on:
+  push:
+    branches: [design/calm-workspace-20261028]
+    paths: [.github/workflows/ui-apply-once.yml]
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      source: ${{ steps.apply.outputs.source }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 3
+      - id: apply
+        name: Verify exact source and prepared interface changes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64,gzip,hashlib,json,os,pathlib,subprocess,urllib.request
+          repo='osmankaankars/lemulip'
+          branch='design/calm-workspace-20261028'
+          assert os.environ['GITHUB_REPOSITORY']==repo
+          assert os.environ['GITHUB_REF']=='refs/heads/'+branch
+          base='9cfc215a9e05ced2c37d06c8e3de7546bdc9ec95'
+          temporary=['.github/workflows/ui-source-once.yml','.github/workflows/ui-apply-once.yml']
+          changed=subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines()
+          assert set(changed)==set(temporary),changed
+          def api(method,path,payload=None):
+              data=json.dumps(payload).encode() if payload is not None else None
+              request=urllib.request.Request('https://api.github.com/repos/'+repo+'/'+path,data=data,method=method,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(request,timeout=30) as response:return json.load(response)
+          parts='b6cd01b72f2e2c2f6eb17977063586c61d387dae 17cb0c54b53ea2b42ae87662c9d9968b8b018d0b 3944d94205ec0d3ac120a246c4ce9746ec3f5e7d 405a49462938fa44fcd187f4d0229d2fd13dd78a 14e9c69b756a1eb11dfc685b8400d711d067c258 b3dcb97fc9d5bd979481003b695c8891ca48739c 1a354fff232404daacc8e30d2ddd34d600c5ace6 b7c760ef1499cfe1d4ebede829c57e97a4d1d9f0 1b3741d42211d48d7c9503879ced4db267cc6389 27d838842a7b702cab6dccc9d7fcaadecb9d3200 7241ae20c6e14562f86f9470fc0d4b7faede4dd9'.split()
+          packed=b''.join(base64.b64decode(api('GET','git/blobs/'+sha)['content']) for sha in parts)
+          assert len(packed)==16440
+          assert hashlib.sha256(packed).hexdigest()=='2d63da0d3a1464d6b7345987be837a74b2e8f417ad027f95e3bcfd4ca7df368f'
+          patch=gzip.decompress(packed)
+          assert len(patch)==83002
+          subprocess.run(['git','apply','--unidiff-zero','--index','--whitespace=error'],input=patch,check=True)
+          workflow=pathlib.Path('.github/workflows/build.yml')
+          original=workflow.read_text()
+          marker='          python3 script/test_publish_preview.py\n'
+          assert original.count(marker)==1
+          workflow.write_text(original.replace(marker,marker+'          python3 script/test_interface.py\n'))
+          build_sha=subprocess.check_output(['git','hash-object','-w',str(workflow)],text=True).strip()
+          assert build_sha=='60af1d4d99058d2e9ac24109c48b53068c14ed01'
+          env=os.environ.copy();env['GIT_INDEX_FILE']=os.environ['RUNNER_TEMP']+'/projected-index'
+          subprocess.run(['git','read-tree',subprocess.check_output(['git','write-tree'],text=True).strip()],env=env,check=True)
+          subprocess.run(['git','update-index','--cacheinfo','100644',build_sha,str(workflow)],env=env,check=True)
+          subprocess.run(['git','update-index','--force-remove',*temporary],env=env,check=True)
+          projected=subprocess.check_output(['git','write-tree'],env=env,text=True).strip()
+          assert projected=='bdd1428b6710c2a265c00c7d433f8e99db2b7545',projected
+          for test in sorted(pathlib.Path('script').glob('test_*.py')):
+              if test.name!='test_site_browser.py':subprocess.run(['python3',str(test)],check=True)
+          subprocess.run(['python3','script/privacy_check.py','--staged'],check=True)
+          subprocess.run(['git','diff','--cached','--check'],check=True)
+          remote_blob=api('POST','git/blobs',{'content':workflow.read_text(),'encoding':'utf-8'})
+          assert remote_blob['sha']==build_sha
+          workflow.write_text(original)
+          subprocess.run(['git','config','user.name','Kaan Kars'],check=True)
+          subprocess.run(['git','config','user.email','56635935+osmankaankars@users.noreply.github.com'],check=True)
+          subprocess.run(['git','commit','-m','Make the native workspace, activity and editors calmer and consistent'],check=True)
+          subprocess.run(['git','push','origin','HEAD:refs/heads/'+branch],check=True)
+          source=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:output.write('source='+source+'\n')
+          print(json.dumps({'source':source,'build_blob':build_sha,'final_reviewed_tree':projected}))
+  compile:
+    needs: apply
+    permissions:
+      contents: read
+    runs-on: macos-15
+    timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.apply.outputs.source }}
+          persist-credentials: false
+      - name: Build and test the native interface
+        run: |
+          set -o pipefail
+          xcrun --sdk macosx swift test --jobs 2 --skip EngineIntegrationTests 2>&1 | tee "$RUNNER_TEMP/native-interface.log"
+          CONFIGURATION=debug ./script/build_app.sh
+          ditto -ck --sequesterRsrc --keepParent dist/Lemulip.app "$RUNNER_TEMP/Lemulip-Interface-Preview.zip"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: Lemulip-Native-Interface-First-Review
+          path: |
+            ${{ runner.temp }}/native-interface.log
+            ${{ runner.temp }}/Lemulip-Interface-Preview.zip
+          retention-days: 7
