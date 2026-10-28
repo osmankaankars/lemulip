@@ -48,17 +48,15 @@ struct VideoTrimView: View {
                                 .font(.system(size: 11)).foregroundStyle(Palette.accent)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
-                        Text(model.text("Drag handles to trim, or drag inside to move the range. Click to seek; drag the ruler to scrub. Focus the timeline: S selects Start, E selects End, P selects the playhead; arrows adjust by 0.01 s, Shift by 1 s. Space plays or pauses.",
+                        EditorHelp(language: model.language, explanation: model.text("Drag handles to trim, or drag inside to move the range. Click to seek; drag the ruler to scrub. Focus the timeline: S selects Start, E selects End, P selects the playhead; arrows adjust by 0.01 s, Shift by 1 s. Space plays or pauses.",
                                             "Tutamaklarla kırp, aralığı taşımak için içini sürükle. Önizlemek için tıkla; zaman cetvelini sürükleyerek ilerle. Zaman çizelgesinde S başlangıcı, E bitişi, P oynatma konumunu seçer; oklar 0,01 sn, Shift ile 1 sn ayarlar. Boşluk oynatır veya duraklatır."))
-                            .font(.system(size: 10)).foregroundStyle(Palette.muted)
-                            .fixedSize(horizontal: false, vertical: true)
                     }.padding(24)
                 }
             } else {
                 loadingState.frame(maxWidth: .infinity, maxHeight: .infinity).padding(40)
             }
             Rectangle().fill(Palette.line).frame(height: 1)
-            footer.padding(.horizontal, 24).padding(.vertical, 17)
+            footer
         }
         .frame(width: 840, height: 680)
         .background(Palette.background).foregroundStyle(Palette.ink).tint(Palette.accent)
@@ -70,7 +68,7 @@ struct VideoTrimView: View {
         HStack(spacing: 13) {
             Image(systemName: "film").font(.system(size: 25)).foregroundStyle(Palette.accent)
             VStack(alignment: .leading, spacing: 5) {
-                Text(model.text("Trim Video", "Videoyu kırp")).font(.system(size: 23, weight: .semibold)).tracking(-0.5)
+                Text(model.text("Trim Video", "Videoyu kırp")).font(.system(size: 21, weight: .semibold)).tracking(-0.5)
                 Text(inputs.count == 1 ? inputs[0].lastPathComponent : model.text("Choose a Single Video", "Tek bir video seç"))
                     .font(.system(size: 11)).foregroundStyle(Palette.muted).lineLimit(1).truncationMode(.middle)
             }
@@ -191,17 +189,9 @@ struct VideoTrimView: View {
     }
 
     private var footer: some View {
-        HStack(spacing: 12) {
-            Label(model.text("Your Original Stays Untouched", "Orijinal dosyan korunur"), systemImage: "checkmark.shield")
-                .font(.system(size: 10)).foregroundStyle(Palette.muted)
-            Spacer()
-            Button(model.text("Cancel", "Vazgeç")) { closePreview(); model.cancelPending() }
-                .keyboardShortcut(.cancelAction)
-            Button(model.text("Create Copy", "Kopya oluştur")) { submit() }
-                .buttonStyle(.borderedProminent).tint(Palette.primaryAction).foregroundStyle(Palette.onPrimary)
-                .keyboardShortcut(.defaultAction)
-                .disabled(selection == nil || validationError != nil || loadError != nil || preview.map({ availableFormats($0).isEmpty }) != false)
-        }
+        EditorFooter(language: model.language,
+            isEnabled: selection != nil && validationError == nil && loadError == nil && preview.map({ !availableFormats($0).isEmpty }) == true,
+            onCancel: { closePreview(); model.cancelPending() }, onSubmit: { submit() })
     }
 
     private var parsedSelection: VideoTrimSelection? {

@@ -7,27 +7,31 @@ import LemulipCore
 struct DashboardView: View {
     @ObservedObject var model: AppController
     @State private var isTargeted = false
+    @State private var showsShortcuts = false
 
     var body: some View {
-        HStack(spacing: 0) {
-            sidebar.padding(12)
-            VStack(spacing: 0) {
-                topBar
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 28) {
-                        if model.section == "settings" { SettingsContent(model: model) }
-                        else if model.section == "activity" { ActivityContent(model: model) }
-                        else { workspace }
+        GeometryReader { geometry in
+            HStack(spacing: 0) {
+                SidebarNavigation(model: model, compact: geometry.size.width < 880)
+                Rectangle().fill(Palette.line.opacity(0.55)).frame(width: 1)
+                VStack(spacing: 0) {
+                    mainToolbar
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 24) {
+                            if model.section == "settings" { SettingsContent(model: model) }
+                            else if model.section == "activity" { ActivityContent(model: model) }
+                            else { workspace }
+                        }
+                        .padding(24)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .padding(32)
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
         }
         .background(Palette.background)
         .foregroundStyle(Palette.ink)
         .tint(Palette.accent)
-        .frame(minWidth: 850, minHeight: 620)
+        .frame(minWidth: 720, minHeight: 560)
         .sheet(item: $model.pendingOperation, onDismiss: { model.cancelPending() }) { operation in
             if operation.id == "image.crop" {
                 ImageCropView(model: model, inputs: model.pendingInputURLs)
@@ -52,198 +56,169 @@ struct DashboardView: View {
         } message: { Text(model.alertMessage ?? "") }
     }
 
-    private var sidebar: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 11) {
-                AppMark(size: 42)
-                AppWordmark()
-            }.padding(.top, 40).padding(.bottom, 32)
-            VStack(spacing: 7) {
-                nav("workspace", "square.stack.3d.up", model.text("Workspace", "Çalışma alanı"))
-                nav("activity", "clock.arrow.circlepath", model.text("Activity", "İşlemler"))
-                nav("settings", "slider.horizontal.3", model.text("Settings", "Ayarlar"))
-            }
-            Spacer()
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(spacing: 7) {
-                    Circle().fill(model.wheelEnabled ? Palette.accent : Palette.muted).frame(width: 6, height: 6)
-                    Text(model.text(model.wheelEnabled ? "Wheel is ready" : "Wheel is paused", model.wheelEnabled ? "Çark hazır" : "Çark duraklatıldı"))
-                        .font(.system(size: 12, weight: .medium))
+    private var mainToolbar: some View {
+        HStack(spacing: 12) {
+            Text(model.section == "settings" ? model.text("Settings", "Ayarlar") :
+                 model.section == "activity" ? model.text("Activity", "İşlemler") : model.text("Workspace", "Çalışma Alanı"))
+                .font(.system(size: 22, weight: .semibold)).tracking(-0.5)
+                .accessibilityAddTraits(.isHeader)
+            Spacer(minLength: 12)
+            if model.section == "workspace" {
+                if !model.files.isEmpty {
+                    Button { model.chooseFiles() } label: {
+                        Label(model.text("Add Files", "Dosya Ekle"), systemImage: "plus")
+                    }.accessibilityIdentifier("workspace.add-files")
                 }
-                Text(model.text("Your Files.\nYour Mac. Your Control.", "Dosyaların.\nMac'in. Kontrol sende."))
-                    .font(.system(size: 17, weight: .medium)).foregroundStyle(Palette.muted).lineSpacing(3)
-                HStack(spacing: 5) {
-                    Image(systemName: "lock.shield").font(.system(size: 10))
-                    Text(model.text("Offline · Open Source", "ÇEVRİMDIŞI · AÇIK KAYNAK")).font(.system(size: 9, weight: .medium, design: .monospaced)).tracking(0.4)
-                }.foregroundStyle(Palette.muted)
-            }.padding(.bottom, 28)
+                Button { showsShortcuts.toggle() } label: {
+                    Image(systemName: "questionmark.circle").font(.system(size: 16))
+                }.buttonStyle(.plain).foregroundStyle(Palette.muted)
+                    .accessibilityLabel(model.text("Keyboard Shortcuts", "Klavye Kısayolları"))
+                    .help(model.text("Keyboard Shortcuts", "Klavye Kısayolları"))
+                    .popover(isPresented: $showsShortcuts, arrowEdge: .bottom) {
+                        ShortcutHelp(model: model).padding(20).frame(width: 310)
+                    }
+            }
         }
-        .padding(.horizontal, 22)
-        .frame(width: 203)
-        .navigationChrome(radius: 22)
-    }
-
-    private func nav(_ id: String, _ symbol: String, _ title: String) -> some View {
-        Button {
-            model.section = id
-            if id == "settings" { model.engineRefresh += 1 }
-        } label: {
-            HStack(spacing: 11) {
-                Image(systemName: symbol).font(.system(size: 15)).frame(width: 19)
-                Text(title).font(.system(size: 13, weight: model.section == id ? .semibold : .regular))
-                Spacer()
-                if id == "activity" && model.isBusy { ProgressView().controlSize(.mini) }
-            }.foregroundStyle(model.section == id ? Palette.onLime : Palette.muted)
-                .padding(.horizontal, 13).padding(.vertical, 12)
-                .background(model.section == id ? Palette.lime : .clear, in: RoundedRectangle(cornerRadius: 11))
-        }.buttonStyle(.plain)
-    }
-
-    private var topBar: some View {
-        HStack {
-            Text(model.section == "workspace" ? model.text("The Everyday File Tool", "GÜNLÜK DOSYA ARACIN") : model.section == "activity" ? model.text("This Session", "BU OTURUM") : model.text("Make It Yours", "KENDİNE GÖRE AYARLA"))
-                .font(.system(size: 10, weight: .medium, design: .monospaced)).tracking(1.8).foregroundStyle(Palette.muted)
-            Spacer()
-            HStack(spacing: 6) { Image(systemName: "infinity"); Text(model.text("Free Forever", "Her zaman ücretsiz")) }
-                .font(.system(size: 11, weight: .medium)).foregroundStyle(Palette.accent)
-                .padding(.horizontal, 11).padding(.vertical, 6)
-                .overlay(Capsule().stroke(Palette.accent.opacity(0.2), lineWidth: 1))
-        }.padding(.horizontal, 32).padding(.top, 36).padding(.bottom, 16)
+        .padding(.horizontal, 24).padding(.top, 36).padding(.bottom, 14)
+        .background(Palette.background)
+        .overlay(alignment: .bottom) { Rectangle().fill(Palette.line.opacity(0.55)).frame(height: 1) }
     }
 
     private var workspace: some View {
         Group {
-            VStack(alignment: .leading, spacing: 11) {
-                Text(model.text("A Fresh Spin On Your Files.", "Dosyalarına taze bir dokunuş."))
-                    .font(.system(size: 32, weight: .semibold)).tracking(-1.15)
-                Text(model.text("Convert, refine, and move on. Everything happens on this Mac.", "Dönüştür, düzenle, devam et. Her işlem bu Mac'te gerçekleşir."))
-                    .font(.system(size: 13)).foregroundStyle(Palette.muted)
+            if model.files.isEmpty {
+                dropZone
+                shortcutGuide
+            } else {
+                selectedFiles
+                operationSection
             }
-            if model.files.isEmpty { dropZone }
-            else { selectedFiles; operationSection }
-            if model.files.isEmpty { shortcutGuide }
             if let latest = model.activity.first { recentActivity(latest) }
         }
     }
 
     private var dropZone: some View {
-        VStack(spacing: 18) {
-            AppMark(size: 112).padding(.top, 24)
+        VStack(spacing: 16) {
+            AppMark(size: 56)
             VStack(spacing: 7) {
-                Text(model.text(isTargeted ? "Drop to Get Started" : "Drop Your Files Here", isTargeted ? "Başlamak için bırak" : "Dosyalarını buraya bırak"))
-                    .font(.system(size: 19, weight: .medium))
-                Text(model.text("Images, video, audio, documents, and more", "Görseller, video, ses, belgeler ve daha fazlası"))
-                    .font(.system(size: 12)).foregroundStyle(Palette.muted)
+                Text(model.text(isTargeted ? "Drop To Get Started" : "Drop Your Files Here",
+                                isTargeted ? "Başlamak İçin Bırak" : "Dosyalarını Buraya Bırak"))
+                    .font(.system(size: 22, weight: .semibold)).tracking(-0.5)
+                Text(model.text("Images, Video, Audio, Documents And More", "Görsel, Video, Ses, Belge Ve Daha Fazlası"))
+                    .font(.system(size: 13)).foregroundStyle(Palette.muted)
+                    .multilineTextAlignment(.center)
             }
             Button { model.chooseFiles() } label: {
-                HStack(spacing: 8) { Image(systemName: "plus"); Text(model.text("Choose Files", "Dosya seç")); Text("⌘O").fontWeight(.medium) }
-                    .font(.system(size: 12, weight: .semibold)).foregroundStyle(Palette.onLime)
-                    .padding(.horizontal, 20).padding(.vertical, 12).background(Palette.lime, in: Capsule())
-                    .overlay(Capsule().stroke(Palette.onLime.opacity(0.16), lineWidth: 1))
-            }.buttonStyle(.plain).padding(.bottom, 27)
-        }
-        .frame(maxWidth: .infinity)
-        .background {
-            ZStack {
-                RoundedRectangle(cornerRadius: 24).fill(Palette.panel)
-                // Keep the drop hint behind the white icon and readable controls.
-                RoundedRectangle(cornerRadius: 24).fill(LinearGradient(colors: [Palette.primaryAction.opacity(isTargeted ? 0.12 : 0), .clear], startPoint: .topLeading, endPoint: .bottomTrailing))
+                HStack(spacing: 12) {
+                    Label(model.text("Choose Files", "Dosya Seç"), systemImage: "plus")
+                    Text("⌘O").font(.system(size: 12, design: .monospaced)).opacity(0.7)
+                }.padding(.horizontal, 6).padding(.vertical, 3)
             }
+            .buttonStyle(.borderedProminent).tint(Palette.primaryAction).foregroundStyle(Palette.onPrimary)
+            .controlSize(.large).accessibilityIdentifier("workspace.choose-files")
         }
-        .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(isTargeted ? Palette.accent : Palette.line, style: StrokeStyle(lineWidth: isTargeted ? 2 : 1, dash: [6, 5])))
+        .padding(.horizontal, 24).padding(.vertical, 34)
+        .frame(maxWidth: .infinity)
+        .background(Palette.panel, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16)
+            .strokeBorder(isTargeted ? Palette.accent : Palette.line,
+                          style: StrokeStyle(lineWidth: isTargeted ? 2 : 1, dash: [5, 5])))
         .onDrop(of: [UTType.fileURL.identifier], isTargeted: $isTargeted, perform: loadDrop)
     }
 
     private var selectedFiles: some View {
         VStack(spacing: 0) {
             HStack {
-                Label(model.text("\(model.files.count) selected", "\(model.files.count) dosya seçildi"), systemImage: "doc.on.doc")
-                    .font(.system(size: 12, weight: .medium)).foregroundStyle(Palette.muted)
+                Label(model.text("\(model.files.count) Selected", "\(model.files.count) Dosya Seçildi"), systemImage: "doc.on.doc")
+                    .font(.system(size: 13, weight: .medium))
                 Spacer()
-                Button(model.text("Add Files", "Dosya ekle")) { model.chooseFiles() }.buttonStyle(.plain).foregroundStyle(Palette.accent)
-                Button(model.text("Clear", "Temizle")) { model.files = [] }.buttonStyle(.plain).foregroundStyle(Palette.muted).padding(.leading, 10)
-            }.padding(16)
-            Rectangle().fill(Palette.line).frame(height: 1)
+                Button(model.text("Clear", "Temizle")) { model.files = [] }
+                    .buttonStyle(.plain).foregroundStyle(Palette.muted)
+            }.padding(.bottom, 12)
             ForEach(Array(model.files.enumerated()), id: \.element) { index, url in
-                HStack(spacing: 11) {
-                    Image(nsImage: NSWorkspace.shared.icon(forFile: url.path)).resizable().frame(width: 28, height: 28)
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(url.lastPathComponent).font(.system(size: 12, weight: .medium)).lineLimit(1)
-                        Text(fileDetails(url)).font(.system(size: 10)).foregroundStyle(Palette.muted).lineLimit(1)
+                HStack(spacing: 12) {
+                    Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
+                        .resizable().frame(width: 32, height: 32).accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(url.lastPathComponent).font(.system(size: 13, weight: .medium))
+                            .lineLimit(1).truncationMode(.middle).help(url.lastPathComponent)
+                        Text(fileDetails(url)).font(.system(size: 11)).foregroundStyle(Palette.muted).lineLimit(1)
                     }
-                    Spacer(minLength: 10)
+                    Spacer(minLength: 8)
                     if model.files.count > 1 {
-                        Button { model.moveFile(index, by: -1) } label: { Image(systemName: "chevron.up") }.disabled(index == 0).help(model.text("Move Up", "Yukarı taşı"))
-                        Button { model.moveFile(index, by: 1) } label: { Image(systemName: "chevron.down") }.disabled(index == model.files.count - 1).help(model.text("Move Down", "Aşağı taşı"))
+                        Button { model.moveFile(index, by: -1) } label: { Image(systemName: "chevron.up") }
+                            .disabled(index == 0).help(model.text("Move Up", "Yukarı Taşı"))
+                            .accessibilityLabel(model.text("Move Up", "Yukarı Taşı"))
+                        Button { model.moveFile(index, by: 1) } label: { Image(systemName: "chevron.down") }
+                            .disabled(index == model.files.count - 1).help(model.text("Move Down", "Aşağı Taşı"))
+                            .accessibilityLabel(model.text("Move Down", "Aşağı Taşı"))
                     }
-                    Button { model.files.removeAll { $0 == url } } label: { Image(systemName: "xmark") }.help(model.text("Remove From Selection", "Seçimden çıkar"))
-                }.buttonStyle(.plain).foregroundStyle(Palette.muted).padding(.horizontal, 16).padding(.vertical, 11)
+                    Button { model.files.removeAll { $0 == url } } label: { Image(systemName: "xmark.circle") }
+                        .help(model.text("Remove From Selection", "Seçimden Çıkar"))
+                        .accessibilityLabel(model.text("Remove \(url.lastPathComponent)", "\(url.lastPathComponent) Dosyasını Çıkar"))
+                }
+                .buttonStyle(.plain).foregroundStyle(Palette.ink)
+                .padding(.horizontal, 14).padding(.vertical, 12)
+                .background(Palette.panel, in: RoundedRectangle(cornerRadius: 10))
+                .padding(.bottom, 6)
             }
             if model.files.count > 1 {
-                Text(model.text("The list order is used when merging files.", "Birleştirmede dosyaların bu sırası kullanılır."))
-                    .font(.system(size: 10)).foregroundStyle(Palette.muted).frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 16).padding(.bottom, 12)
+                Text(model.text("Files Merge In This Order.", "Dosyalar Bu Sırayla Birleştirilir."))
+                    .font(.system(size: 11)).foregroundStyle(Palette.muted)
+                    .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 5)
             }
-        }.background(Palette.panel, in: RoundedRectangle(cornerRadius: 13))
-            .overlay(RoundedRectangle(cornerRadius: 13).stroke(Palette.line, lineWidth: 1))
-            .onDrop(of: [UTType.fileURL.identifier], isTargeted: $isTargeted, perform: loadDrop)
+        }
+        .onDrop(of: [UTType.fileURL.identifier], isTargeted: $isTargeted, perform: loadDrop)
     }
 
     private var operationSection: some View {
-        VStack(alignment: .leading, spacing: 17) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack {
-                HStack(spacing: 3) {
+                Picker(model.text("Action Group", "İşlem Grubu"), selection: $model.mode) {
                     ForEach(WheelMode.allCases, id: \.self) { mode in
-                        Button { model.mode = mode } label: {
-                            HStack(spacing: 6) { Text(mode.keySymbol).foregroundStyle(Palette.muted); Text(modeTitle(mode)) }
-                                .font(.system(size: 12, weight: .medium)).padding(.horizontal, 14).padding(.vertical, 8)
-                                .background(model.mode == mode ? Palette.raised : .clear, in: RoundedRectangle(cornerRadius: 7))
-                        }.buttonStyle(.plain)
+                        Text("\(mode.keySymbol) \(modeTitle(mode))").tag(mode)
                     }
-                }.padding(5).navigationChrome(radius: 14)
-                Spacer()
-                Button { model.showWheel() } label: { Label(model.text("Open Wheel", "Çarkı aç"), systemImage: "circle.hexagongrid") }
-                    .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(Palette.accent)
+                }.pickerStyle(.segmented).labelsHidden().frame(maxWidth: 350)
+                Spacer(minLength: 8)
+                Button { model.showWheel() } label: {
+                    Image(systemName: "circle.hexagongrid").font(.system(size: 18))
+                }.buttonStyle(.plain).foregroundStyle(Palette.accent)
+                    .help(model.text("Open Wheel", "Çarkı Aç"))
+                    .accessibilityLabel(model.text("Open Wheel", "Çarkı Aç"))
             }
             if model.operations.isEmpty {
-                Text(model.text("Select files of the same type to convert them together. File actions work with any selection.", "Birlikte dönüştürmek için aynı türde dosyalar seç. Dosya işlemleri her seçimle çalışır."))
-                    .font(.system(size: 12)).foregroundStyle(Palette.muted).padding(.vertical, 16)
+                Text(model.text("Choose Files Of The Same Type For A Conversion. Actions Work With Any Selection.",
+                                "Birlikte Dönüştürmek İçin Aynı Türde Dosyalar Seç. İşlemler Her Seçimle Çalışır."))
+                    .font(.system(size: 13)).foregroundStyle(Palette.muted).padding(.vertical, 16)
             } else {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 138), spacing: 10)], spacing: 10) {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 10)], spacing: 10) {
                     ForEach(model.operations) { operation in OperationCard(operation: operation, model: model) }
                 }
             }
-            HStack(spacing: 6) {
-                Image(systemName: "checkmark.shield")
-                Text(model.text("Conversions create new files. Originals stay untouched.", "Dönüşümler yeni dosya oluşturur. Orijinaller korunur."))
-            }.font(.system(size: 10)).foregroundStyle(Palette.muted)
         }
     }
 
     private var shortcutGuide: some View {
-        HStack(alignment: .top, spacing: 24) {
+        HStack(spacing: 10) {
             ForEach(WheelMode.allCases, id: \.self) { mode in
-                HStack(alignment: .top, spacing: 11) {
-                    Text(mode.keySymbol).font(.system(size: 19, weight: .medium)).frame(width: 37, height: 37)
-                        .background(Palette.raised, in: RoundedRectangle(cornerRadius: 9)).overlay(RoundedRectangle(cornerRadius: 9).stroke(Palette.line))
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(modeTitle(mode)).font(.system(size: 12, weight: .semibold))
-                        Text(model.text(mode == .convert ? "Make it a new format" : mode == .tools ? "Fine-tune the details" : "Get it where it belongs", mode == .convert ? "Biçimini değiştir" : mode == .tools ? "İnce ayarları yap" : "İstediğin yere taşı"))
-                            .font(.system(size: 10)).foregroundStyle(Palette.muted)
-                    }.padding(.top, 2)
-                }.frame(maxWidth: .infinity, alignment: .leading)
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(mode.keySymbol).font(.system(size: 22, weight: .medium))
+                    Text(modeTitle(mode)).font(.system(size: 13, weight: .semibold))
+                }.foregroundStyle(Palette.ink)
+                    .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Palette.shortcutFill(mode), in: RoundedRectangle(cornerRadius: 12))
+                    .accessibilityElement(children: .combine)
             }
         }
-        .overlay(alignment: .bottomLeading) { EmptyView() }
-        .padding(.bottom, 5)
-        .accessibilityElement(children: .combine)
     }
 
     private func recentActivity(_ item: ActivityItem) -> some View {
-        VStack(alignment: .leading, spacing: 13) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text(model.text("Latest Activity", "SON İŞLEM")).font(.system(size: 10, weight: .medium, design: .monospaced)).tracking(1.2).foregroundStyle(Palette.muted)
+                Text(model.text("Latest Activity", "Son İşlem")).font(.system(size: 13, weight: .semibold))
                 Spacer()
-                Button(model.text("View All", "Tümünü gör")) { model.section = "activity" }.buttonStyle(.plain).font(.system(size: 11)).foregroundStyle(Palette.accent)
+                Button(model.text("View All", "Tümünü Gör")) { model.section = "activity" }
+                    .buttonStyle(.plain).font(.system(size: 12)).foregroundStyle(Palette.accent)
             }
             ActivityRow(item: item, model: model)
         }

@@ -135,14 +135,14 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
     }
 
     private func buildWindow() {
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1050, height: 720), styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1020, height: 700), styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView], backing: .buffered, defer: false)
         window.title = "Lemulip"
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.backgroundColor = Palette.canvasColor
         window.isMovableByWindowBackground = true
         window.isReleasedWhenClosed = false
-        window.minSize = NSSize(width: 850, height: 620)
+        window.minSize = NSSize(width: 720, height: 560)
         window.contentView = NSHostingView(rootView: DashboardView(model: self))
         // Preserve the saved window position from the original application name.
         let restoredFrame = window.setFrameUsingName("FreewheelMainWindow")
@@ -353,6 +353,15 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
     func clearActivity() { activity.removeAll { $0.state != .running && $0.state != .waiting } }
     func reveal(_ urls: [URL]) { NSWorkspace.shared.activateFileViewerSelecting(urls) }
 
+    func copyOutputs(_ urls: [URL]) {
+        guard !urls.isEmpty, urls.allSatisfy({ $0.isFileURL && FileManager.default.fileExists(atPath: $0.path) }) else {
+            alertMessage = text("The Output File Is No Longer Available.", "Çıktı Dosyası Artık Kullanılabilir Değil.")
+            showMainWindow(); return
+        }
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.writeObjects(urls.map { $0 as NSURL })
+    }
+
     private func performFileAction(_ operation: FileOperation, inputs: [URL]) {
         switch operation.id {
         case "action.copyPath":
@@ -419,7 +428,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate {
         }
     }
 
-    private func showShelf(_ urls: [URL]) {
+    func showShelf(_ urls: [URL]) {
         shelfWindows.removeAll { !$0.isVisible }
         let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 330, height: min(400, 110 + urls.count * 58)), styleMask: [.titled, .closable, .resizable, .utilityWindow], backing: .buffered, defer: false)
         panel.title = text("File Shelf", "Dosya rafı")

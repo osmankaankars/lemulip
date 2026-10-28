@@ -97,7 +97,7 @@ final class VideoTrimTimelineCanvas: NSView {
     }
 
     override func draw(_ dirtyRect: NSRect) {
-        Palette.raisedColor.setFill()
+        Palette.editorCanvasColor.setFill()
         NSBezierPath(roundedRect: bounds, xRadius: 13, yRadius: 13).fill()
         let frame = stripFrame
         guard frame.width > 0, frame.height > 0 else { return }

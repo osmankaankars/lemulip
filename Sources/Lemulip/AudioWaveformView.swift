@@ -91,7 +91,7 @@ final class AudioWaveformCanvas: NSView {
     }
 
     override func draw(_ dirtyRect: NSRect) {
-        Palette.raisedColor.setFill()
+        Palette.editorCanvasColor.setFill()
         NSBezierPath(roundedRect: bounds, xRadius: 14, yRadius: 14).fill()
         let frame = waveformFrame
         guard frame.width > 0, frame.height > 0 else { return }

@@ -5,39 +5,41 @@ import LemulipCore
 
 struct ActivityContent: View {
     @ObservedObject var model: AppController
+    private var activeCount: Int { model.activity.filter { $0.state == .running || $0.state == .waiting }.count }
+    private var failedCount: Int { model.activity.filter { $0.state == .failed }.count }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(model.text("A Little Less Busywork.", "Biraz daha az uğraş."))
-                        .font(.system(size: 30, weight: .semibold)).tracking(-0.9)
-                    Text(model.text("Progress and results from this session. History is kept in memory only.", "Bu oturumdaki işlemler ve sonuçları. Geçmiş yalnızca bellekte tutulur."))
-                        .font(.system(size: 12)).foregroundStyle(Palette.muted)
-                }
-                Spacer()
-                Button(model.text("Clear Finished", "Bitenleri temizle")) { model.clearActivity() }.buttonStyle(.plain).foregroundStyle(Palette.accent).font(.system(size: 12))
-            }
+        VStack(alignment: .leading, spacing: 18) {
             if model.activity.isEmpty {
-                VStack(spacing: 16) {
-                    Image(systemName: "clock.arrow.circlepath").font(.system(size: 36, weight: .light)).foregroundStyle(Palette.accent)
-                    Text(model.text("Your Next Conversion Starts Here.", "Bir sonraki dönüşümün burada görünecek.")).font(.system(size: 15, weight: .medium))
-                    Button(model.text("Choose Files", "Dosya seç")) { model.chooseFiles() }.buttonStyle(.borderedProminent).tint(Palette.lime).foregroundStyle(Palette.onLime)
-                }.frame(maxWidth: .infinity).padding(.vertical, 65).background(Palette.panel, in: RoundedRectangle(cornerRadius: 16))
+                VStack(spacing: 14) {
+                    Image(systemName: "checkmark.circle").font(.system(size: 30, weight: .light)).foregroundStyle(Palette.muted)
+                    Text(model.text("Your Results Appear Here", "Sonuçların Burada Görünür"))
+                        .font(.system(size: 18, weight: .semibold))
+                    Text(model.text("Choose A File To Get Started.", "Başlamak İçin Bir Dosya Seç."))
+                        .font(.system(size: 13)).foregroundStyle(Palette.muted)
+                    Button(model.text("Choose Files", "Dosya Seç")) { model.chooseFiles() }
+                        .buttonStyle(.borderedProminent).tint(Palette.primaryAction).foregroundStyle(Palette.onPrimary)
+                }.frame(maxWidth: .infinity).padding(.vertical, 54)
             } else {
-                HStack(spacing: 18) {
-                    stat("\(model.completedCount)", model.text("Completed", "Tamamlandı"))
-                    stat("\(model.activity.filter { $0.state == .running || $0.state == .waiting }.count)", model.text("In Progress", "Devam ediyor"))
-                    stat("0", model.text("Files Uploaded", "Yüklenen dosya"))
+                HStack(spacing: 12) {
+                    Text(model.text("\(model.completedCount) Completed", "\(model.completedCount) Tamamlandı"))
+                    if activeCount > 0 {
+                        Text("·").accessibilityHidden(true)
+                        Text(model.text("\(activeCount) Processing", "\(activeCount) İşleniyor"))
+                    }
+                    if failedCount > 0 {
+                        Text("·").accessibilityHidden(true)
+                        Text(model.text("\(failedCount) Needs Attention", "\(failedCount) Kontrol Bekliyor"))
+                    }
+                    Spacer(minLength: 8)
+                    Button(model.text("Clear Finished", "Bitenleri Temizle")) { model.clearActivity() }
+                        .buttonStyle(.plain).foregroundStyle(Palette.accent)
+                }.font(.system(size: 12)).foregroundStyle(Palette.muted)
+                LazyVStack(spacing: 10) {
+                    ForEach(model.activity) { ActivityRow(item: $0, model: model) }
                 }
-                LazyVStack(spacing: 10) { ForEach(model.activity) { ActivityRow(item: $0, model: model) } }
             }
         }
-    }
-    private func stat(_ number: String, _ label: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(number).font(.system(size: 29, weight: .medium, design: .rounded)).foregroundStyle(Palette.accent)
-            Text(label).font(.system(size: 11)).foregroundStyle(Palette.muted)
-        }.padding(20).frame(maxWidth: .infinity, alignment: .leading).background(Palette.panel, in: RoundedRectangle(cornerRadius: 12))
     }
 }
 
@@ -45,68 +47,95 @@ struct ActivityRow: View {
     let item: ActivityItem
     @ObservedObject var model: AppController
     private var active: Bool { item.state == .running || item.state == .waiting }
+
     var body: some View {
-        HStack(alignment: .top, spacing: 13) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 9).fill(Palette.raised).frame(width: 39, height: 39)
-                if item.state == .running { ProgressView().controlSize(.small) }
-                else { Image(systemName: item.state == .succeeded ? "checkmark" : item.state == .failed ? "exclamationmark" : item.state == .cancelled ? "xmark" : "clock").foregroundStyle(item.state == .failed ? .orange : Palette.accent) }
-            }
-            VStack(alignment: .leading, spacing: 6) {
-                HStack(spacing: 8) {
-                    Text(OperationNames.title(item.operation, language: model.language)).font(.system(size: 12, weight: .semibold))
-                    Text("·").foregroundStyle(Palette.muted)
-                    Text(item.inputs.count == 1 ? item.inputs[0].lastPathComponent : model.text("\(item.inputs.count) files", "\(item.inputs.count) dosya"))
-                        .font(.system(size: 12)).foregroundStyle(Palette.muted).lineLimit(1)
+        HStack(alignment: .top, spacing: 14) {
+            statusIcon
+            VStack(alignment: .leading, spacing: 9) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(item.inputs.count == 1 ? item.inputs[0].lastPathComponent : model.text("\(item.inputs.count) Files", "\(item.inputs.count) Dosya"))
+                        .font(.system(size: 13, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+                    Spacer(minLength: 8)
+                    Text(OperationNames.title(item.operation, language: model.language))
+                        .font(.system(size: 11, weight: .medium)).foregroundStyle(Palette.muted)
                 }
-                Text(statusText).font(.system(size: 11)).foregroundStyle(item.state == .failed ? .orange : Palette.muted).textSelection(.enabled)
+                HStack(spacing: 7) {
+                    if item.state == .succeeded { Image(systemName: "checkmark.circle.fill").foregroundStyle(Palette.accent) }
+                    Text(statusText).textSelection(.enabled)
+                }.font(.system(size: 12)).foregroundStyle(item.state == .failed ? .orange : Palette.muted)
                 if item.state == .running, let progress = item.progress {
                     if let fraction = progress.fractionCompleted, progress.phase == .converting {
-                        ProgressView(value: fraction).tint(Palette.accent)
-                            .accessibilityLabel(model.text("Conversion Progress", "Dönüşüm ilerlemesi"))
-                        Text("\(Int(fraction * 100))%")
-                            .font(.system(size: 10, design: .monospaced)).foregroundStyle(Palette.muted)
+                        HStack(spacing: 12) {
+                            ProgressView(value: fraction).tint(Palette.accent)
+                                .accessibilityLabel(model.text("Conversion Progress", "Dönüşüm İlerlemesi"))
+                            Text("\(Int(fraction * 100))%")
+                                .font(.system(size: 11, design: .monospaced)).foregroundStyle(Palette.muted)
+                        }
                     }
                     if progress.phase == .converting && progress.totalFiles > 1 {
-                        Text(model.text("\(progress.completedFiles) / \(progress.totalFiles) files processed", "\(progress.completedFiles) / \(progress.totalFiles) dosya işlendi"))
-                            .font(.system(size: 10)).foregroundStyle(Palette.muted)
+                        Text(model.text("\(progress.completedFiles) / \(progress.totalFiles) Files Processed", "\(progress.completedFiles) / \(progress.totalFiles) Dosya İşlendi"))
+                            .font(.system(size: 11)).foregroundStyle(Palette.muted)
                     }
                 }
-                if !item.message.isEmpty { Text(item.message).font(.system(size: 11)).foregroundStyle(Palette.muted).textSelection(.enabled) }
+                if !item.message.isEmpty {
+                    DisclosureGroup(model.text("Details", "Ayrıntılar")) {
+                        Text(item.message).font(.system(size: 12)).foregroundStyle(Palette.muted)
+                            .textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading).padding(.top, 4)
+                    }.font(.system(size: 12)).foregroundStyle(Palette.muted)
+                }
                 if !item.outputs.isEmpty {
                     ForEach(item.outputs.prefix(4), id: \.self) { url in
                         Button { model.reveal([url]) } label: {
-                            Label(url.lastPathComponent, systemImage: "doc").font(.system(size: 10)).foregroundStyle(Palette.accent).lineLimit(1)
-                        }.buttonStyle(.plain)
+                            Label(url.lastPathComponent, systemImage: "doc")
+                                .font(.system(size: 12)).lineLimit(1).truncationMode(.middle)
+                        }.buttonStyle(.plain).foregroundStyle(Palette.accent)
+                            .help(url.lastPathComponent)
+                            .onDrag { NSItemProvider(object: url as NSURL) }
                     }
-                    if item.outputs.count > 4 { Text(model.text("+ \(item.outputs.count - 4) more", "+ \(item.outputs.count - 4) dosya daha")).font(.system(size: 10)).foregroundStyle(Palette.muted) }
+                    if item.outputs.count > 4 {
+                        Text(model.text("+ \(item.outputs.count - 4) More Files", "+ \(item.outputs.count - 4) Dosya Daha"))
+                            .font(.system(size: 11)).foregroundStyle(Palette.muted)
+                    }
+                    OutputActions(urls: item.outputs, model: model).padding(.top, 4)
                 }
-            }.padding(.top, 3)
-            Spacer(minLength: 4)
+            }
             if active && !item.operation.id.hasPrefix("action.") {
-                Button { model.cancelJob(item.id) } label: { Image(systemName: "xmark.circle").foregroundStyle(Palette.muted) }
-                    .buttonStyle(.plain).help(model.text("Cancel", "İptal et"))
+                Button { model.cancelJob(item.id) } label: { Image(systemName: "xmark.circle") }
+                    .buttonStyle(.plain).foregroundStyle(Palette.muted)
+                    .help(model.text("Cancel", "İptal Et"))
+                    .accessibilityLabel(model.text("Cancel Conversion", "Dönüşümü İptal Et"))
             } else if model.canRetry(item) {
                 Button { model.retryJob(item.id) } label: {
                     Label(model.text("Retry", "Tekrar Dene"), systemImage: "arrow.clockwise")
-                        .font(.system(size: 11)).foregroundStyle(Palette.accent)
-                }.buttonStyle(.plain).help(model.text("Retry With The Same Settings", "Aynı ayarlarla tekrar dene"))
-            } else if item.state == .succeeded && !item.outputs.isEmpty {
-                Button { model.reveal(item.outputs) } label: { Image(systemName: "folder").foregroundStyle(Palette.accent) }
-                    .buttonStyle(.plain).help(model.text("Show in Finder", "Finder'da göster"))
+                        .font(.system(size: 12, weight: .medium))
+                }.buttonStyle(.plain).foregroundStyle(Palette.accent)
+                    .help(model.text("Retry With The Same Settings", "Aynı Ayarlarla Tekrar Dene"))
             }
-        }.padding(17).background(Palette.panel, in: RoundedRectangle(cornerRadius: 12)).overlay(RoundedRectangle(cornerRadius: 12).stroke(Palette.line, lineWidth: 1))
+        }.padding(16).background(Palette.panel, in: RoundedRectangle(cornerRadius: 12))
     }
+
+    @ViewBuilder private var statusIcon: some View {
+        if item.state == .running {
+            ProgressView().controlSize(.small).frame(width: 34, height: 34)
+        } else if let url = item.outputs.first ?? item.inputs.first {
+            Image(nsImage: NSWorkspace.shared.icon(forFile: url.path)).resizable()
+                .frame(width: 34, height: 34).accessibilityHidden(true)
+        } else {
+            Image(systemName: "doc").font(.system(size: 24)).foregroundStyle(Palette.muted)
+                .frame(width: 34, height: 34).accessibilityHidden(true)
+        }
+    }
+
     private var statusText: String {
         switch item.state {
         case .waiting: return model.text("Queued", "Sırada")
         case .running:
             if item.progress?.phase == .preparing { return model.text("Preparing…", "Hazırlanıyor…") }
-            if item.progress?.phase == .publishing || item.progress?.phase == .finished { return model.text("Saving New Files…", "Yeni dosyalar kaydediliyor…") }
-            return model.text("Processing Locally…", "Bu Mac'te işleniyor…")
-        case .succeeded: return model.text("Finished · \(item.outputs.count) output files", "Tamamlandı · \(item.outputs.count) çıktı dosyası")
-        case .failed: return model.text("Could not complete", "Tamamlanamadı")
-        case .cancelled: return model.text("Cancelled", "İptal edildi")
+            if item.progress?.phase == .publishing || item.progress?.phase == .finished { return model.text("Saving New Files…", "Yeni Dosyalar Kaydediliyor…") }
+            return model.text("Processing…", "İşleniyor…")
+        case .succeeded: return model.text("Completed · \(item.outputs.count) \(item.outputs.count == 1 ? "New File" : "New Files")", "Tamamlandı · \(item.outputs.count) Yeni Dosya")
+        case .failed: return model.text("Could Not Complete", "Tamamlanamadı")
+        case .cancelled: return model.text("Cancelled", "İptal Edildi")
         }
     }
 }

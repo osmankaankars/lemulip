@@ -37,7 +37,7 @@ struct ImageCropView: View {
                 loadingState.frame(maxWidth: .infinity, maxHeight: .infinity).padding(40)
             }
             Rectangle().fill(Palette.line).frame(height: 1)
-            footer.padding(.horizontal, 24).padding(.vertical, 17)
+            footer
         }
         .frame(width: 820, height: 590)
         .background(Palette.background).foregroundStyle(Palette.ink).tint(Palette.accent)
@@ -48,7 +48,7 @@ struct ImageCropView: View {
         HStack(spacing: 13) {
             Image(systemName: "crop").font(.system(size: 24)).foregroundStyle(Palette.accent)
             VStack(alignment: .leading, spacing: 5) {
-                Text(model.text("Crop Image", "Görseli kırp")).font(.system(size: 23, weight: .semibold)).tracking(-0.5)
+                Text(model.text("Crop Image", "Görseli kırp")).font(.system(size: 21, weight: .semibold)).tracking(-0.5)
                 Text(inputs.count == 1 ? inputs[0].lastPathComponent : model.text("Choose a Single Image", "Tek bir görsel seç"))
                     .font(.system(size: 11)).foregroundStyle(Palette.muted).lineLimit(1).truncationMode(.middle)
             }
@@ -130,15 +130,9 @@ struct ImageCropView: View {
     }
 
     private var footer: some View {
-        HStack(spacing: 12) {
-            Label(model.text("Your Original Stays Untouched", "Orijinal dosyan korunur"), systemImage: "checkmark.shield")
-                .font(.system(size: 10)).foregroundStyle(Palette.muted)
-            Spacer()
-            Button(model.text("Cancel", "Vazgeç")) { model.cancelPending() }.keyboardShortcut(.cancelAction)
-            Button(model.text("Create Copy", "Kopya oluştur")) { submit() }
-                .buttonStyle(.borderedProminent).tint(Palette.primaryAction).foregroundStyle(Palette.onPrimary)
-                .keyboardShortcut(.defaultAction).disabled(selection == nil || validationError != nil || loadError != nil)
-        }
+        EditorFooter(language: model.language,
+            isEnabled: selection != nil && validationError == nil && loadError == nil,
+            onCancel: { model.cancelPending() }, onSubmit: { submit() })
     }
 
     private var validationError: String? {

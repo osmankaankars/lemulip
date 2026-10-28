@@ -154,7 +154,7 @@ final class ImageCropCanvas: NSView {
 
     override func draw(_ dirtyRect: NSRect) {
         if media == .image {
-            Palette.raisedColor.setFill()
+            Palette.editorCanvasColor.setFill()
             NSBezierPath(roundedRect: bounds, xRadius: 14, yRadius: 14).fill()
         }
         let frame = imageFrame

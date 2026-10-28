@@ -48,7 +48,7 @@ struct VideoCropView: View {
                 loadingState.frame(maxWidth: .infinity, maxHeight: .infinity).padding(40)
             }
             Rectangle().fill(Palette.line).frame(height: 1)
-            footer.padding(.horizontal, 24).padding(.vertical, 17)
+            footer
         }
         .frame(width: 840, height: 670)
         .background(Palette.background).foregroundStyle(Palette.ink).tint(Palette.accent)
@@ -61,7 +61,7 @@ struct VideoCropView: View {
             Image(systemName: "crop").font(.system(size: 25)).foregroundStyle(Palette.accent)
             VStack(alignment: .leading, spacing: 5) {
                 Text(model.text("Crop Video", "Video kadrajını kırp"))
-                    .font(.system(size: 23, weight: .semibold)).tracking(-0.5)
+                    .font(.system(size: 21, weight: .semibold)).tracking(-0.5)
                 Text(inputs.count == 1 ? inputs[0].lastPathComponent : model.text("Choose a Single Video", "Tek bir video seç"))
                     .font(.system(size: 11)).foregroundStyle(Palette.muted).lineLimit(1).truncationMode(.middle)
             }
@@ -82,7 +82,7 @@ struct VideoCropView: View {
             let frame = CropCanvasLayout.imageFrame(in: CGRect(origin: .zero, size: geometry.size),
                 sourceWidth: preview.sourceWidth, sourceHeight: preview.sourceHeight)
             ZStack(alignment: .topLeading) {
-                Palette.raised
+                Palette.editorCanvas
                 Image(decorative: preview.image, scale: 1, orientation: .up)
                     .resizable().interpolation(.high)
                     .frame(width: frame.width, height: frame.height)
@@ -240,17 +240,9 @@ struct VideoCropView: View {
     }
 
     private var footer: some View {
-        HStack(spacing: 12) {
-            Label(model.text("Your Original Stays Untouched", "Orijinal dosyan korunur"), systemImage: "checkmark.shield")
-                .font(.system(size: 10)).foregroundStyle(Palette.muted)
-            Spacer()
-            Button(model.text("Cancel", "Vazgeç")) { closePreview(); model.cancelPending() }
-                .keyboardShortcut(.cancelAction)
-            Button(model.text("Create Copy", "Kopya oluştur")) { submit() }
-                .buttonStyle(.borderedProminent).tint(Palette.primaryAction).foregroundStyle(Palette.onPrimary)
-                .keyboardShortcut(.defaultAction)
-                .disabled(selection == nil || validationError != nil || loadError != nil || preview.map({ availableFormats($0).isEmpty }) != false)
-        }
+        EditorFooter(language: model.language,
+            isEnabled: selection != nil && validationError == nil && loadError == nil && preview.map({ !availableFormats($0).isEmpty }) == true,
+            onCancel: { closePreview(); model.cancelPending() }, onSubmit: { submit() })
     }
 
     private var validationError: String? {
