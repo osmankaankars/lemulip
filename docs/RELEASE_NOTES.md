@@ -3,6 +3,13 @@
 What's new in each Lemulip public preview. Release pages show the matching
 version below, followed by the installation note.
 
+## 0.1.19 · Keep Your Files In Reach
+
+- Bring floating file shelves back into view after a display configuration changes.
+- Keep reachable shelves in place without changing keyboard focus or reopening hidden windows.
+
+The workspace, themes, conversion tools, and saved preferences are unchanged.
+
 ## 0.1.18 · A Calmer Workspace
 
 - Give files and results more room with compact navigation and quieter Activity rows.
