@@ -23,6 +23,7 @@ let package = Package(
         .target(name: "LemulipCore", dependencies: ["CLemulipArchive", "CLemulipProcess"]),
         .executableTarget(name: "Lemulip", dependencies: ["LemulipCore"]),
         .executableTarget(name: "LemulipCLI", dependencies: ["LemulipCore"]),
-        .testTarget(name: "LemulipCoreTests", dependencies: ["LemulipCore"])
+        .testTarget(name: "LemulipCoreTests", dependencies: ["LemulipCore"]),
+        .testTarget(name: "LemulipAppTests", dependencies: ["Lemulip"])
     ]
 )

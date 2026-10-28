@@ -247,6 +247,14 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
     @objc private func displayConfigurationChanged(_ notification: Notification) {
         recoverWorkspaceWindow()
         if let resultPanel, resultPanel.isVisible { placeResultPanel(resultPanel) }
+        let screens = NSScreen.screens.map(\.visibleFrame)
+        let preferredScreen = NSScreen.main?.visibleFrame
+        // Include temporarily hidden shelves without presenting them or changing focus.
+        for window in shelfWindows where !window.styleMask.contains(.fullScreen) {
+            let frame = WorkspaceWindowPlacement.recoveredFrame(window.frame,
+                visibleScreens: screens, preferredScreen: preferredScreen, minimumSize: window.minSize)
+            if frame != window.frame { window.setFrame(frame, display: window.isVisible) }
+        }
     }
 
     private func recoverWorkspaceWindow() {
