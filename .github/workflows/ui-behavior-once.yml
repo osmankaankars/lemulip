@@ -1,0 +1,101 @@
+name: Verify Refined Product Experience
+on:
+  push:
+    branches: [design/calm-workspace-20261028]
+    paths: [.github/workflows/ui-behavior-once.yml]
+permissions:
+  contents: read
+jobs:
+  apply:
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      source: ${{ steps.apply.outputs.source }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 2
+      - id: apply
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: python
+        run: |
+          import base64,gzip,hashlib,json,os,pathlib,subprocess,urllib.request
+          repo='osmankaankars/lemulip';branch='design/calm-workspace-20261028'
+          base='2e209503f17285f65d2fe26afb2cc608badff147';temporary='.github/workflows/ui-behavior-once.yml'
+          assert os.environ['GITHUB_REPOSITORY']==repo and os.environ['GITHUB_REF']=='refs/heads/'+branch
+          assert subprocess.check_output(['git','diff','--name-only',base,'HEAD'],text=True).splitlines()==[temporary]
+          parts='d44af6c30eeaf8004ceb6d353107b00d2a12bdcb 3f82be9a619e439dcd4ce292b8d5f53e51258fec 1123a49ca09e7405f43103586983c34ce82bafc8 7c6575ba288072efda0c2b84aa89fa6ea4e77050 53446a5d4dbbcf3e33729296c5b03a852e9b291f 0b433ad5fc3ef97ecfe5c925916bb88efaecae3a 340be7c433c4bf14ac3bcfc2ca6f18b54020f948 4dbb188c5d683038bcf87685e3f89662c7363717 e0d18884acd0359d47f0cece92fdbb6a41b759fe 6bfdf03fea24acdba45857ce918db8824aa01459'.split()
+          packed=b''
+          for sha in parts:
+              request=urllib.request.Request('https://api.github.com/repos/'+repo+'/git/blobs/'+sha,headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json'})
+              with urllib.request.urlopen(request,timeout=30) as response:blob=json.load(response)
+              part=base64.b64decode(blob['content'])
+              assert hashlib.sha1(b'blob '+str(len(part)).encode()+b'\0'+part).hexdigest()==sha
+              packed+=part
+          assert len(packed)==14590 and hashlib.sha256(packed).hexdigest()=='0d38ad238fe84783b55280c67951297376b87473c23f8665eade5234c0e069e4'
+          patch=gzip.decompress(packed);assert len(patch)==56490
+          subprocess.run(['git','apply','--unidiff-zero','--index','--whitespace=error'],input=patch,check=True)
+          env=os.environ.copy();env['GIT_INDEX_FILE']=os.environ['RUNNER_TEMP']+'/projected-index'
+          subprocess.run(['git','read-tree',subprocess.check_output(['git','write-tree'],text=True).strip()],env=env,check=True)
+          subprocess.run(['git','update-index','--force-remove',temporary],env=env,check=True)
+          tree=subprocess.check_output(['git','write-tree'],env=env,text=True).strip()
+          assert tree=='108681cabd64c60a1f4b03f18b90bd83db2ae1bd',tree
+          for test in sorted(pathlib.Path('script').glob('test_*.py')):
+              if test.name!='test_site_browser.py':subprocess.run(['python3',str(test)],check=True)
+          subprocess.run(['python3','script/privacy_check.py','--staged'],check=True)
+          subprocess.run(['git','diff','--cached','--check'],check=True)
+          subprocess.run(['git','config','user.name','Kaan Kars'],check=True)
+          subprocess.run(['git','config','user.email','56635935+osmankaankars@users.noreply.github.com'],check=True)
+          subprocess.run(['git','commit','-m','Add opt-in results, contextual discovery and focused website navigation'],check=True)
+          subprocess.run(['git','push','origin','HEAD:refs/heads/'+branch],check=True)
+          sha=subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip()
+          with open(os.environ['GITHUB_OUTPUT'],'a') as stream:stream.write('source='+sha+'\n')
+          print('Verified final source tree:',tree)
+  native:
+    needs: apply
+    runs-on: macos-15
+    timeout-minutes: 20
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.apply.outputs.source }}
+          persist-credentials: false
+      - run: |
+          set -o pipefail
+          xcrun --sdk macosx swift test --jobs 2 --skip EngineIntegrationTests 2>&1 | tee "$RUNNER_TEMP/interface-tests.log"
+          CONFIGURATION=debug ./script/build_app.sh
+          ditto -ck --sequesterRsrc --keepParent dist/Lemulip.app "$RUNNER_TEMP/Lemulip-Refined-Preview.zip"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: Lemulip-Refined-Native-Preview
+          path: |
+            ${{ runner.temp }}/interface-tests.log
+            ${{ runner.temp }}/Lemulip-Refined-Preview.zip
+          retention-days: 7
+  browsers:
+    needs: apply
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.apply.outputs.source }}
+          persist-credentials: false
+      - run: |
+          python3 -m venv "$RUNNER_TEMP/browser-tools"
+          "$RUNNER_TEMP/browser-tools/bin/pip" install playwright==1.61.0
+          "$RUNNER_TEMP/browser-tools/bin/python" -m playwright install --with-deps chromium webkit
+          "$RUNNER_TEMP/browser-tools/bin/python" script/test_site_browser.py --engine chromium --output "$RUNNER_TEMP/site-review/chromium"
+          "$RUNNER_TEMP/browser-tools/bin/python" script/test_site_browser.py --engine webkit --output "$RUNNER_TEMP/site-review/webkit"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: Lemulip-Refined-Site-Review
+          path: ${{ runner.temp }}/site-review/
+          retention-days: 7
