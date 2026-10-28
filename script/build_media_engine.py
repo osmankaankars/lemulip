@@ -175,8 +175,11 @@ def fetch_source(component: dict, work: Path, sources: Path, environment: dict, 
     if component['kind'] == 'archive':
         filename = Path(urlsplit(component['url']).path).name
         archive = sources / filename
+        # Source GETs are idempotent. Retry TLS/socket resets too, without
+        # changing HTTPS, certificate verification, size limits or SHA-256 pins.
         run(['/usr/bin/curl', '--fail', '--location', '--proto', '=https', '--proto-redir', '=https',
-             '--retry', '2', '--max-time', '240', '--max-filesize', '200000000',
+             '--retry', '2', '--retry-all-errors', '--retry-max-time', '480',
+             '--connect-timeout', '30', '--max-time', '240', '--max-filesize', '200000000',
              '--output', str(archive), component['url']], work, environment, record)
         verify_digest(archive, component['sha256'])
     else:
