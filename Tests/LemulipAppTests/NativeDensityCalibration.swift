@@ -8,9 +8,10 @@ final class DensityDrawLog {
 
     func record(_ element: String) {
         guard let ctm = NSGraphicsContext.current?.cgContext.ctm else { return }
-        draws.append(["element": element,
-                      "scaleX": Double(hypot(ctm.a, ctm.b)), "scaleY": Double(hypot(ctm.c, ctm.d)),
-                      "ctm": [Double(ctm.a), Double(ctm.b), Double(ctm.c), Double(ctm.d), Double(ctm.tx), Double(ctm.ty)]])
+        let draw: [String: Any] = ["element": element,
+                                  "scaleX": Double(hypot(ctm.a, ctm.b)), "scaleY": Double(hypot(ctm.c, ctm.d)),
+                                  "ctm": [Double(ctm.a), Double(ctm.b), Double(ctm.c), Double(ctm.d), Double(ctm.tx), Double(ctm.ty)]]
+        draws.append(draw)
     }
 
     func hasFreshDraw(_ element: String, scale: Double) -> Bool {

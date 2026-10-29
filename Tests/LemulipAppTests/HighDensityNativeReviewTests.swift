@@ -21,9 +21,9 @@ final class HighDensityNativeReviewTests: XCTestCase {
             calibrated = try await calibrate(directory: directory)
         } catch {
             var failure = NativeReviewBitmap.provenance
-            failure.merge(["status": "failed", "production2xCandidatesAllowed": false,
-                           "reason": String(describing: error), "inputEventsSent": false],
-                          uniquingKeysWith: { _, value in value })
+            let details: [String: Any] = ["status": "failed", "production2xCandidatesAllowed": false,
+                                          "reason": String(describing: error), "inputEventsSent": false]
+            failure.merge(details, uniquingKeysWith: { _, value in value })
             try NativeReviewBitmap.writeJSON(failure, name: "calibration-failure", directory: directory)
             calibrated = false
         }
@@ -69,7 +69,7 @@ final class HighDensityNativeReviewTests: XCTestCase {
                 && stripes.values.allSatisfy { $0["passed"] as? Bool == true }
                 && text.values.allSatisfy { $0["passed"] as? Bool == true }
             var report = NativeReviewBitmap.provenance
-            report.merge([
+            let details: [String: Any] = [
                 "status": passed ? "passed-numerical-gate" : "failed-or-mixed",
                 "production2xCandidatesAllowed": passed,
                 "visualReviewRequired": "Inspect both raw PNGs at original pixels, especially the two 12pt text regions and native control. Numerical checks do not approve a marketing image.",
@@ -84,7 +84,8 @@ final class HighDensityNativeReviewTests: XCTestCase {
                     "https://developer.apple.com/library/archive/documentation/GraphicsAnimation/Conceptual/HighResolutionOSX/CapturingScreenContents/CapturingScreenContents.html",
                     "https://developer.apple.com/documentation/appkit/nsview/displayignoringopacity(_:in:)"
                 ]
-            ], uniquingKeysWith: { _, value in value })
+            ]
+            report.merge(details, uniquingKeysWith: { _, value in value })
             try NativeReviewBitmap.writeJSON(report, name: "calibration", directory: directory)
             return passed
         }
@@ -154,7 +155,7 @@ final class HighDensityNativeReviewTests: XCTestCase {
                         let frame = host.convert(window.convertFromScreen(element.accessibilityFrame()), from: nil)
                         XCTAssertFalse(frame.isEmpty)
                         XCTAssertTrue(host.bounds.contains(frame), "The reviewed setting must be fully visible in this capture")
-                        nodes.append([
+                        let node: [String: Any] = [
                             "language": language, "theme": model.theme.rawValue, "preferenceEnabled": enabled,
                             "control": identifier, "role": element.accessibilityRole()?.rawValue ?? "missing",
                             "name": element.accessibilityLabel() ?? element.accessibilityTitle() ?? "missing",
@@ -162,19 +163,21 @@ final class HighDensityNativeReviewTests: XCTestCase {
                             "value": (element.accessibilityValue() as? NSNumber)?.stringValue ?? "not-valued",
                             "enabled": element.isAccessibilityEnabled(),
                             "logicalFrame": [Double(frame.minX), Double(frame.minY), Double(frame.width), Double(frame.height)]
-                        ])
+                        ]
+                        nodes.append(node)
                     }
                 }
             }
         }
         XCTAssertEqual(player.playCount, 0, "Reading/capturing settings must not audition audio")
         var accessibility = NativeReviewBitmap.provenance
-        accessibility.merge([
+        let details: [String: Any] = [
             "evidence": "Actual accessible nodes of production SettingsContent inside DashboardView",
             "controls": nodes, "inputEventsSent": false, "previewInvoked": false,
             "hardwareListeningOrMuteReview": false,
             "stateSetup": "Model preference changed in an isolated defaults suite; no accessibility action was dispatched"
-        ], uniquingKeysWith: { _, value in value })
+        ]
+        accessibility.merge(details, uniquingKeysWith: { _, value in value })
         try NativeReviewBitmap.writeJSON(accessibility, name: "settings-accessibility", directory: directory)
 
         guard calibrated else { return }
@@ -261,8 +264,9 @@ final class HighDensityNativeReviewTests: XCTestCase {
     @MainActor
     private func control(_ identifier: String, roles: Set<String>, in view: NSView) -> NSAccessibilityProtocol? {
         var pending: [Any] = [view]
+        if let window = view.window { pending.append(window) }
         var visited = Set<ObjectIdentifier>()
-        while let next = pending.popLast() {
+        while let next = pending.popLast(), visited.count < 512 {
             guard let element = next as? NSAccessibilityProtocol,
                   visited.insert(ObjectIdentifier(element)).inserted else { continue }
             if element.accessibilityIdentifier() == identifier,

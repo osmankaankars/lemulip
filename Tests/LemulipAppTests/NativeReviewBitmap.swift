@@ -41,7 +41,7 @@ enum NativeReviewBitmap {
         let pixelData = Data(bytes: pixels, count: bitmap.bytesPerRow * bitmap.pixelsHigh)
         try png.write(to: directory.appendingPathComponent(name + ".png"), options: .withoutOverwriting)
         var record = provenance
-        record.merge([
+        let details: [String: Any] = [
             "capture": "NSView.displayIgnoringOpacity(_:in:) of the real hosted view into an NSBitmapImageRep",
             "captureKind": "Offscreen native view rendering; not a screen or window screenshot",
             "logicalWidth": Double(view.bounds.width), "logicalHeight": Double(view.bounds.height),
@@ -52,7 +52,8 @@ enum NativeReviewBitmap {
             "rawPixelSHA256": digest(pixelData), "rawPixelBytesPerRow": bitmap.bytesPerRow,
             "resizedAfterCapture": false, "layerScaleOverridden": false,
             "inputEventsSent": false, "state": state
-        ], uniquingKeysWith: { _, value in value })
+        ]
+        record.merge(details, uniquingKeysWith: { _, value in value })
         try writeJSON(record, name: name, directory: directory)
     }
 
