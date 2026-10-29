@@ -44,10 +44,9 @@ final class OperationOptionsAccessibilityTests: XCTestCase {
                     }
                     let element = try XCTUnwrap(find(role: role, label: label, in: host),
                         "The actual \(language) \(operation) control must have its accessible name")
-                    let description = element.accessibilityValueDescription()
-                        ?? (element.accessibilityValue() as? String)
+                    let description = element.valueDescription ?? (element.value as? String)
                     XCTAssertEqual(description, value, "The control must announce its value with the appropriate units")
-                    XCTAssertTrue(element.isAccessibilityEnabled())
+                    XCTAssertTrue(element.enabled == true)
                     review.append(["language": language, "operation": operation, "label": label,
                                    "value": description ?? "missing", "role": role.rawValue])
                 } catch {
@@ -75,20 +74,8 @@ final class OperationOptionsAccessibilityTests: XCTestCase {
     }
 
     @MainActor
-    private func find(role: NSAccessibility.Role, label: String, in view: NSView) -> NSAccessibilityProtocol? {
-        var pending: [Any] = [view]
-        if let window = view.window { pending.append(window) }
-        var visited = Set<ObjectIdentifier>()
-        while let next = pending.popLast(), visited.count < 512 {
-            guard let element = next as? NSAccessibilityProtocol else { continue }
-            guard visited.insert(ObjectIdentifier(element)).inserted else { continue }
-            if element.accessibilityRole() == role,
-               element.accessibilityLabel() == label || element.accessibilityTitle() == label { return element }
-            pending.append(contentsOf: element.accessibilityChildren() ?? [])
-            pending.append(contentsOf: element.accessibilityChildrenInNavigationOrder() ?? [])
-            if let nativeView = element as? NSView { pending.append(contentsOf: nativeView.subviews) }
-        }
-        return nil
+    private func find(role: NSAccessibility.Role, label: String, in view: NSView) -> NativeAccessibilityReview.Node? {
+        NativeAccessibilityReview.walk(view).first(role: role, label: label)
     }
 
     @MainActor
@@ -97,47 +84,12 @@ final class OperationOptionsAccessibilityTests: XCTestCase {
         let directory = URL(fileURLWithPath: path, isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let name = "options-accessibility-failure-" + language + "-" + operation
-        var pending: [Any] = [window, view]
-        var visited = Set<ObjectIdentifier>()
-        var nodes: [[String: Any]] = []
-        while let next = pending.popLast(), nodes.count < 512 {
-            let object = next as AnyObject
-            guard visited.insert(ObjectIdentifier(object)).inserted else { continue }
-            var node: [String: Any] = [
-                "class": String(reflecting: type(of: object)),
-                "conformsToAccessibilityProtocol": next is NSAccessibilityProtocol,
-                "conformsToAccessibilityElementProtocol": next is NSAccessibilityElementProtocol,
-                "conformsToAccessibilitySlider": next is NSAccessibilitySlider
-            ]
-            if let slider = next as? NSAccessibilitySlider {
-                node["sliderProtocolLabel"] = slider.accessibilityLabel() ?? "missing"
-                node["sliderProtocolValue"] = String(describing: slider.accessibilityValue() ?? "missing")
-            }
-            if let element = next as? NSAccessibilityProtocol {
-                let children = element.accessibilityChildren() ?? []
-                let navigationChildren = element.accessibilityChildrenInNavigationOrder() ?? []
-                let frame = element.accessibilityFrame()
-                node["role"] = element.accessibilityRole()?.rawValue ?? "missing"
-                node["identifier"] = element.accessibilityIdentifier() ?? "missing"
-                node["label"] = element.accessibilityLabel() ?? "missing"
-                node["title"] = element.accessibilityTitle() ?? "missing"
-                node["value"] = String(describing: element.accessibilityValue() ?? "missing")
-                node["valueDescription"] = element.accessibilityValueDescription() ?? "missing"
-                node["enabled"] = element.isAccessibilityEnabled()
-                node["screenFrame"] = [Double(frame.minX), Double(frame.minY), Double(frame.width), Double(frame.height)]
-                node["childCount"] = children.count
-                node["navigationChildCount"] = navigationChildren.count
-                pending.append(contentsOf: children)
-                pending.append(contentsOf: navigationChildren)
-            } else { node["conformsToAccessibilityProtocol"] = false }
-            if let native = next as? NSView { pending.append(contentsOf: native.subviews) }
-            nodes.append(node)
-        }
+        let traversal = NativeAccessibilityReview.walk(view)
         let record: [String: Any] = [
             "sourceCommit": ProcessInfo.processInfo.environment["LEMULIP_EDITOR_REVIEW_COMMIT"] ?? "local",
             "workflowRun": ProcessInfo.processInfo.environment["GITHUB_RUN_ID"] ?? "local",
-            "operation": operation, "language": language, "nodes": nodes,
-            "traversalTruncated": !pending.isEmpty, "inputEventsSent": false,
+            "operation": operation, "language": language, "nodes": traversal.nodes.map(\.diagnostics),
+            "traversalTruncated": traversal.truncated, "remainingQueuedNodes": traversal.remainingQueued, "inputEventsSent": false,
             "applicationIsActive": NSApp.isActive,
             "processFinishedLaunching": NSRunningApplication.current.isFinishedLaunching,
             "windowIsVisible": window.isVisible, "windowIsKey": window.isKeyWindow,
