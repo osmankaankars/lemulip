@@ -93,7 +93,19 @@ kbd {font-family:inherit;font-size:17px;font-weight:500;color:var(--muted)}
 .numbers p {color:var(--muted);font-size:14px}
 .numbers .count-note {grid-column:1/-1;font-size:11px;margin-top:8px}
 .count-note a {color:var(--link);margin-left:8px}
-.format-section {padding-top:78px;padding-bottom:66px}
+.format-section {padding-top:0;padding-bottom:0;border-top:1px solid var(--line)}
+.catalog-details>summary {display:flex;align-items:center;justify-content:space-between;gap:28px;min-height:168px;padding:36px 0;list-style:none;cursor:pointer;text-transform:none}
+.catalog-details>summary::-webkit-details-marker {display:none}
+.catalog-details>summary:focus-visible, .tool-directory>summary:focus-visible {outline:3px solid var(--link);outline-offset:6px}
+.catalog-heading {display:grid;gap:12px}
+#formats-title {font-size:clamp(28px,3vw,38px);line-height:1.15;letter-spacing:-.03em;font-weight:600}
+.catalog-summary-note {font-size:15px;color:var(--muted)}
+.catalog-disclosure-label {display:flex;align-items:center;gap:16px;flex-shrink:0;font-size:14px;color:var(--link)}
+.catalog-chevron {width:9px;height:9px;display:block;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-bottom:5px}
+.catalog-details[open] .catalog-chevron {transform:rotate(225deg);margin-bottom:-5px}
+.catalog-details>summary:hover .catalog-disclosure-label {text-decoration:underline;text-underline-offset:4px}
+.catalog-content {padding-bottom:36px}
+.catalog-content .catalog-search {margin-top:0}
 .section-heading {display:flex;align-items:flex-end;justify-content:space-between;gap:36px;margin-bottom:32px}
 .section-heading h2, .shortcuts h2, .final-section h2 {font-size:clamp(33px,3.5vw,49px);font-weight:600}
 .section-heading p {font-size:17px;color:var(--muted);max-width:470px}
@@ -202,7 +214,10 @@ to {opacity:1;transform:none}
 .section-heading {display:block;margin-bottom:24px}
 .section-heading h2, .shortcuts h2, .final-section h2 {font-size:35px}
 .section-heading p {margin-top:18px;font-size:15px}
-.format-section {padding:45px 0}
+.format-section {padding:0}
+.catalog-details>summary {align-items:flex-start;flex-direction:column;gap:22px;padding:28px 0}
+.catalog-disclosure-label {font-size:13px}
+.catalog-summary-note {font-size:14px}
 .pdf-pages {gap:11px;padding:20px 14px}
 .paper {padding:12px 9px}
 .paper b {font-size:10px}
@@ -296,7 +311,6 @@ pre, code, .file-name, #output-name, #announcer, .verbatim, .requirements {text-
 .play-controls .step-number {font-size: 9px; letter-spacing: 0; margin-right: 5px;}
 .product-demo > .simulation-note {margin-top: 7px; font-size: 10px;}
 .numbers {padding-top: 30px; padding-bottom: 23px;}
-.format-section {padding-top: 58px; padding-bottom: 50px;}
 .shortcut-list {gap: 12px;}
 .shortcut-list > div {border-radius: 14px; padding: 16px 20px; column-gap: 18px;
   color: #203a29;}
@@ -361,7 +375,6 @@ pre, code, .file-name, #output-name, #announcer, .verbatim, .requirements {text-
 .play-controls {gap: 2px; margin: 0;}
 .play-controls .quiet-button {width: 28px; font-size: 14px;}
 .demo-controls .step-number {display: none;}
-.format-section {padding: 42px 0;}
 .shortcut-list {gap: 9px;}
 .shortcut-list > div {padding: 14px 11px;}
 .shortcut-list kbd {width: 43px; height: 43px; font-size: 22px;}
@@ -411,7 +424,7 @@ pre, code, .file-name, #output-name, #announcer, .verbatim, .requirements {text-
 .catalog-search label {display:block;font-size:13px;font-weight:600;margin-bottom:9px}
 .search-field {display:flex;align-items:center;gap:12px;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:5px 12px}
 .search-field>span {font-size:23px;color:var(--muted)}
-.search-field input {min-width:0;width:100%;padding:10px 0;color:var(--text);background:transparent;border:0;border-radius:6px;text-transform:none;font-size:14px}
+.search-field input {min-width:0;width:100%;padding:10px 0;color:var(--text);background:transparent;border:0;border-radius:6px;text-transform:none;font-size:16px}
 .search-field input::placeholder {color:var(--muted);opacity:1}
 .search-field input::-webkit-search-cancel-button {display:none}
 .search-field button {min-height:40px;border:0;background:transparent;color:var(--link);padding:6px;font-size:12px}

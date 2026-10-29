@@ -129,8 +129,8 @@ class SiteTests(unittest.TestCase):
             self.assertNotRegex(p.read_text(),r'(?i)developer id|notariz|ad hoc sign',str(p))
     def test_motion_and_stale_assets_are_explicit(self):
         page=(ROOT/'site/index.html').read_text(); js=(ROOT/'site/product.js').read_text()
-        self.assertIn('data-site-version="20261029.1"',page)
-        self.assertIn('product.js?v=20261029.1',page)
+        self.assertIn('data-site-version="20261029.2"',page)
+        self.assertIn('product.js?v=20261029.2',page)
         for event in ('visibilitychange','prefers-reduced-motion','pointercancel'):self.assertIn(event,js)
         self.assertIn('Browser Simulation',page)
         self.assertNotRegex(js,r'\b(FileReader|XMLHttpRequest)\s*\(')

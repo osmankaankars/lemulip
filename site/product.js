@@ -207,6 +207,12 @@
     $('format-search-status').textContent=active ? count||total ? count+' File '+(count===1?'Family':'Families')+' · '+total+' Matching '+(total===1?'Tool':'Tools') : 'No Matches. Try A Format Like WebP Or A Tool Like Trim.' : '';
   }
   renderCatalog();
+  // Links to the directory reveal it, including a directly opened #formats URL.
+  const catalogDetails = $('format-details');
+  const revealCatalog = () => { catalogDetails.open = true; };
+  document.querySelectorAll('a[href="#formats"]').forEach(link => link.addEventListener('click', revealCatalog));
+  window.addEventListener('hashchange', () => { if (location.hash === '#formats') revealCatalog(); });
+  if (location.hash === '#formats') revealCatalog();
   if(window.LemulipCatalogSearch){
     $('catalog-search').hidden=false;
     $('format-search').addEventListener('input',e=>renderCatalog(e.target.value));
