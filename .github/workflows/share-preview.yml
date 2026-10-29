@@ -1,0 +1,39 @@
+name: Render Reviewed Share Card
+
+on:
+  push:
+    branches: [design/share-preview]
+    paths: ['script/social_preview.html', 'script/render_social_preview.py', '.github/workflows/share-preview.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: share-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  render:
+    if: github.ref == 'refs/heads/design/share-preview'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Check public composition source
+        run: python3 script/privacy_check.py --staged
+      - name: Install isolated rendering tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/share-tools"
+          "$RUNNER_TEMP/share-tools/bin/pip" install playwright==1.61.0
+          "$RUNNER_TEMP/share-tools/bin/python" -m playwright install --with-deps chromium
+      - name: Render actual layout and retain source hashes
+        run: '"$RUNNER_TEMP/share-tools/bin/python" script/render_social_preview.py --output "$RUNNER_TEMP/share-preview"'
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Share-Preview
+          path: ${{ runner.temp }}/share-preview/
+          retention-days: 14
+          if-no-files-found: error
