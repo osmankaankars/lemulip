@@ -88,6 +88,7 @@ struct ShortcutHelp: View {
 struct EditorFooter: View {
     let language: String
     var isEnabled: Bool
+    var cancelShortcut: KeyboardShortcut? = .cancelAction
     let onCancel: () -> Void
     let onSubmit: () -> Void
     private func text(_ en: String, _ tr: String) -> String { language == "tr" ? tr : en }
@@ -98,7 +99,7 @@ struct EditorFooter: View {
                 .font(.system(size: 12)).foregroundStyle(Palette.muted)
             Spacer(minLength: 12)
             Button(text("Cancel", "Vazgeç"), action: onCancel)
-                .keyboardShortcut(.cancelAction).controlSize(.large)
+                .keyboardShortcut(cancelShortcut).controlSize(.large)
             Button(text("Create Copy", "Kopya Oluştur"), action: onSubmit)
                 .buttonStyle(.borderedProminent).tint(Palette.primaryAction).foregroundStyle(Palette.onPrimary)
                 .controlSize(.large).keyboardShortcut(.defaultAction).disabled(!isEnabled)

@@ -7,9 +7,20 @@ import LemulipCore
 struct PDFOrganizeView: View {
     @ObservedObject var model: AppController
     let inputs: [URL]
-    @StateObject private var editor = PDFOrganizeEditor()
-    @FocusState private var gridFocused: Bool
+    @StateObject private var editor: PDFOrganizeEditor
+    @FocusState private var focus: PDFEditorFocus?
     private let columns = 4
+
+    init(model: AppController, inputs: [URL], editor: PDFOrganizeEditor? = nil) {
+        self.model = model
+        self.inputs = inputs
+        _editor = StateObject(wrappedValue: editor ?? PDFOrganizeEditor())
+    }
+
+    private var editingPosition: Int? {
+        if case .position(let sourceIndex)? = focus { return sourceIndex }
+        return nil
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -46,12 +57,12 @@ struct PDFOrganizeView: View {
             Spacer(minLength: 16)
             HStack(spacing: 8) {
                 Button { editor.undo() } label: { Label(model.text("Undo", "Geri al"), systemImage: "arrow.uturn.backward") }
-                    .keyboardShortcut("z", modifiers: .command).disabled(!editor.canUndo)
+                    .keyboardShortcut("z", modifiers: .command).disabled(!editor.canUndo || editingPosition != nil)
                 Button { editor.redo() } label: { Image(systemName: "arrow.uturn.forward") }
-                    .keyboardShortcut("z", modifiers: [.command, .shift]).disabled(!editor.canRedo)
+                    .keyboardShortcut("z", modifiers: [.command, .shift]).disabled(!editor.canRedo || editingPosition != nil)
                     .accessibilityLabel(model.text("Redo", "Yinele"))
                     .help(model.text("Redo (⇧⌘Z)", "Yinele (⇧⌘Z)"))
-                Button(model.text("Reset", "Sıfırla")) { editor.reset() }.disabled(!editor.canReset)
+                Button(model.text("Reset", "Sıfırla")) { focus = .content; editor.reset() }.disabled(!editor.canReset)
                     .help(model.text("Restore All Pages, Their Original Order, and Rotation", "Tüm sayfaları, orijinal sırayı ve yönleri geri getir"))
             }.font(.system(size: 11))
         }
@@ -63,34 +74,34 @@ struct PDFOrganizeView: View {
                 Label(model.text("Move Earlier", "Öne taşı"), systemImage: "arrow.left")
             }
             .keyboardShortcut(.leftArrow, modifiers: [.command, .option])
-            .disabled(!editor.canMoveEarlier)
+            .disabled(!editor.canMoveEarlier || editingPosition != nil)
             .help(model.text("Move Earlier (⌥⌘←)", "Öne taşı (⌥⌘←)"))
             Button { editor.moveSelection(by: 1) } label: {
                 Label(model.text("Move Later", "Arkaya taşı"), systemImage: "arrow.right")
             }
             .keyboardShortcut(.rightArrow, modifiers: [.command, .option])
-            .disabled(!editor.canMoveLater)
+            .disabled(!editor.canMoveLater || editingPosition != nil)
             .help(model.text("Move Later (⌥⌘→)", "Arkaya taşı (⌥⌘→)"))
             Divider().frame(height: 20).padding(.horizontal, 3)
             Button { editor.rotateSelection(clockwise: false) } label: {
                 Label(model.text("Rotate Left", "Sola döndür"), systemImage: "rotate.left")
             }
-            .keyboardShortcut("l", modifiers: .command).disabled(editor.selectedPages.isEmpty)
+            .keyboardShortcut("l", modifiers: .command).disabled(editor.selectedPages.isEmpty || editingPosition != nil)
             .help(model.text("Rotate Left (⌘L)", "Sola döndür (⌘L)"))
             Button { editor.rotateSelection(clockwise: true) } label: {
                 Label(model.text("Rotate Right", "Sağa döndür"), systemImage: "rotate.right")
             }
-            .keyboardShortcut("r", modifiers: .command).disabled(editor.selectedPages.isEmpty)
+            .keyboardShortcut("r", modifiers: .command).disabled(editor.selectedPages.isEmpty || editingPosition != nil)
             .help(model.text("Rotate Right (⌘R)", "Sağa döndür (⌘R)"))
             Divider().frame(height: 20).padding(.horizontal, 3)
-            Button { editor.removeSelection() } label: {
+            Button { focus = .content; editor.removeSelection() } label: {
                 Label(model.text("Remove", "Çıkar"), systemImage: "minus.circle")
             }
             .disabled(!editor.canRemove)
             .help(model.text("Remove From the Copy (Delete)", "Kopyadan çıkar (Delete)"))
             Spacer(minLength: 10)
-            Button(model.text("Select All", "Tümünü seç")) { editor.selectAll(); gridFocused = true }
-                .keyboardShortcut("a", modifiers: .command).disabled(editor.pages.isEmpty)
+            Button(model.text("Select All", "Tümünü seç")) { editor.selectAll(); focus = .content }
+                .keyboardShortcut("a", modifiers: .command).disabled(editor.pages.isEmpty || editingPosition != nil)
         }.font(.system(size: 11)).controlSize(.small)
     }
 
@@ -110,10 +121,19 @@ struct PDFOrganizeView: View {
                         .font(.system(size: 10)).foregroundStyle(Palette.muted)
                 }
             }
-            Text(model.text("⌘-Click to Add · Shift-Click to Select a Range · Drag to Reorder",
-                            "⌘ ile seçime ekle · Shift ile aralık seç · Sırayı değiştirmek için sürükle"))
+            Text(orderingHint)
                 .font(.system(size: 10)).foregroundStyle(Palette.muted)
         }
+    }
+
+    private var orderingHint: String {
+        if let editingPosition {
+            let range = editor.positionRange(for: editingPosition)
+            return model.text("Position \(range.lowerBound)–\(range.upperBound) · Enter to Move · Esc to Cancel · Selected Pages Move Together",
+                              "Konum \(range.lowerBound)–\(range.upperBound) · Enter ile taşı · Esc ile vazgeç · Seçili sayfalar birlikte taşınır")
+        }
+        return model.text("⌘-Click to Add · Shift-Click for a Range · Drag the Handle or Edit a Page Number",
+                          "⌘ ile seçime ekle · Shift ile aralık seç · Tutamaktan sürükle veya sayfa numarasını değiştir")
     }
 
     private var pageGrid: some View {
@@ -132,11 +152,12 @@ struct PDFOrganizeView: View {
                     }.padding(.horizontal, 24).padding(.top, 8).padding(.bottom, 24)
                 }
                 .coordinateSpace(name: "pdf-organizer-grid")
-                .focusable().focused($gridFocused)
+                .focusable().focused($focus, equals: .content)
                 .onMoveCommand { direction in
+                    guard editingPosition == nil else { return }
                     if let target = editor.moveFocus(direction, columns: columns) { scroll.scrollTo(target) }
                 }
-                .onDeleteCommand { editor.removeSelection() }
+                .onDeleteCommand { if editingPosition == nil { editor.removeSelection() } }
                 .onChange(of: editor.scrollRequest) { request in
                     if let request { scroll.scrollTo(request.sourceIndex) }
                 }
@@ -159,12 +180,12 @@ struct PDFOrganizeView: View {
     private func pageCard(_ page: PDFPageEdit, outputIndex: Int, width: CGFloat) -> some View {
         let selected = editor.selectedPages.contains(page.sourceIndex)
         let dropPosition = editor.dropPosition
-        return Button {
-            editor.select(page.sourceIndex, modifiers: NSEvent.modifierFlags)
-            if editor.failedThumbnails.contains(page.sourceIndex) { editor.retryThumbnail(page.sourceIndex) }
-            gridFocused = true
-        } label: {
-            VStack(spacing: 10) {
+        return VStack(spacing: 10) {
+            Button {
+                editor.select(page.sourceIndex, modifiers: NSEvent.modifierFlags)
+                if editor.failedThumbnails.contains(page.sourceIndex) { editor.retryThumbnail(page.sourceIndex) }
+                focus = .content
+            } label: {
                 ZStack(alignment: .topTrailing) {
                     thumbnail(page).frame(height: 136).frame(maxWidth: .infinity)
                     Image(systemName: selected ? "checkmark.circle.fill" : "circle")
@@ -174,38 +195,48 @@ struct PDFOrganizeView: View {
                         .background(Circle().fill(selected ? Palette.primaryAction : Palette.panel))
                         .padding(1)
                 }
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text(model.text("Page \(outputIndex + 1)", "Sayfa \(outputIndex + 1)"))
-                            .font(.system(size: 12, weight: .semibold))
-                        Spacer(minLength: 2)
-                        if page.rotationQuarterTurns != 0 {
-                            Label("\(page.rotationQuarterTurns * 90)°", systemImage: "rotate.right")
-                                .font(.system(size: 9)).foregroundStyle(Palette.muted)
-                        }
-                    }
-                    Text(model.text("Original Page \(page.sourceIndex + 1)", "Orijinal sayfa \(page.sourceIndex + 1)"))
-                        .font(.system(size: 10)).foregroundStyle(Palette.muted)
-                }.frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
             }
-            .padding(11).frame(width: width)
-            .background(selected ? Palette.accent.opacity(0.08) : Palette.panel, in: RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(selected ? Palette.accent : Palette.line, lineWidth: selected ? 2 : 1))
-            .contentShape(RoundedRectangle(cornerRadius: 12))
+            .buttonStyle(.plain).focusable(false)
+            .accessibilityLabel(model.text("Page \(outputIndex + 1), Original Page \(page.sourceIndex + 1)",
+                                           "Sayfa \(outputIndex + 1), Orijinal sayfa \(page.sourceIndex + 1)"))
+            .accessibilityValue(model.text(selected ? "Selected" : "Not Selected", selected ? "Seçili" : "Seçili değil")
+                + (page.rotationQuarterTurns == 0 ? "" : model.text(", Rotated \(page.rotationQuarterTurns * 90) Degrees", ", \(page.rotationQuarterTurns * 90) derece döndürüldü")))
+            .accessibilityAction(named: Text(model.text("Add to Selection", "Seçime ekle"))) {
+                if !editor.selectedPages.contains(page.sourceIndex) { editor.select(page.sourceIndex, modifiers: .command) }
+            }
+            .accessibilityAction(named: Text(model.text("Remove From Selection", "Seçimden çıkar"))) {
+                if editor.selectedPages.contains(page.sourceIndex) { editor.select(page.sourceIndex, modifiers: .command) }
+            }
+            .onDrag { focus = .content; return editor.beginDrag(page.sourceIndex) }
+            HStack(spacing: 6) {
+                Text(model.text("Page", "Sayfa")).font(.system(size: 12, weight: .semibold))
+                positionField(page.sourceIndex, outputIndex: outputIndex)
+                Spacer(minLength: 2)
+                Image(systemName: "line.3.horizontal").font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(Palette.muted).frame(width: 26, height: 28)
+                    .background(Palette.raised, in: RoundedRectangle(cornerRadius: 6))
+                    .contentShape(Rectangle())
+                    .onDrag { focus = .content; return editor.beginDrag(page.sourceIndex) }
+                    .help(model.text("Drag to Move the Selected Pages Together", "Seçili sayfaları birlikte taşımak için sürükle"))
+                    .accessibilityHidden(true)
+            }
+            HStack(spacing: 4) {
+                Text(model.text("Original Page \(page.sourceIndex + 1)", "Orijinal sayfa \(page.sourceIndex + 1)"))
+                    .font(.system(size: 10)).foregroundStyle(Palette.muted)
+                Spacer(minLength: 2)
+                if page.rotationQuarterTurns != 0 {
+                    Label("\(page.rotationQuarterTurns * 90)°", systemImage: "rotate.right")
+                        .font(.system(size: 9)).foregroundStyle(Palette.muted)
+                }
+            }
         }
-        .buttonStyle(.plain).focusable(false)
-        .accessibilityLabel(model.text("Page \(outputIndex + 1), Original Page \(page.sourceIndex + 1)",
-                                       "Sayfa \(outputIndex + 1), Orijinal sayfa \(page.sourceIndex + 1)"))
-        .accessibilityValue(model.text(selected ? "Selected" : "Not Selected", selected ? "Seçili" : "Seçili değil")
-            + (page.rotationQuarterTurns == 0 ? "" : model.text(", Rotated \(page.rotationQuarterTurns * 90) Degrees", ", \(page.rotationQuarterTurns * 90) derece döndürüldü")))
-        .accessibilityAction(named: Text(model.text("Add to Selection", "Seçime ekle"))) {
-            if !editor.selectedPages.contains(page.sourceIndex) { editor.select(page.sourceIndex, modifiers: .command) }
-        }
-        .accessibilityAction(named: Text(model.text("Remove From Selection", "Seçimden çıkar"))) {
-            if editor.selectedPages.contains(page.sourceIndex) { editor.select(page.sourceIndex, modifiers: .command) }
-        }
-        .onDrag { editor.beginDrag(page.sourceIndex) }
+        .padding(11).frame(width: width)
+        .background(selected ? Palette.accent.opacity(0.08) : Palette.panel, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12)
+            .strokeBorder(selected ? Palette.accent : Palette.line, lineWidth: selected ? 2 : 1))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("pdf.organize.card.\(page.sourceIndex)")
         .onDrop(of: [PDFOrganizeEditor.dragType], delegate: PDFPageDropDelegate(editor: editor, sourceIndex: page.sourceIndex, width: width))
         .overlay(alignment: dropPosition?.after == true ? .trailing : .leading) {
             if dropPosition?.sourceIndex == page.sourceIndex {
@@ -214,6 +245,22 @@ struct PDFOrganizeView: View {
             }
         }
         .contextMenu { pageMenu(page) }
+    }
+
+    private func positionField(_ sourceIndex: Int, outputIndex: Int) -> some View {
+        let range = editor.positionRange(for: sourceIndex)
+        return PDFPositionField(item: sourceIndex, position: outputIndex + 1,
+            allowedPositions: range,
+            label: model.text("Output Position for Original Page \(sourceIndex + 1)", "Orijinal sayfa \(sourceIndex + 1) için çıktı sırası"),
+            hint: model.text("Enter a Position and Press Return. Selected Pages Move Together. Esc Cancels.",
+                             "Bir konum yazıp Enter'a bas. Seçili sayfalar birlikte taşınır. Esc ile vazgeç."),
+            invalidHint: model.text("Enter a Whole Number from \(range.lowerBound) to \(range.upperBound). The Selected Pages Keep Their Relative Order.",
+                                    "\(range.lowerBound) ile \(range.upperBound) arasında tam sayı gir. Seçili sayfaların kendi aralarındaki sıra korunur."),
+            focus: $focus,
+            beginEditing: {
+                if !editor.selectedPages.contains(sourceIndex) { editor.select(sourceIndex) }
+            },
+            move: { editor.move(sourceIndex, toPosition: $0) })
     }
 
     @ViewBuilder private func thumbnail(_ page: PDFPageEdit) -> some View {
@@ -248,7 +295,8 @@ struct PDFOrganizeView: View {
     }
 
     @ViewBuilder private func pageMenu(_ page: PDFPageEdit) -> some View {
-        Button(model.text("Select This Page", "Bu sayfayı seç")) { editor.select(page.sourceIndex); gridFocused = true }
+        Button(model.text("Move to Position…", "Konuma taşı…")) { focus = .position(page.sourceIndex) }
+        Button(model.text("Select This Page", "Bu sayfayı seç")) { editor.select(page.sourceIndex); focus = .content }
         Button(model.text("Add to Selection", "Seçime ekle")) {
             if !editor.selectedPages.contains(page.sourceIndex) { editor.select(page.sourceIndex, modifiers: .command) }
         }.disabled(editor.selectedPages.contains(page.sourceIndex))
@@ -289,10 +337,11 @@ struct PDFOrganizeView: View {
             HStack {
                 Spacer()
                 Button(model.text("Extract Selected", "Seçili Sayfaları Çıkar")) { submit(selectedOnly: true) }
-                    .disabled(editor.exportPlan(selectedOnly: true) == nil)
+                    .disabled(editor.exportPlan(selectedOnly: true) == nil || editingPosition != nil)
                     .help(model.text("Create A PDF With Selected Pages", "Seçili Sayfalardan Bir PDF Oluştur"))
             }.padding(.horizontal, 24)
-            EditorFooter(language: model.language, isEnabled: editor.exportPlan(selectedOnly: false) != nil,
+            EditorFooter(language: model.language, isEnabled: editor.exportPlan(selectedOnly: false) != nil && editingPosition == nil,
+                cancelShortcut: editingPosition == nil ? .cancelAction : nil,
                 onCancel: { editor.close(); model.cancelPending() }, onSubmit: { submit(selectedOnly: false) })
         }
     }
@@ -307,10 +356,9 @@ struct PDFOrganizeView: View {
     }
 
     private func submit(selectedOnly: Bool) {
-        guard let plan = editor.exportPlan(selectedOnly: selectedOnly) else { return }
+        guard editingPosition == nil, let plan = editor.exportPlan(selectedOnly: selectedOnly) else { return }
         var options = ConversionOptions()
         options.pdfOrganization = plan
-        editor.close()
         model.submitPending(options, outputExtension: "pdf")
     }
 }

@@ -7,9 +7,20 @@ import LemulipCore
 struct PDFMergeView: View {
     @ObservedObject var model: AppController
     let inputs: [URL]
-    @StateObject private var editor = PDFMergeEditor()
-    @FocusState private var listFocused: Bool
+    @StateObject private var editor: PDFMergeEditor
+    @FocusState private var focus: PDFEditorFocus?
     private let rowHeight: CGFloat = 100
+
+    init(model: AppController, inputs: [URL], editor: PDFMergeEditor? = nil) {
+        self.model = model
+        self.inputs = inputs
+        _editor = StateObject(wrappedValue: editor ?? PDFMergeEditor())
+    }
+
+    private var editingPosition: Int? {
+        if case .position(let inputIndex)? = focus { return inputIndex }
+        return nil
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -46,12 +57,12 @@ struct PDFMergeView: View {
             Spacer(minLength: 16)
             HStack(spacing: 8) {
                 Button { editor.undo() } label: { Label(model.text("Undo", "Geri al"), systemImage: "arrow.uturn.backward") }
-                    .keyboardShortcut("z", modifiers: .command).disabled(!editor.canUndo)
+                    .keyboardShortcut("z", modifiers: .command).disabled(!editor.canUndo || editingPosition != nil)
                 Button { editor.redo() } label: { Image(systemName: "arrow.uturn.forward") }
-                    .keyboardShortcut("z", modifiers: [.command, .shift]).disabled(!editor.canRedo)
+                    .keyboardShortcut("z", modifiers: [.command, .shift]).disabled(!editor.canRedo || editingPosition != nil)
                     .accessibilityLabel(model.text("Redo", "Yinele"))
                     .help(model.text("Redo (⇧⌘Z)", "Yinele (⇧⌘Z)"))
-                Button(model.text("Reset", "Sıfırla")) { editor.reset() }.disabled(!editor.canReset)
+                Button(model.text("Reset", "Sıfırla")) { focus = .content; editor.reset() }.disabled(!editor.canReset)
                     .help(model.text("Restore Every File in Its Original Order", "Tüm dosyaları orijinal sırayla geri getir"))
             }.font(.system(size: 11))
         }
@@ -63,23 +74,34 @@ struct PDFMergeView: View {
                 Label(model.text("Move Earlier", "Öne taşı"), systemImage: "arrow.up")
             }
             .keyboardShortcut(.upArrow, modifiers: [.command, .option])
-            .disabled(!editor.canMoveEarlier)
+            .disabled(!editor.canMoveEarlier || editingPosition != nil)
             .help(model.text("Move Earlier (⌥⌘↑)", "Öne taşı (⌥⌘↑)"))
             Button { editor.moveSelection(by: 1) } label: {
                 Label(model.text("Move Later", "Arkaya taşı"), systemImage: "arrow.down")
             }
             .keyboardShortcut(.downArrow, modifiers: [.command, .option])
-            .disabled(!editor.canMoveLater)
+            .disabled(!editor.canMoveLater || editingPosition != nil)
             .help(model.text("Move Later (⌥⌘↓)", "Arkaya taşı (⌥⌘↓)"))
             Divider().frame(height: 20).padding(.horizontal, 3)
-            Button { editor.removeSelection() } label: {
+            Menu {
+                Button(model.text("Sort by Filename (1, 2, 10)", "Dosya adına göre sırala (1, 2, 10)")) { focus = .content; editor.sortByFilename() }
+                Button(model.text("Reverse Current Order", "Geçerli sırayı ters çevir")) { focus = .content; editor.reverseOrder() }
+                Divider()
+                Button(model.text("Restore Incoming Order", "Gelen sırayı geri getir")) { focus = .content; editor.restoreInputOrder() }
+            } label: {
+                Label(model.text("Order", "Sıralama"), systemImage: "arrow.up.arrow.down")
+            }
+            .fixedSize(horizontal: true, vertical: false)
+            .help(model.text("Files Keep Their Incoming Order Until You Change It", "Değiştirene kadar dosyalar gelen sırada kalır"))
+            Divider().frame(height: 20).padding(.horizontal, 3)
+            Button { focus = .content; editor.removeSelection() } label: {
                 Label(model.text("Remove", "Çıkar"), systemImage: "minus.circle")
             }
             .disabled(!editor.canRemove)
             .help(model.text("Remove From the Copy (Delete)", "Kopyadan çıkar (Delete)"))
             Spacer(minLength: 10)
-            Button(model.text("Select All", "Tümünü seç")) { editor.selectAll(); listFocused = true }
-                .keyboardShortcut("a", modifiers: .command).disabled(editor.documents.isEmpty)
+            Button(model.text("Select All", "Tümünü seç")) { editor.selectAll(); focus = .content }
+                .keyboardShortcut("a", modifiers: .command).disabled(editor.documents.isEmpty || editingPosition != nil)
         }.font(.system(size: 11)).controlSize(.small)
     }
 
@@ -98,14 +120,23 @@ struct PDFMergeView: View {
                 Spacer(minLength: 4)
             }
             HStack {
-                Text(model.text("⌘-Click to Add · Shift-Click to Select a Range · Drag to Reorder",
-                                "⌘ ile seçime ekle · Shift ile aralık seç · Sıralamak için sürükle"))
+                Text(orderingHint)
                 Spacer(minLength: 8)
                 if !editor.canRemove, !editor.selectedDocuments.isEmpty {
                     Text(model.text("Keep at Least Two PDFs", "En az iki PDF kalmalı"))
                 }
             }.font(.system(size: 10)).foregroundStyle(Palette.muted)
         }
+    }
+
+    private var orderingHint: String {
+        if let editingPosition {
+            let range = editor.positionRange(for: editingPosition)
+            return model.text("Position \(range.lowerBound)–\(range.upperBound) · Enter to Move · Esc to Cancel · Selected Files Move Together",
+                              "Konum \(range.lowerBound)–\(range.upperBound) · Enter ile taşı · Esc ile vazgeç · Seçili dosyalar birlikte taşınır")
+        }
+        return model.text("⌘-Click to Add · Shift-Click for a Range · Drag the Handle or Edit a Position Number",
+                          "⌘ ile seçime ekle · Shift ile aralık seç · Tutamaktan sürükle veya sıra numarasını değiştir")
     }
 
     private var documentList: some View {
@@ -124,11 +155,12 @@ struct PDFMergeView: View {
                     }.padding(.horizontal, 24).padding(.top, 4).padding(.bottom, 22)
                 }
                 .coordinateSpace(name: "pdf-merge-list")
-                .focusable().focused($listFocused)
+                .focusable().focused($focus, equals: .content)
                 .onMoveCommand { direction in
+                    guard editingPosition == nil else { return }
                     if let target = editor.moveFocus(direction) { scroll.scrollTo(target) }
                 }
-                .onDeleteCommand { editor.removeSelection() }
+                .onDeleteCommand { if editingPosition == nil { editor.removeSelection() } }
                 .onChange(of: editor.scrollRequest) { request in
                     if let request { scroll.scrollTo(request.inputIndex) }
                 }
@@ -153,57 +185,62 @@ struct PDFMergeView: View {
         let selected = editor.selectedDocuments.contains(inputIndex)
         let filename = inputs[inputIndex].lastPathComponent
         let dropPosition = editor.dropPosition
-        return Button {
-            editor.select(inputIndex, modifiers: NSEvent.modifierFlags)
-            if editor.thumbnailErrors[inputIndex] != nil { editor.retryThumbnail(inputIndex) }
-            listFocused = true
-        } label: {
-            HStack(spacing: 15) {
-                VStack(spacing: 9) {
-                    Text("\(entry.outputIndex + 1)").font(.system(size: 12, weight: .semibold)).monospacedDigit()
-                        .foregroundStyle(Palette.muted)
+        return HStack(spacing: 12) {
+            positionField(entry)
+            Button {
+                editor.select(inputIndex, modifiers: NSEvent.modifierFlags)
+                if editor.thumbnailErrors[inputIndex] != nil { editor.retryThumbnail(inputIndex) }
+                focus = .content
+            } label: {
+                HStack(spacing: 13) {
                     Image(systemName: selected ? "checkmark.circle.fill" : "circle")
                         .font(.system(size: 17)).foregroundStyle(selected ? Palette.accent : Palette.muted.opacity(0.6))
-                }.frame(width: 24)
-                thumbnail(inputIndex).frame(width: 58, height: 72)
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(filename).font(.system(size: 13, weight: .semibold))
-                        .lineLimit(1).truncationMode(.middle)
-                    Text(model.text("Original File \(inputIndex + 1) · \(entry.source.pageCount == 1 ? "1 Page" : "\(entry.source.pageCount) Pages")",
-                                    "Orijinal dosya \(inputIndex + 1) · \(entry.source.pageCount) sayfa"))
-                        .font(.system(size: 11)).foregroundStyle(Palette.muted)
-                    if let error = editor.thumbnailErrors[inputIndex] {
-                        Text(model.text("Preview Unavailable · Click to Retry", "Önizleme kullanılamıyor · Yeniden denemek için tıkla"))
-                            .font(.system(size: 10)).foregroundStyle(Palette.muted).help(error)
-                    }
-                }.frame(maxWidth: .infinity, alignment: .leading)
-                VStack(alignment: .trailing, spacing: 5) {
-                    Text(pageRange(entry)).font(.system(size: 12, weight: .semibold)).monospacedDigit()
-                    Text(model.text("In Your Copy", "Kopyandaki yeri"))
-                        .font(.system(size: 10)).foregroundStyle(Palette.muted)
-                }.padding(.horizontal, 11).padding(.vertical, 9)
-                    .background(Palette.raised.opacity(0.65), in: RoundedRectangle(cornerRadius: 8))
-                Image(systemName: "line.3.horizontal").font(.system(size: 11))
-                    .foregroundStyle(Palette.muted.opacity(0.6)).accessibilityHidden(true)
+                    thumbnail(inputIndex).frame(width: 58, height: 72)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(filename).font(.system(size: 13, weight: .semibold))
+                            .lineLimit(1).truncationMode(.middle)
+                        Text(model.text("Original File \(inputIndex + 1) · \(entry.source.pageCount == 1 ? "1 Page" : "\(entry.source.pageCount) Pages")",
+                                        "Orijinal dosya \(inputIndex + 1) · \(entry.source.pageCount) sayfa"))
+                            .font(.system(size: 11)).foregroundStyle(Palette.muted)
+                        if let error = editor.thumbnailErrors[inputIndex] {
+                            Text(model.text("Preview Unavailable · Click to Retry", "Önizleme kullanılamıyor · Yeniden denemek için tıkla"))
+                                .font(.system(size: 10)).foregroundStyle(Palette.muted).help(error)
+                        }
+                    }.frame(maxWidth: .infinity, alignment: .leading)
+                    VStack(alignment: .trailing, spacing: 5) {
+                        Text(pageRange(entry)).font(.system(size: 12, weight: .semibold)).monospacedDigit()
+                        Text(model.text("In Your Copy", "Kopyandaki yeri"))
+                            .font(.system(size: 10)).foregroundStyle(Palette.muted)
+                    }.padding(.horizontal, 11).padding(.vertical, 9)
+                        .background(Palette.raised.opacity(0.65), in: RoundedRectangle(cornerRadius: 8))
+                }.frame(maxWidth: .infinity, minHeight: rowHeight).contentShape(Rectangle())
             }
-            .padding(.horizontal, 13).frame(height: rowHeight)
-            .background(selected ? Palette.accent.opacity(0.08) : Palette.panel, in: RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(selected ? Palette.accent : Palette.line, lineWidth: selected ? 2 : 1))
-            .contentShape(RoundedRectangle(cornerRadius: 12))
+            .buttonStyle(.plain).focusable(false).help(editor.thumbnailErrors[inputIndex] ?? filename)
+            .accessibilityLabel(model.text("File \(entry.outputIndex + 1), \(filename), Original File \(inputIndex + 1), \(entry.source.pageCount) Pages",
+                                           "Dosya \(entry.outputIndex + 1), \(filename), Orijinal dosya \(inputIndex + 1), \(entry.source.pageCount) sayfa"))
+            .accessibilityValue(pageRange(entry) + model.text(" in Your Copy, ", " kopyandaki yeri, ")
+                + model.text(selected ? "Selected" : "Not Selected", selected ? "Seçili" : "Seçili değil"))
+            .accessibilityAction(named: Text(model.text("Add to Selection", "Seçime ekle"))) {
+                if !editor.selectedDocuments.contains(inputIndex) { editor.select(inputIndex, modifiers: .command) }
+            }
+            .accessibilityAction(named: Text(model.text("Remove From Selection", "Seçimden çıkar"))) {
+                if editor.selectedDocuments.contains(inputIndex) { editor.select(inputIndex, modifiers: .command) }
+            }
+            .onDrag { focus = .content; return editor.beginDrag(inputIndex) }
+            Image(systemName: "line.3.horizontal").font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Palette.muted).frame(width: 28, height: 36)
+                .background(Palette.raised, in: RoundedRectangle(cornerRadius: 6))
+                .contentShape(Rectangle())
+                .onDrag { focus = .content; return editor.beginDrag(inputIndex) }
+                .help(model.text("Drag to Move the Selected Files Together", "Seçili dosyaları birlikte taşımak için sürükle"))
+                .accessibilityHidden(true)
         }
-        .buttonStyle(.plain).focusable(false).help(editor.thumbnailErrors[inputIndex] ?? filename)
-        .accessibilityLabel(model.text("File \(entry.outputIndex + 1), \(filename), Original File \(inputIndex + 1), \(entry.source.pageCount) Pages",
-                                       "Dosya \(entry.outputIndex + 1), \(filename), Orijinal dosya \(inputIndex + 1), \(entry.source.pageCount) sayfa"))
-        .accessibilityValue(pageRange(entry) + model.text(" in Your Copy, ", " kopyandaki yeri, ")
-            + model.text(selected ? "Selected" : "Not Selected", selected ? "Seçili" : "Seçili değil"))
-        .accessibilityAction(named: Text(model.text("Add to Selection", "Seçime ekle"))) {
-            if !editor.selectedDocuments.contains(inputIndex) { editor.select(inputIndex, modifiers: .command) }
-        }
-        .accessibilityAction(named: Text(model.text("Remove From Selection", "Seçimden çıkar"))) {
-            if editor.selectedDocuments.contains(inputIndex) { editor.select(inputIndex, modifiers: .command) }
-        }
-        .onDrag { editor.beginDrag(inputIndex) }
+        .padding(.horizontal, 13).frame(height: rowHeight)
+        .background(selected ? Palette.accent.opacity(0.08) : Palette.panel, in: RoundedRectangle(cornerRadius: 12))
+        .overlay(RoundedRectangle(cornerRadius: 12)
+            .strokeBorder(selected ? Palette.accent : Palette.line, lineWidth: selected ? 2 : 1))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("pdf.merge.row.\(inputIndex)")
         .onDrop(of: [PDFMergeEditor.dragType], delegate: PDFMergeDropDelegate(editor: editor, inputIndex: inputIndex, height: rowHeight))
         .overlay(alignment: dropPosition?.after == true ? .bottom : .top) {
             if dropPosition?.inputIndex == inputIndex {
@@ -213,6 +250,22 @@ struct PDFMergeView: View {
             }
         }
         .contextMenu { documentMenu(inputIndex) }
+    }
+
+    private func positionField(_ entry: PDFMergeEditor.Entry) -> some View {
+        let range = editor.positionRange(for: entry.id)
+        return PDFPositionField(item: entry.id, position: entry.outputIndex + 1,
+            allowedPositions: range,
+            label: model.text("Output Position for \(inputs[entry.id].lastPathComponent)", "\(inputs[entry.id].lastPathComponent) için çıktı sırası"),
+            hint: model.text("Enter a Position and Press Return. Selected Files Move Together. Esc Cancels.",
+                             "Bir konum yazıp Enter'a bas. Seçili dosyalar birlikte taşınır. Esc ile vazgeç."),
+            invalidHint: model.text("Enter a Whole Number from \(range.lowerBound) to \(range.upperBound). The Selected Files Keep Their Relative Order.",
+                                    "\(range.lowerBound) ile \(range.upperBound) arasında tam sayı gir. Seçili dosyaların kendi aralarındaki sıra korunur."),
+            focus: $focus,
+            beginEditing: {
+                if !editor.selectedDocuments.contains(entry.id) { editor.select(entry.id) }
+            },
+            move: { editor.move(entry.id, toPosition: $0) })
     }
 
     @ViewBuilder private func thumbnail(_ inputIndex: Int) -> some View {
@@ -233,7 +286,8 @@ struct PDFMergeView: View {
     }
 
     @ViewBuilder private func documentMenu(_ inputIndex: Int) -> some View {
-        Button(model.text("Select This File", "Bu dosyayı seç")) { editor.select(inputIndex); listFocused = true }
+        Button(model.text("Move to Position…", "Konuma taşı…")) { focus = .position(inputIndex) }
+        Button(model.text("Select This File", "Bu dosyayı seç")) { editor.select(inputIndex); focus = .content }
         Button(model.text("Add to Selection", "Seçime ekle")) {
             if !editor.selectedDocuments.contains(inputIndex) { editor.select(inputIndex, modifiers: .command) }
         }.disabled(editor.selectedDocuments.contains(inputIndex))
@@ -285,7 +339,8 @@ struct PDFMergeView: View {
                     .padding(10).frame(maxWidth: .infinity, alignment: .leading)
                     .background(Palette.raised, in: RoundedRectangle(cornerRadius: 8))
             }
-            EditorFooter(language: model.language, isEnabled: editor.exportPlan() != nil,
+            EditorFooter(language: model.language, isEnabled: editor.exportPlan() != nil && editingPosition == nil,
+                cancelShortcut: editingPosition == nil ? .cancelAction : nil,
                 onCancel: { editor.close(); model.cancelPending() }, onSubmit: { submit() })
         }
     }
@@ -305,10 +360,9 @@ struct PDFMergeView: View {
     }
 
     private func submit() {
-        guard let plan = editor.exportPlan() else { return }
+        guard editingPosition == nil, let plan = editor.exportPlan() else { return }
         var options = ConversionOptions()
         options.pdfMerge = plan
-        editor.close()
         model.submitPending(options, outputExtension: "pdf")
     }
 }

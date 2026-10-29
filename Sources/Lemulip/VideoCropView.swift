@@ -366,7 +366,7 @@ struct VideoCropView: View {
               availableFormats(preview).contains(outputFormat) else { return }
         var options = ConversionOptions()
         options.videoCrop = VideoCropRegion(imageRegion: selection, sourceDuration: preview.durationSeconds)
-        closePreview()
+        playback.pause()
         model.submitPending(options, outputExtension: outputFormat.rawValue)
     }
 }
