@@ -123,6 +123,143 @@ final class PDFEditorInteractionTests: XCTestCase {
     }
 
     @MainActor
+    func testMergeDragPointerProbe() async throws { try await reviewMergePointer(cancel: false) }
+
+    @MainActor
+    func testOrganizerDragPointerProbe() async throws { try await reviewOrganizerPointer(cancel: false) }
+
+    @MainActor
+    func testMergeVisibleCancelPointerProbe() async throws { try await reviewMergePointer(cancel: true) }
+
+    @MainActor
+    func testOrganizerVisibleCancelPointerProbe() async throws { try await reviewOrganizerPointer(cancel: true) }
+
+    @MainActor
+    private func pointerModel() throws -> AppController {
+        let environment = ProcessInfo.processInfo.environment
+        guard environment["LEMULIP_PDF_POINTER_PROBE"] == "1",
+              environment["LEMULIP_PDF_POINTER_WATCHDOG"] == "45" else {
+            throw XCTSkip("Run script/review_pdf_pointer.py for the bounded own-window pointer diagnostic")
+        }
+        let model = AppController()
+        guard model.language == "en", model.theme == .orchardNight else {
+            throw InteractionFailure("The observed-pixel pointer fixture requires English and Orchard Night")
+        }
+        return model
+    }
+
+    @MainActor
+    private func reviewMergePointer(cancel: Bool) async throws {
+        let model = try pointerModel()
+        let inputs = try makeFiles(["10 Notes.pdf", "02 Report.pdf", "01 Cover.pdf"], pages: [1, 2, 1])
+        model.pendingOperation = FileOperation(id: "pdf.merge", title: "Merge PDF", outputExtension: "pdf")
+        let editor = PDFMergeEditor()
+        defer { editor.close() }
+        let name = cancel ? "merge-pointer-cancel" : "merge-pointer-drag"
+        try await withWindow(PDFMergeView(model: model, inputs: inputs, editor: editor),
+                             size: NSSize(width: 820, height: 660), name: name) { window, host in
+            try await waitFor("The merge pointer fixture must render all three real fields and covers") {
+                editor.isReady && positionFields(in: host).count == 3 && editor.thumbnails.count == 3
+            }
+            let first = try positionField(atOutputPosition: 1, in: host)
+            let third = try positionField(atOutputPosition: 3, in: host)
+            let firstFrame = first.native.convert(first.native.bounds, to: nil)
+            let thirdFrame = third.native.convert(third.native.bounds, to: nil)
+            let observe: @MainActor () -> PointerObservation = {
+                PointerObservation(dragging: editor.isDragging, target: editor.dropPosition?.inputIndex,
+                    after: editor.dropPosition?.after, order: editor.documents.map(\.inputIndex),
+                    selected: editor.selectedDocuments.sorted(), pending: model.pendingOperation?.id,
+                    activityCount: model.activity.count)
+            }
+            if cancel {
+                try await enter("3", in: first, window: window)
+                let target = try cancelTarget(in: host, window: window, fallback: NSPoint(x: 663, y: 30))
+                try capture(host, window: window, name: name + "-before", state: observe().record)
+                _ = try await pointerSequence(from: target.point, to: target.point, drag: false,
+                    host: host, window: window, name: name, locator: target.locator, observe: observe)
+                try await waitFor("Clicking the visible Cancel button must discard the pending merge while a number draft is active") {
+                    model.pendingOperation == nil
+                }
+            } else {
+                // Selection is fixture setup, not a claim that Command-click was tested.
+                editor.select(2, modifiers: .command)
+                XCTAssertEqual(editor.selectedDocuments, [0, 2])
+                try capture(host, window: window, name: name + "-before", state: observe().record)
+                let result = try await pointerSequence(
+                    from: NSPoint(x: 769, y: firstFrame.midY),
+                    to: NSPoint(x: 769, y: thirdFrame.midY + 25), drag: true,
+                    host: host, window: window, name: name,
+                    locator: "Handle center x769 measured in the 820x660 production capture; row y from actual native fields; upper-quarter destination is 25pt above the third field center",
+                    observe: observe)
+                try await waitFor("The real merge drop must produce [1,0,2]; local event delivery alone does not prove a native dragging session") {
+                    editor.documents.map(\.inputIndex) == [1, 0, 2]
+                }
+                XCTAssertTrue(result.sawDragToken, "Production onDrag must create the real token")
+                XCTAssertTrue(result.sawIntendedCue, "Production onDrop must show the insertion cue before selected target 2")
+                XCTAssertEqual(editor.selectedDocuments, [0, 2])
+                XCTAssertEqual(model.pendingOperation?.id, "pdf.merge")
+            }
+            XCTAssertTrue(model.activity.isEmpty)
+            try capture(host, window: window, name: name + "-after", state: observe().record)
+        }
+    }
+
+    @MainActor
+    private func reviewOrganizerPointer(cancel: Bool) async throws {
+        let model = try pointerModel()
+        let inputs = try makeFiles(["Review Pages.pdf"], pages: [4])
+        model.pendingOperation = FileOperation(id: "pdf.organize", title: "Organize PDF", outputExtension: "pdf")
+        let editor = PDFOrganizeEditor()
+        defer { editor.close() }
+        let name = cancel ? "organize-pointer-cancel" : "organize-pointer-drag"
+        try await withWindow(PDFOrganizeView(model: model, inputs: inputs, editor: editor),
+                             size: NSSize(width: 860, height: 680), name: name) { window, host in
+            try await waitFor("The organizer pointer fixture must render all four real fields and previews") {
+                editor.source != nil && positionFields(in: host).count == 4 && editor.thumbnails.count == 4
+            }
+            let first = try positionField(atOutputPosition: 1, in: host)
+            let third = try positionField(atOutputPosition: 3, in: host)
+            let firstFrame = first.native.convert(first.native.bounds, to: nil)
+            let thirdFrame = third.native.convert(third.native.bounds, to: nil)
+            let observe: @MainActor () -> PointerObservation = {
+                PointerObservation(dragging: editor.isDragging, target: editor.dropPosition?.sourceIndex,
+                    after: editor.dropPosition?.after, order: editor.pages.map(\.sourceIndex),
+                    selected: editor.selectedPages.sorted(), pending: model.pendingOperation?.id,
+                    activityCount: model.activity.count)
+            }
+            if cancel {
+                try await enter("4", in: first, window: window)
+                let target = try cancelTarget(in: host, window: window, fallback: NSPoint(x: 703, y: 30))
+                try capture(host, window: window, name: name + "-before", state: observe().record)
+                _ = try await pointerSequence(from: target.point, to: target.point, drag: false,
+                    host: host, window: window, name: name, locator: target.locator, observe: observe)
+                try await waitFor("Clicking the visible Cancel button must discard the pending organizer while a number draft is active") {
+                    model.pendingOperation == nil
+                }
+            } else {
+                editor.select(2, modifiers: .command)
+                XCTAssertEqual(editor.selectedPages, [0, 2])
+                try capture(host, window: window, name: name + "-before", state: observe().record)
+                let result = try await pointerSequence(
+                    from: NSPoint(x: firstFrame.minX + 121, y: firstFrame.midY),
+                    to: NSPoint(x: thirdFrame.minX - 26, y: thirdFrame.midY), drag: true,
+                    host: host, window: window, name: name,
+                    locator: "Handle center x192 and destination x458 measured in the 860x680 production capture; actual field frames supply the offsets +121/-26 and shared y",
+                    observe: observe)
+                try await waitFor("The real organizer drop must produce [1,0,2,3]; local event delivery alone does not prove a native dragging session") {
+                    editor.pages.map(\.sourceIndex) == [1, 0, 2, 3]
+                }
+                XCTAssertTrue(result.sawDragToken, "Production onDrag must create the real token")
+                XCTAssertTrue(result.sawIntendedCue, "Production onDrop must show the insertion cue before selected target 2")
+                XCTAssertEqual(editor.selectedPages, [0, 2])
+                XCTAssertEqual(model.pendingOperation?.id, "pdf.organize")
+            }
+            XCTAssertTrue(model.activity.isEmpty)
+            try capture(host, window: window, name: name + "-after", state: observe().record)
+        }
+    }
+
+    @MainActor
     private func withWindow<Content: View>(_ view: Content, size: NSSize, name: String,
         body: (NSWindow, NSHostingView<Content>) async throws -> Void) async throws {
         let application = NSApplication.shared
@@ -278,6 +415,189 @@ final class PDFEditorInteractionTests: XCTestCase {
         try await Task.sleep(nanoseconds: 20_000_000)
     }
 
+    private struct PointerObservation: Equatable {
+        let dragging: Bool
+        let target: Int?
+        let after: Bool?
+        let order: [Int]
+        let selected: [Int]
+        let pending: String?
+        let activityCount: Int
+        var record: [String: Any] {
+            ["productionDragTokenPresent": dragging, "dropTarget": target ?? -1,
+             "dropSide": after.map { $0 ? "after" : "before" } ?? "none",
+             "order": order, "selected": selected, "pendingOperation": pending ?? "none",
+             "activityCount": activityCount]
+        }
+    }
+
+    @MainActor
+    private final class PointerProgress {
+        var nextEvent = 0
+        var events: [[String: Any]] = []
+        var observations: [[String: Any]] = []
+        var lastObservation: PointerObservation?
+        var sawDragToken = false
+        var sawIntendedCue = false
+        var capturedCue = false
+        var finishedPostingAt: Date?
+        var outerDispatchCount = 0
+        var error: Error?
+    }
+
+    @MainActor
+    private func cancelTarget(in host: NSView, window: NSWindow, fallback: NSPoint) throws -> (point: NSPoint, locator: String) {
+        let matches = nativeButtons(in: host).filter { $0.title == "Cancel" }
+        guard matches.count <= 1 else { throw InteractionFailure("The visible Cancel button is ambiguous") }
+        if let button = matches.first {
+            let frame = button.convert(button.bounds, to: nil)
+            guard button.window === window, button.isDescendant(of: host), button.isEnabled,
+                  !button.isHiddenOrHasHiddenAncestor, button.visibleRect.contains(button.bounds),
+                  host.convert(host.bounds, to: nil).contains(frame), frame.width > 0, frame.height > 0 else {
+                throw InteractionFailure("The native Cancel button is not eligible in this own-window fixture")
+            }
+            return (NSPoint(x: frame.midX, y: frame.midY), "Unique visible enabled native NSButton titled Cancel; actual frame " + NSStringFromRect(frame))
+        }
+        return (fallback, "Visible Cancel center measured from the exact 69b03 production capture; no native NSButton title was available")
+    }
+
+    @MainActor
+    private func pointerSequence(from start: NSPoint, to end: NSPoint, drag: Bool,
+        host: NSView, window: NSWindow, name: String, locator: String,
+        observe: @escaping @MainActor () -> PointerObservation) async throws -> PointerProgress {
+        guard let path = ProcessInfo.processInfo.environment["LEMULIP_PDF_REVIEW_DIR"], !path.isEmpty else {
+            throw InteractionFailure("Pointer diagnostics require an artifact directory before sending events")
+        }
+        let directory = URL(fileURLWithPath: path, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        var sequence: [(NSEvent.EventType, NSPoint)] = [(.leftMouseDown, start)]
+        if drag {
+            for step in 1...12 {
+                let fraction = CGFloat(step) / 12
+                sequence.append((.leftMouseDragged, NSPoint(x: start.x + (end.x - start.x) * fraction,
+                                                       y: start.y + (end.y - start.y) * fraction)))
+            }
+            // Let the actual drop target keep its insertion cue visible before release.
+            for _ in 0..<8 { sequence.append((.leftMouseDragged, end)) }
+        }
+        sequence.append((.leftMouseUp, end))
+        let plan = sequence
+        let frame = host.convert(host.bounds, to: nil)
+        guard frame.origin == .zero,
+              frame.size == (name.hasPrefix("merge") ? NSSize(width: 820, height: 660) : NSSize(width: 860, height: 680)),
+              host.window === window, window.isVisible, window.isKeyWindow, NSApp.keyWindow === window else {
+            throw InteractionFailure("The observed-pixel calibration does not match this visible own key window")
+        }
+        let container = try XCTUnwrap(host.superview, "The hosted view must remain attached to its native window hierarchy")
+        let hits: [[String: Any]] = try plan.map { type, point in
+            // NSView.hitTest takes a point in its superview's coordinates.
+            guard frame.contains(point), let hit = host.hitTest(container.convert(point, from: nil)),
+                  hit.window === window, hit === host || hit.isDescendant(of: host) else {
+                throw InteractionFailure("A calibrated pointer point does not hit this synthetic window's view hierarchy")
+            }
+            return ["type": String(describing: type), "x": Double(point.x), "y": Double(point.y),
+                    "hitClass": String(reflecting: Swift.type(of: hit)), "hitBelongsToOwnHost": true,
+                    "hitFrameInWindow": NSStringFromRect(hit.convert(hit.bounds, to: nil))]
+        }
+        let progress = PointerProgress()
+        let environment = ProcessInfo.processInfo.environment
+        let save: @MainActor (String) throws -> Void = { phase in
+            let record: [String: Any] = [
+                "scenario": name, "phase": phase,
+                "sourceCommit": environment["LEMULIP_PDF_REVIEW_COMMIT"] ?? "local",
+                "runID": environment["GITHUB_RUN_ID"] ?? "local",
+                "method": "Public NSEvents queued only in this XCTest process's synthetic window",
+                "hardwareMouseVerified": false, "globalInputPosted": false, "testDirectlyCalledModelReorderOrDropDelegate": false,
+                "selectionSetup": "Disjoint selection 0 and 2 is model fixture setup only in drag cases",
+                "calibrationHead": "69b03c93044da330ccc73e2599f06d222b740016",
+                "calibrationArtifactSHA256": "8e9564309fd7a858debd6020f397ad9ca435fe4cf0bae217a1ecb0ba049baee8",
+                "calibrationCaptures": ["merge-initial.png", "organize-initial.png"],
+                "locator": locator, "windowNumber": window.windowNumber,
+                "logicalFrame": NSStringFromRect(frame), "plannedPointsAndHitTests": hits,
+                "eventsPosted": progress.events, "outerLoopDispatchCount": progress.outerDispatchCount,
+                "productionObservations": progress.observations,
+                "sawProductionDragToken": progress.sawDragToken,
+                "sawInsertionCueBeforeSelectedTarget2": progress.sawIntendedCue,
+                "error": progress.error.map { String(describing: $0) } ?? "none"
+            ]
+            try JSONSerialization.data(withJSONObject: record, options: [.prettyPrinted, .sortedKeys])
+                .write(to: directory.appendingPathComponent(name + "-progress.json"), options: .atomic)
+        }
+        let sample: @MainActor () throws -> Void = {
+            let current = observe()
+            progress.sawDragToken = progress.sawDragToken || current.dragging
+            progress.sawIntendedCue = progress.sawIntendedCue || (current.target == 2 && current.after == false)
+            if current != progress.lastObservation {
+                progress.lastObservation = current
+                progress.observations.append(current.record)
+                try save("observed-production-state")
+            }
+            if drag, progress.sawIntendedCue, !progress.capturedCue {
+                progress.capturedCue = true
+                try self.capture(host, window: window, name: name + "-insertion-cue", state: current.record)
+            }
+        }
+        try sample()
+        try save("ready-before-input")
+        let eventNumbers = Set(4200..<(4200 + plan.count))
+        let timer = Timer(timeInterval: 0.04, repeats: true) { timer in
+            MainActor.assumeIsolated {
+                do {
+                    try sample()
+                    guard NSApp.keyWindow === window, window.isKeyWindow, host.window === window else {
+                        throw InteractionFailure("Refusing to post pointer input after the own key-window guard changed")
+                    }
+                    let index = progress.nextEvent
+                    guard index < plan.count else { timer.invalidate(); return }
+                    let (type, point) = plan[index]
+                    let event = try XCTUnwrap(NSEvent.mouseEvent(with: type, location: point, modifierFlags: [],
+                        timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: window.windowNumber,
+                        context: nil, eventNumber: 4200 + index, clickCount: 1, pressure: type == .leftMouseUp ? 0 : 1))
+                    guard event.window === window else { throw InteractionFailure("Constructed pointer event has a different target window") }
+                    NSApp.postEvent(event, atStart: false)
+                    progress.events.append(["type": String(describing: type), "eventNumber": event.eventNumber,
+                                            "x": Double(point.x), "y": Double(point.y)])
+                    progress.nextEvent += 1
+                    if progress.nextEvent == plan.count { progress.finishedPostingAt = Date(); timer.invalidate() }
+                    try save("posted-own-window-event")
+                } catch {
+                    progress.error = error
+                    timer.invalidate()
+                    try? save("event-delivery-error")
+                }
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        RunLoop.main.add(timer, forMode: .eventTracking)
+        defer { timer.invalidate() }
+        let deadline = Date().addingTimeInterval(6)
+        let mask: NSEvent.EventTypeMask = [.leftMouseDown, .leftMouseDragged, .leftMouseUp]
+        while Date() < deadline {
+            if let error = progress.error { throw error }
+            try sample()
+            if let event = NSApp.nextEvent(matching: mask, until: Date().addingTimeInterval(0.02), inMode: .default, dequeue: true) {
+                guard event.window === window, NSApp.keyWindow === window, window.isKeyWindow,
+                      eventNumbers.contains(event.eventNumber) else {
+                    throw InteractionFailure("Refusing to dispatch a pointer event outside the exact own-window event plan")
+                }
+                // Dequeue first so NSApp.currentEvent is the actual synthetic event.
+                // Native tracking may consume subsequent queued events itself.
+                NSApp.sendEvent(event)
+                progress.outerDispatchCount += 1
+            } else if let finished = progress.finishedPostingAt, Date().timeIntervalSince(finished) > 0.2 {
+                break
+            }
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
+        if let error = progress.error { throw error }
+        guard progress.finishedPostingAt != nil else {
+            throw InteractionFailure("Own-process pointer delivery did not complete; no native drag success is established")
+        }
+        try sample()
+        try save("own-event-sequence-finished")
+        return progress
+    }
+
     @MainActor
     private func waitFor(_ message: String, servicing window: NSWindow? = nil, condition: () -> Bool) async throws {
         let deadline = Date().addingTimeInterval(5)
@@ -394,6 +714,13 @@ final class PDFEditorInteractionTests: XCTestCase {
     private func nativeTextFields(in view: NSView) -> [NSTextField] {
         var result = (view as? NSTextField).map { [$0] } ?? []
         for child in view.subviews { result.append(contentsOf: nativeTextFields(in: child)) }
+        return result
+    }
+
+    @MainActor
+    private func nativeButtons(in view: NSView) -> [NSButton] {
+        var result = (view as? NSButton).map { [$0] } ?? []
+        for child in view.subviews { result.append(contentsOf: nativeButtons(in: child)) }
         return result
     }
 
