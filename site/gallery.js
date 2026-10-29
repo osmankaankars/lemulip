@@ -5,8 +5,8 @@
   if (!gallery) return;
   const slides = Array.from(gallery.querySelectorAll('.app-slide'));
   const tabs = Array.from(gallery.querySelectorAll('[data-screen]'));
-  const caption = document.getElementById('gallery-caption');
-  const counter = document.getElementById('gallery-counter');
+  const captionTitle = document.getElementById('gallery-caption-title');
+  const description = document.getElementById('gallery-description');
   let selected = 0;
   function show(index, moveFocus = false) {
     selected = (index + slides.length) % slides.length;
@@ -15,8 +15,8 @@
       tab.setAttribute('aria-selected', String(i === selected));
       tab.tabIndex = i === selected ? 0 : -1;
     });
-    caption.textContent = tabs[selected].textContent;
-    counter.textContent = `${selected + 1} / ${slides.length}`;
+    captionTitle.textContent = tabs[selected].dataset.title;
+    description.textContent = tabs[selected].dataset.description;
     if (moveFocus) tabs[selected].focus({ preventScroll: true });
   }
   tabs.forEach((tab, i) => {
@@ -31,9 +31,6 @@
       event.preventDefault(); event.stopPropagation(); show(next, true);
     });
   });
-  document.getElementById('gallery-next').addEventListener('click', () => show(selected + 1));
-  document.getElementById('gallery-previous').addEventListener('click', () => show(selected - 1));
   gallery.querySelector('.gallery-tabs').hidden = false;
-  gallery.querySelector('.gallery-navigation').hidden = false;
   show(0);
 })();

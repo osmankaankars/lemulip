@@ -100,9 +100,10 @@ def check_native_gallery(page, output: Path, width: int, height: int) -> None:
         assert gallery.locator(".app-slide:visible").count() == 1
         assert tab.get_attribute("aria-selected") == "true"
         assert gallery.locator('[role="tab"][tabindex="0"]').count() == 1
-        assert page.locator("#gallery-counter").inner_text() == f"{index + 1} / 4"
-        assert page.locator("#gallery-caption").inner_text() == tab.inner_text()
+        assert page.locator("#gallery-caption-title").inner_text() == tab.get_attribute("data-title")
+        assert page.locator("#gallery-description").inner_text() == tab.get_attribute("data-description")
         assert panel.locator("img").evaluate("e=>e.complete&&e.naturalWidth>0")
+        assert panel.locator("img").evaluate("e=>e.getBoundingClientRect().width<=e.naturalWidth/2+1"), "Native captures need at least 2 source pixels per CSS pixel"
         corners = panel.locator("img").evaluate("""img => {
             const c = document.createElement('canvas');
             c.width = img.naturalWidth; c.height = img.naturalHeight;
@@ -122,10 +123,6 @@ def check_native_gallery(page, output: Path, width: int, height: int) -> None:
         assert panel.locator("a").evaluate("e=>e===document.activeElement"), screen
         page.keyboard.press("Shift+Tab")
         assert tab.evaluate("e=>e===document.activeElement")
-    page.locator("#gallery-next").click()
-    assert page.locator("#screen-workspace").is_visible()
-    page.locator("#gallery-previous").click()
-    assert page.locator("#screen-activity").is_visible()
     page.locator("#tab-activity").focus()
     for key, screen in (("ArrowRight", "workspace"), ("ArrowLeft", "activity"),
                         ("Home", "workspace"), ("End", "activity")):
@@ -153,21 +150,38 @@ def check_native_gallery(page, output: Path, width: int, height: int) -> None:
 def check_gallery_without_javascript(page) -> None:
     assert page.locator("#screen-workspace").is_visible()
     assert page.locator("#gallery-tabs").is_hidden()
-    assert page.locator(".gallery-navigation").is_hidden()
+    assert page.locator(".gallery-navigation").count() == 0
     links = page.locator("#app-gallery noscript a")
     assert links.count() == 4
     for link in links.all():
         assert link.is_visible()
         assert link.get_attribute("href").endswith(".webp")
+    assert page.locator('#format-directory').is_hidden()
+    page.locator('#format-details > summary').click()
+    assert page.locator('#format-directory').is_visible()
+    assert 'AVIF' in page.locator('#format-directory').inner_text()
 
 
 def check_catalog_search(page):
+    details=page.locator('#format-details')
+    summary=page.locator('#format-details > summary')
+    # Navigation in exercise() has already opened the directory.
+    assert details.evaluate('e=>e.open')
+    summary.click()
+    assert page.locator('#format-search').is_hidden()
+    summary.focus();summary.press('Enter')
+    assert details.evaluate('e=>e.open')
     search=page.locator('#format-search')
+    assert search.evaluate('e=>parseFloat(getComputedStyle(e).fontSize)>=16'), 'Search must remain readable without mobile auto-zoom'
     search.fill('crop')
     assert page.locator('.format-row').count()==2
     assert page.locator('.format-row').all_text_contents()[0].startswith('Images')
     assert page.locator('#tool-directory li').count()==2
     assert page.locator('#format-search-status').inner_text()=='2 File Families · 2 Matching Tools'
+    summary.click()
+    assert search.is_hidden()
+    page.locator('.count-note a[href="#formats"]').click()
+    assert search.is_visible() and search.input_value()=='crop'
     search.fill('EXCEL')
     assert 'Spreadsheets' in page.locator('#format-directory').inner_text()
     search.fill('<script>not-a-format</script>')
@@ -183,6 +197,9 @@ def check_catalog_search(page):
     assert page.locator('.format-row').count()==9
     assert page.locator('#sample-grid [data-sample]').count()==9
     assert page.locator('a[href$="Lemulip-0.1.19-macOS-universal.dmg"]').count()==3
+    summary.click()
+    summary.press('Space')
+    assert details.evaluate('e=>e.open')
 
 
 def check_native_recording(page,output,width):
@@ -215,7 +232,7 @@ def check_native_recording(page,output,width):
 
 
 def exercise(page,output,width,height):
-    assert page.locator('html').get_attribute('data-site-version')=='20261029.1'
+    assert page.locator('html').get_attribute('data-site-version')=='20261029.2'
     assert 'Lemulip' in page.title()
     assert page.locator('#format-count').inner_text()=='35'
     assert page.locator('#tool-count').inner_text()=='26'
@@ -291,7 +308,11 @@ def run(output:Path,engine:str,url:str|None,executable:str|None=None):
                     page=browser.new_page(viewport={'width':width,'height':height})
                     page.on('pageerror',lambda e:errors.append(str(e)))
                     page.on('response',lambda r:failures.append([r.status,r.url]) if r.status>=400 else None)
-                    page.goto(url,wait_until='networkidle');check_presentation(page,output,width,height);exercise(page,output,width,height);check_native_gallery(page,output,width,height);check_catalog_search(page)
+                    page.goto(url,wait_until='networkidle')
+                    assert not page.locator('#format-details').evaluate('e=>e.open'), 'The long directory starts closed'
+                    assert page.locator('#formats').bounding_box()['height'] <= 240, 'Closed directory should remain compact'
+                    if width in (1440,390):page.screenshot(path=str(output/f'overview-collapsed-{width}.png'),full_page=True)
+                    check_presentation(page,output,width,height);exercise(page,output,width,height);check_native_gallery(page,output,width,height);check_catalog_search(page)
                     results.append({'viewport':f'{width}x{height}','nine_samples':'PASS','wheel':'PASS','single_demo':'PASS','stable_layout':'PASS','keyboard':'PASS','native_gallery_click_keys_focus_wrap':'PASS','themes':'PASS','local_catalog_search':'PASS','reviewed_direct_download':'PASS','overflow':'NONE'})
                     page.close()
                 page=browser.new_page(viewport={'width':1440,'height':1000})
@@ -316,6 +337,10 @@ def run(output:Path,engine:str,url:str|None,executable:str|None=None):
                 page.locator('#next-step').click();page.locator('#next-step').click()
                 assert page.locator('#floating-wheel').is_visible()
                 results.append({'reduced_motion_manual_controls':'PASS'});page.close()
+                page=browser.new_page();page.goto(url.split('#')[0]+'#formats',wait_until='networkidle')
+                assert page.locator('#format-details').evaluate('e=>e.open')
+                assert page.locator('#format-search').is_visible()
+                results.append({'catalog_direct_link_opens_directory':'PASS'});page.close()
                 page=browser.new_page(java_script_enabled=False);page.goto(url,wait_until='networkidle')
                 assert page.locator('h1').is_visible();assert page.locator('.hero-copy .button').is_visible()
                 check_gallery_without_javascript(page)
