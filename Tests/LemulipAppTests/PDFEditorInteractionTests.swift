@@ -375,6 +375,7 @@ final class PDFEditorInteractionTests: XCTestCase {
 
     @MainActor
     private func enter(_ value: String, in field: PositionControl, window: NSWindow) async throws {
+        let initialValue = field.value
         guard field.host.window === window, NSApp.keyWindow === window, window.isKeyWindow,
               field.isEligible else {
             throw InteractionFailure("Refusing to focus a control outside the synthetic key window")
@@ -394,7 +395,11 @@ final class PDFEditorInteractionTests: XCTestCase {
         for character in value {
             try await press(String(character), code: try XCTUnwrap(keyCodes[character]), in: window)
         }
-        try await waitFor("Native key events must update the text editor") { textEditor.string == value }
+        do {
+            try await waitFor("Native key events must update the text editor") { textEditor.string == value }
+        } catch {
+            throw InteractionFailure("Native key events must update the text editor: expected \(value.debugDescription), initial \(initialValue.debugDescription), actual \(textEditor.string.debugDescription), native value \(field.native.stringValue.debugDescription), target field focused \(field.isFocused), own window key \(NSApp.keyWindow === window && window.isKeyWindow)")
+        }
     }
 
     @MainActor

@@ -55,9 +55,11 @@ struct PDFPositionField: View {
             }
             .onChange(of: draft) { _ in isInvalid = false }
             .onChange(of: focus.wrappedValue) { value in
-                draft = String(position)
                 isInvalid = false
+                // Unfocused updates already keep the displayed number current.
+                // A deferred focus notification must not erase the first typed digit.
                 if value == .position(item) { beginEditing() }
+                else { draft = String(position) }
             }
             .onSubmit {
                 guard let value = Int(draft.trimmingCharacters(in: .whitespacesAndNewlines)),
