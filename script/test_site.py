@@ -53,7 +53,7 @@ class SiteTests(unittest.TestCase):
         page=(ROOT/'site/index.html').read_text()
         expected=f'https://github.com/osmankaankars/lemulip/releases/download/v{PUBLISHED_VERSION}/Lemulip-{PUBLISHED_VERSION}-macOS-universal.dmg'
         self.assertEqual(3,page.count('href="'+expected+'"'))
-        self.assertIn('Release notes',page)
+        self.assertIn('Preview release notes',page)
         self.assertIn('Apple silicon &amp; Intel · v'+PUBLISHED_VERSION,page)
         self.assertNotIn('v0.1.17',page)
         self.assertIn('data-step=',page)
@@ -84,7 +84,7 @@ class SiteTests(unittest.TestCase):
 
     def test_product_preview_is_compact_and_not_a_site_snapshot(self):
         page=(ROOT/'README.md').read_text()
-        self.assertIn('width="720"',page)
+        self.assertIn('width="510"',page)
         self.assertIn('site/assets/app-workspace.webp',page)
         self.assertIn('Native macOS app',page)
         self.assertNotIn('Illustrated product preview',page)
@@ -129,8 +129,8 @@ class SiteTests(unittest.TestCase):
             self.assertNotRegex(p.read_text(),r'(?i)developer id|notariz|ad hoc sign',str(p))
     def test_motion_and_stale_assets_are_explicit(self):
         page=(ROOT/'site/index.html').read_text(); js=(ROOT/'site/product.js').read_text()
-        self.assertIn('data-site-version="20261029.3"',page)
-        self.assertIn('product.js?v=20261029.3',page)
+        self.assertIn('data-site-version="20261029.4"',page)
+        self.assertIn('product.js?v=20261029.4',page)
         for event in ('visibilitychange','prefers-reduced-motion','pointercancel'):self.assertIn(event,js)
         self.assertIn('Interactive example. Nothing is uploaded.',page)
         self.assertNotRegex(js,r'\b(FileReader|XMLHttpRequest)\s*\(')

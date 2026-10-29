@@ -411,6 +411,7 @@ html {scroll-behavior:auto}
 
 /* Refined hierarchy: one interaction, one active file, no moving targets. */
 .release-link {display:inline-block;margin-top:10px;font-size:12px;color:var(--muted)}
+.release-links {display:flex;flex-wrap:wrap;gap:0 18px}
 .hero {padding-top:46px;padding-bottom:44px}
 .desktop {box-shadow:0 14px 40px #0002}
 .desktop-file {transition:background-color .16s ease,border-color .16s ease,opacity .16s ease}

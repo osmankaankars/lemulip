@@ -25,7 +25,7 @@ Keep the existing icon, orchard/pistachio/lemonade themes, the interactive wheel
 | 4 | M1: Marketing readiness | Current native visuals, accurate feature story, verified download and first-run guidance | Every public claim and asset maps to a released feature and recorded source |
 | Last | V1: Promotional film | Plan and record the final product experience after the preceding work ships | Real released workflows, a reviewed storyboard and accurate output examples |
 
-W1/W2 are live through PR #19. P1/P2 are prepared in PR #20 and have passed real PDF export tests on both native architectures; the actual editor interaction review remains separate. B1 is under full native packaging verification in PR #21. A1 implementation has started with a default-off preference. Website presentation can be reviewed while native packages build, but it must not advertise those app changes as released. The promotional film remains last.
+W1/W2 are live through PR #19. W4 is live through PR #22; Chromium and WebKit checks passed before and after deployment. P1/P2 are prepared in PR #20 and have passed real PDF export tests on both native architectures; the actual editor interaction review remains separate. B1 is merged through PR #21 after both native hosts verified the same measured universal candidate. The smaller package has not yet been released. A1 in PR #23 passes its 11 automated sound tests on both architectures; listening and the complete native settings review remain pending. Q1 has focused cancellation-continuity and native-feedback changes in PRs #25 and #26. B2's two-architecture experiment has passed in PR #24; production adoption is being prepared. M1's first-use guide and product story are prepared in [Marketing](MARKETING.md), with final assets waiting for the released native changes. Website presentation can improve while native packages build, but it must not advertise those app changes as released. The promotional film remains last.
 
 ## W1 — Give Real Screenshots an Appropriate Scale
 
@@ -94,9 +94,17 @@ The audit used the public **0.1.19 universal ZIP**. Sizes below use decimal MB a
 
 The website media are not inside the app. Removing screenshots from the website would not reduce the installed application.
 
-**Measured candidate.** Four raw Git-export TAR archives (ImageMagick, AOM, libvpx, x264) total **123,371,520 bytes**. XZ preset 6 produced **20,267,932 bytes**. Decompressing each result reproduced its original SHA-256 exactly.
+**Measured source payload.** Four raw Git-export TAR archives (ImageMagick, AOM, libvpx, x264) total **123,371,520 bytes**. XZ preset 6 produced **20,267,932 bytes**. Decompressing each result reproduced its original SHA-256 exactly.
 
-That is **103,103,588 bytes** of potential installed-file savings: approximately **29.5%** of this app's logical size, from 349.100 MB to about 245.997 MB. The existing ZIP already compresses the TARs, so the expected download improvement is much smaller: approximately **7.707 MB / 5.0%**, to about 145.534 MB. These are candidate estimates until a new package is built. The new DMG size has not been measured.
+**Built universal candidate.** [Build run 40872540142](https://github.com/osmankaankars/lemulip/actions/runs/40872540142) produced the actual app, ZIP and DMG from source-compression head `c5ccf51cdfb35da2dce831ffb5bb47968777d4fa`. Archive hashes, CRCs, 65 installed receipt hashes, all 18 matching source/license components and the compressed source round trips were checked.
+
+| Item | Public 0.1.19 | Built B1 candidate | Reduction |
+| --- | ---: | ---: | ---: |
+| Logical files inside the app | 349,100,211 B | 245,999,805 B | 103,100,406 B / 29.53% |
+| App ZIP | 153,240,283 B | 145,534,426 B | 7,705,857 B / 5.03% |
+| DMG | 164,820,266 B | 151,979,361 B | 12,840,905 B / 7.79% |
+
+The smaller download improvement is expected because the old ZIP already compresses the raw TAR files. These are measured candidate sizes, **not a new public download**. Both final native checks passed against the exact same universal archives before PR #21 was merged. Rebuilt executable files need not have identical bytes; the audit establishes matching source, recipes and licenses, then relies on the native package checks for behavior.
 
 **Decision.** Compress only raw Git-export TARs in the shared source-fetch helper, before manifests are generated. Keep all matching source, notices, patches and build instructions. Preserve upstream archive downloads and pinned source revisions. Existing extraction supports standard compressed TARs. Do not remove codecs, runtime helpers, architectures, or sources in this slice.
 
@@ -113,6 +121,25 @@ Add one setting, **Selection sounds**, default **off**, with an explicit preview
 **Sound direction.** A restrained, original tick with a rounded attack and a short tail, approximately 40–80 ms as a starting audition range. No bright notification bell, game reward chime, or long flourish. Choose the final timbre by listening on Mac speakers and headphones, not by treating a duration or waveform as proof of quality.
 
 **Acceptance.** Exactly one cue for an eligible choice; none when disabled, canceled, unavailable, or repeatedly receiving the same event. Rapid choices cannot create an overlapping wall of sound. The setting and preview are keyboard-accessible and clearly labeled in English and Turkish. Test persistence, rapid inputs, active media playback, system volume/mute and VoiceOver. Start with this one cue; completion and error sounds are separate decisions after listening to the first.
+
+## Q1 — Finish Native Interactions Together
+
+[PR #25](https://github.com/osmankaankars/lemulip/pull/25) fixes a concrete interruption: canceling the destination chooser previously cleared the pending edit and closed several editor sessions. The change retains the arrangement, crop or trim until an output destination is accepted, and rejects duplicate or stale submission.
+
+[PR #26](https://github.com/osmankaankars/lemulip/pull/26) adds brief native panel entry (90 ms for the wheel, 140 ms for the result card), immediate input eligibility and dismissal, live reduced-motion/transparency handling, and explicit localized option-control names and values. Its [editor review matrix](https://github.com/osmankaankars/lemulip/blob/758e07a4d056d1485ba6354b9079b7d2631b6001/docs/EDITOR_REVIEW.md) tracks scenarios and the distinction between rendered views, model tests and actual input delivery.
+
+## B2 — Measure and Retain Matching Symbols
+
+[The two-architecture experiment](https://github.com/osmankaankars/lemulip/actions/runs/40879083064) at `43d441911b311b29960aa7f01738a88e3b59b16a` measured copies of the GUI and CLI using the same signing treatment for the baseline and variants. Removing debug and local symbol entries (`strip -S -x`) preserved UUIDs, runtime section bytes, dependencies, imports, exports and dynamic-loader payloads. Matching dSYMs were produced and verified before stripping.
+
+| Architecture | Product | Signed baseline | Signed stripped copy |
+| --- | --- | ---: | ---: |
+| Apple silicon | GUI | 7,400,192 B | 2,954,736 B |
+| Apple silicon | CLI | 1,867,440 B | 1,244,672 B |
+| Intel | GUI | 7,598,336 B | 3,149,840 B |
+| Intel | CLI | 1,961,104 B | 1,335,856 B |
+
+The experiment changes no production package and measures no ZIP or DMG. The next slice stages only GUI/CLI copies, retains matching symbols and commit/UUID/hash records outside the shipped app, and keeps original build products intact. Debug builds and bundled engines remain outside this change. Final download sizes and functional results must come from the normal universal packaging and both native archive checks.
 
 ## Research and What We Take From It
 

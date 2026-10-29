@@ -49,6 +49,18 @@ download came from this repository before opening it.
 
 Apple's [guide to safely opening apps](https://support.apple.com/en-us/102445) explains first-launch controls. Lemulip does not disable Gatekeeper, remove quarantine attributes, or change system security settings.
 
+### Try Your First Conversion
+
+1. Open Lemulip, then choose **Help → Try With A Sample**. Finder opens with a practice PNG selected.
+2. Start dragging that file in Finder. While holding the file, tap **⇧ Shift** once to open the format wheel. You can release the key while continuing to drag.
+3. Drop the file onto **JPG**. Lemulip creates a new copy beside the sample; the PNG stays unchanged.
+
+You can also drag a local image into **Workspace**, choose **Convert**, and select
+**JPG**. **Activity** shows the completed job and its output. Image conversion is
+included in the Mac download and needs no optional engine installation.
+
+For the other wheel modes, tap **⌘ Command** for tools or **⌃ Control** for file
+actions. See [the user guide](USER_GUIDE.md) for crop, trim and PDF workflows.
 
 ## Conversion Engines
 
@@ -56,11 +68,11 @@ From 0.1.17, Mac downloads include **FFmpeg** and **ImageMagick**. Media and ima
 conversions need no Homebrew installation. The source-only build can also use
 locally installed engines.
 
-**Pandoc:** Open **Settings → Local Engines → Install**. The app asks for approval,
+**Pandoc:** Open **Settings → Format Support → Advanced Documents → Install**. The app asks for approval,
 downloads the official package and verifies its checksum before installation.
 
 **LibreOffice:** Install the [Mac application](https://www.libreoffice.org/download/download-libreoffice/)
-for richer Office conversions, then click **Refresh** in Local Engines.
+for richer Office conversions, then click **Refresh** in Format Support.
 
 Optional installation needs internet access. File conversions stay on your Mac.
 The ZIP's CLI finds the bundled engines while it remains beside **Lemulip.app**.

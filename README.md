@@ -2,7 +2,7 @@
 
 # Lemulip
 
-**Less File Work. More Flow.**
+**File tools, right where you drag.**
 
 Free, open-source file tools for macOS. Drag a local file on your desktop or in Finder, tap a key, and choose an operation. Processing stays on your Mac.
 
@@ -10,15 +10,15 @@ Free, open-source file tools for macOS. Drag a local file on your desktop or in 
 
 Includes built-in and optional local engines.
 
-[Download For Mac](https://github.com/osmankaankars/lemulip/releases) · [Website](https://osmankaankars.github.io/lemulip/)
+[Download for Mac](https://github.com/osmankaankars/lemulip/releases) · [Website](https://osmankaankars.github.io/lemulip/)
 
-<p><img src="site/assets/app-workspace.webp" width="720" alt="Native macOS app: Lemulip Workspace"></p>
+<p><img src="site/assets/app-workspace.webp" width="510" alt="Native macOS app: Lemulip Workspace"></p>
 
 ## Install
 
 **macOS 13+ · Apple Silicon & Intel · Public Preview**
 
-Open the release DMG and drag Lemulip into Applications. The app ZIP also includes the command-line tool. [Installation and optional engines](docs/INSTALL.md).
+Open the release DMG and drag Lemulip into Applications. The app ZIP also includes the command-line tool. [Installation and optional engines](docs/INSTALL.md) · [Try your first conversion](docs/INSTALL.md#try-your-first-conversion).
 
 ## File Tools
 
