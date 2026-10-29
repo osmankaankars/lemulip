@@ -12,6 +12,7 @@ import hashlib
 import json
 from pathlib import Path
 import platform
+import re
 import shutil
 import struct
 import subprocess
@@ -160,26 +161,44 @@ def signature(path):
             'diagnostic': (result.stdout + result.stderr).strip()[-1000:]}
 
 
+def retain_dsym(source: Path, dsym: Path, original: dict) -> dict:
+    """Keep complete matching debug information before stripping a copy."""
+    if dsym.exists():
+        raise ValueError('Debug-symbol output already exists')
+    dsym.parent.mkdir(parents=True, exist_ok=True)
+    dsym_result = command(['/usr/bin/xcrun', '--sdk', 'macosx', 'dsymutil', source, '-o', dsym])
+    diagnostic = (dsym_result.stdout + dsym_result.stderr).strip()
+    # A missing object can produce a matching but incomplete dSYM with exit 0.
+    if re.search(r'\b(?:warning|error):', diagnostic, re.IGNORECASE):
+        raise ValueError('Debug-symbol generation reported a diagnostic: ' + diagnostic[-2000:])
+    dwarf_files = list((dsym / 'Contents/Resources/DWARF').iterdir())
+    if len(dwarf_files) != 1:
+        raise ValueError('Expected one native DWARF file')
+    dwarf = inspect_macho(dwarf_files[0].read_bytes())
+    if (dwarf['uuid'] != original['uuid'] or dwarf['architecture'] != original['architecture']
+            or dwarf['fileType'] != 0xA or dwarf['debugSectionBytes'] == 0):
+        raise ValueError('Missing DWARF content or mismatched dSYM')
+    command(['/usr/bin/xcrun', '--sdk', 'macosx', 'dwarfdump', '--verify', dsym])
+    files = {}
+    for path in sorted(dsym.rglob('*')):
+        if path.is_symlink():
+            raise ValueError('Unexpected symlink in debug-symbol output')
+        if path.is_file():
+            files[path.relative_to(dsym).as_posix()] = digest(path.read_bytes())
+    return {'dSYMUUID': dwarf['uuid'], 'dSYMDWARFBytes': dwarf['debugSectionBytes'],
+            'dSYMDiagnostic': diagnostic[-2000:], 'dSYMFiles': files}
+
+
 def measure_binary(source: Path, label: str, output: Path, architecture: str) -> dict:
     original_bytes = source.read_bytes()
     original = inspect_macho(original_bytes)
     if original['architecture'] != architecture or original['fileType'] != 2:
         raise ValueError('Expected a native MH_EXECUTE for ' + architecture)
     dsym = output / 'dSYMs' / (label + '.dSYM')
-    dsym.parent.mkdir(exist_ok=True)
-    dsym_result = command(['/usr/bin/xcrun', '--sdk', 'macosx', 'dsymutil', source, '-o', dsym])
-    dwarf_files = list((dsym / 'Contents/Resources/DWARF').iterdir())
-    if len(dwarf_files) != 1:
-        raise ValueError('Expected one native DWARF file')
-    dwarf = inspect_macho(dwarf_files[0].read_bytes())
-    if (dwarf['uuid'] != original['uuid'] or dwarf['architecture'] != architecture
-            or dwarf['fileType'] != 0xA or dwarf['debugSectionBytes'] == 0):
-        raise ValueError('Missing DWARF content or mismatched dSYM')
-    command(['/usr/bin/xcrun', '--sdk', 'macosx', 'dwarfdump', '--verify', dsym])
+    debug = retain_dsym(source, dsym, original)
     report = {'product': label, 'originalSHA256': digest(original_bytes), 'original': original,
               'originalSignature': signature(source), 'dSYM': str(dsym.relative_to(output)),
-              'dSYMUUID': dwarf['uuid'], 'dSYMDWARFBytes': dwarf['debugSectionBytes'],
-              'dSYMDiagnostic': (dsym_result.stdout + dsym_result.stderr).strip()[-2000:], 'variants': {}}
+              **debug, 'variants': {}}
     with tempfile.TemporaryDirectory(prefix='symbol-measure-') as temporary:
         for variant, flags in VARIANTS.items():
             target = Path(temporary) / variant / source.name

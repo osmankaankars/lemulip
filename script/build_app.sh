@@ -35,6 +35,23 @@ STAGING="$(mktemp -d "$ROOT_DIR/.build/LemulipBundle.XXXXXX")"
 trap 'rm -rf "$STAGING"' EXIT
 CONTENTS="$STAGING/$APP_NAME.app/Contents"
 mkdir -p "$CONTENTS/MacOS" "$CONTENTS/Resources" "$ROOT_DIR/dist"
+if [[ "$CONFIGURATION" == release ]]; then
+  # Keep original build products and their objects intact for matching dSYMs.
+  # Only fresh thin copies are stripped; engine packs use their existing path.
+  SYMBOLS="$STAGING/debug-symbols"
+  if [[ "$UNIVERSAL" == true ]]; then
+    python3 script/prepare_binary_symbols.py prepare \
+      --build "arm64=$ARM_BIN" --build "x86_64=$INTEL_BIN" \
+      --staging "$STAGING/stripped" --symbols "$SYMBOLS"
+    ARM_BIN="$STAGING/stripped/arm64"
+    INTEL_BIN="$STAGING/stripped/x86_64"
+  else
+    NATIVE_ARCH="$(uname -m)"
+    python3 script/prepare_binary_symbols.py prepare --build "$NATIVE_ARCH=$NATIVE_BIN" \
+      --staging "$STAGING/stripped" --symbols "$SYMBOLS"
+    NATIVE_BIN="$STAGING/stripped/$NATIVE_ARCH"
+  fi
+fi
 if [[ "$UNIVERSAL" == true ]]; then
   lipo -create "$ARM_BIN/$GUI_PRODUCT" "$INTEL_BIN/$GUI_PRODUCT" -output "$CONTENTS/MacOS/$APP_NAME"
   lipo -create "$ARM_BIN/lemulip" "$INTEL_BIN/lemulip" -output "$STAGING/lemulip"
@@ -68,6 +85,16 @@ codesign --verify --all-architectures --strict --verbose=2 "$STAGING/lemulip"
 if [[ "$UNIVERSAL" == true ]]; then
   /usr/bin/lipo "$CONTENTS/MacOS/$APP_NAME" -verify_arch arm64 x86_64
   /usr/bin/lipo "$STAGING/lemulip" -verify_arch arm64 x86_64
+fi
+if [[ "$CONFIGURATION" == release ]]; then
+  python3 script/prepare_binary_symbols.py verify --symbols "$SYMBOLS" \
+    --gui "$CONTENTS/MacOS/$APP_NAME" --cli "$STAGING/lemulip"
+  # Retained debug artifacts are never copied into the app, ZIP, or DMG.
+  if [[ -e "$ROOT_DIR/dist/Lemulip-Debug-Symbols" ]]; then
+    SYMBOL_BACKUP="$(mktemp -d "$ROOT_DIR/.build/LemulipPreviousSymbols.XXXXXX")"
+    mv "$ROOT_DIR/dist/Lemulip-Debug-Symbols" "$SYMBOL_BACKUP/"
+  fi
+  mv "$SYMBOLS" "$ROOT_DIR/dist/Lemulip-Debug-Symbols"
 fi
 if [[ -e "$APP_BUNDLE" ]]; then
   BACKUP="$(mktemp -d "$ROOT_DIR/.build/LemulipPrevious.XXXXXX")"
