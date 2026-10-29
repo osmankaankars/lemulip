@@ -157,7 +157,7 @@ final class PDFEditorInteractionTests: XCTestCase {
     @MainActor
     private func positionFields(in view: NSView) -> [NSTextField] {
         var result: [NSTextField] = []
-        if let field = view as? NSTextField, field.accessibilityIdentifier()?.hasPrefix("pdf.position.") == true {
+        if let field = view as? NSTextField, field.accessibilityIdentifier().hasPrefix("pdf.position.") {
             result.append(field)
         }
         for child in view.subviews { result.append(contentsOf: positionFields(in: child)) }
