@@ -6,9 +6,23 @@ import LemulipCore
 @testable import Lemulip
 
 final class OperationOptionsAccessibilityTests: XCTestCase {
+    private var dispatchedLifecycleEvents = 0
+
     @MainActor
     func testProductionOptionsExposeLocalizedControlNamesAndValues() async throws {
-        _ = NSApplication.shared
+        let application = NSApplication.shared
+        let policy = application.activationPolicy()
+        XCTAssertTrue(application.setActivationPolicy(.regular))
+        defer { _ = application.setActivationPolicy(policy) }
+        if !NSRunningApplication.current.isFinishedLaunching {
+            guard application.delegate == nil else {
+                throw OptionsReviewFailure("The review host must not launch a production application delegate")
+            }
+            guard UserDefaults.standard.object(forKey: "NSOpen") == nil else {
+                throw OptionsReviewFailure("The synthetic review host requires no NSOpen launch files")
+            }
+            application.finishLaunching()
+        }
         let savedLanguage = UserDefaults.standard.object(forKey: "language")
         defer {
             if let savedLanguage { UserDefaults.standard.set(savedLanguage, forKey: "language") }
@@ -35,10 +49,14 @@ final class OperationOptionsAccessibilityTests: XCTestCase {
                 let host = NSHostingView(rootView: OperationOptionsView(model: model,
                     operation: FileOperation(id: operation, title: operation)))
                 window.contentView = host
-                window.orderFrontRegardless()
+                dispatchedLifecycleEvents = 0
+                application.activate(ignoringOtherApps: true)
+                window.makeKeyAndOrderFront(nil)
                 do {
+                    try await waitForKeyWindow(window)
                     let deadline = Date().addingTimeInterval(5)
                     while find(role: role, label: label, in: host) == nil, Date() < deadline {
+                        try serviceLifecycleEvents(for: window)
                         host.layoutSubtreeIfNeeded()
                         try await Task.sleep(nanoseconds: 20_000_000)
                     }
@@ -79,6 +97,35 @@ final class OperationOptionsAccessibilityTests: XCTestCase {
     }
 
     @MainActor
+    private func waitForKeyWindow(_ window: NSWindow) async throws {
+        let deadline = Date().addingTimeInterval(5)
+        while !(window.isVisible && window.isKeyWindow && NSApp.keyWindow === window), Date() < deadline {
+            try serviceLifecycleEvents(for: window)
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        guard window.isVisible && window.isKeyWindow && NSApp.keyWindow === window else {
+            throw OptionsReviewFailure("The synthetic options window must become the actual key window")
+        }
+    }
+
+    @MainActor
+    private func serviceLifecycleEvents(for window: NSWindow) throws {
+        // XCTest has no normal NSApplication event loop. Dispatch only this
+        // process's lifecycle events for the constructed review window.
+        let mask: NSEvent.EventTypeMask = [.appKitDefined, .applicationDefined]
+        for _ in 0..<32 {
+            guard let event = NSApp.nextEvent(matching: mask, until: .distantPast,
+                                             inMode: .default, dequeue: true) else { break }
+            guard event.window == nil || event.window === window else {
+                throw OptionsReviewFailure("Refusing to dispatch a lifecycle event for a different window")
+            }
+            NSApp.sendEvent(event)
+            dispatchedLifecycleEvents += 1
+        }
+        NSApp.updateWindows()
+    }
+
+    @MainActor
     private func captureFailure(in view: NSView, window: NSWindow, language: String, operation: String) throws {
         guard let path = ProcessInfo.processInfo.environment["LEMULIP_EDITOR_REVIEW_DIR"], !path.isEmpty else { return }
         let directory = URL(fileURLWithPath: path, isDirectory: true)
@@ -92,7 +139,10 @@ final class OperationOptionsAccessibilityTests: XCTestCase {
             "traversalTruncated": traversal.truncated, "remainingQueuedNodes": traversal.remainingQueued, "inputEventsSent": false,
             "applicationIsActive": NSApp.isActive,
             "processFinishedLaunching": NSRunningApplication.current.isFinishedLaunching,
+            "applicationDelegateIsNil": NSApp.delegate == nil,
             "windowIsVisible": window.isVisible, "windowIsKey": window.isKeyWindow,
+            "windowNumber": window.windowNumber, "keyWindowNumber": NSApp.keyWindow?.windowNumber ?? -1,
+            "dispatchedLifecycleEvents": dispatchedLifecycleEvents,
             "capture": "Read-only accessibility diagnostics and unresized production options view",
             "logicalWidth": Double(view.bounds.width), "logicalHeight": Double(view.bounds.height),
             "windowBackingScale": Double(window.backingScaleFactor)
@@ -107,4 +157,6 @@ final class OperationOptionsAccessibilityTests: XCTestCase {
             .write(to: directory.appendingPathComponent(name + ".png"), options: .withoutOverwriting)
     }
 }
+
+private struct OptionsReviewFailure: Error { let message: String; init(_ message: String) { self.message = message } }
 #endif
