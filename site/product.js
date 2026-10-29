@@ -15,15 +15,15 @@
   const stem = name => name.replace(/\.[^.]+$/, '');
   const announce = text => { $('announcer').textContent = text; };
   const nativeNotes = {
-    images:[['Built In','PNG, JPG, HEIC, TIFF, BMP And PDF.'],['Included','ImageMagick For WebP And AVIF.']],
-    pdf:[['Built In','PDF Tools And Offline OCR.'],['Text','Selectable Text Or OCR Required.']],
-    audio:[['Built In','M4A, WAV And AIFF Where Codecs Allow.'],['Included','FFmpeg For Other Targets.']],
-    video:[['Built In','MP4, MOV And M4A Where Codecs Allow.'],['Included','FFmpeg For Other Targets.']],
-    documents:[['Built In','Basic Markdown, TXT And Basic RTF To DOCX.'],['Optional','LibreOffice Or Pandoc For Richer Documents.']],
-    spreadsheets:[['Built In','CSV / TSV To XLSX. CSV And TSV Interchange.'],['Optional','LibreOffice For Other Workbook Routes.']],
-    presentations:[['Optional','LibreOffice For Presentation Conversions.']],
-    subtitles:[['Built In','SRT And VTT Interchange. Plain Text Export.']],
-    archives:[['Create','ZIP, TAR And GZIP.'],['Extract','Supported Archives Into A New Folder.']]
+    images:[['Built in','PNG, JPG, HEIC, TIFF, BMP and PDF.'],['Included','ImageMagick for WebP and AVIF.']],
+    pdf:[['Built in','PDF tools and offline OCR.'],['Text','Selectable text or OCR required.']],
+    audio:[['Built in','M4A, WAV and AIFF where codecs allow.'],['Included','FFmpeg for other targets.']],
+    video:[['Built in','MP4, MOV and M4A where codecs allow.'],['Included','FFmpeg for other targets.']],
+    documents:[['Built in','Basic Markdown, TXT and basic RTF to DOCX.'],['Optional','LibreOffice or Pandoc for richer documents.']],
+    spreadsheets:[['Built in','CSV / TSV to XLSX. CSV and TSV interchange.'],['Optional','LibreOffice for other workbook routes.']],
+    presentations:[['Optional','LibreOffice for presentation conversions.']],
+    subtitles:[['Built in','SRT and VTT interchange. Plain text export.']],
+    archives:[['Create','ZIP, TAR and GZIP.'],['Extract','Supported archives into a new folder.']]
   };
   const renderNotes = notes => notes.map(([label,text]) => '<div class="engine-note"><strong>'+esc(label)+'</strong>'+text.split(/\. (?=[A-Z])/).map(part=>'<p>'+esc(part.endsWith('.')?part:part+'.')+'</p>').join('')+'</div>').join('');
   const engineFor = ext => {
@@ -47,8 +47,8 @@
   document.addEventListener('lemulip:watch-native', () => { stopTour(); setStep(0); });
   function updatePlay() {
     $('tour-toggle').textContent = autoplay ? 'Ⅱ' : '▶';
-    $('tour-toggle').setAttribute('aria-label', autoplay ? 'Pause Tour' : 'Play Tour');
-    $('tour-toggle').title = autoplay ? 'Pause Tour' : 'Play Tour';
+    $('tour-toggle').setAttribute('aria-label', autoplay ? 'Pause tour' : 'Play tour');
+    $('tour-toggle').title = autoplay ? 'Pause tour' : 'Play tour';
     $('tour-toggle').setAttribute('aria-pressed', String(autoplay));
     desktop.dataset.autoplay = String(autoplay);
   }
@@ -66,7 +66,7 @@
     sampleFiles.forEach((button,i) => {
       button.setAttribute('aria-pressed',String(i===sampleIndex));
       button.classList.remove('picked');
-      button.setAttribute('aria-label','Pick Up '+data.samples[i].name);
+      button.setAttribute('aria-label','Pick up '+data.samples[i].name);
     });
     mode = 'convert'; wheelPage = 0; selected = 0;
     updateModes(); setStep(0);
@@ -74,8 +74,8 @@
   function updateModes() {
     document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed',String(b.dataset.mode === mode)));
   }
-  const captions = ['Drag A File, Or Click It To Begin.','Tap Shift For Formats.','Drop Onto A Segment, Or Click An Operation.','A New Sample Copy, Beside The Original.'];
-  const hints = ['Pick Up A File', 'Tap Shift', 'Choose An Operation', 'New Copy Created'];
+  const captions = ['Drag a file, or click it to begin.','Tap Shift for formats.','Drop onto a segment, or click an operation.','A new sample copy, beside the original.'];
+  const hints = ['Pick up a file', 'Tap Shift', 'Choose an operation', 'New copy created'];
   function setStep(value) {
     step = value; desktop.dataset.step = String(step);
     $('demo-hint').textContent = hints[step];
@@ -88,8 +88,8 @@
     if(step<2){const d=desktop.getBoundingClientRect(),f=source.getBoundingClientRect();cursor.style.left=(f.left-d.left+f.width*.7)+'px';cursor.style.top=(f.top-d.top+f.height*.75)+'px';}
     else {cursor.style.left='57%';cursor.style.top='42%';}
     $('next-step').textContent = step === 3 ? '↻' : '→';
-    $('next-step').setAttribute('aria-label',step === 3 ? 'Replay Example' : 'Next Step');
-    $('next-step').title = step === 3 ? 'Replay Example' : 'Next Step';
+    $('next-step').setAttribute('aria-label',step === 3 ? 'Replay example' : 'Next step');
+    $('next-step').title = step === 3 ? 'Replay example' : 'Next step';
     if (step === 2) drawWheel();
     if (step === 3) showResult(operations()[selected] || operations()[0]);
   }
@@ -108,7 +108,8 @@
       const ns='http://www.w3.org/2000/svg', g=document.createElementNS(ns,'g');
       const global=wheelPage*8+i, p=document.createElementNS(ns,'path'), t=document.createElementNS(ns,'text');
       g.setAttribute('class','wheel-choice'+(global === selected?' selected':''));g.dataset.index=String(global);
-      g.setAttribute('role','button');g.setAttribute('tabindex','0');
+      g.setAttribute('role','button');g.setAttribute('tabindex',global === selected ? '0' : '-1');
+      g.setAttribute('aria-pressed',String(global === selected));
       g.setAttribute('aria-label',op.title+(op.engine?' · requires '+op.engine:''));
       p.setAttribute('d',sector(i,items.length));g.append(p);
       const position=point(132,2*Math.PI*i/items.length);
@@ -131,8 +132,16 @@
     $('output-name').textContent=name;$('output-detail').textContent=detail;
     $('demo-instruction').textContent=op.extension?'Example: '+name+' · original kept.':'Example: '+op.title+'.';
   }
-  function choose(index) {stopTour();selected=index;setStep(3);announce($('demo-instruction').textContent);}
-  function chooseMode(value) {stopTour();mode=value;wheelPage=0;selected=0;updateModes();setStep(2);}
+  function choose(index) {
+    const focusWasInWheel=svg.contains(document.activeElement);
+    stopTour();selected=index;setStep(3);announce($('demo-instruction').textContent);
+    if(focusWasInWheel)source.focus({preventScroll:true});
+  }
+  function chooseMode(value) {
+    const focusWasInWheel=svg.contains(document.activeElement);
+    stopTour();mode=value;wheelPage=0;selected=0;updateModes();setStep(2);
+    if(focusWasInWheel)svg.querySelector('[tabindex="0"]').focus({preventScroll:true});
+  }
   grid.addEventListener('click',e=>{
     const file=e.target.closest('[data-sample]');if(!file)return;
     if(suppressClick){suppressClick=false;return;}
@@ -150,11 +159,18 @@
     for(const x of ['desktop','finder']) $('origin-'+x).setAttribute('aria-pressed',String(x===origin));
     setStep(0);
   });
+  desktop.addEventListener('focusin',stopTour);
   desktop.addEventListener('keydown',e=>{
     if(e.target.closest('select,input,textarea'))return;
     if(['Shift','Meta','Control'].includes(e.key)){e.preventDefault();chooseMode({Shift:'convert',Meta:'tools',Control:'actions'}[e.key]);}
-    else if(e.key==='Escape'){e.preventDefault();stopTour();setStep(0);}
-    else if(step===2 && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();const all=operations();selected=(selected+(['ArrowLeft','ArrowUp'].includes(e.key)?-1:1)+all.length)%all.length;wheelPage=Math.floor(selected/8);drawWheel();}
+    else if(e.key==='Escape'){e.preventDefault();stopTour();setStep(0);source.focus({preventScroll:true});}
+    else if(step===2 && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){
+      e.preventDefault();stopTour();
+      const focusWasInWheel=Boolean(e.target.closest('.wheel-choice'));
+      const all=operations();selected=(selected+(['ArrowLeft','ArrowUp'].includes(e.key)?-1:1)+all.length)%all.length;
+      wheelPage=Math.floor(selected/8);drawWheel();
+      if(focusWasInWheel)svg.querySelector('[tabindex="0"]').focus({preventScroll:true});
+    }
     else if(e.key==='Enter' && e.target===desktop){e.preventDefault();if(step===2)choose(selected);else{stopTour();setStep(1);}}
   });
   grid.addEventListener('pointerdown',e=>{
@@ -183,7 +199,7 @@
     pointer=null;
   }
   grid.addEventListener('pointerup',e=>finishDrag(e));grid.addEventListener('pointercancel',e=>finishDrag(e,true));
-  desktop.addEventListener('dragover',e=>e.preventDefault());desktop.addEventListener('drop',e=>{e.preventDefault();announce('Choose One Of The Sample Files. No Files Are Uploaded.');});
+  desktop.addEventListener('dragover',e=>e.preventDefault());desktop.addEventListener('drop',e=>{e.preventDefault();announce('Choose one of the sample files. Nothing is uploaded.');});
   reduced.addEventListener('change',()=>{if(reduced.matches)stopTour();});
   document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(timer);}else schedule();});
   if('IntersectionObserver' in window)new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;schedule();},{threshold:.15}).observe(desktop);
@@ -195,7 +211,7 @@
     const active = query.trim().length > 0;
     const result = window.LemulipCatalogSearch ? window.LemulipCatalogSearch.filter(data,query) : {families:data.samples,tools:data.tools,actions:data.actions};
     $('format-directory').innerHTML=result.families.map(s=>'<div class="format-row" data-family="'+esc(s.id)+'"><h3>'+esc(s.label)+'</h3><p class="format-list">'+(s.formats.length?s.formats.map(x=>esc(x.toUpperCase())).join(' · '):'ZIP · TAR · GZIP · Extract')+'</p><div class="format-engine">'+renderNotes(nativeNotes[s.id])+'</div></div>').join('');
-    $('tool-directory').innerHTML=[['File Tools',result.tools],['File Actions',result.actions]].filter(([,list])=>list.length).map(([title,list])=>'<div><h3>'+title+'</h3><ul>'+list.map(op=>'<li>'+esc((prefixes[op.id.split('.')[0]]+' '+op.title).trim())+'</li>').join('')+'</ul></div>').join('');
+    $('tool-directory').innerHTML=[['File tools',result.tools],['File actions',result.actions]].filter(([,list])=>list.length).map(([title,list])=>'<div><h3>'+title+'</h3><ul>'+list.map(op=>'<li>'+esc((prefixes[op.id.split('.')[0]]+' '+op.title).trim())+'</li>').join('')+'</ul></div>').join('');
     const details=document.querySelector('.tool-directory');
     if(active&&!searching)toolsWereOpen=details.open;
     details.hidden=!result.tools.length&&!result.actions.length;
@@ -204,7 +220,7 @@
     const count=result.families.length;
     const total=result.tools.length+result.actions.length;
     $('format-search-clear').hidden=!active;
-    $('format-search-status').textContent=active ? count||total ? count+' File '+(count===1?'Family':'Families')+' · '+total+' Matching '+(total===1?'Tool':'Tools') : 'No Matches. Try A Format Like WebP Or A Tool Like Trim.' : '';
+    $('format-search-status').textContent=active ? count||total ? count+' file '+(count===1?'family':'families')+' · '+total+' matching '+(total===1?'tool':'tools') : 'No matches. Try a format like WebP or a tool like Trim.' : '';
   }
   renderCatalog();
   // Links to the directory reveal it, including a directly opened #formats URL.

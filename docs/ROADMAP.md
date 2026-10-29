@@ -6,7 +6,7 @@ Updated 29 October 2026. This plan turns the product review into small, verifiab
 
 Lemulip should feel like a precise, lively Mac utility. Its identity is the drag, modifier key, operation wheel, and local result. The website should make that sequence clear, then let people inspect the real app and its capabilities without scrolling through a manual.
 
-Keep the existing icon, orchard/pistachio/lemonade themes, the interactive wheel, the real Finder recording, and the catalog-backed counts. Improve scale, hierarchy, input behavior, and feedback before adding decorative effects or more features.
+Keep the existing icon, orchard/pistachio/lemonade themes, the interactive wheel, the real Finder recording, and the catalog-backed counts. The next pass adds a more fluid, tactile presentation around that identity: natural typography, a deliberate wheel entrance, clear selection feedback and smooth changes between real screens. See [the design direction](DESIGN.md) for the shared decisions and motion budget.
 
 ## Order of Work
 
@@ -20,9 +20,12 @@ Keep the existing icon, orchard/pistachio/lemonade themes, the interactive wheel
 | 2 | A1: Optional selection sound | One subtle cue for a committed operation choice; default off with preview | Native volume/mute, rapid-selection, cancellation, persistence and accessibility review |
 | 3 | W3: Fresh high-density captures | Capture the running app at 2x after editor changes stabilize | Recorded commit, dimensions, hashes and native capture provenance |
 | 3 | Q1: Consistent editor finish | Review spacing, selection, empty/loading/error states, keyboard focus and motion together | A short scenario matrix and actual Mac screenshots, with specific defects resolved |
+| 3 | W4: Fluid product presentation | Sentence-case typography, a distinct wheel entrance, result feedback and manual screen transitions | Both browser engines, keyboard continuity, interruption, reduced motion, five viewport sizes and all themes |
 | Later | B2: Further binary reduction | Measure symbol stripping before touching engine architecture | Real stripped build comparison and native regressions; no estimated savings presented as delivered |
+| 4 | M1: Marketing readiness | Current native visuals, accurate feature story, verified download and first-run guidance | Every public claim and asset maps to a released feature and recorded source |
+| Last | V1: Promotional film | Plan and record the final product experience after the preceding work ships | Real released workflows, a reviewed storyboard and accurate output examples |
 
-The first implementation slice covers W1/W2. PDF and source compression changes are separate review units so the website can ship without claiming an unreleased app feature. Sound follows ordering and size work; it is not silently added to the website or to every existing interaction.
+W1/W2 are live through PR #19. P1/P2 are prepared in PR #20 and have passed real PDF export tests on both native architectures; the actual editor interaction review remains separate. B1 is under full native packaging verification in PR #21. A1 implementation has started with a default-off preference. Website presentation can be reviewed while native packages build, but it must not advertise those app changes as released. The promotional film remains last.
 
 ## W1 — Give Real Screenshots an Appropriate Scale
 
@@ -120,6 +123,9 @@ References were reviewed on 29 October 2026. Official product pages and their im
 - [Screen Studio](https://screen.studio/): separate the result/recording from the editing interface and group detailed controls. Lemulip keeps its existing single demo stage and uses the gallery for actual app screens.
 - [Raycast](https://www.raycast.com/): selected capabilities can lead to a deeper catalog without putting every option in the main narrative.
 - [Hand Mirror](https://handmirror.app/): a small utility can feel specific and personable through an immediately understandable use case rather than a large collection of decorative sections.
+- [Alcove](https://tryalcove.com/): its interactive product introduction makes the characteristic interaction something a visitor can try. Lemulip's wheel gets that focus; its own brand and file workflow remain the source of the design.
+- [NotchNook](https://getnotchnook.com/): real product demonstrations connect a compact native surface with concrete tasks. Use this as a reference for purposeful product framing, not as evidence for any Lemulip feature, customer count or review.
+- [Apple HIG: motion](https://developer.apple.com/design/human-interface-guidelines/motion): feedback should follow input, remain brief and be interruptible. The website uses a bounded wheel entrance and stable manual screen transitions; the native app keeps frequent actions immediate and observes Reduce Motion.
 - [Apple Preview: add, delete or move PDF pages](https://support.apple.com/guide/preview/add-delete-or-move-pdf-pages-prvw11793/mac): dragging thumbnails is a familiar Mac interaction. Numeric placement adds a precise alternative for longer lists.
 - [Apple HIG: playing audio](https://developer.apple.com/design/human-interface-guidelines/playing-audio), [accessibility](https://developer.apple.com/design/human-interface-guidelines/accessibility), and [UI sound property](https://developer.apple.com/documentation/audiotoolbox/kaudioservicespropertyisuisound): sound should work with platform controls and visual feedback. Default-off and the proposed cue character are Lemulip product decisions, not a claim that Apple mandates them.
 

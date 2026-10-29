@@ -22,7 +22,7 @@ def check_presentation(page,output,width,height):
     assert page.locator('.header #appearance').count()==1
     assert page.locator('#appearance').is_visible()
     assert page.locator('.header #appearance').bounding_box()['y']<160
-    assert page.locator('h1').evaluate('e=>getComputedStyle(e).textTransform')=='capitalize'
+    assert page.locator('h1').evaluate('e=>getComputedStyle(e).textTransform')=='none'
     assert page.locator('.file-name').first.evaluate('e=>getComputedStyle(e).textTransform')=='none'
     assert '\u2014' not in page.locator('body').inner_text()
     assert '\u2013' not in page.locator('body').inner_text()
@@ -147,6 +147,45 @@ def check_native_gallery(page, output: Path, width: int, height: int) -> None:
     assert page.locator(".product-demo").count() == 1
 
 
+def check_wheel_keyboard_feedback(page) -> None:
+    """Redrawing a wheel must preserve the focused choice, including wrapping."""
+    page.locator('#origin-desktop').click()
+    page.locator('[data-sample="images"]').click()
+    page.locator('[data-mode="convert"]').click()
+    active = page.locator('.wheel-choice[tabindex="0"]')
+    assert active.count() == 1
+    active.focus()
+    page.keyboard.press('ArrowRight')
+    active = page.locator('.wheel-choice[tabindex="0"]')
+    assert active.get_attribute('data-index') == '1'
+    assert active.get_attribute('aria-pressed') == 'true'
+    assert active.evaluate('e=>e===document.activeElement')
+    assert page.locator('#tour-toggle').get_attribute('aria-pressed') == 'false'
+    # Keyboard mode switches replace the SVG nodes just like arrow movement.
+    page.keyboard.press('Control')
+    assert page.locator('[data-mode="actions"]').get_attribute('aria-pressed') == 'true'
+    assert page.locator('.wheel-choice[tabindex="0"]').evaluate('e=>e===document.activeElement')
+    page.keyboard.press('Shift')
+    assert page.locator('[data-mode="convert"]').get_attribute('aria-pressed') == 'true'
+    assert page.locator('.wheel-choice[tabindex="0"]').evaluate('e=>e===document.activeElement')
+    page.keyboard.press('Shift+Tab')
+    assert page.evaluate('document.activeElement!==document.body'), 'Backward Tab must not lose focus during modifier handling'
+    page.locator('.wheel-choice[tabindex="0"]').focus()
+    page.keyboard.press('ArrowRight')
+    page.keyboard.press('Enter')
+    assert page.locator('#output-name').inner_text() == 'morning-light.jpg'
+    assert page.locator('#sample-file').evaluate('e=>e===document.activeElement')
+    page.locator('[data-mode="convert"]').click()
+    page.locator('.wheel-choice[tabindex="0"]').focus()
+    page.keyboard.press('ArrowLeft')
+    active = page.locator('.wheel-choice[tabindex="0"]')
+    assert active.text_content() == 'PDF'
+    assert active.evaluate('e=>e===document.activeElement')
+    page.keyboard.press('Escape')
+    assert page.locator('#floating-wheel').is_hidden()
+    assert page.locator('#sample-file').evaluate('e=>e===document.activeElement')
+
+
 def check_gallery_without_javascript(page) -> None:
     assert page.locator("#screen-workspace").is_visible()
     assert page.locator("#gallery-tabs").is_hidden()
@@ -177,7 +216,7 @@ def check_catalog_search(page):
     assert page.locator('.format-row').count()==2
     assert page.locator('.format-row').all_text_contents()[0].startswith('Images')
     assert page.locator('#tool-directory li').count()==2
-    assert page.locator('#format-search-status').inner_text()=='2 File Families · 2 Matching Tools'
+    assert page.locator('#format-search-status').inner_text()=='2 file families · 2 matching tools'
     summary.click()
     assert search.is_hidden()
     page.locator('.count-note a[href="#formats"]').click()
@@ -186,7 +225,7 @@ def check_catalog_search(page):
     assert 'Spreadsheets' in page.locator('#format-directory').inner_text()
     search.fill('<script>not-a-format</script>')
     assert page.locator('.format-row').count()==0
-    assert 'No Matches' in page.locator('#format-search-status').inner_text()
+    assert 'No matches' in page.locator('#format-search-status').inner_text()
     assert page.locator('.tool-directory').is_hidden()
     page.locator('#format-search-clear').click()
     assert search.evaluate('e=>document.activeElement===e')
@@ -232,7 +271,7 @@ def check_native_recording(page,output,width):
 
 
 def exercise(page,output,width,height):
-    assert page.locator('html').get_attribute('data-site-version')=='20261029.2'
+    assert page.locator('html').get_attribute('data-site-version')=='20261029.3'
     assert 'Lemulip' in page.title()
     assert page.locator('#format-count').inner_text()=='35'
     assert page.locator('#tool-count').inner_text()=='26'
@@ -319,7 +358,7 @@ def run(output:Path,engine:str,url:str|None,executable:str|None=None):
                         initial_image.evaluate('image=>image.decode()')
                         page.locator('.header').scroll_into_view_if_needed()
                         page.screenshot(path=str(output/f'overview-collapsed-{width}.png'),full_page=True)
-                    check_presentation(page,output,width,height);exercise(page,output,width,height);check_native_gallery(page,output,width,height);check_catalog_search(page)
+                    check_presentation(page,output,width,height);exercise(page,output,width,height);check_native_gallery(page,output,width,height);check_catalog_search(page);check_wheel_keyboard_feedback(page)
                     results.append({'viewport':f'{width}x{height}','nine_samples':'PASS','wheel':'PASS','single_demo':'PASS','stable_layout':'PASS','keyboard':'PASS','native_gallery_click_keys_focus_wrap':'PASS','themes':'PASS','local_catalog_search':'PASS','reviewed_direct_download':'PASS','overflow':'NONE'})
                     page.close()
                 page=browser.new_page(viewport={'width':1440,'height':1000})
@@ -339,10 +378,18 @@ def run(output:Path,engine:str,url:str|None,executable:str|None=None):
                 page.mouse.move(target['x']+target['width']/2,target['y']+target['height']/4,steps=8);page.mouse.up()
                 assert page.locator('#sample-output').is_visible()
                 results.append({'autoplay_advances_and_pauses':'PASS','pointer_drag_shift_and_drop':'PASS'});page.close()
+                page=browser.new_page();page.goto(url,wait_until='networkidle')
+                page.locator('#desktop-demo').focus()
+                assert page.locator('#tour-toggle').get_attribute('aria-pressed')=='false', 'Keyboard entry owns the demo; autoplay must stop'
+                results.append({'keyboard_entry_pauses_tour':'PASS'});page.close()
                 page=browser.new_page(viewport={'width':390,'height':844},reduced_motion='reduce');page.goto(url,wait_until='networkidle')
                 assert page.locator('#tour-toggle').get_attribute('aria-pressed')=='false'
                 page.locator('#next-step').click();page.locator('#next-step').click()
                 assert page.locator('#floating-wheel').is_visible()
+                assert page.locator('#floating-wheel').evaluate('e=>getComputedStyle(e).animationName')=='none'
+                check_wheel_keyboard_feedback(page)
+                page.locator('#tab-trim-audio').click()
+                assert page.locator('#screen-trim-audio').evaluate('e=>getComputedStyle(e).animationName')=='none'
                 results.append({'reduced_motion_manual_controls':'PASS'});page.close()
                 page=browser.new_page();page.goto(url.split('#')[0]+'#formats',wait_until='networkidle')
                 assert page.locator('#format-details').evaluate('e=>e.open')

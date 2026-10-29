@@ -25,8 +25,8 @@
     controls.style && (controls.style.visibility = watch ? 'hidden' : '');
     layer.hidden = !watch;
     button.setAttribute('aria-pressed', String(watch));
-    button.textContent = watch ? 'Back To The Wheel' : 'Watch On A Mac';
-    note.textContent = watch ? 'Recorded In Lemulip. Finder To Finished File.' : 'Browser Simulation. No Uploads.';
+    button.textContent = watch ? 'Back to the wheel' : 'Watch on a Mac';
+    note.textContent = watch ? 'Recorded in Lemulip. Finder to finished file.' : 'Interactive example. Nothing is uploaded.';
     if (watch) {
       video.focus({ preventScroll: true });
       // A rejected playback request leaves the native Play control available.

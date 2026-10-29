@@ -53,8 +53,8 @@ class SiteTests(unittest.TestCase):
         page=(ROOT/'site/index.html').read_text()
         expected=f'https://github.com/osmankaankars/lemulip/releases/download/v{PUBLISHED_VERSION}/Lemulip-{PUBLISHED_VERSION}-macOS-universal.dmg'
         self.assertEqual(3,page.count('href="'+expected+'"'))
-        self.assertIn('Release Notes',page)
-        self.assertIn('Apple Silicon &amp; Intel · v'+PUBLISHED_VERSION,page)
+        self.assertIn('Release notes',page)
+        self.assertIn('Apple silicon &amp; Intel · v'+PUBLISHED_VERSION,page)
         self.assertNotIn('v0.1.17',page)
         self.assertIn('data-step=',page)
 
@@ -129,10 +129,10 @@ class SiteTests(unittest.TestCase):
             self.assertNotRegex(p.read_text(),r'(?i)developer id|notariz|ad hoc sign',str(p))
     def test_motion_and_stale_assets_are_explicit(self):
         page=(ROOT/'site/index.html').read_text(); js=(ROOT/'site/product.js').read_text()
-        self.assertIn('data-site-version="20261029.2"',page)
-        self.assertIn('product.js?v=20261029.2',page)
+        self.assertIn('data-site-version="20261029.3"',page)
+        self.assertIn('product.js?v=20261029.3',page)
         for event in ('visibilitychange','prefers-reduced-motion','pointercancel'):self.assertIn(event,js)
-        self.assertIn('Browser Simulation',page)
+        self.assertIn('Interactive example. Nothing is uploaded.',page)
         self.assertNotRegex(js,r'\b(FileReader|XMLHttpRequest)\s*\(')
     def test_no_temporary_import_workflows(self):
         self.assertFalse((ROOT/'.github/workflows/inspect-live-site.yml').exists())

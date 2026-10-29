@@ -18,6 +18,9 @@
 .gallery-tabs button[aria-selected="true"] { color:var(--text); border-bottom-color:var(--link); font-weight:600; }
 .gallery-tabs button:hover { color:var(--text); background:var(--raised); }
 .gallery-image-note { color:var(--muted); font-size:12px; line-height:1.6; text-transform:none; text-align:center; }
+.app-slide:not([hidden]) { animation:screen-arrive 180ms ease-out both; }
+.gallery-tabs button { transition:color var(--motion-fast),background-color var(--motion-fast),border-color var(--motion-fast); }
+@keyframes screen-arrive { from { opacity:0; } to { opacity:1; } }
 .app-gallery noscript { grid-column:1 / -1; }
 .app-gallery noscript p { text-align:center; }
 @media(max-width:900px) {

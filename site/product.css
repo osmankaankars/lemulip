@@ -254,8 +254,7 @@ html {scroll-behavior:auto}
 .wheel-choice.selected text {fill:HighlightText}
 .file-art {border:1px solid CanvasText}
 }
-body {text-transform: capitalize;}
-pre, code, .file-name, #output-name, #announcer, .verbatim, .requirements {text-transform: none;}
+/* Copy is authored in sentence case; preserve product names and file extensions. */
 .header {gap: 24px;}
 .header .theme-label {margin: 0 0 0 auto; gap: 8px; flex-shrink: 0;}
 .header .theme-label select {max-width: 146px;}
@@ -444,3 +443,29 @@ pre, code, .file-name, #output-name, #announcer, .verbatim, .requirements {text-
 .native-error {position:absolute;inset:auto 12px 48px;padding:10px;background:var(--panel);color:var(--text);border-radius:8px;font-size:12px}
 #demo-source {min-height:1.6em}
 @media(max-width:500px) {.watch-native{font-size:10px;padding:7px 8px}.native-recording{border-radius:12px}#demo-source{min-height:3.2em}}
+
+/* The wheel is the focal movement. Controls stay available during every transition. */
+:root {--motion-fast:120ms;--motion-enter:280ms;--motion-ease:cubic-bezier(.16,1,.3,1)}
+.hero h1 {letter-spacing:-.045em;text-wrap:balance}
+.hero-copy .intro {line-height:1.65;max-width:34ch}
+.numbers h2 {line-height:1.35}
+.button, .origin-picker button, .demo-modes button, .quiet-button, .watch-native {
+  transition:background-color var(--motion-fast),border-color var(--motion-fast),color var(--motion-fast),filter var(--motion-fast);
+}
+.button:active {filter:brightness(.94)}
+.wheel-choice path {transition:fill var(--motion-fast),stroke var(--motion-fast)}
+.wheel-choice text {transition:fill var(--motion-fast)}
+.desktop[data-step="2"] .floating-wheel {animation:wheel-arrive var(--motion-enter) var(--motion-ease) both}
+.desktop[data-step="3"] .sample-output {animation:result-arrive 220ms var(--motion-ease) both}
+.desktop[data-step="3"] .sample-output::before {content:"✓";font-size:12px;color:#bdf620;flex-shrink:0}
+.catalog-chevron {transition:transform 180ms var(--motion-ease)}
+.catalog-details[open] .catalog-content {animation:catalog-arrive 180ms ease-out both}
+@keyframes wheel-arrive {
+  from {opacity:0;transform:translate(-50%,-50%) scale(.9)}
+  to {opacity:1;transform:translate(-50%,-50%) scale(1)}
+}
+@keyframes result-arrive {
+  from {opacity:0;transform:translateY(-8px)}
+  to {opacity:1;transform:translateY(0)}
+}
+@keyframes catalog-arrive {from {opacity:0} to {opacity:1}}
