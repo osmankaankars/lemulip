@@ -304,6 +304,7 @@ final class SelectionFeedbackTests: XCTestCase {
                 controller.selectionSoundsEnabled = true
                 controller.outputAlongsideOriginal = false
                 let input = try fixture.imageInput()
+                let originalBytes = try Data(contentsOf: input)
                 controller.begin(FileOperation(id: "image.crop", title: "Crop Image"), inputs: [input])
                 try await withCropWindow(controller) { window, host in
                     try await waitForEditor("The production crop preview must load") {
@@ -337,10 +338,29 @@ final class SelectionFeedbackTests: XCTestCase {
                     }
                     XCTAssertEqual(requests, 2)
                     XCTAssertEqual(controller.activity.count, 1)
-                    XCTAssertEqual(controller.activity[0].retryRequest?.options.imageCrop?.x, 2)
                     XCTAssertEqual(fixture.player.starts, 1)
                     try await waitForJobs(controller)
                     XCTAssertEqual(controller.activity[0].state, .succeeded)
+                    let output = try XCTUnwrap(controller.activity[0].outputs.first)
+                    let result = try XCTUnwrap(NSBitmapImageRep(data: try Data(contentsOf: output)))
+                    let source = try XCTUnwrap(NSBitmapImageRep(data: originalBytes))
+                    XCTAssertEqual(result.pixelsWide, 12)
+                    XCTAssertEqual(result.pixelsHigh, 10)
+                    // Success clears retry metadata. Verify the completed crop's
+                    // actual pixels after the retained canvas moved right to x=2.
+                    let tolerance: CGFloat = 1.0 / 255
+                    for (outputX, outputY, sourceX, sourceY) in [
+                        (0, 0, 2, 2), (11, 0, 13, 2), (0, 9, 2, 11), (11, 9, 13, 11)
+                    ] {
+                        let expected = try XCTUnwrap(source.colorAt(x: sourceX, y: sourceY)?.usingColorSpace(.deviceRGB))
+                        let actual = try XCTUnwrap(result.colorAt(x: outputX, y: outputY)?.usingColorSpace(.deviceRGB))
+                        let mapping = "Output (\(outputX), \(outputY)) must match source (\(sourceX), \(sourceY))"
+                        XCTAssertEqual(actual.redComponent, expected.redComponent, accuracy: tolerance, mapping)
+                        XCTAssertEqual(actual.greenComponent, expected.greenComponent, accuracy: tolerance, mapping)
+                        XCTAssertEqual(actual.blueComponent, expected.blueComponent, accuracy: tolerance, mapping)
+                        XCTAssertEqual(actual.alphaComponent, expected.alphaComponent, accuracy: tolerance, mapping)
+                    }
+                    XCTAssertEqual(try Data(contentsOf: input), originalBytes)
                 }
             }
         }
@@ -691,7 +711,17 @@ private final class FeedbackFixture {
         let bitmap = try XCTUnwrap(NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 16, pixelsHigh: 16,
             bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
             colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0))
-        for y in 0..<16 { for x in 0..<16 { bitmap.setColor(.systemGreen, atX: x, y: y) } }
+        let bytes = try XCTUnwrap(bitmap.bitmapData)
+        // Opaque device-RGB pixels encode both coordinates for crop verification.
+        for y in 0..<16 {
+            for x in 0..<16 {
+                let offset = y * bitmap.bytesPerRow + x * 4
+                bytes[offset] = UInt8(x * 16)
+                bytes[offset + 1] = UInt8(y * 16)
+                bytes[offset + 2] = UInt8((x + y) * 8)
+                bytes[offset + 3] = 255
+            }
+        }
         let url = directory.appendingPathComponent("sample.png")
         try XCTUnwrap(bitmap.representation(using: .png, properties: [:])).write(to: url)
         return url
