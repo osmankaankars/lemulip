@@ -341,10 +341,8 @@ struct PDFOrganizeView: View {
                     .help(model.text("Create A PDF With Selected Pages", "Seçili Sayfalardan Bir PDF Oluştur"))
             }.padding(.horizontal, 24)
             EditorFooter(language: model.language, isEnabled: editor.exportPlan(selectedOnly: false) != nil && editingPosition == nil,
-                onCancel: {
-                    if editingPosition != nil { focus = .content }
-                    else { editor.close(); model.cancelPending() }
-                }, onSubmit: { submit(selectedOnly: false) })
+                cancelShortcut: editingPosition == nil ? .cancelAction : nil,
+                onCancel: { editor.close(); model.cancelPending() }, onSubmit: { submit(selectedOnly: false) })
         }
     }
 
@@ -361,7 +359,6 @@ struct PDFOrganizeView: View {
         guard editingPosition == nil, let plan = editor.exportPlan(selectedOnly: selectedOnly) else { return }
         var options = ConversionOptions()
         options.pdfOrganization = plan
-        editor.close()
         model.submitPending(options, outputExtension: "pdf")
     }
 }

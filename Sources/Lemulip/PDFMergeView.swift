@@ -340,10 +340,8 @@ struct PDFMergeView: View {
                     .background(Palette.raised, in: RoundedRectangle(cornerRadius: 8))
             }
             EditorFooter(language: model.language, isEnabled: editor.exportPlan() != nil && editingPosition == nil,
-                onCancel: {
-                    if editingPosition != nil { focus = .content }
-                    else { editor.close(); model.cancelPending() }
-                }, onSubmit: { submit() })
+                cancelShortcut: editingPosition == nil ? .cancelAction : nil,
+                onCancel: { editor.close(); model.cancelPending() }, onSubmit: { submit() })
         }
     }
 
@@ -365,7 +363,6 @@ struct PDFMergeView: View {
         guard editingPosition == nil, let plan = editor.exportPlan() else { return }
         var options = ConversionOptions()
         options.pdfMerge = plan
-        editor.close()
         model.submitPending(options, outputExtension: "pdf")
     }
 }

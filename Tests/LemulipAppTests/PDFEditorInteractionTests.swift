@@ -74,6 +74,11 @@ final class PDFEditorInteractionTests: XCTestCase {
             XCTAssertEqual(model.pendingOperation?.id, "pdf.merge")
             XCTAssertTrue(model.activity.isEmpty)
             try capture(host, window: window, name: "merge-after-field-switch", state: ["order": editor.documents.map(\.inputIndex)])
+            try await press("\u{1B}", code: 53, in: window)
+            try await waitFor("Escape from the list must cancel the pending merge after number editing ends") {
+                model.pendingOperation == nil
+            }
+            XCTAssertTrue(model.activity.isEmpty)
         }
     }
 
@@ -119,6 +124,11 @@ final class PDFEditorInteractionTests: XCTestCase {
             try capture(host, window: window, name: "organize-after-escape", state: [
                 "order": editor.pages.map(\.sourceIndex), "selected": editor.selectedPages.sorted()
             ])
+            try await press("\u{1B}", code: 53, in: window)
+            try await waitFor("Escape from the grid must cancel the pending organizer after number editing ends") {
+                model.pendingOperation == nil
+            }
+            XCTAssertTrue(model.activity.isEmpty)
         }
     }
 
