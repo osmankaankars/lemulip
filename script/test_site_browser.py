@@ -28,21 +28,30 @@ def check_presentation(page,output,width,height):
     assert '\u2013' not in page.locator('body').inner_text()
     for origin in ('desktop','finder'):
         page.locator('#origin-'+origin).click()
-        desktop=page.locator('#desktop-demo').bounding_box()
-        grid=page.locator('#sample-grid').bounding_box();assert grid
+        # Smooth scrolling can change viewport offsets between separate calls.
+        # Take the container, file and label bounds from the same rendered frame.
+        geometry=page.locator('#desktop-demo').evaluate('''desktop => {
+            const rect=e=>{const {x,y,width,height}=e.getBoundingClientRect();return {x,y,width,height}};
+            const grid=desktop.querySelector('#sample-grid');
+            return {desktop:rect(desktop),grid:rect(grid),files:[...grid.querySelectorAll('[data-sample]')].map(file=>({
+                text:file.innerText,box:rect(file),label:rect(file.querySelector('.file-name')),
+                visibility:getComputedStyle(file).visibility
+            }))};
+        }''')
+        desktop=geometry['desktop'];grid=geometry['grid']
         boxes=[]
-        for file in page.locator('#sample-grid [data-sample]').all():
-            assert file.is_visible()
-            box=file.bounding_box();assert box
+        for file in geometry['files']:
+            box=file['box'];assert box['width']>0 and box['height']>0
+            assert file['visibility']=='visible'
             assert box['x']>=desktop['x']-1
             assert box['y']>=desktop['y']+27
             assert box['x']+box['width']<=desktop['x']+desktop['width']+1
             within_grid=(box['y']>=grid['y']-1 and box['y']+box['height']<=grid['y']+grid['height']+1)
             if not within_grid:
                 page.locator('#try').screenshot(path=str(output/f'clipping-{origin}-{width}.png'))
-            assert within_grid,{'origin':origin,'width':width,'file':file.inner_text(),'file_box':box,'grid_box':grid}
+            assert within_grid,{'origin':origin,'width':width,'file':file['text'],'file_box':box,'grid_box':grid}
             assert box['y']+box['height']<=desktop['y']+desktop['height']+1
-            label=file.locator('.file-name').bounding_box();assert label
+            label=file['label'];assert label['width']>0 and label['height']>0
             assert label['y']+label['height']<=box['y']+box['height']+1
             boxes.append(box)
         for i,a in enumerate(boxes):
