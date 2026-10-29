@@ -32,7 +32,9 @@ The cue follows macOS sound-effects settings. Visual feedback remains available 
 
 Editors and option panels open for operations that need a selection. **Create Copy** saves the result under an unused name.
 
-If you choose an output folder for each job, cancelling that folder choice returns to the same editor with your crop, range or PDF arrangement intact. Continue editing or select **Create Copy** again. **Cancel** in the editor discards the pending copy; the source remains unchanged.
+If you choose an output folder for each job, cancelling that folder choice returns to the same editor with your crop, range or PDF arrangement intact. Continue editing or select **Create Copy** again.
+
+While entering a PDF position, **Esc** abandons that position edit. After leaving the field, **Cancel** discards the pending copy. The source remains unchanged.
 
 ### Visual Image Crop
 
