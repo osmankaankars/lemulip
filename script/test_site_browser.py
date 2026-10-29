@@ -182,7 +182,7 @@ def check_catalog_search(page):
     assert search.input_value()==''
     assert page.locator('.format-row').count()==9
     assert page.locator('#sample-grid [data-sample]').count()==9
-    assert page.locator('a[href$="Lemulip-0.1.18-macOS-universal.dmg"]').count()==3
+    assert page.locator('a[href$="Lemulip-0.1.19-macOS-universal.dmg"]').count()==3
 
 
 def check_native_recording(page,output,width):
@@ -215,7 +215,7 @@ def check_native_recording(page,output,width):
 
 
 def exercise(page,output,width,height):
-    assert page.locator('html').get_attribute('data-site-version')=='20261028.3'
+    assert page.locator('html').get_attribute('data-site-version')=='20261029.1'
     assert 'Lemulip' in page.title()
     assert page.locator('#format-count').inner_text()=='35'
     assert page.locator('#tool-count').inner_text()=='26'
