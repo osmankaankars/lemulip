@@ -236,7 +236,7 @@ final class SelectionFeedbackTests: XCTestCase {
                 try await waitForJobs(controller)
                 XCTAssertEqual(controller.activity[0].state, .succeeded)
                 let output = try XCTUnwrap(controller.activity[0].outputs.first)
-                let bitmap = try XCTUnwrap(NSBitmapImageRep(contentsOf: output))
+                let bitmap = try XCTUnwrap(NSBitmapImageRep(data: try Data(contentsOf: output)))
                 XCTAssertEqual(bitmap.pixelsWide, 12)
                 XCTAssertEqual(bitmap.pixelsHigh, 10)
                 XCTAssertEqual(try Data(contentsOf: input), original)
