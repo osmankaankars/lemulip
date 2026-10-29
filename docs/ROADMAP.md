@@ -25,7 +25,21 @@ Keep the existing icon, orchard/pistachio/lemonade themes, the interactive wheel
 | 4 | M1: Marketing readiness | Current native visuals, accurate feature story, verified download and first-run guidance | Every public claim and asset maps to a released feature and recorded source |
 | Last | V1: Promotional film | Plan and record the final product experience after the preceding work ships | Real released workflows, a reviewed storyboard and accurate output examples |
 
-W1/W2 are live through PR #19. W4 is live through PR #22; Chromium and WebKit checks passed before and after deployment. P1/P2 are prepared in PR #20 and have passed real PDF export tests on both native architectures; the actual editor interaction review remains separate. B1 is merged through PR #21 after both native hosts verified the same measured universal candidate. The smaller package has not yet been released. A1 in PR #23 passes its 11 automated sound tests on both architectures; listening and the complete native settings review remain pending. Q1 has focused cancellation-continuity and native-feedback changes in PRs #25 and #26. B2's two-architecture experiment has passed in PR #24; production adoption is being prepared. M1's first-use guide and product story are prepared in [Marketing](MARKETING.md), with final assets waiting for the released native changes. Website presentation can improve while native packages build, but it must not advertise those app changes as released. The promotional film remains last.
+### Current evidence
+
+| Work | Current state |
+| --- | --- |
+| W1/W2/W4 | Live through PRs #19 and #22. Chromium and WebKit passed before and after deployment. |
+| M1 | First-use links and guidance are live through PR #27. The current sharing-card and installation-order repair is recorded below. Download remains 0.1.19; new native visuals and the final release story are pending. |
+| P1/P2 | PR #20 preserves tested export order and adds explicit order commands, position entry and drag handles. The focus-reset correction passed actual keyboard scenarios on both architectures. A later actual pointer check found that Cancel needed two clicks during a number edit; the correction now passes both first-click cases on Apple silicon in [run 40902646884](https://github.com/osmankaankars/lemulip/actions/runs/40902646884). Physical dragging remains unproved. |
+| B1/B2 | PRs #21 and #28 are merged. Both hosts verified the exact combined universal package from main; measured app payload is 237,113,725 bytes. No smaller public release has been published. |
+| A1 | PR #23 passes all 11 automated sound tests on both architectures. The exact generated sound is retained for audition; listening, system mute and the complete native settings review remain pending. |
+| Q1 continuity | PR #25 passed the real crop keyboard path and final output-pixel assertions on both architectures at `7c0ac41` (186 ordinary tests plus 15 feedback/continuity tests on each). |
+| Q1 feedback/accessibility | PR #26 includes bounded panel motion and localized control names/units. Hosted panel tests pass. Own-process accessibility inspection still does not expose the SwiftUI semantic nodes after a verified launch/key-window lifecycle; VoiceOver success is not claimed. |
+| W3 | Bitmap and explicit-display-scale probes did not produce sharp complete SwiftUI captures. The native PDF probe omitted SwiftUI geometry and its actual raster transform remained 1×. All three routes are closed for marketing assets; real Retina captures are still required. |
+| V1 | Last, after the verified app, accurate website story and final native visuals. |
+
+The isolated [UI review copy](https://github.com/osmankaankars/lemulip/blob/f402dabbdbd34ba9ea80ac38495caffb2bdf29d1/docs/UI_REVIEW.md) combines the native feature branches with 0.1.20/build 23 preparation. Its distinct bundle identity separates preferences. A dedicated workflow retains a review ZIP only after both native hosts verify that same ZIP, but its engine-free payload and those checks do not establish release readiness or physical interaction quality. The [retained review build](https://github.com/osmankaankars/lemulip/actions/runs/40903073501) passed both native checks of the same ZIP. The combined normal [Build](https://github.com/osmankaankars/lemulip/actions/runs/40903073393) passed 200 ordinary tests, two actual PDF keyboard scenarios and 15 sound/continuity tests per architecture, but still fails the exact accessibility lookup in its own-process host. Physical dragging, audible/muted playback, VoiceOver narration and final Retina captures remain open. Normal build and release gates remain in place.
 
 ## W1 — Give Real Screenshots an Appropriate Scale
 
@@ -110,7 +124,7 @@ The smaller download improvement is expected because the old ZIP already compres
 
 **Acceptance.** Local fixtures prove deterministic output, byte-identical decompression, preserved members/permissions/timestamps and normal extraction. Both native engine builds must consume the archives, their universal merge must validate, and the packaged binaries must pass the existing conversion/relocation checks. Record actual app/ZIP/DMG sizes only from those new packages. Never replace 0.1.19 assets to deliver a size change.
 
-**Later possibilities.** Native symbol stripping may reduce GUI/CLI binaries but needs a real build measurement and crash-diagnosis plan. Shared engine libraries and architecture-specific downloads change distribution complexity and need separate evaluation. The small repository-only Source ZIP is not a substitute for matching engine source material.
+**Further work.** GUI/CLI symbol reduction is covered by B2 below. Shared engine libraries and architecture-specific downloads change distribution complexity and need separate evaluation. The small repository-only Source ZIP is not a substitute for matching engine source material.
 
 ## A1 — Add a Quiet, Optional Selection Cue
 
@@ -139,7 +153,45 @@ Add one setting, **Selection sounds**, default **off**, with an explicit preview
 | Intel | GUI | 7,598,336 B | 3,149,840 B |
 | Intel | CLI | 1,961,104 B | 1,335,856 B |
 
-The experiment changes no production package and measures no ZIP or DMG. The next slice stages only GUI/CLI copies, retains matching symbols and commit/UUID/hash records outside the shipped app, and keeps original build products intact. Debug builds and bundled engines remain outside this change. Final download sizes and functional results must come from the normal universal packaging and both native archive checks.
+The experiment above changed no production package and measured no ZIP or DMG. [PR #28](https://github.com/osmankaankars/lemulip/pull/28) subsequently adopted the verified process in production: it stages only Release GUI/CLI copies, retains matching symbols and commit/UUID/hash records outside the shipped app, and keeps original build products intact. Debug builds and bundled engines remain outside this change.
+
+[The exact implementation's native checks](https://github.com/osmankaankars/lemulip/actions/runs/40884107022) passed on Apple silicon and Intel, including actual GUI launch, a subtitle conversion, retained Debug binaries, and matching dSYM UUID/architecture/DWARF validation. The ordinary build and CodeQL checks also passed before merging. Required CI symbol artifacts are retained for 90 days.
+
+**Combined package measured.** [Main run 40888274702](https://github.com/osmankaankars/lemulip/actions/runs/40888274702), at `5d86c6bf76a09653ae8b0c14f68efb8f0aff9e56`, built B1 and B2 together. Both native hosts verified the same universal artifact `12907867184` (SHA-256 `20aca7ba1301d765cecd14848547544655e61b571ba6a4f93caa683a48883d32`). This candidate still carries 0.1.19/build 22 metadata and is not a replacement public download.
+
+| Item | Public 0.1.19 | Combined B1+B2 candidate | Reduction |
+| --- | ---: | ---: | ---: |
+| Logical files inside the app | 349,100,211 B | 237,113,725 B | 111,986,486 B / 32.08% |
+| App ZIP | 153,240,283 B | 144,203,490 B | 9,036,793 B / 5.90% |
+| DMG | 164,820,266 B | 149,920,290 B | 14,899,976 B / 9.04% |
+
+The Source ZIP grew from 2,426,675 to 2,461,318 bytes as source code and checks were added. The application measurement uses logical file payload sizes, not filesystem allocation. The standalone CLI contributes to the ZIP, but not to the app or DMG totals.
+
+The downloaded candidate passed all 65 installed receipt hashes, retained all 18 source/license components, preserved 14 upstream archives byte-for-byte and reproduced the four original Git TARs exactly after decompression. Its actual universal GUI/CLI hashes and four architecture UUIDs match the separately retained dSYMs. Both native archive checks passed signature, relocation, built-in and bundled conversions, original preservation, DMG validation and GUI launch. Independently rebuilt engine executables are not claimed to be byte-identical across builds.
+
+The feature-inclusive 0.1.20 app, ZIP and DMG still need their own complete release build and both native checks. No existing public release asset is replaced, and a lightweight UI review package must not be compared with these complete-engine distribution sizes.
+
+## M1 — Repair the Current Sharing and First-use Path
+
+**Observed problem.** The public share metadata still selected an obsolete browser
+simulation with the retired headline and controls. The “Install & first steps”
+link jumped past installation and first-launch instructions to a step that assumed
+the app was already open.
+
+**Decision.** Use a 1200 × 630 composition with the current Lemulip identity and the
+existing genuine Workspace capture. Its native image stays at 510 × 341.5 pixels;
+its source bytes and capture provenance remain unchanged. This repairs the current
+0.1.19 presentation. It does not complete W3 or imply a new native capture.
+
+Start the installation link at the guide's beginning and order the material as
+release installation, first launch, then the built-in sample. Keep source-build
+instructions later and retain the existing deep links.
+
+**Acceptance.** Inspect the full-size and smaller card, retain source/output hashes,
+and verify the actual prepared and deployed canonical/Open Graph/Twitter metadata,
+image decoding and checksum in both browser engines. Production must use its actual
+Pages URL. A pull-request fixture URL must never imply public deployment. Keep the
+verified 0.1.19 download and all native release gates unchanged.
 
 ## Research and What We Take From It
 

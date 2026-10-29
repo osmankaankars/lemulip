@@ -56,9 +56,9 @@ ALLOWED_EMAILS = {
 # retains its provenance; no image may carry private metadata.
 # Update a digest only after reviewing the new image and its metadata.
 PUBLIC_IMAGES = {
+    "site/assets/social-preview.png": "afa315675e7c98e711f4d9beb9fd1b72ea093f573cdf4ee264a72af22b5a22c5",
     "site/assets/morning-light.jpg": "e79abf44c036845255ecfd5e62ec378ec142b5b731fcc900759a7c8931ec5652",
     "Resources/AppIcon.png": "f68b17dc79d0e13246fc425218031a3bc35db2d1e27d845ee657f17f423d8a45",
-    "docs/assets/demo-preview.png": "8872c6e65528bf47bdf95e64b5313cd6ce6c25f8e22c111ac05574f0701f5870",
     "site/assets/app-workspace.webp": "573edfebb566202c51d0fe448ee3805e8e7d48a589a7b28677917ce5cb3e1393",
     "site/assets/app-crop-video.webp": "907260940370ef8683bde30182a847a3e99fdcb3824584a981c19f43747e9b35",
     "site/assets/app-trim-audio.webp": "eaa7b154c0e28b4394cf7194495adf5300f9387b265b66658a0b9b3a48cf7a88",

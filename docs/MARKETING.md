@@ -69,14 +69,23 @@ capture method and hashes. A larger bitmap alone does not establish a fresh
 high-density render. Retain the original captures; export web derivatives after
 visual review. Do not generate, repaint or artificially sharpen product controls.
 
-Prepare the social preview image from that final asset set. Keep a readable
-headline, a real product moment and the existing brand; omit invented ratings,
-customer logos and unsupported claims. No promotional video work starts yet.
+The current [social preview](../site/assets/social-preview.png) repairs the retired
+simulation previously used when sharing the website. It combines the approved
+headline and original brand with the existing real Workspace capture. Its
+[provenance](../site/assets/social-preview.json) records the input hashes, layout
+source and actual export dimensions. The composition keeps the native source at
+half its original width; it is not a fresh Retina capture or a preview of
+unreleased controls.
+
+Refresh the social preview again when the final native asset set is ready. Keep a
+readable headline, a real product moment and the existing brand; omit invented
+ratings, customer logos and unsupported claims. No promotional video work starts
+yet.
 
 ## From the Website to the First Result
 
 The primary download opens the verified version's DMG. The adjacent **Install &
-first steps** link leads to [installation and a first conversion](INSTALL.md#try-your-first-conversion).
+first steps** link leads to [installation and a first conversion](INSTALL.md).
 The built-in practice file lets someone try the Finder gesture immediately.
 Workspace remains available when a source app cannot supply a compatible local
 file drag. [Activity and troubleshooting](USER_GUIDE.md#if-something-fails) explain
