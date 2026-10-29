@@ -12,6 +12,8 @@ import LemulipCore
 /// They do not post global CGEvents, use accessibility automation, or establish
 /// that a physical mouse drag works. Captures render the hosted view itself.
 final class PDFEditorInteractionTests: XCTestCase {
+    @MainActor private var dispatchedLifecycleEvents = 0
+
     @MainActor
     func testMergeNumberEntryReturnEscapeAndFocus() async throws {
         let inputs = try makeFiles(["10 Notes.pdf", "02 Report.pdf", "01 Cover.pdf"], pages: [1, 2, 1])
@@ -127,6 +129,19 @@ final class PDFEditorInteractionTests: XCTestCase {
         let screen = try XCTUnwrap(NSScreen.screens.first, "Native interaction tests require a WindowServer display")
         let policy = application.activationPolicy()
         XCTAssertTrue(application.setActivationPolicy(.regular))
+        defer { _ = application.setActivationPolicy(policy) }
+        if !NSRunningApplication.current.isFinishedLaunching {
+            guard application.delegate == nil else {
+                throw InteractionFailure("The review host must not launch a production application delegate")
+            }
+            guard UserDefaults.standard.object(forKey: "NSOpen") == nil else {
+                throw InteractionFailure("The synthetic review host requires no NSOpen launch files")
+            }
+            // XCTest creates NSApplication without running its normal app loop.
+            // Finish its public launch lifecycle before requesting activation.
+            application.finishLaunching()
+        }
+        dispatchedLifecycleEvents = 0
         let window = NSWindow(contentRect: NSRect(origin: .zero, size: size),
                               styleMask: [.titled, .closable], backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
@@ -139,12 +154,11 @@ final class PDFEditorInteractionTests: XCTestCase {
         defer {
             window.contentView = nil
             window.close()
-            _ = application.setActivationPolicy(policy)
         }
         application.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
         do {
-            try await waitFor("The synthetic review window must become key before receiving events") {
+            try await waitFor("The synthetic review window must become key before receiving events", servicing: window) {
                 window.isVisible && window.isKeyWindow && application.keyWindow === window
             }
             try await body(window, host)
@@ -205,12 +219,31 @@ final class PDFEditorInteractionTests: XCTestCase {
     }
 
     @MainActor
-    private func waitFor(_ message: String, condition: () -> Bool) async throws {
+    private func waitFor(_ message: String, servicing window: NSWindow? = nil, condition: () -> Bool) async throws {
         let deadline = Date().addingTimeInterval(5)
         while !condition(), Date() < deadline {
+            if let window { try serviceLifecycleEvents(for: window) }
             try await Task.sleep(nanoseconds: 20_000_000)
         }
         guard condition() else { throw InteractionFailure(message) }
+    }
+
+    @MainActor
+    private func serviceLifecycleEvents(for window: NSWindow) throws {
+        // App activation is delivered through AppKit's event queue. Yielding to
+        // Swift concurrency alone does not dequeue and dispatch those events.
+        // This bounded pump handles only this process's lifecycle events; test
+        // keyboard events keep the strict key-window/target checks in press().
+        let mask: NSEvent.EventTypeMask = [.appKitDefined, .applicationDefined]
+        for _ in 0..<32 {
+            guard let event = NSApp.nextEvent(matching: mask, until: .distantPast, inMode: .default, dequeue: true) else { break }
+            guard event.window == nil || event.window === window else {
+                throw InteractionFailure("Refusing to dispatch a lifecycle event for a different window")
+            }
+            NSApp.sendEvent(event)
+            dispatchedLifecycleEvents += 1
+        }
+        NSApp.updateWindows()
     }
 
     @MainActor
@@ -238,6 +271,22 @@ final class PDFEditorInteractionTests: XCTestCase {
             "renderScaleX": Double(bitmap.pixelsWide) / Double(max(1, view.bounds.width)),
             "renderScaleY": Double(bitmap.pixelsHigh) / Double(max(1, view.bounds.height)),
             "resizedAfterCapture": false,
+            "appKit": [
+                "applicationIsRunning": NSApp.isRunning,
+                "applicationIsActive": NSApp.isActive,
+                "processFinishedLaunching": NSRunningApplication.current.isFinishedLaunching,
+                "activationPolicy": NSApp.activationPolicy().rawValue,
+                "applicationDelegateIsNil": NSApp.delegate == nil,
+                "windowIsVisible": window.isVisible,
+                "windowCanBecomeKey": window.canBecomeKey,
+                "windowCanBecomeMain": window.canBecomeMain,
+                "windowIsKey": window.isKeyWindow,
+                "windowIsMain": window.isMainWindow,
+                "windowNumber": window.windowNumber,
+                "keyWindowNumber": NSApp.keyWindow?.windowNumber ?? -1,
+                "mainWindowNumber": NSApp.mainWindow?.windowNumber ?? -1,
+                "dispatchedLifecycleEvents": dispatchedLifecycleEvents
+            ] as [String: Any],
             "input": "Neutral PDFs generated by PDFEditorInteractionTests; no user documents",
             "state": state
         ]

@@ -61,7 +61,10 @@ jobs:
           LEMULIP_PDF_REVIEW_DIR: ${{ runner.temp }}/lemulip-pdf-review
         run: |
           export LEMULIP_PDF_REVIEW_COMMIT="$(git rev-parse HEAD)"
-          xcrun --sdk macosx swift test --jobs 2 --skip EngineIntegrationTests
+          xcrun --sdk macosx swift test --jobs 2 --skip 'EngineIntegrationTests|PDFEditorInteractionTests'
+          # Start the synthetic AppKit review host in a fresh process so prior
+          # panel tests cannot leave unrelated window events in its queue.
+          xcrun --sdk macosx swift test --skip-build --filter PDFEditorInteractionTests
       - name: Retain PDF Interaction Review
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
