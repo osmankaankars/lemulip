@@ -89,6 +89,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
 
     private var mainWindow: NSWindow?
     private var resultPanel: NSPanel?
+    private let resultAppearance = PanelAppearance()
     private var statusItem: NSStatusItem?
     private var shelfWindows: [NSWindow] = []
     private var tasks: [UUID: Task<Void, Never>] = [:]
@@ -610,7 +611,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
         panel.backgroundColor = Palette.canvasColor
         if !panel.isVisible { placeResultPanel(panel) }
         // Never activate the app or make the window key on automatic completion.
-        panel.orderFrontRegardless()
+        resultAppearance.present(panel, kind: .result) { panel.orderFrontRegardless() }
     }
 
     private func placeResultPanel(_ panel: NSPanel) {
@@ -621,7 +622,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
     }
 
     func dismissResultCard() {
-        resultPanel?.orderOut(nil)
+        resultAppearance.dismiss()
         completionResults.removeAll()
     }
 
