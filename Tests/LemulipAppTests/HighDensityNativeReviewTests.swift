@@ -9,6 +9,25 @@ import LemulipCore
 /// audio policy is changed. Artifacts are candidates for review, never site assets.
 final class HighDensityNativeReviewTests: XCTestCase {
     @MainActor
+    func testNativePDFExportCalibrationArtifacts() async throws {
+        guard let path = ProcessInfo.processInfo.environment["LEMULIP_EDITOR_REVIEW_DIR"], !path.isEmpty else {
+            throw XCTSkip("Set LEMULIP_EDITOR_REVIEW_DIR to run the native PDF calibration probe")
+        }
+        _ = NSApplication.shared
+        let directory = URL(fileURLWithPath: path, isDirectory: true)
+            .appendingPathComponent("native-pdf-calibration", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let log = DensityDrawLog()
+        try await withHost(NativeDensityCalibration(log: log), size: NSSize(width: 320, height: 240),
+                           appearance: .aqua) { _, host in
+            try await self.waitFor("The PDF calibration must retain its actual native field and observed SwiftUI scale") {
+                self.firstView(NSTextField.self, in: host) != nil && !log.environmentScales.isEmpty
+            }
+            try NativeReviewPDF.saveCalibration(of: host, log: log, directory: directory)
+        }
+    }
+
+    @MainActor
     func testExplicitDisplayScaleCalibration() async throws {
         guard let path = ProcessInfo.processInfo.environment["LEMULIP_EDITOR_REVIEW_DIR"], !path.isEmpty else {
             throw XCTSkip("Set LEMULIP_EDITOR_REVIEW_DIR to run the W3 native rendering experiment")

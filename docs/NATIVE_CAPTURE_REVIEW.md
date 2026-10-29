@@ -29,6 +29,14 @@ The Intel capture in [run 40891899407](https://github.com/osmankaankars/lemulip/
 
 A separate calibration-only test now supplies the documented SwiftUI [`displayScale`](https://developer.apple.com/documentation/swiftui/environmentvalues/displayscale) environment value of 2 to a fresh host. It records the actual observed environment value, keeps the same logical dimensions, renders both raw sizes and applies the unchanged numerical checks. Its output is retained under `high-density-explicit-environment`. This is a hypothesis test for SwiftUI's text-rendering environment, not an established fix; it does not change production views, system display configuration or layer scales. Original-pixel review must establish whether it improves the text before the method is considered for product captures.
 
+The follow-up in [run 40895627758](https://github.com/osmankaankars/lemulip/actions/runs/40895627758) observed environment scale 2 on both architectures, but its 1× and 2× PNG bytes were identical to the corresponding baseline images. Original-pixel review still found mixed text resolution. The bitmap/environment path is not approved for website assets.
+
+### Separate Native PDF Probe
+
+`testNativePDFExportCalibrationArtifacts` uses [`NSView.dataWithPDF(inside:)`](https://developer.apple.com/documentation/appkit/nsview/datawithpdf(inside:)) on the same synthetic 320 × 240 point host. It retains the unmodified PDF, source provenance, PDF SHA-256 and native draw CTMs under `native-pdf-calibration/`. A Core Graphics PDF-page transform then maps the page directly to a 640 × 480 pixel context and draws the PDF once. The PNG record retains the page box, rotation, transform, dimensions and hashes. This is a **native view PDF export rasterized at two pixels per point**, not a Retina screenshot.
+
+A passing artifact-generation test establishes only that this export and rasterization completed. Inspect the raw PDF's font/text/vector operators and embedded images together with the PNG at original pixels. If SwiftUI glyphs are still embedded at 1×, stop this route. This probe never captures production views, grants production-asset eligibility, reconstructs controls, or changes the environment, layers or display configuration.
+
 ## Production Review Content
 
 The same renderer retains the real `DashboardView` workspace and `ImageCropView` with its native `ImageCropCanvas`. The only input is a synthetic 640 × 400 orchard-colored grid PNG. The crop is seeded through the existing canvas binding and its source file hash must remain unchanged. No keyboard, pointer or drag event is sent, and no UI element is rebuilt in a drawing script.
