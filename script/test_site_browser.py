@@ -311,7 +311,14 @@ def run(output:Path,engine:str,url:str|None,executable:str|None=None):
                     page.goto(url,wait_until='networkidle')
                     assert not page.locator('#format-details').evaluate('e=>e.open'), 'The long directory starts closed'
                     assert page.locator('#formats').bounding_box()['height'] <= 240, 'Closed directory should remain compact'
-                    if width in (1440,390):page.screenshot(path=str(output/f'overview-collapsed-{width}.png'),full_page=True)
+                    if width in (1440,390):
+                        # Async native captures can otherwise be missing from an offscreen
+                        # full-page screenshot even though they render on first scroll.
+                        initial_image=page.locator('#screen-workspace img')
+                        initial_image.scroll_into_view_if_needed()
+                        initial_image.evaluate('image=>image.decode()')
+                        page.locator('.header').scroll_into_view_if_needed()
+                        page.screenshot(path=str(output/f'overview-collapsed-{width}.png'),full_page=True)
                     check_presentation(page,output,width,height);exercise(page,output,width,height);check_native_gallery(page,output,width,height);check_catalog_search(page)
                     results.append({'viewport':f'{width}x{height}','nine_samples':'PASS','wheel':'PASS','single_demo':'PASS','stable_layout':'PASS','keyboard':'PASS','native_gallery_click_keys_focus_wrap':'PASS','themes':'PASS','local_catalog_search':'PASS','reviewed_direct_download':'PASS','overflow':'NONE'})
                     page.close()
