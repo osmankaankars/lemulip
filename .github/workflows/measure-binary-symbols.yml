@@ -1,0 +1,66 @@
+name: Measure Native Binary Symbols
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/measure-binary-symbols.yml'
+      - 'script/measure_binary_symbols.py'
+      - 'script/test_measure_binary_symbols.py'
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+
+concurrency:
+  group: lemulip-symbol-measurement-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  measure:
+    name: Native Symbol Measurement (${{ matrix.arch }})
+    if: github.head_ref == 'measure/binary-symbols' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Check Source And Measurement Comparisons
+        env:
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          test "$(uname -m)" = "$EXPECTED_ARCH"
+          python3 script/privacy_check.py --staged
+          python3 script/test_measure_binary_symbols.py
+      - name: Build Unstripped Native Release Products
+        env:
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          xcrun --sdk macosx swift --version
+          xcrun --sdk macosx swift build --configuration release --arch "$EXPECTED_ARCH" --jobs 2 --scratch-path "$RUNNER_TEMP/symbol-build"
+      - name: Retain Matching Debug Symbols And Measure Temporary Copies
+        env:
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          BIN=$(xcrun --sdk macosx swift build --configuration release --arch "$EXPECTED_ARCH" --scratch-path "$RUNNER_TEMP/symbol-build" --show-bin-path)
+          python3 script/measure_binary_symbols.py --gui "$BIN/LemulipApp" --cli "$BIN/lemulip" --architecture "$EXPECTED_ARCH" --output "$RUNNER_TEMP/symbol-measurement"
+      - name: Retain Measurement Report And Matching dSYMs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Lemulip-Binary-Symbol-Measurement-${{ matrix.arch }}
+          path: ${{ runner.temp }}/symbol-measurement/
+          if-no-files-found: ignore
+          retention-days: 14
