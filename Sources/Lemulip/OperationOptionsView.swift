@@ -62,21 +62,36 @@ struct OperationOptionsView: View {
             }.padding(24)
             Divider().overlay(Palette.line)
             EditorFooter(language: model.language,
-                         isEnabled: validationError == nil && !(operation.id == "pdf.compress" && !flattenAcknowledged),
+                         isEnabled: canSubmit,
                          onCancel: { model.cancelPending() }, onSubmit: submit)
         }.frame(width: 520).background(Palette.background).foregroundStyle(Palette.ink).tint(Palette.accent)
     }
     private func field(_ title: String, value: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 7) { Text(title).font(.system(size: 11)).foregroundStyle(Palette.muted); TextField("", text: value).textFieldStyle(.roundedBorder) }
     }
+    private var canSubmit: Bool {
+        validationError == nil && !(operation.id == "pdf.compress" && !flattenAcknowledged)
+    }
     private var validationError: String? {
         if operation.id.hasSuffix("resize") || operation.id == "pdf.compress" {
             guard let dimension = Int(maxDimension), (16...16000).contains(dimension) else { return model.text("Enter a dimension between 16 and 16000 pixels.", "16 ile 16000 piksel arasında bir ölçü gir.") }
         }
-        if operation.id == "pdf.extract" && pageRange.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return model.text("Enter at least one page number.", "En az bir sayfa numarası gir.") }
+        if operation.id == "pdf.extract" {
+            do { _ = try PDFPageRange(pageRange) }
+            catch PDFPageRange.SyntaxError.empty {
+                return model.text("Enter at least one page number.", "En az bir sayfa numarası gir.")
+            } catch PDFPageRange.SyntaxError.tooLong {
+                return model.text("Use at most \(PDFPageRange.maximumSpecificationLength) characters for the page range.",
+                                  "Sayfa aralığı en fazla \(PDFPageRange.maximumSpecificationLength) karakter olabilir.")
+            } catch {
+                return model.text("Enter page numbers or ascending ranges, such as 1, 3-5.",
+                                  "Sayfa numarası veya küçükten büyüğe aralık gir. Örnek: 1, 3-5.")
+            }
+        }
         return nil
     }
     private func submit() {
+        guard canSubmit else { return }
         var options = ConversionOptions()
         options.quality = quality; options.maxDimension = Int(maxDimension) ?? 1920
         options.pageRange = pageRange; options.rotationDegrees = rotation; options.speedMultiplier = speed; options.volumeMultiplier = volume

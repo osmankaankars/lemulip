@@ -855,24 +855,16 @@ public enum NativeConverter {
     }
 
     private static func pageIndices(_ specification: String, count: Int) throws -> [Int] {
-        guard !specification.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              specification.count <= 10_000 else {
-            throw LemulipError.invalidInput("Enter page numbers such as 1-3,5.")
-        }
-        var result: [Int] = [], seen = Set<Int>()
-        for part in specification.split(separator: ",", omittingEmptySubsequences: false) {
-            let components = part.trimmingCharacters(in: .whitespacesAndNewlines)
-                .split(separator: "-", omittingEmptySubsequences: false)
-            guard (1...2).contains(components.count),
-                  let first = Int(components[0].trimmingCharacters(in: .whitespaces)),
-                  let last = Int(components.last!.trimmingCharacters(in: .whitespaces)),
-                  first >= 1, last >= first, last <= count else {
+        do {
+            return try PDFPageRange(specification).indices(pageCount: count)
+        } catch let error as PDFPageRange.SyntaxError {
+            switch error {
+            case .empty, .tooLong:
+                throw LemulipError.invalidInput("Enter page numbers such as 1-3,5.")
+            case .invalidRange:
                 throw LemulipError.invalidInput("Page ranges must be within 1-\(count), for example 1-3,5.")
             }
-            for page in first...last where seen.insert(page - 1).inserted { result.append(page - 1) }
         }
-        guard !result.isEmpty else { throw LemulipError.invalidInput("Choose at least one PDF page.") }
-        return result
     }
 
     static func pageSize(_ page: PDFPage) throws -> CGSize {
