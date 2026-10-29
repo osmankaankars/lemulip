@@ -63,7 +63,9 @@ jobs:
         run: |
           export LEMULIP_SELECTION_REVIEW_COMMIT="$(git rev-parse HEAD)"
           export LEMULIP_EDITOR_REVIEW_COMMIT="$(git rev-parse HEAD)"
-          xcrun --sdk macosx swift test --jobs 2 --skip EngineIntegrationTests
+          xcrun --sdk macosx swift test --jobs 2 --skip 'EngineIntegrationTests|SelectionFeedbackTests'
+          # Give the hosted editor its own AppKit lifecycle and event queue.
+          xcrun --sdk macosx swift test --skip-build --filter SelectionFeedbackTests
       - name: Retain Editor Continuity Review
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

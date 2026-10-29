@@ -8,6 +8,8 @@ import LemulipCore
 @testable import Lemulip
 
 final class SelectionFeedbackTests: XCTestCase {
+    @MainActor private var dispatchedEditorLifecycleEvents = 0
+    @MainActor private var dispatchedEditorKeys: [String] = []
     @MainActor
     func testPreferenceStartsOffAndSurvivesControllerRecreation() async throws {
         try await withFixture { fixture in
@@ -488,6 +490,18 @@ final class SelectionFeedbackTests: XCTestCase {
         let screen = try XCTUnwrap(NSScreen.screens.first, "Native editor review requires a WindowServer display")
         let policy = application.activationPolicy()
         XCTAssertTrue(application.setActivationPolicy(.regular))
+        defer { _ = application.setActivationPolicy(policy) }
+        if !NSRunningApplication.current.isFinishedLaunching {
+            guard application.delegate == nil else {
+                throw EditorReviewFailure("The review host must not launch a production application delegate")
+            }
+            guard UserDefaults.standard.object(forKey: "NSOpen") == nil else {
+                throw EditorReviewFailure("The synthetic review host requires no NSOpen launch files")
+            }
+            application.finishLaunching()
+        }
+        dispatchedEditorLifecycleEvents = 0
+        dispatchedEditorKeys = []
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 820, height: 590),
                               styleMask: [.titled, .closable], backing: .buffered, defer: false)
         window.isReleasedWhenClosed = false
@@ -500,12 +514,18 @@ final class SelectionFeedbackTests: XCTestCase {
         defer {
             window.contentView = nil
             window.close()
-            _ = application.setActivationPolicy(policy)
         }
         application.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
-        try await waitForEditor("The synthetic editor window must become key") { window.isKeyWindow }
-        try await body(window, host)
+        do {
+            try await waitForEditor("The synthetic editor window must become key", servicing: window) {
+                window.isVisible && window.isKeyWindow && application.keyWindow === window
+            }
+            try await body(window, host)
+        } catch {
+            try? captureEditor(host, window: window, name: "crop-continuity-failure")
+            throw error
+        }
     }
 
     @MainActor
@@ -528,14 +548,36 @@ final class SelectionFeedbackTests: XCTestCase {
             guard event.window === window else { throw EditorReviewFailure("The event has the wrong window") }
             NSApp.sendEvent(event)
         }
+        dispatchedEditorKeys.append(characters)
         try await Task.sleep(nanoseconds: 20_000_000)
     }
 
     @MainActor
-    private func waitForEditor(_ message: String, condition: () -> Bool) async throws {
+    private func waitForEditor(_ message: String, servicing window: NSWindow? = nil,
+                               condition: () -> Bool) async throws {
         let deadline = Date().addingTimeInterval(5)
-        while !condition(), Date() < deadline { try await Task.sleep(nanoseconds: 20_000_000) }
+        while !condition(), Date() < deadline {
+            if let window { try serviceEditorLifecycleEvents(for: window) }
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
         guard condition() else { throw EditorReviewFailure(message) }
+    }
+
+    @MainActor
+    private func serviceEditorLifecycleEvents(for window: NSWindow) throws {
+        // XCTest does not run NSApplication's normal event-dispatch loop.
+        // Service only this process's lifecycle events for the constructed host.
+        let mask: NSEvent.EventTypeMask = [.appKitDefined, .applicationDefined]
+        for _ in 0..<32 {
+            guard let event = NSApp.nextEvent(matching: mask, until: .distantPast,
+                                             inMode: .default, dequeue: true) else { break }
+            guard event.window == nil || event.window === window else {
+                throw EditorReviewFailure("Refusing to dispatch a lifecycle event for a different window")
+            }
+            NSApp.sendEvent(event)
+            dispatchedEditorLifecycleEvents += 1
+        }
+        NSApp.updateWindows()
     }
 
     @MainActor
@@ -556,11 +598,22 @@ final class SelectionFeedbackTests: XCTestCase {
             "sourceCommit": environment["LEMULIP_EDITOR_REVIEW_COMMIT"] ?? environment["GITHUB_SHA"] ?? "local",
             "workflowRun": environment["GITHUB_RUN_ID"] ?? "local",
             "input": "Synthetic 16 by 16 pixel fixture; no user files",
-            "selectionSetup": "Canvas binding; Return and arrow keys routed through the synthetic key window",
-            "destination": "Injected cancel response; no external chooser automation",
+            "selectionSetup": "Initial region set through the production canvas binding; native key dispatch recorded separately",
+            "keysDispatched": dispatchedEditorKeys,
+            "destination": "Test supplies cancellation then acceptance; no external chooser automation",
             "logicalWidth": Double(view.bounds.width), "logicalHeight": Double(view.bounds.height),
             "pixelWidth": bitmap.pixelsWide, "pixelHeight": bitmap.pixelsHigh,
             "windowBackingScale": Double(window.backingScaleFactor), "resizedAfterCapture": false,
+            "appKit": [
+                "applicationIsActive": NSApp.isActive,
+                "processFinishedLaunching": NSRunningApplication.current.isFinishedLaunching,
+                "applicationDelegateIsNil": NSApp.delegate == nil,
+                "windowIsVisible": window.isVisible,
+                "windowIsKey": window.isKeyWindow,
+                "windowNumber": window.windowNumber,
+                "keyWindowNumber": NSApp.keyWindow?.windowNumber ?? -1,
+                "dispatchedLifecycleEvents": dispatchedEditorLifecycleEvents
+            ] as [String: Any],
             "theme": AppTheme.saved.rawValue
         ]
         try JSONSerialization.data(withJSONObject: record, options: [.prettyPrinted, .sortedKeys])
