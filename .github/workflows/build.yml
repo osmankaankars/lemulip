@@ -57,7 +57,21 @@ jobs:
           [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           if [[ "$REF_TYPE" == tag ]]; then test "$REF_NAME" = "v$VERSION"; fi
       - name: Compile and Test Built-In Engines
-        run: xcrun --sdk macosx swift test --jobs 2 --skip EngineIntegrationTests
+        run: xcrun --sdk macosx swift test --jobs 2 --skip 'EngineIntegrationTests|PDFRangeInteractionTests'
+      - name: Verify PDF Range Editing in Its Own Native Window
+        env:
+          LEMULIP_RANGE_REVIEW_DIR: ${{ runner.temp }}/lemulip-range-review
+        run: |
+          export LEMULIP_RANGE_REVIEW_COMMIT="$(git rev-parse HEAD)"
+          xcrun --sdk macosx swift test --skip-build --filter PDFRangeInteractionTests
+      - name: Retain PDF Range Review
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-PDF-Range-${{ matrix.arch }}
+          path: ${{ runner.temp }}/lemulip-range-review
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Install Test Codecs
         if: matrix.arch == 'arm64'
         env:

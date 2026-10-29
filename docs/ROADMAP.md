@@ -142,6 +142,20 @@ Add one setting, **Selection sounds**, default **off**, with an explicit preview
 
 [PR #26](https://github.com/osmankaankars/lemulip/pull/26) adds brief native panel entry (90 ms for the wheel, 140 ms for the result card), immediate input eligibility and dismissal, live reduced-motion/transparency handling, and explicit localized option-control names and values. Its [editor review matrix](https://github.com/osmankaankars/lemulip/blob/758e07a4d056d1485ba6354b9079b7d2631b6001/docs/EDITOR_REVIEW.md) tracks scenarios and the distinction between rendered views, model tests and actual input delivery.
 
+**PDF extraction input follow-up.** The options form previously accepted any nonempty
+page-range text. A malformed entry such as `1,,2` or `3-1` closed the form and
+created a failed job; Retry repeated the same invalid request. The shared page-range
+parser now lets the form show a specific English/Turkish syntax error, disable its
+default action and retain the text for correction. A corrected `3,1-2,3` still
+exports pages `3,1,2`, preserving first-occurrence order and the original document.
+
+The bounded parser checks syntax without expanding ranges while someone types.
+Document-specific page-count checks remain in the converter. The native regression
+uses the production options view, own-window AppKit key events and real PDF output
+on both architectures; the build retains its captures and observations separately
+from physical keyboard and VoiceOver review. This change does not alter the frozen
+`f402dabb` UI review copy or complete the other native release gates.
+
 ## B2 — Measure and Retain Matching Symbols
 
 [The two-architecture experiment](https://github.com/osmankaankars/lemulip/actions/runs/40879083064) at `43d441911b311b29960aa7f01738a88e3b59b16a` measured copies of the GUI and CLI using the same signing treatment for the baseline and variants. Removing debug and local symbol entries (`strip -S -x`) preserved UUIDs, runtime section bytes, dependencies, imports, exports and dynamic-loader payloads. Matching dSYMs were produced and verified before stripping.
