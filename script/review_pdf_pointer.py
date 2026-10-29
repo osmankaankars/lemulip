@@ -3,6 +3,8 @@
 
 Requires a completed macOS `swift test` build. This is synthetic AppKit input in
 our own XCTest window, not hardware mouse, global input, or manual UI evidence.
+Launches the built bundle directly with XCTest, without a SwiftPM driver that
+would put the actual test host in a separate process group from the watchdog.
 Each exact test gets 45 seconds. A stuck native tracking loop is terminated only
 inside the new process group created for that test; logs and partial artifacts
 remain available. A timeout or failed test is never reported as a UI pass.
@@ -30,6 +32,55 @@ CASES = (
 )
 
 
+def xctest_paths(root: Path) -> tuple[Path, Path]:
+    # Match SwiftPM's macOS XCTest host discovery and -XCTest launch form.
+    # Sources/PackageModel/UserToolchain.swift and Commands/SwiftTestCommand.swift
+    # in swiftlang/swift-package-manager, tag swift-6.2-RELEASE.
+    output = subprocess.check_output(
+        ["/usr/bin/xcrun", "--sdk", "macosx", "--find", "xctest"],
+        cwd=root, text=True, timeout=10).strip()
+    runner = Path(output)
+    if not runner.is_absolute():
+        raise ValueError("xcrun did not return an absolute XCTest host path")
+    runner = runner.resolve(strict=True)
+    if not runner.is_file() or not os.access(runner, os.X_OK):
+        raise ValueError("The resolved XCTest host is not an executable file")
+    build = (root / ".build").resolve(strict=True)
+    bundle = (build / "debug" / "LemulipPackageTests.xctest").resolve(strict=True)
+    if not bundle.is_dir() or not bundle.is_relative_to(build):
+        raise ValueError("The built XCTest bundle must be a directory inside this checkout's .build")
+    executable = bundle / "Contents" / "MacOS" / "LemulipPackageTests"
+    if not executable.is_file() or not os.access(executable, os.X_OK):
+        raise ValueError("The existing Lemulip XCTest bundle has no executable; run swift test first")
+    return runner, bundle
+
+
+def xctest_environment(root: Path) -> dict[str, str]:
+    # Match SwiftPM's TestingSupport.constructTestEnvironment for XCTest.
+    # Resolve the platform, not the SDK root: XCTest lives under Developer.
+    environment = os.environ.copy()
+    platform_value = environment.get("SWIFTPM_PLATFORM_PATH_macosx")
+    if platform_value is None:
+        platform_value = subprocess.check_output(
+            ["/usr/bin/xcrun", "--sdk", "macosx", "--show-sdk-platform-path"],
+            cwd=root, text=True, timeout=10).strip()
+    platform = Path(platform_value)
+    if not platform.is_absolute() or not platform.is_dir():
+        raise ValueError("The macOS XCTest platform path must be an existing absolute directory")
+    developer = platform / "Developer"
+    paths = {
+        "DYLD_FRAMEWORK_PATH": [developer / "Library" / "Frameworks",
+                                developer / "Library" / "PrivateFrameworks"],
+        "DYLD_LIBRARY_PATH": [developer / "usr" / "lib"],
+    }
+    for key, additions in paths.items():
+        environment[key] = os.pathsep.join(
+            ([environment[key]] if environment.get(key) else [])
+            + [str(path) for path in additions])
+    environment.update({"NO_COLOR": "1", "SWIFT_TESTING_ENABLED": "0"})
+    return environment
+
+
 def run_bounded(command: list[str], *, log: Path, environment: dict[str, str],
                 cwd: Path, timeout_seconds: float = 45) -> dict[str, object]:
     started = time.monotonic()
@@ -49,7 +100,7 @@ def run_bounded(command: list[str], *, log: Path, environment: dict[str, str],
             except ProcessLookupError:
                 pass
             # Do not poll/wait/reap the leader during this grace period. If the
-            # Swift driver exits before a TERM-resistant XCTest descendant, its
+            # test host exits before a TERM-resistant same-group descendant, its
             # unreaped PID keeps the owned group ID reserved until the final kill.
             time.sleep(3)
             try:
@@ -77,6 +128,11 @@ def main() -> int:
     if sys.platform != "darwin":
         parser.error("The own-window PDF pointer diagnostic requires macOS")
     root = Path(__file__).resolve().parents[1]
+    try:
+        runner, bundle = xctest_paths(root)
+        test_environment = xctest_environment(root)
+    except (OSError, ValueError, subprocess.SubprocessError) as error:
+        parser.error(f"Cannot launch the existing XCTest bundle directly: {error}")
     directory = args.output.resolve()
     directory.mkdir(parents=True, exist_ok=True)
     report_path = directory / "pointer-review.json"
@@ -88,6 +144,8 @@ def main() -> int:
         "workflowRun": os.environ.get("GITHUB_RUN_ID", "local"),
         "createdAtUTC": dt.datetime.now(dt.timezone.utc).isoformat(),
         "method": "Four opt-in XCTest cases, each in its own fresh process and synthetic AppKit window",
+        "launcher": "Direct XCTest executable; no SwiftPM driver",
+        "xctestRunner": str(runner), "xctestBundle": str(bundle),
         "hardwareMouseVerified": False, "globalInputPosted": False,
         "watchdogScope": "Only each new child process group; 45 seconds per case",
         "cases": [], "status": "running",
@@ -97,7 +155,7 @@ def main() -> int:
     for case in CASES:
         case_directory = directory / case
         case_directory.mkdir()
-        environment = os.environ.copy()
+        environment = test_environment.copy()
         environment.update({
             "LEMULIP_PDF_POINTER_PROBE": "1",
             "LEMULIP_PDF_POINTER_WATCHDOG": "45",
@@ -105,8 +163,8 @@ def main() -> int:
             "LEMULIP_PDF_REVIEW_COMMIT": commit,
         })
         log = case_directory / "xctest.log"
-        command = ["xcrun", "--sdk", "macosx", "swift", "test", "--skip-build",
-                   "--filter", "PDFEditorInteractionTests/" + case]
+        selector = "LemulipAppTests.PDFEditorInteractionTests/" + case
+        command = [str(runner), "-XCTest", selector, str(bundle)]
         result = run_bounded(command, log=log, environment=environment, cwd=root)
         text = log.read_text(errors="replace")
         exact_pass = re.search(
@@ -114,6 +172,7 @@ def main() -> int:
             + re.escape(case) + r"\]' passed \(", text) is not None
         passed = result["returnCode"] == 0 and not result["timedOut"] and exact_pass
         result.update({"test": case, "passed": passed, "exactTestPassLineFound": exact_pass,
+                       "xctestSelector": selector,
                        "log": str(log.relative_to(directory)),
                        "artifacts": sorted(p.name for p in case_directory.iterdir() if p != log)})
         if result["timedOut"]:

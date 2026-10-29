@@ -177,9 +177,9 @@ final class PDFEditorInteractionTests: XCTestCase {
                 try capture(host, window: window, name: name + "-before", state: observe().record)
                 _ = try await pointerSequence(from: target.point, to: target.point, drag: false,
                     host: host, window: window, name: name, locator: target.locator, observe: observe)
-                try await waitFor("Clicking the visible Cancel button must discard the pending merge while a number draft is active") {
-                    model.pendingOperation == nil
-                }
+                try await requireFirstCancelClick(
+                    "Clicking the visible Cancel button must discard the pending merge while a number draft is active",
+                    target: target, host: host, window: window, name: name, observe: observe)
             } else {
                 // Selection is fixture setup, not a claim that Command-click was tested.
                 editor.select(2, modifiers: .command)
@@ -233,9 +233,9 @@ final class PDFEditorInteractionTests: XCTestCase {
                 try capture(host, window: window, name: name + "-before", state: observe().record)
                 _ = try await pointerSequence(from: target.point, to: target.point, drag: false,
                     host: host, window: window, name: name, locator: target.locator, observe: observe)
-                try await waitFor("Clicking the visible Cancel button must discard the pending organizer while a number draft is active") {
-                    model.pendingOperation == nil
-                }
+                try await requireFirstCancelClick(
+                    "Clicking the visible Cancel button must discard the pending organizer while a number draft is active",
+                    target: target, host: host, window: window, name: name, observe: observe)
             } else {
                 editor.select(2, modifiers: .command)
                 XCTAssertEqual(editor.selectedPages, [0, 2])
@@ -451,9 +451,11 @@ final class PDFEditorInteractionTests: XCTestCase {
     }
 
     @MainActor
-    private func cancelTarget(in host: NSView, window: NSWindow, fallback: NSPoint) throws -> (point: NSPoint, locator: String) {
+    private func cancelTarget(in host: NSView, window: NSWindow, fallback: NSPoint) throws -> (point: NSPoint, locator: String, view: NSView) {
         let matches = nativeButtons(in: host).filter { $0.title == "Cancel" }
         guard matches.count <= 1 else { throw InteractionFailure("The visible Cancel button is ambiguous") }
+        var point = fallback
+        var locator = "Visible Cancel center measured from the exact 69b03 production capture; no native NSButton title was available"
         if let button = matches.first {
             let frame = button.convert(button.bounds, to: nil)
             guard button.window === window, button.isDescendant(of: host), button.isEnabled,
@@ -461,9 +463,65 @@ final class PDFEditorInteractionTests: XCTestCase {
                   host.convert(host.bounds, to: nil).contains(frame), frame.width > 0, frame.height > 0 else {
                 throw InteractionFailure("The native Cancel button is not eligible in this own-window fixture")
             }
-            return (NSPoint(x: frame.midX, y: frame.midY), "Unique visible enabled native NSButton titled Cancel; actual frame " + NSStringFromRect(frame))
+            point = NSPoint(x: frame.midX, y: frame.midY)
+            locator = "Unique visible enabled native NSButton titled Cancel; actual frame " + NSStringFromRect(frame)
         }
-        return (fallback, "Visible Cancel center measured from the exact 69b03 production capture; no native NSButton title was available")
+        let container = try XCTUnwrap(host.superview, "The Cancel target must remain attached to its own window")
+        guard host.window === window, window.isVisible, window.isKeyWindow, NSApp.keyWindow === window,
+              host.convert(host.bounds, to: nil).contains(point),
+              let hit = host.hitTest(container.convert(point, from: nil)),
+              hit.window === window, hit === host || hit.isDescendant(of: host),
+              !hit.isHiddenOrHasHiddenAncestor else {
+            throw InteractionFailure("The visible Cancel target must hit this own key window")
+        }
+        return (point, locator, hit)
+    }
+
+    @MainActor
+    private func requireFirstCancelClick(_ requirement: String,
+        target: (point: NSPoint, locator: String, view: NSView),
+        host: NSView, window: NSWindow, name: String,
+        observe: @escaping @MainActor () -> PointerObservation) async throws {
+        do {
+            try await waitFor(requirement) { observe().pending == nil }
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            // Preserve the failed first click before any further input. A later
+            // successful click is diagnostic only and must never pass this test.
+            let firstState = observe()
+            try capture(host, window: window, name: name + "-after-first-click", state: firstState.record)
+            var record: [String: Any] = [
+                "firstClickRequirementPassed": false, "firstClickState": firstState.record,
+                "secondClickSequenceStarted": false, "sameTargetRevalidated": false
+            ]
+            do {
+                if observe().pending != nil {
+                    let repeated = try cancelTarget(in: host, window: window, fallback: target.point)
+                    guard repeated.point == target.point, repeated.view === target.view,
+                          observe().pending == firstState.pending else {
+                        throw InteractionFailure("The second Cancel click must target the same visible button and pending operation")
+                    }
+                    record["sameTargetRevalidated"] = true
+                    record["secondClickSequenceStarted"] = true
+                    _ = try await pointerSequence(from: repeated.point, to: repeated.point, drag: false,
+                        host: host, window: window, name: name + "-second-click",
+                        locator: repeated.locator + "; same native hit view as the first click", observe: observe)
+                    try await waitFor("The diagnostic second Cancel click did not clear the pending operation") {
+                        observe().pending == nil
+                    }
+                } else {
+                    record["secondClickSkipped"] = "The pending operation cleared after the first-click deadline; no further input was sent"
+                }
+            } catch {
+                record["secondClickError"] = String(describing: error)
+            }
+            let finalState = observe()
+            record["pendingClearedAfterDiagnostic"] = finalState.pending == nil
+            record["finalState"] = finalState.record
+            try capture(host, window: window, name: name + "-after-second-click", state: record)
+            throw InteractionFailure(requirement + "; first-click requirement failed; pending cleared after diagnostic: \(finalState.pending == nil)")
+        }
     }
 
     @MainActor
