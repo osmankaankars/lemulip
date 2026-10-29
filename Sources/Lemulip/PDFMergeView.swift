@@ -91,6 +91,7 @@ struct PDFMergeView: View {
             } label: {
                 Label(model.text("Order", "Sıralama"), systemImage: "arrow.up.arrow.down")
             }
+            .fixedSize(horizontal: true, vertical: false)
             .help(model.text("Files Keep Their Incoming Order Until You Change It", "Değiştirene kadar dosyalar gelen sırada kalır"))
             Divider().frame(height: 20).padding(.horizontal, 3)
             Button { focus = .content; editor.removeSelection() } label: {
