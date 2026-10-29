@@ -2,6 +2,7 @@
 import AppKit
 import AudioToolbox
 import AVFoundation
+import SwiftUI
 import XCTest
 import LemulipCore
 @testable import Lemulip
@@ -196,6 +197,154 @@ final class SelectionFeedbackTests: XCTestCase {
     }
 
     @MainActor
+    func testCancelledDestinationPreservesPendingChoiceUntilLaterAcceptance() async throws {
+        try await withFixture { fixture in
+            var requests = 0
+            try await withController(fixture, destinationPicker: { _ in
+                requests += 1
+                return requests < 3 ? nil : fixture.directory
+            }) { controller in
+                controller.selectionSoundsEnabled = true
+                controller.outputAlongsideOriginal = false
+                let input = try fixture.imageInput()
+                let original = try Data(contentsOf: input)
+                let operation = FileOperation(id: "image.crop", title: "Crop Image")
+                controller.begin(operation, inputs: [input])
+                var options = ConversionOptions()
+                options.imageCrop = ImageCropRegion(x: 1, y: 2, width: 12, height: 10,
+                                                   sourceWidth: 16, sourceHeight: 16)
+                for _ in 0..<2 {
+                    XCTAssertFalse(controller.submitPending(options, outputExtension: "png"))
+                    XCTAssertEqual(controller.pendingOperation?.id, operation.id)
+                    XCTAssertEqual(controller.pendingInputURLs, [input])
+                    XCTAssertTrue(controller.activity.isEmpty)
+                    XCTAssertFalse(controller.isBusy)
+                    XCTAssertEqual(fixture.player.starts, 0)
+                }
+                // Workspace selection changes must not replace the editor's input.
+                controller.files = []
+                XCTAssertTrue(controller.submitPending(options, outputExtension: "png"))
+                XCTAssertNil(controller.pendingOperation)
+                XCTAssertTrue(controller.pendingInputURLs.isEmpty)
+                XCTAssertEqual(controller.activity.count, 1)
+                XCTAssertEqual(controller.activity[0].retryRequest?.options.imageCrop, options.imageCrop)
+                XCTAssertEqual(controller.activity[0].retryRequest?.options.destinationDirectory, fixture.directory)
+                XCTAssertEqual(fixture.player.starts, 1)
+                XCTAssertFalse(controller.submitPending(options, outputExtension: "png"))
+                XCTAssertEqual(requests, 3)
+                XCTAssertEqual(controller.activity.count, 1)
+                try await waitForJobs(controller)
+                XCTAssertEqual(controller.activity[0].state, .succeeded)
+                let output = try XCTUnwrap(controller.activity[0].outputs.first)
+                let bitmap = try XCTUnwrap(NSBitmapImageRep(contentsOf: output))
+                XCTAssertEqual(bitmap.pixelsWide, 12)
+                XCTAssertEqual(bitmap.pixelsHigh, 10)
+                XCTAssertEqual(try Data(contentsOf: input), original)
+                XCTAssertEqual(fixture.player.starts, 1)
+            }
+        }
+    }
+
+    @MainActor
+    func testFinalEditorCancelAfterDestinationCancelCreatesNoJobOrCue() async throws {
+        try await withFixture { fixture in
+            try await withController(fixture, destinationPicker: { _ in nil }) { controller in
+                controller.selectionSoundsEnabled = true
+                controller.outputAlongsideOriginal = false
+                let input = try fixture.imageInput()
+                controller.begin(FileOperation(id: "image.resize", title: "Resize"), inputs: [input])
+                XCTAssertFalse(controller.submitPending(ConversionOptions()))
+                controller.cancelPending()
+                XCTAssertNil(controller.pendingOperation)
+                XCTAssertTrue(controller.pendingInputURLs.isEmpty)
+                XCTAssertFalse(controller.submitPending(ConversionOptions()))
+                XCTAssertTrue(controller.activity.isEmpty)
+                XCTAssertFalse(controller.isBusy)
+                XCTAssertEqual(fixture.player.starts, 0)
+            }
+        }
+    }
+
+    @MainActor
+    func testDestinationModalCannotReenterOrSubmitACancelledEditor() async throws {
+        try await withFixture { fixture in
+            weak var activeController: AppController?
+            var requests = 0
+            try await withController(fixture, destinationPicker: { _ in
+                requests += 1
+                XCTAssertFalse(activeController?.submitPending(ConversionOptions()) ?? true,
+                               "A nested confirmation must not open another picker")
+                activeController?.cancelPending()
+                return fixture.directory
+            }) { controller in
+                activeController = controller
+                controller.selectionSoundsEnabled = true
+                controller.outputAlongsideOriginal = false
+                controller.begin(FileOperation(id: "image.resize", title: "Resize"),
+                                 inputs: [try fixture.imageInput()])
+                XCTAssertFalse(controller.submitPending(ConversionOptions()))
+                XCTAssertEqual(requests, 1)
+                XCTAssertNil(controller.pendingOperation)
+                XCTAssertTrue(controller.activity.isEmpty)
+                XCTAssertEqual(fixture.player.starts, 0)
+            }
+        }
+    }
+
+    @MainActor
+    func testNativeCropRemainsEditableAfterCancellingDestination() async throws {
+        try await withFixture { fixture in
+            var requests = 0
+            try await withController(fixture, destinationPicker: { _ in
+                requests += 1
+                return requests == 1 ? nil : fixture.directory
+            }) { controller in
+                controller.selectionSoundsEnabled = true
+                controller.outputAlongsideOriginal = false
+                let input = try fixture.imageInput()
+                controller.begin(FileOperation(id: "image.crop", title: "Crop Image"), inputs: [input])
+                try await withCropWindow(controller) { window, host in
+                    try await waitForEditor("The production crop preview must load") {
+                        self.cropCanvas(in: host)?.selection.sourceWidth == 16
+                    }
+                    let canvas = try XCTUnwrap(cropCanvas(in: host))
+                    let crop = ImageCropRegion(x: 1, y: 2, width: 12, height: 10,
+                                               sourceWidth: 16, sourceHeight: 16)
+                    // Seed a deterministic fixture through the real canvas binding.
+                    // Confirmation and subsequent editing use the native key path.
+                    canvas.onChange?(crop)
+                    try await waitForEditor("The edited crop must appear") { canvas.selection == crop }
+                    XCTAssertTrue(window.makeFirstResponder(canvas))
+                    try await pressEditorKey("\r", code: 36, in: window)
+                    try await waitForEditor("Create Copy must request a destination") { requests == 1 }
+                    XCTAssertNotNil(controller.pendingOperation)
+                    XCTAssertEqual(controller.pendingInputURLs, [input])
+                    XCTAssertTrue(cropCanvas(in: host) === canvas, "Cancelling must retain the native editor instance")
+                    XCTAssertEqual(canvas.selection, crop)
+                    XCTAssertTrue(controller.activity.isEmpty)
+                    XCTAssertEqual(fixture.player.starts, 0)
+                    try captureEditor(host, window: window, name: "crop-after-destination-cancel")
+
+                    try await pressEditorKey("\u{F703}", code: 124, in: window)
+                    try await waitForEditor("The retained editor must still accept arrow-key adjustments") {
+                        canvas.selection.x == 2
+                    }
+                    try await pressEditorKey("\r", code: 36, in: window)
+                    try await waitForEditor("Acceptance must dismiss the editor") {
+                        controller.pendingOperation == nil && self.cropCanvas(in: host) == nil
+                    }
+                    XCTAssertEqual(requests, 2)
+                    XCTAssertEqual(controller.activity.count, 1)
+                    XCTAssertEqual(controller.activity[0].retryRequest?.options.imageCrop?.x, 2)
+                    XCTAssertEqual(fixture.player.starts, 1)
+                    try await waitForJobs(controller)
+                    XCTAssertEqual(controller.activity[0].state, .succeeded)
+                }
+            }
+        }
+    }
+
+    @MainActor
     func testCanceledDestinationAndUnavailableOperationsStaySilent() async throws {
         try await withFixture { fixture in
             var destinationRequests = 0
@@ -330,6 +479,103 @@ final class SelectionFeedbackTests: XCTestCase {
             try await Task.sleep(nanoseconds: 20_000_000)
         }
         XCTFail("The small native fixture did not finish within three seconds")
+    }
+
+    @MainActor
+    private func withCropWindow(_ controller: AppController,
+        body: (NSWindow, NSHostingView<ContinuityCropHost>) async throws -> Void) async throws {
+        let application = NSApplication.shared
+        let screen = try XCTUnwrap(NSScreen.screens.first, "Native editor review requires a WindowServer display")
+        let policy = application.activationPolicy()
+        XCTAssertTrue(application.setActivationPolicy(.regular))
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 820, height: 590),
+                              styleMask: [.titled, .closable], backing: .buffered, defer: false)
+        window.isReleasedWhenClosed = false
+        window.title = "Lemulip Editor Continuity Review"
+        window.appearance = NSAppearance(named: AppTheme.saved.appearanceName)
+        let host = NSHostingView(rootView: ContinuityCropHost(model: controller))
+        window.contentView = host
+        window.setContentSize(NSSize(width: 820, height: 590))
+        window.setFrameTopLeftPoint(NSPoint(x: screen.visibleFrame.minX + 30, y: screen.visibleFrame.maxY - 30))
+        defer {
+            window.contentView = nil
+            window.close()
+            _ = application.setActivationPolicy(policy)
+        }
+        application.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+        try await waitForEditor("The synthetic editor window must become key") { window.isKeyWindow }
+        try await body(window, host)
+    }
+
+    @MainActor
+    private func cropCanvas(in view: NSView) -> ImageCropCanvas? {
+        if let canvas = view as? ImageCropCanvas { return canvas }
+        for child in view.subviews { if let canvas = cropCanvas(in: child) { return canvas } }
+        return nil
+    }
+
+    @MainActor
+    private func pressEditorKey(_ characters: String, code: UInt16, in window: NSWindow) async throws {
+        guard NSApp.keyWindow === window, window.isKeyWindow else {
+            throw EditorReviewFailure("Refusing to send an event outside the synthetic key window")
+        }
+        for type in [NSEvent.EventType.keyDown, .keyUp] {
+            let event = try XCTUnwrap(NSEvent.keyEvent(with: type, location: .zero, modifierFlags: [],
+                timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: window.windowNumber,
+                context: nil, characters: characters, charactersIgnoringModifiers: characters,
+                isARepeat: false, keyCode: code))
+            guard event.window === window else { throw EditorReviewFailure("The event has the wrong window") }
+            NSApp.sendEvent(event)
+        }
+        try await Task.sleep(nanoseconds: 20_000_000)
+    }
+
+    @MainActor
+    private func waitForEditor(_ message: String, condition: () -> Bool) async throws {
+        let deadline = Date().addingTimeInterval(5)
+        while !condition(), Date() < deadline { try await Task.sleep(nanoseconds: 20_000_000) }
+        guard condition() else { throw EditorReviewFailure(message) }
+    }
+
+    @MainActor
+    private func captureEditor(_ view: NSView, window: NSWindow, name: String) throws {
+        guard let path = ProcessInfo.processInfo.environment["LEMULIP_EDITOR_REVIEW_DIR"], !path.isEmpty else { return }
+        let directory = URL(fileURLWithPath: path, isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        view.layoutSubtreeIfNeeded()
+        view.displayIfNeeded()
+        let bitmap = try XCTUnwrap(view.bitmapImageRepForCachingDisplay(in: view.bounds))
+        view.cacheDisplay(in: view.bounds, to: bitmap)
+        try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+            .write(to: directory.appendingPathComponent(name + ".png"), options: .withoutOverwriting)
+        let environment = ProcessInfo.processInfo.environment
+        let record: [String: Any] = [
+            "capture": "Production ImageCropView hosted in a native AppKit test window; NSView.cacheDisplay",
+            "scenario": name,
+            "sourceCommit": environment["LEMULIP_EDITOR_REVIEW_COMMIT"] ?? environment["GITHUB_SHA"] ?? "local",
+            "workflowRun": environment["GITHUB_RUN_ID"] ?? "local",
+            "input": "Synthetic 16 by 16 pixel fixture; no user files",
+            "selectionSetup": "Canvas binding; Return and arrow keys routed through the synthetic key window",
+            "destination": "Injected cancel response; no external chooser automation",
+            "logicalWidth": Double(view.bounds.width), "logicalHeight": Double(view.bounds.height),
+            "pixelWidth": bitmap.pixelsWide, "pixelHeight": bitmap.pixelsHigh,
+            "windowBackingScale": Double(window.backingScaleFactor), "resizedAfterCapture": false,
+            "theme": AppTheme.saved.rawValue
+        ]
+        try JSONSerialization.data(withJSONObject: record, options: [.prettyPrinted, .sortedKeys])
+            .write(to: directory.appendingPathComponent(name + ".json"), options: .withoutOverwriting)
+    }
+}
+
+private struct EditorReviewFailure: Error { let message: String; init(_ message: String) { self.message = message } }
+
+@MainActor
+private struct ContinuityCropHost: View {
+    @ObservedObject var model: AppController
+    var body: some View {
+        if model.pendingOperation != nil { ImageCropView(model: model, inputs: model.pendingInputURLs) }
+        else { Color.clear }
     }
 }
 

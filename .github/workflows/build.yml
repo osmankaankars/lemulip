@@ -59,9 +59,19 @@ jobs:
       - name: Compile and Test Built-In Engines
         env:
           LEMULIP_SELECTION_REVIEW_DIR: ${{ runner.temp }}/lemulip-selection-review
+          LEMULIP_EDITOR_REVIEW_DIR: ${{ runner.temp }}/lemulip-editor-review
         run: |
           export LEMULIP_SELECTION_REVIEW_COMMIT="$(git rev-parse HEAD)"
+          export LEMULIP_EDITOR_REVIEW_COMMIT="$(git rev-parse HEAD)"
           xcrun --sdk macosx swift test --jobs 2 --skip EngineIntegrationTests
+      - name: Retain Editor Continuity Review
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Lemulip-Editor-Review-${{ matrix.arch }}
+          path: ${{ runner.temp }}/lemulip-editor-review
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Retain Selection Sound Audition
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

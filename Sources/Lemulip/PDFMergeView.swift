@@ -308,7 +308,6 @@ struct PDFMergeView: View {
         guard let plan = editor.exportPlan() else { return }
         var options = ConversionOptions()
         options.pdfMerge = plan
-        editor.close()
         model.submitPending(options, outputExtension: "pdf")
     }
 }

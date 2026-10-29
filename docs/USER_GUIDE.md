@@ -26,6 +26,8 @@ The **Keyboard Shortcuts** button offers **Try With A Sample**, which opens a di
 
 Editors and option panels open for operations that need a selection. **Create Copy** saves the result under an unused name.
 
+If you choose an output folder for each job, cancelling that folder picker returns to the editor with your changes intact. You can keep editing, choose a folder again, or use **Cancel** to leave the editor.
+
 ### Visual Image Crop
 
 Move and resize the crop selection, choose an aspect ratio, and review the composition before creating the copy.

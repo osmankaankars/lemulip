@@ -97,6 +97,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
     private var quittingAfterCancellation = false
     private var pendingInputs: [URL] = []
     private var pendingSelectionChoice: SelectionFeedback.Choice?
+    private var isSubmittingPending = false
     private let wheel = DragWheelController()
     private let engine = ConversionEngine()
     private let selectionFeedback: SelectionFeedback
@@ -366,25 +367,30 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
         } else { submit(operation, inputs: selection, options: ConversionOptions(), choice: choice) }
     }
 
-    func submitPending(_ options: ConversionOptions, outputExtension: String? = nil) {
-        guard var operation = pendingOperation else { return }
-        if let outputExtension { operation.outputExtension = outputExtension }
+    @discardableResult
+    func submitPending(_ options: ConversionOptions, outputExtension: String? = nil) -> Bool {
+        guard var operation = pendingOperation, !pendingInputs.isEmpty, !isSubmittingPending else { return false }
+        isSubmittingPending = true
+        defer { isSubmittingPending = false }
         let selection = pendingInputs
         let choice = pendingSelectionChoice
+        // A cancelled destination picker returns to the same editor and choice.
+        // Its modal run loop must not allow a second submission or a stale one
+        // after the pending editor has been cancelled or replaced.
+        guard let chosenOptions = resolveDestination(options),
+              pendingOperation?.id == operation.id, pendingInputs == selection,
+              pendingSelectionChoice === choice else { return false }
+        if let outputExtension { operation.outputExtension = outputExtension }
         pendingOperation = nil; pendingInputs = []; pendingSelectionChoice = nil
-        submit(operation, inputs: selection, options: options, choice: choice)
+        submit(operation, inputs: selection, options: chosenOptions, choice: choice)
+        return true
     }
 
     func cancelPending() { pendingOperation = nil; pendingInputs = []; pendingSelectionChoice = nil }
 
     func submit(_ operation: FileOperation, inputs: [URL], options: ConversionOptions,
                 choice: SelectionFeedback.Choice? = nil) {
-        guard !inputs.isEmpty else { return }
-        var chosenOptions = options
-        if !outputAlongsideOriginal && chosenOptions.destinationDirectory == nil {
-            guard let directory = chooseDestination(text("Save Here", "Buraya kaydet")) else { return }
-            chosenOptions.destinationDirectory = directory
-        }
+        guard !inputs.isEmpty, var chosenOptions = resolveDestination(options) else { return }
         let activityInputs: [URL]
         if let merge = chosenOptions.pdfMerge,
            (try? merge.validate(sourceInputCount: inputs.count)) != nil {
@@ -488,6 +494,15 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
         guard validateOutputs(urls) else { return }
         NSPasteboard.general.clearContents()
         NSPasteboard.general.writeObjects(urls.map { $0 as NSURL })
+    }
+
+    private func resolveDestination(_ options: ConversionOptions) -> ConversionOptions? {
+        var chosenOptions = options
+        if !outputAlongsideOriginal && chosenOptions.destinationDirectory == nil {
+            guard let directory = chooseDestination(text("Save Here", "Buraya kaydet")) else { return nil }
+            chosenOptions.destinationDirectory = directory
+        }
+        return chosenOptions
     }
 
     private func chooseDestination(_ prompt: String) -> URL? {

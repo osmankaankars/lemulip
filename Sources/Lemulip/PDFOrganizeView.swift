@@ -310,7 +310,6 @@ struct PDFOrganizeView: View {
         guard let plan = editor.exportPlan(selectedOnly: selectedOnly) else { return }
         var options = ConversionOptions()
         options.pdfOrganization = plan
-        editor.close()
         model.submitPending(options, outputExtension: "pdf")
     }
 }
