@@ -179,7 +179,7 @@ def check_wheel_keyboard_feedback(page) -> None:
     page.locator('.wheel-choice[tabindex="0"]').focus()
     page.keyboard.press('ArrowLeft')
     active = page.locator('.wheel-choice[tabindex="0"]')
-    assert active.inner_text() == 'PDF'
+    assert active.text_content() == 'PDF'
     assert active.evaluate('e=>e===document.activeElement')
     page.keyboard.press('Escape')
     assert page.locator('#floating-wheel').is_hidden()
