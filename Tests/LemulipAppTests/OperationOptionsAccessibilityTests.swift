@@ -117,17 +117,16 @@ final class OperationOptionsAccessibilityTests: XCTestCase {
                 let children = element.accessibilityChildren() ?? []
                 let navigationChildren = element.accessibilityChildrenInNavigationOrder() ?? []
                 let frame = element.accessibilityFrame()
-                node.merge([
-                    "role": element.accessibilityRole()?.rawValue ?? "missing",
-                    "identifier": element.accessibilityIdentifier() ?? "missing",
-                    "label": element.accessibilityLabel() ?? "missing",
-                    "title": element.accessibilityTitle() ?? "missing",
-                    "value": String(describing: element.accessibilityValue() ?? "missing"),
-                    "valueDescription": element.accessibilityValueDescription() ?? "missing",
-                    "enabled": element.isAccessibilityEnabled(),
-                    "screenFrame": [Double(frame.minX), Double(frame.minY), Double(frame.width), Double(frame.height)],
-                    "childCount": children.count, "navigationChildCount": navigationChildren.count
-                ], uniquingKeysWith: { _, value in value })
+                node["role"] = element.accessibilityRole()?.rawValue ?? "missing"
+                node["identifier"] = element.accessibilityIdentifier() ?? "missing"
+                node["label"] = element.accessibilityLabel() ?? "missing"
+                node["title"] = element.accessibilityTitle() ?? "missing"
+                node["value"] = String(describing: element.accessibilityValue() ?? "missing")
+                node["valueDescription"] = element.accessibilityValueDescription() ?? "missing"
+                node["enabled"] = element.isAccessibilityEnabled()
+                node["screenFrame"] = [Double(frame.minX), Double(frame.minY), Double(frame.width), Double(frame.height)]
+                node["childCount"] = children.count
+                node["navigationChildCount"] = navigationChildren.count
                 pending.append(contentsOf: children)
                 pending.append(contentsOf: navigationChildren)
             } else { node["conformsToAccessibilityProtocol"] = false }
