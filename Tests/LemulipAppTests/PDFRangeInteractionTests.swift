@@ -69,7 +69,11 @@ final class PDFRangeInteractionTests: XCTestCase {
                         throw ReviewFailure("The form closed or a job was queued for malformed range \(value)")
                     }
                     XCTAssertEqual(field.stringValue, value, "The invalid text must stay editable")
-                    XCTAssertEqual(try FileManager.default.contentsOfDirectory(atPath: directory.path), [source.lastPathComponent])
+                    let files = try FileManager.default.contentsOfDirectory(atPath: directory.path)
+                    XCTAssertEqual(files, [source.lastPathComponent])
+                    guard field.stringValue == value, files == [source.lastPathComponent] else {
+                        throw ReviewFailure("Invalid text was lost or an unexpected file was created")
+                    }
                     try capture(host, name: "range-\(language)-\(invalid.firstIndex(of: value)!)")
                 }
 
@@ -86,7 +90,11 @@ final class PDFRangeInteractionTests: XCTestCase {
                 XCTAssertEqual(document.pageCount, 3)
                 let labels = (0..<document.pageCount).map { document.page(at: $0)?.string?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "" }
                 XCTAssertEqual(labels, ["Charlie", "Alpha", "Bravo"])
-                XCTAssertEqual(try Data(contentsOf: source), original, "Extraction must preserve the original bytes")
+                let originalPreserved = try Data(contentsOf: source) == original
+                XCTAssertTrue(originalPreserved, "Extraction must preserve the original bytes")
+                guard document.pageCount == 3, labels == ["Charlie", "Alpha", "Bravo"], originalPreserved else {
+                    throw ReviewFailure("Output order or original preservation did not match the observed contract")
+                }
                 try record(language: language, invalid: invalid, labels: labels)
             } catch {
                 try? capture(host, name: "range-\(language)-failure")
