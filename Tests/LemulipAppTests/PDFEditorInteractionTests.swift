@@ -24,11 +24,11 @@ final class PDFEditorInteractionTests: XCTestCase {
         let view = PDFMergeView(model: model, inputs: inputs, editor: editor)
         try await withWindow(view, size: NSSize(width: 820, height: 660), name: "merge") { window, host in
             try await waitFor("The actual merge view must finish opening its inputs") { editor.isReady }
-            try await waitFor("Three accessible position fields must be rendered") { positionFields(in: host).count == 3 }
+            try await waitFor("Three visible native position fields numbered 1 through 3 must be rendered") { positionFields(in: host).count == 3 }
             try await waitFor("The visible synthetic PDF covers must load") { editor.thumbnails.count == 3 }
             try capture(host, window: window, name: "merge-initial", state: ["order": editor.documents.map(\.inputIndex)])
 
-            let first = try positionField(0, in: host)
+            let first = try positionField(atOutputPosition: 1, in: host)
             try await enter("3", in: first, window: window)
             try await press("\r", code: 36, in: window)
             try await waitFor("Return must move the file through the production number field") {
@@ -42,7 +42,7 @@ final class PDFEditorInteractionTests: XCTestCase {
                 "order": editor.documents.map(\.inputIndex), "selected": editor.selectedDocuments.sorted()
             ])
 
-            let moved = try positionField(0, in: host)
+            let moved = try positionField(atOutputPosition: 3, in: host)
             try await enter("99", in: moved, window: window)
             try await press("\r", code: 36, in: window)
             try await waitFor("An invalid number must remain in the active field") {
@@ -60,8 +60,8 @@ final class PDFEditorInteractionTests: XCTestCase {
             try await press("\u{F700}", code: 126, in: window)
             try await waitFor("Up must navigate the list immediately after Escape") { editor.selectedDocuments == [2] }
 
-            let previous = try positionField(1, in: host)
-            let next = try positionField(2, in: host)
+            let previous = try positionField(atOutputPosition: 1, in: host)
+            let next = try positionField(atOutputPosition: 2, in: host)
             try await enter("3", in: previous, window: window)
             try await enter("1", in: next, window: window)
             try await waitFor("Changing fields must cancel the previous draft without stealing focus") {
@@ -87,11 +87,11 @@ final class PDFEditorInteractionTests: XCTestCase {
         let view = PDFOrganizeView(model: model, inputs: inputs, editor: editor)
         try await withWindow(view, size: NSSize(width: 860, height: 680), name: "organize") { window, host in
             try await waitFor("The actual organize view must finish opening the PDF") { editor.source != nil }
-            try await waitFor("Four accessible page position fields must be rendered") { positionFields(in: host).count == 4 }
+            try await waitFor("Four visible native page position fields numbered 1 through 4 must be rendered") { positionFields(in: host).count == 4 }
             try await waitFor("The visible synthetic page previews must load") { editor.thumbnails.count == 4 }
             try capture(host, window: window, name: "organize-initial", state: ["order": editor.pages.map(\.sourceIndex)])
 
-            let first = try positionField(0, in: host)
+            let first = try positionField(atOutputPosition: 1, in: host)
             try await enter("4", in: first, window: window)
             try await press("\r", code: 36, in: window)
             try await waitFor("Return must move the page through the production number field") {
@@ -105,7 +105,7 @@ final class PDFEditorInteractionTests: XCTestCase {
                 "order": editor.pages.map(\.sourceIndex), "selected": editor.selectedPages.sorted()
             ])
 
-            let second = try positionField(2, in: host)
+            let second = try positionField(atOutputPosition: 2, in: host)
             try await enter("1", in: second, window: window)
             try await press("\u{1B}", code: 53, in: window)
             try await waitFor("Escape must cancel a valid but unsubmitted page position") {
@@ -177,59 +177,76 @@ final class PDFEditorInteractionTests: XCTestCase {
             guard visited.insert(ObjectIdentifier(element as AnyObject)).inserted else { continue }
             result.append(element)
             pending.append(contentsOf: (element.accessibilityChildren() ?? []).compactMap { $0 as? NSAccessibilityProtocol })
+            pending.append(contentsOf: (element.accessibilityChildrenInNavigationOrder() ?? []).compactMap { $0 as? NSAccessibilityProtocol })
         }
         return result
     }
 
     @MainActor
-    private func positionFields(in view: NSView) -> [String: PositionControl] {
-        var result: [String: PositionControl] = [:]
-        for element in Self.accessibilityElements(in: view) {
-            let identifier: String? = element.accessibilityIdentifier()
-            guard let identifier, identifier.hasPrefix("pdf.position."), element.accessibilityRole() == .textField else { continue }
-            // An ambiguous identifier must fail discovery, not pick an arbitrary control.
-            guard result[identifier] == nil else { return [:] }
-            result[identifier] = PositionControl(identifier: identifier, host: view)
+    private static func accessibilityChildMetadata(_ child: Any) -> [String: Any] {
+        // Preserve evidence before filtering for the full protocol: SwiftUI can
+        // provide virtual nodes with only a base or role-specific conformance.
+        ["class": String(reflecting: type(of: child)),
+         "fullProtocol": child is NSAccessibilityProtocol,
+         "baseProtocol": child is NSAccessibilityElementProtocol,
+         "groupProtocol": child is NSAccessibilityGroup,
+         "staticTextProtocol": child is NSAccessibilityStaticText,
+         "buttonProtocol": child is NSAccessibilityButton]
+    }
+
+    @MainActor
+    private func positionFields(in view: NSView) -> [Int: PositionControl] {
+        // Native CI captures establish that these are real editable NSTextFields,
+        // while SwiftUI keeps their semantic identifiers off the native controls.
+        // Before typing, require every field to display one unique output position.
+        let native = nativeTextFields(in: view).filter(\.isEditable)
+        var result: [Int: PositionControl] = [:]
+        for field in native {
+            let control = PositionControl(native: field, host: view)
+            guard control.isEligible, let position = Int(field.stringValue),
+                  field.stringValue == String(position), position >= 1, position <= native.count,
+                  result[position] == nil else { return [:] }
+            result[position] = control
         }
         return result
     }
 
     @MainActor
-    private func positionField(_ item: Int, in view: NSView) throws -> PositionControl {
-        try XCTUnwrap(positionFields(in: view)["pdf.position.\(item)"],
-                      "The production number field must expose its stable identifier and text-field role")
+    private func positionField(atOutputPosition position: Int, in view: NSView) throws -> PositionControl {
+        try XCTUnwrap(positionFields(in: view)[position],
+                      "The visible output position must identify exactly one eligible native field")
     }
 
     @MainActor
     private struct PositionControl {
-        let identifier: String
+        let native: NSTextField
         let host: NSView
-        // Resolve again after SwiftUI updates instead of retaining a stale AX node.
-        var element: (any NSAccessibilityProtocol)? {
-            let matches = PDFEditorInteractionTests.accessibilityElements(in: host).filter {
-                $0.accessibilityIdentifier() == identifier && $0.accessibilityRole() == .textField
-            }
-            return matches.count == 1 ? matches.first : nil
+        var isEligible: Bool {
+            guard let window = host.window, native.window === window,
+                  native.isDescendant(of: host), !native.isHiddenOrHasHiddenAncestor,
+                  native.isEditable, native.isEnabled, native.acceptsFirstResponder else { return false }
+            let frame = host.convert(native.bounds, from: native)
+            return frame.width > 0 && frame.height > 0 && host.visibleRect.contains(frame)
+                && native.visibleRect.contains(native.bounds)
         }
-        var isFocused: Bool { element?.isAccessibilityFocused() == true }
-        var value: String { element?.accessibilityValue() as? String ?? "" }
+        var isFocused: Bool {
+            guard isEligible, let editor = native.currentEditor() else { return false }
+            return host.window?.firstResponder === editor
+        }
+        var value: String { isEligible ? native.stringValue : "" }
     }
 
     @MainActor
     private func enter(_ value: String, in field: PositionControl, window: NSWindow) async throws {
-        guard field.host.window === window, NSApp.keyWindow === window, window.isKeyWindow else {
+        guard field.host.window === window, NSApp.keyWindow === window, window.isKeyWindow,
+              field.isEligible else {
             throw InteractionFailure("Refusing to focus a control outside the synthetic key window")
         }
-        let element = try XCTUnwrap(field.element, "The position control must still exist in the host's accessibility tree")
-        let frame = window.convertFromScreen(element.accessibilityFrame())
-        let content = field.host.convert(field.host.bounds, to: nil)
-        guard frame.width > 0, frame.height > 0, content.contains(NSPoint(x: frame.midX, y: frame.midY)) else {
-            throw InteractionFailure("The position control must have a visible frame inside the synthetic window")
+        // AppKit's documented first-responder route focuses the actual production
+        // field. It neither assigns the draft nor calls a model/delegate action.
+        guard window.makeFirstResponder(field.native) else {
+            throw InteractionFailure("The native position field refused first-responder status")
         }
-        // SwiftUI owns the semantic accessibility element; its identifier need
-        // not be stored on an eagerly created NSTextField subclass. Focus the
-        // actual control through its public API, then type into its real editor.
-        element.setAccessibilityFocused(true)
         try await Task.sleep(nanoseconds: 20_000_000)
         try await waitFor("The native text editor must receive focus") {
             field.isFocused && (window.firstResponder as? NSTextView)?.isFieldEditor == true
@@ -341,13 +358,29 @@ final class PDFEditorInteractionTests: XCTestCase {
                     "focused": element.isAccessibilityFocused(), "frameInScreen": NSStringFromRect(element.accessibilityFrame())
                 ]
             },
+            "rawAccessibilityChildren": Self.accessibilityElements(in: view).map { element -> [String: Any] in
+                let children = element.accessibilityChildren() ?? []
+                let navigation = element.accessibilityChildrenInNavigationOrder() ?? []
+                return [
+                    "parentClass": String(reflecting: type(of: element)),
+                    "childCountBeforeCast": children.count,
+                    "navigationChildCountBeforeCast": navigation.count,
+                    "childrenBeforeCast": children.prefix(64).map { Self.accessibilityChildMetadata($0) },
+                    "navigationChildrenBeforeCast": navigation.prefix(64).map { Self.accessibilityChildMetadata($0) }
+                ]
+            },
             "nativeTextFields": nativeTextFields(in: view).map { field -> [String: Any] in
                 let element: any NSAccessibilityProtocol = field
                 let identifier: String? = element.accessibilityIdentifier()
                 return [
+                    "class": String(reflecting: type(of: field)),
                     "identifier": identifier ?? "", "role": element.accessibilityRole()?.rawValue ?? "",
                     "editable": field.isEditable, "value": field.stringValue,
-                    "frameInWindow": NSStringFromRect(field.convert(field.bounds, to: nil))
+                    "enabled": field.isEnabled, "acceptsFirstResponder": field.acceptsFirstResponder,
+                    "hidden": field.isHiddenOrHasHiddenAncestor,
+                    "frameInWindow": NSStringFromRect(field.convert(field.bounds, to: nil)),
+                    "visibleRect": NSStringFromRect(field.visibleRect), "bounds": NSStringFromRect(field.bounds),
+                    "currentEditorIsFirstResponder": field.currentEditor().map { $0 === window.firstResponder } ?? false
                 ]
             },
             "input": "Neutral PDFs generated by PDFEditorInteractionTests; no user documents",
