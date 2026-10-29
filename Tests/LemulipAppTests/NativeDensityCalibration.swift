@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor
 final class DensityDrawLog {
     var draws: [[String: Any]] = []
+    var environmentScales: [Double] = []
 
     func record(_ element: String) {
         guard let ctm = NSGraphicsContext.current?.cgContext.ctm else { return }
@@ -28,6 +29,7 @@ final class DensityDrawLog {
 @MainActor
 struct NativeDensityCalibration: View {
     let log: DensityDrawLog
+    @Environment(\.displayScale) private var displayScale
 
     var body: some View {
         VStack(spacing: 0) {
@@ -49,6 +51,8 @@ struct NativeDensityCalibration: View {
             }.frame(width: 320, height: 120)
             DensityNativeRepresentable(log: log).frame(width: 320, height: 120)
         }.frame(width: 320, height: 240).environment(\.colorScheme, .light)
+            .onAppear { log.environmentScales.append(Double(displayScale)) }
+            .onChange(of: displayScale) { value in log.environmentScales.append(Double(value)) }
     }
 }
 

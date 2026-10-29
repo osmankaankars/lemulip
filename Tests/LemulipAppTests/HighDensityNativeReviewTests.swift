@@ -9,6 +9,22 @@ import LemulipCore
 /// audio policy is changed. Artifacts are candidates for review, never site assets.
 final class HighDensityNativeReviewTests: XCTestCase {
     @MainActor
+    func testExplicitDisplayScaleCalibration() async throws {
+        guard let path = ProcessInfo.processInfo.environment["LEMULIP_EDITOR_REVIEW_DIR"], !path.isEmpty else {
+            throw XCTSkip("Set LEMULIP_EDITOR_REVIEW_DIR to run the W3 native rendering experiment")
+        }
+        _ = NSApplication.shared
+        let directory = URL(fileURLWithPath: path, isDirectory: true)
+            .appendingPathComponent("high-density-explicit-environment", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        // This separate experiment sets the documented SwiftUI environment value
+        // only on its synthetic calibration host. It does not approve a product
+        // asset or pretend the runner's physical display has changed density.
+        let passed = try await calibrate(directory: directory, environmentScale: 2)
+        XCTAssertTrue(passed, "The explicit displayScale experiment failed its unchanged numerical gate; raw visual review remains required even if it passes")
+    }
+
+    @MainActor
     func testCalibratedOffscreenRenderingAndSelectionSoundSettings() async throws {
         guard let path = ProcessInfo.processInfo.environment["LEMULIP_EDITOR_REVIEW_DIR"], !path.isEmpty else {
             throw XCTSkip("Set LEMULIP_EDITOR_REVIEW_DIR to run the W3 native rendering experiment")
@@ -34,12 +50,24 @@ final class HighDensityNativeReviewTests: XCTestCase {
     }
 
     @MainActor
-    private func calibrate(directory: URL) async throws -> Bool {
+    private func calibrate(directory: URL, environmentScale: CGFloat? = nil) async throws -> Bool {
         let log = DensityDrawLog()
-        return try await withHost(NativeDensityCalibration(log: log), size: NSSize(width: 320, height: 240),
+        let root: AnyView
+        if let environmentScale {
+            root = AnyView(NativeDensityCalibration(log: log).environment(\.displayScale, environmentScale))
+        } else {
+            root = AnyView(NativeDensityCalibration(log: log))
+        }
+        return try await withHost(root, size: NSSize(width: 320, height: 240),
                                   appearance: .aqua) { _, host in
             try await waitFor("The real native calibration text field must exist") {
                 self.firstView(NSTextField.self, in: host) != nil
+            }
+            try await self.waitFor("The calibration must observe its actual SwiftUI displayScale") {
+                !log.environmentScales.isEmpty
+            }
+            if let environmentScale {
+                XCTAssertEqual(log.environmentScales.last, Double(environmentScale))
             }
             host.displayIfNeeded()
             log.draws.removeAll()
@@ -50,9 +78,11 @@ final class HighDensityNativeReviewTests: XCTestCase {
             let twoDraws = log.draws
             let vectorsFresh = log.hasFreshDraw("nativeVectors", scale: 2)
             let textFresh = log.hasFreshDraw("nativeText", scale: 2)
-            let state: [String: Any] = ["view": "Synthetic density calibration; not product UI",
+            var state: [String: Any] = ["view": "Synthetic density calibration; not product UI",
                                        "text": "12pt SwiftUI Text and native NSTextField: Il1MW 0123456789",
                                        "assetEligibility": "Diagnostic only"]
+            state["explicitSwiftUIEnvironmentScale"] = environmentScale.map { Double($0) } ?? 0
+            state["observedSwiftUIEnvironmentScales"] = log.environmentScales
             try NativeReviewBitmap.save(one, of: host, scale: 1, name: "calibration-1x", directory: directory, state: state)
             try NativeReviewBitmap.save(two, of: host, scale: 2, name: "calibration-2x", directory: directory, state: state)
             let low = try DensityPixels(one, scale: 1)
@@ -69,9 +99,12 @@ final class HighDensityNativeReviewTests: XCTestCase {
                 && stripes.values.allSatisfy { $0["passed"] as? Bool == true }
                 && text.values.allSatisfy { $0["passed"] as? Bool == true }
             var report = NativeReviewBitmap.provenance
+            report["explicitSwiftUIEnvironmentScale"] = environmentScale.map { Double($0) } ?? 0
+            report["observedSwiftUIEnvironmentScales"] = log.environmentScales
+            report["environmentScaleExperimentOnly"] = environmentScale != nil
             let details: [String: Any] = [
                 "status": passed ? "passed-numerical-gate" : "failed-or-mixed",
-                "production2xCandidatesAllowed": passed,
+                "production2xCandidatesAllowed": passed && environmentScale == nil,
                 "visualReviewRequired": "Inspect both raw PNGs at original pixels, especially the two 12pt text regions and native control. Numerical checks do not approve a marketing image.",
                 "logicalSize": [320, 240], "windowBackingScale": Double(host.window?.backingScaleFactor ?? 0),
                 "offscreenRenderScales": [1, 2], "dimensionsPassed": dimensionsPass,
@@ -82,7 +115,8 @@ final class HighDensityNativeReviewTests: XCTestCase {
                 "inputEventsSent": false, "screenCapture": false,
                 "references": [
                     "https://developer.apple.com/library/archive/documentation/GraphicsAnimation/Conceptual/HighResolutionOSX/CapturingScreenContents/CapturingScreenContents.html",
-                    "https://developer.apple.com/documentation/appkit/nsview/displayignoringopacity(_:in:)"
+                    "https://developer.apple.com/documentation/appkit/nsview/displayignoringopacity(_:in:)",
+                    "https://developer.apple.com/documentation/swiftui/environmentvalues/displayscale"
                 ]
             ]
             report.merge(details, uniquingKeysWith: { _, value in value })
@@ -136,44 +170,68 @@ final class HighDensityNativeReviewTests: XCTestCase {
                         let name = "settings-" + language + (enabled ? "-sound-on" : "-sound-off")
                         try self.saveView(host, name: name, directory: directory, calibrated: calibrated, state: state)
                     }
-                    try await self.waitFor("Production SettingsContent must expose Preview and Selection Sounds") {
-                        self.control("settings.selection-sounds.preview", roles: ["AXButton"], in: host) != nil
-                            && self.control("settings.selection-sounds", roles: ["AXCheckBox", "AXSwitch"], in: host) != nil
+                    let preview: NativeAccessibilityReview.Node
+                    let toggle: NativeAccessibilityReview.Node
+                    do {
+                        try await self.waitFor("Production SettingsContent must expose Preview and Selection Sounds") {
+                            self.control("settings.selection-sounds.preview", roles: ["AXButton"], in: host) != nil
+                                && self.control("settings.selection-sounds", roles: ["AXCheckBox", "AXSwitch"], in: host) != nil
+                        }
+                        preview = try XCTUnwrap(self.control("settings.selection-sounds.preview", roles: ["AXButton"], in: host))
+                        toggle = try XCTUnwrap(self.control("settings.selection-sounds", roles: ["AXCheckBox", "AXSwitch"], in: host))
+                    } catch {
+                        let traversal = NativeAccessibilityReview.walk(host)
+                        var failure = NativeReviewBitmap.provenance
+                        failure["language"] = language
+                        failure["preferenceEnabled"] = enabled
+                        failure["error"] = String(describing: error)
+                        failure["nodes"] = traversal.nodes.map(\.diagnostics)
+                        failure["traversalTruncated"] = traversal.truncated
+                        failure["remainingQueuedNodes"] = traversal.remainingQueued
+                        failure["inputEventsSent"] = false
+                        try NativeReviewBitmap.writeJSON(failure,
+                            name: "settings-accessibility-failure-" + language + (enabled ? "-on" : "-off"), directory: directory)
+                        XCTFail("Actual Settings accessibility lookup failed for \(language), sounds enabled=\(enabled): \(error)")
+                        // Keep each other language/state review available without
+                        // turning this missing semantic evidence into a pass.
+                        return
                     }
-                    let preview = try XCTUnwrap(self.control("settings.selection-sounds.preview", roles: ["AXButton"], in: host))
-                    let toggle = try XCTUnwrap(self.control("settings.selection-sounds", roles: ["AXCheckBox", "AXSwitch"], in: host))
                     let previewName = language == "en" ? "Preview Selection Sound" : "Seçim Sesini Dinle"
                     let toggleName = language == "en" ? "Selection Sounds" : "Seçim Sesleri"
-                    XCTAssertEqual(preview.accessibilityLabel() ?? preview.accessibilityTitle(), previewName)
-                    XCTAssertEqual(toggle.accessibilityLabel() ?? toggle.accessibilityTitle(), toggleName)
-                    XCTAssertTrue(preview.isAccessibilityEnabled(), "Preview stays available while the preference is off")
-                    XCTAssertTrue(toggle.isAccessibilityEnabled())
-                    XCTAssertEqual((toggle.accessibilityValue() as? NSNumber)?.boolValue, enabled)
-                    XCTAssertFalse((preview.accessibilityHelp() ?? "").isEmpty)
-                    XCTAssertFalse((toggle.accessibilityHelp() ?? "").isEmpty)
+                    XCTAssertEqual(preview.label ?? preview.title, previewName)
+                    XCTAssertEqual(toggle.label ?? toggle.title, toggleName)
+                    XCTAssertTrue(preview.enabled == true, "Preview stays available while the preference is off")
+                    XCTAssertTrue(toggle.enabled == true)
+                    XCTAssertEqual((toggle.value as? NSNumber)?.boolValue, enabled)
+                    XCTAssertFalse((preview.help ?? "").isEmpty)
+                    XCTAssertFalse((toggle.help ?? "").isEmpty)
                     for (identifier, element) in [("preview", preview), ("toggle", toggle)] {
-                        let frame = host.convert(window.convertFromScreen(element.accessibilityFrame()), from: nil)
+                        let screenFrame = try XCTUnwrap(element.frame, "The actual setting must expose its frame")
+                        let frame = host.convert(window.convertFromScreen(screenFrame), from: nil)
                         XCTAssertFalse(frame.isEmpty)
                         XCTAssertTrue(host.bounds.contains(frame), "The reviewed setting must be fully visible in this capture")
-                        let node: [String: Any] = [
+                        var node: [String: Any] = [
                             "language": language, "theme": model.theme.rawValue, "preferenceEnabled": enabled,
-                            "control": identifier, "role": element.accessibilityRole()?.rawValue ?? "missing",
-                            "name": element.accessibilityLabel() ?? element.accessibilityTitle() ?? "missing",
-                            "hint": element.accessibilityHelp() ?? "missing",
-                            "value": (element.accessibilityValue() as? NSNumber)?.stringValue ?? "not-valued",
-                            "enabled": element.isAccessibilityEnabled(),
+                            "control": identifier, "role": element.role?.rawValue ?? "missing",
+                            "name": element.label ?? element.title ?? "missing",
+                            "hint": element.help ?? "missing",
+                            "value": (element.value as? NSNumber)?.stringValue ?? "not-valued",
                             "logicalFrame": [Double(frame.minX), Double(frame.minY), Double(frame.width), Double(frame.height)]
                         ]
+                        if let enabled = element.enabled { node["enabled"] = enabled }
+                        else { node["enabled"] = NSNull() }
                         nodes.append(node)
                     }
                 }
             }
         }
+        XCTAssertEqual(nodes.count, 8, "Both actual controls must be reviewed in both languages and preference states")
         XCTAssertEqual(player.playCount, 0, "Reading/capturing settings must not audition audio")
         var accessibility = NativeReviewBitmap.provenance
         let details: [String: Any] = [
             "evidence": "Actual accessible nodes of production SettingsContent inside DashboardView",
-            "controls": nodes, "inputEventsSent": false, "previewInvoked": false,
+            "controls": nodes, "expectedControlCount": 8, "observedControlCount": nodes.count,
+            "inputEventsSent": false, "previewInvoked": false,
             "hardwareListeningOrMuteReview": false,
             "stateSetup": "Model preference changed in an isolated defaults suite; no accessibility action was dispatched"
         ]
@@ -262,19 +320,10 @@ final class HighDensityNativeReviewTests: XCTestCase {
     }
 
     @MainActor
-    private func control(_ identifier: String, roles: Set<String>, in view: NSView) -> NSAccessibilityProtocol? {
-        var pending: [Any] = [view]
-        if let window = view.window { pending.append(window) }
-        var visited = Set<ObjectIdentifier>()
-        while let next = pending.popLast(), visited.count < 512 {
-            guard let element = next as? NSAccessibilityProtocol,
-                  visited.insert(ObjectIdentifier(element)).inserted else { continue }
-            if element.accessibilityIdentifier() == identifier,
-               roles.contains(element.accessibilityRole()?.rawValue ?? "") { return element }
-            pending.append(contentsOf: element.accessibilityChildren() ?? [])
-            if let native = element as? NSView { pending.append(contentsOf: native.subviews) }
+    private func control(_ identifier: String, roles: Set<String>, in view: NSView) -> NativeAccessibilityReview.Node? {
+        NativeAccessibilityReview.walk(view).nodes.first { element in
+            element.identifier == identifier && roles.contains(element.role?.rawValue ?? "")
         }
-        return nil
     }
 
     @MainActor

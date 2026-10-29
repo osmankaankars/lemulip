@@ -23,6 +23,12 @@ The numerical gate requires all of these:
 
 Even after this gate passes, inspect the original-pixel calibration PNGs, particularly both text regions and the retained native control. Then inspect the exact production PNGs for complete content, sharp type, correct proportions, and fidelity to the real views. An automated difference metric cannot approve a marketing image.
 
+### Observed Mixed Rendering and Follow-up
+
+The Intel capture in [run 40891899407](https://github.com/osmankaankars/lemulip/actions/runs/40891899407), artifact `12906565513`, passed the numerical checks but **failed visual approval**. Native text and half-point vector detail were sharp at 2×; the SwiftUI text remained visibly blurred. The Settings image also showed mixed text density. These files are review evidence and must not become website or marketing assets.
+
+A separate calibration-only test now supplies the documented SwiftUI [`displayScale`](https://developer.apple.com/documentation/swiftui/environmentvalues/displayscale) environment value of 2 to a fresh host. It records the actual observed environment value, keeps the same logical dimensions, renders both raw sizes and applies the unchanged numerical checks. Its output is retained under `high-density-explicit-environment`. This is a hypothesis test for SwiftUI's text-rendering environment, not an established fix; it does not change production views, system display configuration or layer scales. Original-pixel review must establish whether it improves the text before the method is considered for product captures.
+
 ## Production Review Content
 
 The same renderer retains the real `DashboardView` workspace and `ImageCropView` with its native `ImageCropCanvas`. The only input is a synthetic 640 × 400 orchard-colored grid PNG. The crop is seeded through the existing canvas binding and its source file hash must remain unchanged. No keyboard, pointer or drag event is sent, and no UI element is rebuilt in a drawing script.
