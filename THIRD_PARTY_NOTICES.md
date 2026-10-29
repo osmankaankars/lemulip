@@ -103,11 +103,16 @@ project. Third-party components and optional engines are documented above.
 ## Website Illustrations
 
 `site/assets/morning-light.jpg` is a generated fictional sample landscape.
-`docs/assets/demo-preview.png` is an illustrated product preview.
 `site/assets/app-*.webp` are actual Lemulip window captures from the native
 macOS verification run recorded in `site/assets/screenshots.json`. The desktop
 and window shadows are excluded; metadata is removed. No interface is generated
 or repainted.
+
+`site/assets/social-preview.png` is a marketing composition using the existing
+Workspace capture, project icon and wordmark. It is not a new native capture.
+Source hashes, renderer and export dimensions are recorded in
+`site/assets/social-preview.json`; the reproducible layout is
+`script/social_preview.html`.
 
 `site/assets/finder-conversion.mp4` is an actual, silent Finder-to-Lemulip screen
 recording. Only the desktop edges are cropped; playback timing is not accelerated.
