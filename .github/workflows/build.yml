@@ -245,6 +245,13 @@ jobs:
           LEMULIP_ENGINE_PACKS: ${{ runner.temp }}/universal-engines
           RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
         run: ./script/package_release.sh
+      - name: Retain Matching GUI And CLI Debug Symbols
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Lemulip-GUI-CLI-Debug-Symbols
+          path: dist/Lemulip-Debug-Symbols/
+          if-no-files-found: error
+          retention-days: 90
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Lemulip-macOS-universal

@@ -1,0 +1,103 @@
+name: Verify GUI And CLI Symbol Packaging
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/verify-binary-symbols.yml'
+      - '.github/workflows/build.yml'
+      - 'script/build_app.sh'
+      - 'script/measure_binary_symbols.py'
+      - 'script/prepare_binary_symbols.py'
+      - 'script/test_measure_binary_symbols.py'
+      - 'script/test_prepare_binary_symbols.py'
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+
+concurrency:
+  group: lemulip-symbol-packaging-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Native Symbol Packaging (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Check Source And Symbol Preparation
+        env:
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          test "$(uname -m)" = "$EXPECTED_ARCH"
+          python3 script/privacy_check.py --staged
+          python3 script/test_measure_binary_symbols.py
+          python3 script/test_prepare_binary_symbols.py
+      - name: Stage And Sign Universal GUI And CLI Without Bundled Engines
+        env:
+          CONFIGURATION: release
+          LEMULIP_ENGINE_PACKS: ''
+        run: |
+          ./script/build_app.sh --universal
+          python3 - <<'PY'
+          import json, pathlib, subprocess
+          path = pathlib.Path('dist/Lemulip-Debug-Symbols/report.json')
+          report = json.loads(path.read_text())
+          assert report['result'] == 'PASS'
+          assert report['commit'] == subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
+          assert report['worktreeClean'] is True
+          assert report['architectures'] == ['arm64', 'x86_64'] and len(report['products']) == 4
+          assert not list(pathlib.Path('dist/Lemulip.app').rglob('*.dSYM'))
+          PY
+      - name: Exercise Signed GUI And Native CLI Conversion
+        run: |
+          ./script/build_and_run.sh --verify-bundle dist/Lemulip.app
+          dist/lemulip --help
+          mkdir -p "$RUNNER_TEMP/symbol-cli-smoke/output"
+          printf '1\n00:00:00,000 --> 00:00:01,000\nSymbol packaging smoke\n' > "$RUNNER_TEMP/symbol-cli-smoke/sample.srt"
+          /usr/bin/env PATH=/usr/bin:/bin:/usr/sbin:/sbin dist/lemulip convert vtt "$RUNNER_TEMP/symbol-cli-smoke/sample.srt" --output "$RUNNER_TEMP/symbol-cli-smoke/output"
+          /usr/bin/grep -q '^WEBVTT' "$RUNNER_TEMP/symbol-cli-smoke/output/"*.vtt
+          /usr/bin/grep -q 'Symbol packaging smoke' "$RUNNER_TEMP/symbol-cli-smoke/output/"*.vtt
+      - name: Verify Debug Builds Keep Their Symbols
+        env:
+          CONFIGURATION: debug
+          LEMULIP_ENGINE_PACKS: ''
+        run: |
+          cp dist/Lemulip-Debug-Symbols/report.json "$RUNNER_TEMP/release-symbol-report.json"
+          ./script/build_app.sh
+          BIN=$(xcrun --sdk macosx swift build --configuration debug --show-bin-path)
+          python3 - "$BIN" <<'PY'
+          import os, pathlib, sys
+          sys.path.insert(0, 'script')
+          from measure_binary_symbols import inspect_macho, verify_preservation
+          root = pathlib.Path(sys.argv[1])
+          for name, staged in [('LemulipApp', 'dist/Lemulip.app/Contents/MacOS/Lemulip'), ('lemulip', 'dist/lemulip')]:
+              original = inspect_macho((root / name).read_bytes())
+              packaged = inspect_macho(pathlib.Path(staged).read_bytes())
+              verify_preservation(original, packaged)
+              assert original['symbols'] == packaged['symbols']
+              assert original['symbols']['debug'] + original['symbols']['local'] > 0
+          assert pathlib.Path('dist/Lemulip-Debug-Symbols/report.json').read_bytes() == (pathlib.Path(os.environ['RUNNER_TEMP']) / 'release-symbol-report.json').read_bytes()
+          PY
+      - name: Retain Required Matching Release Debug Symbols
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Lemulip-GUI-CLI-Debug-Symbols-${{ matrix.arch }}
+          path: dist/Lemulip-Debug-Symbols/
+          if-no-files-found: error
+          retention-days: 90
