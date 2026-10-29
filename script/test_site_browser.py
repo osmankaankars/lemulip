@@ -271,7 +271,7 @@ def check_native_recording(page,output,width):
 
 
 def exercise(page,output,width,height):
-    assert page.locator('html').get_attribute('data-site-version')=='20261029.3'
+    assert page.locator('html').get_attribute('data-site-version')=='20261029.4'
     assert 'Lemulip' in page.title()
     assert page.locator('#format-count').inner_text()=='35'
     assert page.locator('#tool-count').inner_text()=='26'
