@@ -7,9 +7,15 @@ import LemulipCore
 struct PDFMergeView: View {
     @ObservedObject var model: AppController
     let inputs: [URL]
-    @StateObject private var editor = PDFMergeEditor()
+    @StateObject private var editor: PDFMergeEditor
     @FocusState private var focus: PDFEditorFocus?
     private let rowHeight: CGFloat = 100
+
+    init(model: AppController, inputs: [URL], editor: PDFMergeEditor? = nil) {
+        self.model = model
+        self.inputs = inputs
+        _editor = StateObject(wrappedValue: editor ?? PDFMergeEditor())
+    }
 
     private var editingPosition: Int? {
         if case .position(let inputIndex)? = focus { return inputIndex }
@@ -233,6 +239,7 @@ struct PDFMergeView: View {
         .overlay(RoundedRectangle(cornerRadius: 12)
             .strokeBorder(selected ? Palette.accent : Palette.line, lineWidth: selected ? 2 : 1))
         .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("pdf.merge.row.\(inputIndex)")
         .onDrop(of: [PDFMergeEditor.dragType], delegate: PDFMergeDropDelegate(editor: editor, inputIndex: inputIndex, height: rowHeight))
         .overlay(alignment: dropPosition?.after == true ? .bottom : .top) {
             if dropPosition?.inputIndex == inputIndex {

@@ -7,9 +7,15 @@ import LemulipCore
 struct PDFOrganizeView: View {
     @ObservedObject var model: AppController
     let inputs: [URL]
-    @StateObject private var editor = PDFOrganizeEditor()
+    @StateObject private var editor: PDFOrganizeEditor
     @FocusState private var focus: PDFEditorFocus?
     private let columns = 4
+
+    init(model: AppController, inputs: [URL], editor: PDFOrganizeEditor? = nil) {
+        self.model = model
+        self.inputs = inputs
+        _editor = StateObject(wrappedValue: editor ?? PDFOrganizeEditor())
+    }
 
     private var editingPosition: Int? {
         if case .position(let sourceIndex)? = focus { return sourceIndex }
@@ -230,6 +236,7 @@ struct PDFOrganizeView: View {
         .overlay(RoundedRectangle(cornerRadius: 12)
             .strokeBorder(selected ? Palette.accent : Palette.line, lineWidth: selected ? 2 : 1))
         .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("pdf.organize.card.\(page.sourceIndex)")
         .onDrop(of: [PDFOrganizeEditor.dragType], delegate: PDFPageDropDelegate(editor: editor, sourceIndex: page.sourceIndex, width: width))
         .overlay(alignment: dropPosition?.after == true ? .trailing : .leading) {
             if dropPosition?.sourceIndex == page.sourceIndex {

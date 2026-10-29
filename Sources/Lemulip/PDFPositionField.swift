@@ -29,6 +29,7 @@ struct PDFPositionField: View {
             .font(.system(size: 12, weight: .semibold)).monospacedDigit()
             .frame(width: 46)
             .focused(focus, equals: .position(item))
+            .accessibilityIdentifier("pdf.position.\(item)")
             .accessibilityLabel(label)
             .accessibilityHint(isInvalid ? invalidHint : hint)
             .help(isInvalid ? invalidHint : hint)
