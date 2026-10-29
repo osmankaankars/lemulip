@@ -10,6 +10,7 @@ import argparse
 import difflib
 import hashlib
 import json
+import lzma
 import math
 import os
 from pathlib import Path, PurePosixPath
@@ -170,6 +171,34 @@ def run(argv: list[str], cwd: Path, environment: dict, record: list[dict]) -> No
     subprocess.run(argv, cwd=cwd, env=environment, check=True, timeout=2400)
 
 
+def compress_git_archive(archive: Path) -> Path:
+    """Retain exact Git-export bytes in XZ; leave downloaded archives alone."""
+    expected_size, expected_digest = archive.stat().st_size, sha256(archive)
+    compressed = archive.with_suffix(archive.suffix + '.xz')
+    destination = compressed.open('xb')
+    try:
+        with destination:
+            with archive.open('rb') as source, lzma.open(destination, 'wb', format=lzma.FORMAT_XZ,
+                    check=lzma.CHECK_CRC64, preset=6) as output:
+                shutil.copyfileobj(source, output, length=1024 * 1024)
+        # Verify the complete TAR, including modes and timestamps, before
+        # removing its temporary uncompressed copy from the published pack.
+        restored_digest, restored_size = hashlib.sha256(), 0
+        with lzma.open(compressed, 'rb', format=lzma.FORMAT_XZ) as restored:
+            for block in iter(lambda: restored.read(1024 * 1024), b''):
+                restored_size += len(block)
+                if restored_size > expected_size:
+                    raise ValueError('Compressed Git source differs from its original export')
+                restored_digest.update(block)
+        if restored_size != expected_size or restored_digest.hexdigest() != expected_digest:
+            raise ValueError('Compressed Git source differs from its original export')
+    except BaseException:
+        compressed.unlink()
+        raise
+    archive.unlink()
+    return compressed
+
+
 def fetch_source(component: dict, work: Path, sources: Path, environment: dict, record: list[dict]) -> tuple[Path, Path]:
     name = component['name']
     if component['kind'] == 'archive':
@@ -193,6 +222,7 @@ def fetch_source(component: dict, work: Path, sources: Path, environment: dict, 
         archive = sources / (name + '-' + revision + '.tar')
         run(['/usr/bin/git', 'archive', '--format=tar', '--prefix=' + name + '/',
              '--output=' + str(archive), revision], checkout, environment, record)
+        archive = compress_git_archive(archive)
     return extract_source(archive, work / (name + '-source')), archive
 
 
