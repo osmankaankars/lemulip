@@ -42,6 +42,9 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
     @Published var wheelEnabled = UserDefaults.standard.object(forKey: "wheelEnabled") as? Bool ?? true {
         didSet { UserDefaults.standard.set(wheelEnabled, forKey: "wheelEnabled"); wheel.enabled = wheelEnabled; rebuildStatusMenu() }
     }
+    @Published var selectionSoundsEnabled: Bool {
+        didSet { selectionFeedback.isEnabled = selectionSoundsEnabled }
+    }
     @Published var completionPresentation = CompletionPresentation.resolve(
         stored: UserDefaults.standard.string(forKey: "completionPresentation"),
         legacyReveal: UserDefaults.standard.bool(forKey: "revealWhenFinished")) {
@@ -93,8 +96,24 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
     private var activeJob: UUID?
     private var quittingAfterCancellation = false
     private var pendingInputs: [URL] = []
+    private var pendingSelectionChoice: SelectionFeedback.Choice?
     private let wheel = DragWheelController()
     private let engine = ConversionEngine()
+    private let selectionFeedback: SelectionFeedback
+    private let destinationPicker: ((String) -> URL?)?
+
+    override convenience init() {
+        self.init(selectionFeedback: SelectionFeedback())
+    }
+
+    init(selectionFeedback: SelectionFeedback, destinationPicker: ((String) -> URL?)? = nil) {
+        self.selectionFeedback = selectionFeedback
+        self.destinationPicker = destinationPicker
+        selectionSoundsEnabled = selectionFeedback.isEnabled
+        super.init()
+    }
+
+    func previewSelectionSound() { selectionFeedback.preview() }
 
     func text(_ english: String, _ turkish: String) -> String { language == "tr" ? turkish : english }
     var operations: [FileOperation] { Catalog.operations(for: files, mode: mode) }
@@ -152,6 +171,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
     func applicationWillTerminate(_ notification: Notification) {
         NotificationCenter.default.removeObserver(self, name: NSApplication.didChangeScreenParametersNotification, object: NSApp)
         dismissResultCard()
+        selectionFeedback.shutdown()
         wheel.stop(); tasks.values.forEach { $0.cancel() }
     }
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool { showMainWindow(); return true }
@@ -334,32 +354,35 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
             alertMessage = text("This Operation Needs \(dependency). Open Settings → Format Support To Add It.", "Bu İşlem İçin \(dependency) Gerekiyor. Ayarlar → Biçim Desteği Bölümünden Ekleyebilirsin.")
             showMainWindow(); return
         }
-        if operation.id.hasPrefix("action.") { performFileAction(operation, inputs: selection); return }
+        let choice = SelectionFeedback.Choice()
+        if operation.id.hasPrefix("action.") { performFileAction(operation, inputs: selection, choice: choice); return }
         let withOptions: Set<String> = ["image.compress", "image.resize", "image.crop", "image.rotate", "pdf.organize", "pdf.merge", "pdf.extract", "pdf.rotate", "pdf.compress", "media.compress", "media.trim", "media.crop", "media.resize", "media.speed", "media.volume"]
         if withOptions.contains(operation.id) {
             // A second global-wheel drop must not replace the input shown by
             // an open editor, including another crop with the same operation ID.
             guard pendingOperation == nil else { showMainWindow(); return }
-            pendingInputs = selection; pendingOperation = operation; showMainWindow()
-        } else { submit(operation, inputs: selection, options: ConversionOptions()) }
+            pendingInputs = selection; pendingSelectionChoice = choice
+            pendingOperation = operation; showMainWindow()
+        } else { submit(operation, inputs: selection, options: ConversionOptions(), choice: choice) }
     }
 
     func submitPending(_ options: ConversionOptions, outputExtension: String? = nil) {
         guard var operation = pendingOperation else { return }
         if let outputExtension { operation.outputExtension = outputExtension }
         let selection = pendingInputs
-        pendingOperation = nil; pendingInputs = []
-        submit(operation, inputs: selection, options: options)
+        let choice = pendingSelectionChoice
+        pendingOperation = nil; pendingInputs = []; pendingSelectionChoice = nil
+        submit(operation, inputs: selection, options: options, choice: choice)
     }
 
-    func cancelPending() { pendingOperation = nil; pendingInputs = [] }
+    func cancelPending() { pendingOperation = nil; pendingInputs = []; pendingSelectionChoice = nil }
 
-    func submit(_ operation: FileOperation, inputs: [URL], options: ConversionOptions) {
+    func submit(_ operation: FileOperation, inputs: [URL], options: ConversionOptions,
+                choice: SelectionFeedback.Choice? = nil) {
+        guard !inputs.isEmpty else { return }
         var chosenOptions = options
         if !outputAlongsideOriginal && chosenOptions.destinationDirectory == nil {
-            let panel = NSOpenPanel(); panel.canChooseFiles = false; panel.canChooseDirectories = true; panel.canCreateDirectories = true
-            panel.prompt = text("Save Here", "Buraya kaydet")
-            guard panel.runModal() == .OK, let directory = panel.url else { return }
+            guard let directory = chooseDestination(text("Save Here", "Buraya kaydet")) else { return }
             chosenOptions.destinationDirectory = directory
         }
         let activityInputs: [URL]
@@ -377,6 +400,9 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
         item.retryRequest = ConversionRequest(inputs: inputs, operation: operation, options: chosenOptions)
         activity.insert(item, at: 0)
         queue.append((item.id, inputs, operation, chosenOptions))
+        // Both wheel and workspace arrive here after options/destination acceptance.
+        // Retrying, progress, completion, and files within a batch never emit cues.
+        selectionFeedback.commit(choice ?? SelectionFeedback.Choice())
         startNextJob()
     }
 
@@ -464,17 +490,32 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
         NSPasteboard.general.writeObjects(urls.map { $0 as NSURL })
     }
 
-    private func performFileAction(_ operation: FileOperation, inputs: [URL]) {
+    private func chooseDestination(_ prompt: String) -> URL? {
+        if let destinationPicker { return destinationPicker(prompt) }
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = false; panel.canChooseDirectories = true; panel.canCreateDirectories = true
+        panel.prompt = prompt
+        return panel.runModal() == .OK ? panel.url : nil
+    }
+
+    private func performFileAction(_ operation: FileOperation, inputs: [URL], choice: SelectionFeedback.Choice) {
         switch operation.id {
         case "action.copyPath":
-            NSPasteboard.general.clearContents(); NSPasteboard.general.setString(inputs.map(\.path).joined(separator: "\n"), forType: .string)
+            NSPasteboard.general.clearContents()
+            if NSPasteboard.general.setString(inputs.map(\.path).joined(separator: "\n"), forType: .string) {
+                selectionFeedback.commit(choice)
+            }
         case "action.airdrop":
+            // The system sharing UI owns its later confirmation/cancellation.
+            // This first local-operation cue deliberately stays silent here.
             guard let service = NSSharingService(named: .sendViaAirDrop), service.canPerform(withItems: inputs) else {
                 alertMessage = text("AirDrop is unavailable on this Mac.", "Bu Mac'te AirDrop kullanılamıyor."); showMainWindow(); return
             }
             service.perform(withItems: inputs)
-        case "action.float": showShelf(inputs)
+        case "action.float":
+            if showShelf(inputs) { selectionFeedback.commit(choice) }
         case "action.terminal":
+            // Opening another app is outside the local-operation cue's scope.
             let first = inputs[0]
             let folder = FileFamily.detect(first) == .folder ? first : first.deletingLastPathComponent()
             let terminal = URL(fileURLWithPath: "/System/Applications/Utilities/Terminal.app")
@@ -483,13 +524,13 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
             }
         case "action.copy", "action.move":
             showMainWindow()
-            let panel = NSOpenPanel(); panel.canChooseFiles = false; panel.canChooseDirectories = true; panel.canCreateDirectories = true
-            panel.prompt = operation.id == "action.move" ? text("Move Here", "Buraya taşı") : text("Copy Here", "Buraya kopyala")
-            guard panel.runModal() == .OK, let directory = panel.url else { return }
+            let prompt = operation.id == "action.move" ? text("Move Here", "Buraya taşı") : text("Copy Here", "Buraya kopyala")
+            guard let directory = chooseDestination(prompt) else { return }
             let move = operation.id == "action.move"
             let item = ActivityItem(operation: operation, inputs: inputs)
             activity.insert(item, at: 0)
             update(item.id) { $0.state = .running }
+            selectionFeedback.commit(choice)
             tasks[item.id] = Task { [weak self] in
                 do {
                     let result = await Task.detached(priority: .userInitiated) { () -> (outputs: [URL], failure: String?) in
@@ -569,8 +610,9 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
         completionResults.removeAll()
     }
 
-    func showShelf(_ urls: [URL]) {
-        guard validateOutputs(urls) else { return }
+    @discardableResult
+    func showShelf(_ urls: [URL]) -> Bool {
+        guard validateOutputs(urls) else { return false }
         shelfWindows.removeAll { !$0.isVisible }
         let panel = NSPanel(contentRect: NSRect(x: 0, y: 0, width: 330, height: min(400, 110 + urls.count * 58)), styleMask: [.titled, .closable, .resizable, .utilityWindow], backing: .buffered, defer: false)
         panel.title = text("File Shelf", "Dosya rafı")
@@ -580,6 +622,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
         panel.contentView = NSHostingView(rootView: FileShelfView(urls: urls, model: self))
         panel.center(); panel.makeKeyAndOrderFront(nil)
         shelfWindows.append(panel)
+        return true
     }
 }
 #endif
