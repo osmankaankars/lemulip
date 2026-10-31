@@ -9,7 +9,7 @@ protocol SelectionCuePlaying: AnyObject {
     func stop()
 }
 
-/// One short, optional cue for a committed user choice. It never queues sounds.
+/// Short, optional feedback for wheel navigation and committed choices. Never queues sounds.
 /// A choice owns its consumed state, so deduplication needs no growing event-ID set.
 @MainActor
 final class SelectionFeedback {
@@ -51,6 +51,13 @@ final class SelectionFeedback {
         // A disabled or coalesced event must not replay after a preference change
         // or a delayed callback. New user choices receive their own token.
         choice.consumed = true
+        guard isEnabled else { return }
+        playIfReady()
+    }
+
+    /// The wheel calls this once for each newly highlighted operation.
+    /// Suppressed navigation is dropped, never replayed or queued.
+    func navigate() {
         guard isEnabled else { return }
         playIfReady()
     }

@@ -113,6 +113,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
         self.destinationPicker = destinationPicker
         selectionSoundsEnabled = selectionFeedback.isEnabled
         super.init()
+        wheel.onSelectionChange = { [weak self] in self?.selectionFeedback.navigate() }
     }
 
     func previewSelectionSound() { selectionFeedback.preview() }

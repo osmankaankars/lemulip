@@ -58,12 +58,14 @@ jobs:
           position=pathlib.Path('script/native_ui/PDFPositionNoopTests.swift').read_bytes()
           options=pathlib.Path('script/native_ui/OptionsParityTests.swift').read_bytes()
           sound=pathlib.Path('script/native_ui/SelectionSoundUITests.swift').read_bytes()
-          suite.write_bytes(suite.read_bytes()+fragment+position+options+sound)
+          wheel=pathlib.Path('script/native_ui/WheelNavigationUITests.swift').read_bytes()
+          suite.write_bytes(suite.read_bytes()+fragment+position+options+sound+wheel)
           receipt=root/'provenance.json'; record=json.loads(receipt.read_text())
           record['workflowTestSourceSHA256']=hashlib.sha256(fragment).hexdigest()
           record['positionTestSourceSHA256']=hashlib.sha256(position).hexdigest()
           record['optionsParitySourceSHA256']=hashlib.sha256(options).hexdigest()
           record['selectionSoundSourceSHA256']=hashlib.sha256(sound).hexdigest()
+          record['wheelNavigationSourceSHA256']=hashlib.sha256(wheel).hexdigest()
           record['compiledTestSourceSHA256']=hashlib.sha256(suite.read_bytes()).hexdigest()
           receipt.write_text(json.dumps(record,indent=2)+'\n')
           PYCODE
@@ -93,6 +95,16 @@ jobs:
             -resultBundlePath "$RUNNER_TEMP/lemulip-native-ui/Results.xcresult" \
             -parallel-testing-enabled NO CODE_SIGN_IDENTITY=- \
             2>&1 | tee "$RUNNER_TEMP/lemulip-native-ui/xcodebuild.log"
+      - name: Export Actual Native Review Screenshots
+        if: always()
+        run: |
+          if test -d "$RUNNER_TEMP/lemulip-native-ui/Results.xcresult"; then
+            xcrun xcresulttool export attachments --path "$RUNNER_TEMP/lemulip-native-ui/Results.xcresult" \
+              --output-path "$RUNNER_TEMP/lemulip-native-ui/ReviewAttachments"
+          fi
+      - name: Attempt VoiceOver Runtime Review
+        if: success()
+        run: python3 script/probe_voiceover_review.py --directory "$RUNNER_TEMP/lemulip-native-ui"
       - name: Retain Native Results and Source Provenance
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -105,5 +117,8 @@ jobs:
             ${{ runner.temp }}/lemulip-native-ui/AccessibilitySnapshots
             ${{ runner.temp }}/lemulip-native-ui/ffmpeg-path.txt
             ${{ runner.temp }}/lemulip-native-ui/ffmpeg-version.txt
+            ${{ runner.temp }}/lemulip-native-ui/ReviewAttachments
+            ${{ runner.temp }}/lemulip-native-ui/voiceover-attempt.json
+            ${{ runner.temp }}/lemulip-native-ui/VoiceOver-attempt.png
           if-no-files-found: ignore
           retention-days: 14

@@ -29,8 +29,8 @@ struct SettingsContent: View {
                 }
             }
             settingRow(model.text("Selection Sounds", "Seçim Sesleri"),
-                       subtitle: model.text("A quiet tick when you confirm an operation. Follows macOS sound effects settings.",
-                                            "İşlemi onayladığında kısa bir ses. macOS ses efekti ayarlarına uyar.")) {
+                       subtitle: model.text("A short tick as you move between wheel options or confirm an operation. Follows macOS sound effects settings.",
+                                            "Çarkta seçenek değiştirirken veya işlemi onayladığında kısa bir ses. macOS ses efekti ayarlarına uyar.")) {
                 HStack(spacing: 12) {
                     Button { model.previewSelectionSound() } label: {
                         Label(model.text("Preview", "Dinle"), systemImage: "speaker.wave.1")
@@ -41,8 +41,8 @@ struct SettingsContent: View {
                         .accessibilityIdentifier("settings.selection-sounds.preview")
                     Toggle(model.text("Selection Sounds", "Seçim Sesleri"), isOn: $model.selectionSoundsEnabled)
                         .labelsHidden().toggleStyle(.switch).controlSize(.small)
-                        .accessibilityHint(model.text("Play after confirming an operation, not while browsing its options.",
-                                                      "Seçeneklere göz atarken değil, işlemi onayladıktan sonra çal."))
+                        .accessibilityHint(model.text("Play when the highlighted wheel option changes or an operation is confirmed. Off by default.",
+                                                      "Çarkta seçili seçenek değiştiğinde veya işlem onaylandığında çal. Başlangıçta kapalı."))
                         .accessibilityIdentifier("settings.selection-sounds")
                 }
             }.background(Palette.panel, in: RoundedRectangle(cornerRadius: 12))

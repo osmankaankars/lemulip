@@ -15,7 +15,9 @@ class NativeCoverageTests(unittest.TestCase):
                      'testOrganizerFirstCancelClickDiscardsActivePositionDraft'}
         present = set(re.findall(r'func (test\w+)\(', sources))
         self.assertFalse(required - present, f'Missing native coverage: {sorted(required - present)}')
-        self.assertEqual(len(present), 27, 'Keep the previous 25 cases and both sound settings lifecycles')
+        self.assertTrue({'testEnglishWheelPointerKeyboardAndVisualReview',
+                         'testTurkishWheelPointerKeyboardAndVisualReview'} <= present)
+        self.assertEqual(len(present), 29, 'Keep all 27 cases plus both native wheel reviews')
 
     def test_workflow_assembles_and_records_the_new_cases(self):
         workflow = (ROOT / '.github/workflows/native-ui-review.yml').read_text()
