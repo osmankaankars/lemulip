@@ -49,11 +49,12 @@ final class ProductCaptureTests: XCTestCase {
         let frame = target.frame
         XCTAssertGreaterThan(frame.width, 0); XCTAssertGreaterThan(frame.height, 0)
         let screenshot = target.screenshot()
-        let png = screenshot.pngRepresentation
+        let windowCapture = try nativeWindowPNG(app)
+        let png = windowCapture ?? screenshot.pngRepresentation
         let bitmap = try XCTUnwrap(NSBitmapImageRep(data: png))
         let shot = XCTAttachment(data: png, uniformTypeIdentifier: "public.png")
         shot.name = "capture-" + name; shot.lifetime = .keepAlways; add(shot)
-        let record: [String: Any] = ["id": name, "capture": "XCTest screenshot of running application",
+        let record: [String: Any] = ["id": name, "capture": windowCapture == nil ? "XCTest screenshot of running application" : "macOS window capture without shadow",
             "width": bitmap.pixelsWide, "height": bitmap.pixelsHigh,
             "logicalWidth": frame.width, "logicalHeight": frame.height,
             "scaleX": Double(bitmap.pixelsWide) / frame.width,
@@ -65,6 +66,29 @@ final class ProductCaptureTests: XCTestCase {
         details.name = "geometry-" + name; details.lifetime = .keepAlways; add(details)
         let graph = XCTAttachment(string: app.debugDescription)
         graph.name = "semantics-" + name; graph.lifetime = .keepAlways; add(graph)
+    }
+
+    private func nativeWindowPNG(_ app: XCUIApplication) throws -> Data? {
+        guard let running = NSWorkspace.shared.runningApplications.first(where: {
+            $0.bundleIdentifier == "app.lemulip.NativeUIReview"
+        }), let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID) as? [[String: Any]],
+        let window = windows.first(where: {
+            ($0[kCGWindowOwnerPID as String] as? NSNumber)?.int32Value == running.processIdentifier &&
+            ($0[kCGWindowName as String] as? String) == "Lemulip" &&
+            ($0[kCGWindowLayer as String] as? NSNumber)?.intValue == 0
+        }), let number = window[kCGWindowNumber as String] as? NSNumber else { return nil }
+        let destination = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".png")
+        defer { try? FileManager.default.removeItem(at: destination) }
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
+        process.arguments = ["-x", "-o", "-l", number.stringValue, destination.path]
+        try process.run()
+        let deadline = Date().addingTimeInterval(8)
+        while process.isRunning && Date() < deadline { RunLoop.current.run(until: Date().addingTimeInterval(0.1)) }
+        if process.isRunning { process.terminate(); return nil }
+        guard process.terminationStatus == 0, let bytes = try? Data(contentsOf: destination),
+              NSBitmapImageRep(data: bytes) != nil else { return nil }
+        return bytes
     }
 
     func testWorkspaceThemesAndEmptySearch() throws {
@@ -151,7 +175,7 @@ final class ProductCaptureTests: XCTestCase {
         let result = try output(in: folder, excluding: existing, ext: "png")
         XCTAssertNotNil(NSImage(contentsOf: result))
         app.buttons["navigation.activity"].click()
-        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Completed")).firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "value == %@", "1 Completed")).firstMatch.waitForExistence(timeout: 10))
         try capture("activity", app)
         XCTAssertEqual(try Data(contentsOf: input), original)
     }
