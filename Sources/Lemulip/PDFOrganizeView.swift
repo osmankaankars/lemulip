@@ -20,6 +20,10 @@ struct PDFOrganizeView: View {
     // Only an uncommitted number edit blocks document actions. AppKit may
     // restore keyboard focus to a visible field after scrolling or a drag.
     @State private var editingPosition: Int?
+    private var positionHasFocus: Bool {
+        if case .position? = focus { return true }
+        return false
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -100,7 +104,7 @@ struct PDFOrganizeView: View {
             .help(model.text("Remove From the Copy (Delete)", "Kopyadan çıkar (Delete)"))
             Spacer(minLength: 10)
             Button(model.text("Select All", "Tümünü seç")) { editor.selectAll(); focus = .content }
-                .keyboardShortcut("a", modifiers: .command).disabled(editor.pages.isEmpty || editingPosition != nil)
+                .keyboardShortcut("a", modifiers: .command).disabled(editor.pages.isEmpty || positionHasFocus)
         }.font(.system(size: 11)).controlSize(.small)
     }
 
@@ -344,7 +348,7 @@ struct PDFOrganizeView: View {
                     .help(model.text("Create A PDF With Selected Pages", "Seçili Sayfalardan Bir PDF Oluştur"))
             }.padding(.horizontal, 24)
             EditorFooter(language: model.language, isEnabled: editor.exportPlan(selectedOnly: false) != nil && editingPosition == nil,
-                cancelShortcut: editingPosition == nil ? .cancelAction : nil,
+                cancelShortcut: positionHasFocus ? nil : .cancelAction,
                 onCancel: { editor.close(); model.cancelPending() }, onSubmit: { submit(selectedOnly: false) })
         }
     }

@@ -20,6 +20,10 @@ struct PDFMergeView: View {
     // Only an uncommitted number edit blocks document actions. AppKit may
     // restore keyboard focus to a visible field after scrolling or a drag.
     @State private var editingPosition: Int?
+    private var positionHasFocus: Bool {
+        if case .position? = focus { return true }
+        return false
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -100,7 +104,7 @@ struct PDFMergeView: View {
             .help(model.text("Remove From the Copy (Delete)", "Kopyadan çıkar (Delete)"))
             Spacer(minLength: 10)
             Button(model.text("Select All", "Tümünü seç")) { editor.selectAll(); focus = .content }
-                .keyboardShortcut("a", modifiers: .command).disabled(editor.documents.isEmpty || editingPosition != nil)
+                .keyboardShortcut("a", modifiers: .command).disabled(editor.documents.isEmpty || positionHasFocus)
         }.font(.system(size: 11)).controlSize(.small)
     }
 
@@ -343,7 +347,7 @@ struct PDFMergeView: View {
                     .background(Palette.raised, in: RoundedRectangle(cornerRadius: 8))
             }
             EditorFooter(language: model.language, isEnabled: editor.exportPlan() != nil && editingPosition == nil,
-                cancelShortcut: editingPosition == nil ? .cancelAction : nil,
+                cancelShortcut: positionHasFocus ? nil : .cancelAction,
                 onCancel: { editor.close(); model.cancelPending() }, onSubmit: { submit() })
         }
     }

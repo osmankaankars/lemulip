@@ -25,12 +25,16 @@ struct PDFPositionField: View {
 
     var body: some View {
         TextField("", text: Binding(get: { draft }, set: { value in
-            // This setter is invoked by text input, not by display updates or
-            // AppKit restoring focus after a drag in a virtualized list.
-            if editingPosition != item { beginEditing() }
+            // AppKit may write back the unchanged value when focus moves.
+            // That is not a selection gesture or an uncommitted edit.
             draft = value
             isInvalid = false
-            editingPosition = value == String(position) ? nil : item
+            if value == String(position) {
+                if editingPosition == item { editingPosition = nil }
+            } else {
+                if editingPosition != item { beginEditing() }
+                editingPosition = item
+            }
         }))
             .textFieldStyle(.roundedBorder)
             .multilineTextAlignment(.center)
