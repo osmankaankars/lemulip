@@ -156,15 +156,17 @@ struct PDFMergeView: View {
                 }
                 .coordinateSpace(name: "pdf-merge-list")
                 .focusable().focused($focus, equals: .content)
-                // Lazy rows must not make an offscreen position field the default focus.
-                .defaultFocus($focus, .content)
                 .onMoveCommand { direction in
                     guard editingPosition == nil else { return }
                     if let target = editor.moveFocus(direction) { scroll.scrollTo(target) }
                 }
                 .onDeleteCommand { if editingPosition == nil { editor.removeSelection() } }
                 .onChange(of: editor.scrollRequest) { request in
-                    if let request { scroll.scrollTo(request.inputIndex) }
+                    if let request {
+                        scroll.scrollTo(request.inputIndex)
+                        // A completed reorder ends position editing, including focus restored after a drag.
+                        focus = .content
+                    }
                 }
                 .onPreferenceChange(PDFMergeRowFrames.self) { frames in
                     let bounds = CGRect(origin: .zero, size: viewport.size)

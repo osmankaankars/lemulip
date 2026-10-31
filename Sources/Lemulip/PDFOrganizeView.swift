@@ -153,15 +153,17 @@ struct PDFOrganizeView: View {
                 }
                 .coordinateSpace(name: "pdf-organizer-grid")
                 .focusable().focused($focus, equals: .content)
-                // Lazy rows must not make an offscreen position field the default focus.
-                .defaultFocus($focus, .content)
                 .onMoveCommand { direction in
                     guard editingPosition == nil else { return }
                     if let target = editor.moveFocus(direction, columns: columns) { scroll.scrollTo(target) }
                 }
                 .onDeleteCommand { if editingPosition == nil { editor.removeSelection() } }
                 .onChange(of: editor.scrollRequest) { request in
-                    if let request { scroll.scrollTo(request.sourceIndex) }
+                    if let request {
+                        scroll.scrollTo(request.sourceIndex)
+                        // A completed reorder ends position editing, including focus restored after a drag.
+                        focus = .content
+                    }
                 }
                 .onPreferenceChange(PDFPageFrames.self) { frames in
                     let bounds = CGRect(origin: .zero, size: viewport.size)
