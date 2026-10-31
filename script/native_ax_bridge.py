@@ -14,6 +14,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+from socketserver import TCPServer
 import subprocess
 import threading
 from collections.abc import Callable
@@ -43,6 +44,15 @@ class SnapshotReader:
                 or not isinstance(record.get('nodes'), list)):
             raise ValueError('AX snapshot is untrusted, incomplete or from a different application')
         return record
+
+
+class _LoopbackHTTPServer(HTTPServer):
+    def server_bind(self) -> None:
+        # HTTPServer.server_bind calls getfqdn(), which can perform network
+        # name discovery and display a macOS Local Network permission prompt.
+        # This fixed-target reviewer needs only a numeric loopback address.
+        TCPServer.server_bind(self)
+        self.server_name, self.server_port = self.server_address[:2]
 
 
 def make_server(snapshot: Callable[[], dict], token: str) -> HTTPServer:
@@ -75,7 +85,7 @@ def make_server(snapshot: Callable[[], dict], token: str) -> HTTPServer:
         def do_POST(self) -> None:
             self.respond(405, {'ok': False, 'error': 'Read-only review endpoint'})
 
-    server = HTTPServer(('127.0.0.1', 0), Handler)
+    server = _LoopbackHTTPServer(('127.0.0.1', 0), Handler)
     server.timeout = 1
     return server
 

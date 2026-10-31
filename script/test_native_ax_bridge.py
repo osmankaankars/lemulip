@@ -11,6 +11,21 @@ from native_ax_bridge import SnapshotReader, make_server
 
 
 class NativeAXBridgeTests(unittest.TestCase):
+    def test_server_startup_never_resolves_a_host_name(self):
+        # HTTPServer normally reverse-resolves its bind address. Even a local
+        # reviewer must not ask macOS to discover names on the user's network.
+        with patch('socket.getfqdn', return_value='unexpected.local') as fqdn, \
+                patch('socket.gethostbyaddr') as reverse:
+            server = make_server(lambda: {'trusted': True}, 'c' * 64)
+            try:
+                self.assertEqual(server.server_address[0], '127.0.0.1')
+                fqdn.assert_not_called()
+                reverse.assert_not_called()
+                self.assertEqual(server.server_name, '127.0.0.1')
+                self.assertEqual(server.server_port, server.server_address[1])
+            finally:
+                server.server_close()
+
     def test_reader_requires_trusted_exact_target(self):
         with tempfile.TemporaryDirectory() as temporary:
             app = Path(temporary) / 'Lemulip Native UI Review.app'
