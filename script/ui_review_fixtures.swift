@@ -45,6 +45,20 @@ do {
         try makePDF(merge.appendingPathComponent("02-Report.pdf"), labels: ["02.1 - Report", "02.2 - Report"])
         try makePDF(merge.appendingPathComponent("03-Notes.pdf"), labels: ["03 - Notes"])
         try makePDF(organize.appendingPathComponent("Page-Order.pdf"), labels: (1...4).map { "PAGE \($0)" })
+        // Separate folders prevent output checks from mixing independent scenarios.
+        let multi = url.appendingPathComponent("MultiMerge", isDirectory: true)
+        let longMerge = url.appendingPathComponent("LongMerge", isDirectory: true)
+        let longOrganize = url.appendingPathComponent("LongOrganize", isDirectory: true)
+        for folder in [multi, longMerge, longOrganize] {
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        }
+        for index in 1...3 {
+            try makePDF(multi.appendingPathComponent(String(format: "%02d.pdf", index)), labels: ["FILE \(index)"])
+        }
+        for index in 1...18 {
+            try makePDF(longMerge.appendingPathComponent(String(format: "%02d.pdf", index)), labels: ["FILE \(index)"])
+        }
+        try makePDF(longOrganize.appendingPathComponent("Long-Order.pdf"), labels: (1...24).map { "PAGE \($0)" })
         try "1\n00:00:00,000 --> 00:00:01,000\nUI review subtitle\n".write(
             to: url.appendingPathComponent("Subtitle.srt"), atomically: true, encoding: .utf8)
     case "inspect":
