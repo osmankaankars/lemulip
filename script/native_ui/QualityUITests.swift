@@ -1,5 +1,7 @@
 import XCTest
 import PDFKit
+import AppKit
+import ApplicationServices
 
 /// External UI tests: the unchanged production app runs its normal event loop.
 /// This is not a VoiceOver audition or proof of Retina display quality.
@@ -115,9 +117,65 @@ final class QualityUITests: XCTestCase {
         let query = slider ? app.sliders : app.textFields
         let control = query.matching(NSPredicate(format: "label == %@", label)).firstMatch
         XCTAssertTrue(control.waitForExistence(timeout: 10), "The production control must expose its localized name")
-        XCTAssertEqual(control.value as? String, value, "The production control must expose its localized units")
+        if slider {
+            // XCUIAutomation returns the numeric AXValue, not AXValueDescription.
+            // Verify both, rather than dropping the localized-unit requirement.
+            XCTAssertEqual(try XCTUnwrap(control.value as? NSNumber).doubleValue, 0.82, accuracy: 0.0001)
+            XCTAssertEqual(try sliderValueDescription(label: label), value,
+                           "The production control must expose its localized units")
+        } else {
+            XCTAssertEqual(control.value as? String, value)
+        }
         XCTAssertTrue(control.isEnabled)
         XCTAssertTrue(control.isHittable)
+    }
+
+    private func sliderValueDescription(label: String) throws -> String {
+        guard AXIsProcessTrusted() else {
+            throw NSError(domain: "LemulipNativeReview", code: 1,
+                          userInfo: [NSLocalizedDescriptionKey: "The external test runner has no accessibility permission; no semantic pass is claimed"])
+        }
+        let instances = NSRunningApplication.runningApplications(withBundleIdentifier: "app.lemulip.NativeUIReview")
+        XCTAssertEqual(instances.count, 1, "Inspect only the isolated application started by this test")
+        let process = try XCTUnwrap(instances.first)
+        let root = AXUIElementCreateApplication(process.processIdentifier)
+        AXUIElementSetMessagingTimeout(root, 2)
+        var pending = [root]
+        var visited: [AXUIElement] = []
+        var diagnostics: [[String: String]] = []
+        while let element = pending.popLast(), visited.count < 512 {
+            if visited.contains(where: { CFEqual($0, element) }) { continue }
+            visited.append(element)
+            func attribute(_ name: String) -> CFTypeRef? {
+                var result: CFTypeRef?
+                let status = AXUIElementCopyAttributeValue(element, name as CFString, &result)
+                return status == .success ? result : nil
+            }
+            let role = attribute(kAXRoleAttribute) as? String
+            if role == kAXSliderRole {
+                let title = attribute(kAXTitleAttribute) as? String
+                let description = attribute(kAXDescriptionAttribute) as? String
+                let value = attribute(kAXValueDescriptionAttribute) as? String
+                diagnostics.append(["role": role ?? "missing", "title": title ?? "missing",
+                                    "description": description ?? "missing", "valueDescription": value ?? "missing"])
+                if title == label || description == label {
+                    let attachment = XCTAttachment(string: String(describing: diagnostics))
+                    attachment.name = "Exact external slider semantics"
+                    attachment.lifetime = .keepAlways
+                    add(attachment)
+                    return try XCTUnwrap(value, "A numeric slider value does not replace the localized description")
+                }
+            }
+            if let children = attribute(kAXChildrenAttribute) as? [AXUIElement] {
+                pending.append(contentsOf: children)
+            }
+        }
+        let attachment = XCTAttachment(string: String(describing: diagnostics))
+        attachment.name = "External slider lookup failure"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        throw NSError(domain: "LemulipNativeReview", code: 2,
+                      userInfo: [NSLocalizedDescriptionKey: "No exact slider accessibility node for \(label)"])
     }
 
     private func openOperation(_ id: String, in app: XCUIApplication) throws {

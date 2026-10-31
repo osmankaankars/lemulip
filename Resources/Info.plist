@@ -18,6 +18,18 @@
     <key>NSHighResolutionCapable</key><true/>
     <key>NSSupportsAutomaticGraphicsSwitching</key><true/>
     <key>NSHumanReadableCopyright</key><string>Copyright © 2026 Kaan Kars and contributors. MIT License.</string>
+    <!-- Only opaque reorder tokens use these types. No file extension is claimed. -->
+    <key>UTExportedTypeDeclarations</key>
+    <array>
+        <dict>
+            <key>UTTypeIdentifier</key><string>app.lemulip.pdf-merge-document</string>
+            <key>UTTypeConformsTo</key><array><string>public.data</string></array>
+        </dict>
+        <dict>
+            <key>UTTypeIdentifier</key><string>app.lemulip.pdf-organizer-page</string>
+            <key>UTTypeConformsTo</key><array><string>public.data</string></array>
+        </dict>
+    </array>
     <key>CFBundleDocumentTypes</key>
     <array>
         <dict>

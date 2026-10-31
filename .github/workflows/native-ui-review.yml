@@ -44,6 +44,7 @@ jobs:
           test "$(uname -m)" = '${{ matrix.arch }}'
           python3 script/privacy_check.py --staged
           python3 script/test_prepare_native_ui.py
+          python3 script/test_pdf_drag_types.py
       - name: Build the Unchanged Production Application
         env:
           CONFIGURATION: debug
