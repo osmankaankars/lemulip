@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
@@ -21,19 +22,49 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Build the Unchanged Native App
-        env:
-          CONFIGURATION: debug
-        run: ./script/build_app.sh
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          artifact-ids: '13060974116'
+          run-id: 41248606579
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/complete-package
+          merge-multiple: true
+          digest-mismatch: error
+      - name: Stage the Exact Full Application Built From Main
+        run: |
+          python3 - <<'PYCODE'
+          import hashlib, os, pathlib, subprocess
+          folder=pathlib.Path(os.environ['RUNNER_TEMP'])/'complete-package'
+          package=folder/'Lemulip-0.1.20-macOS-universal.zip'
+          assert hashlib.file_digest(package.open('rb'),'sha256').hexdigest()=='1c31268279a094d64dbf8edc1680112705ee1152ad6b2a9c98e782b29aae8523'
+          for line in (folder/'SHA256SUMS.txt').read_text().splitlines():
+              digest,name=line.split(None,1); target=folder/name.strip().lstrip('*')
+              assert target.parent==folder and hashlib.file_digest(target.open('rb'),'sha256').hexdigest()==digest
+          subprocess.run(['ditto','-x','-k',str(package),str(folder/'unpacked')],check=True)
+          subprocess.run(['ditto',str(folder/'unpacked/Lemulip-0.1.20-macOS-universal/Lemulip.app'),'dist/Lemulip.app'],check=True)
+          app=pathlib.Path('dist/Lemulip.app')
+          assert hashlib.file_digest((app/'Contents/MacOS/Lemulip').open('rb'),'sha256').hexdigest()=='92148b7c9ca449eb00a0b90b1df27547107c67c79c373c489457496f4978ac98'
+          PYCODE
       - name: Stage Separate Review Identity and Real Fixtures
         run: |
           python3 script/prepare_native_ui.py --app dist/Lemulip.app --output "$RUNNER_TEMP/lemulip-product"
+          python3 - <<'PYCODE'
+          import json, os, pathlib
+          folder=pathlib.Path(os.environ['RUNNER_TEMP'])/'lemulip-product'
+          record=json.loads((folder/'provenance.json').read_text())
+          record['harnessCommit']=record['sourceCommit']
+          record['applicationBuildCommit']='eaa783c949a1814130a6618395269ba17c1baa6f'
+          record['applicationBuildRun']=41248606579
+          record['applicationBuildArtifact']=13060974116
+          record['applicationArchiveSHA256']='1c31268279a094d64dbf8edc1680112705ee1152ad6b2a9c98e782b29aae8523'
+          record['bundledEngines']=True
+          (folder/'provenance.json').write_text(json.dumps(record,indent=2)+'\n')
+          PYCODE
           cp script/native_ui/ProductCaptureTests.swift "$RUNNER_TEMP/lemulip-product/Runner/QualityUITests.swift"
           cp site/assets/morning-light.jpg "$RUNNER_TEMP/lemulip-product/Fixtures/Morning light.jpg"
           xcrun swift script/native_ui/ProductFixtures.swift "$RUNNER_TEMP/lemulip-product/Fixtures"
-          if ! command -v ffmpeg >/dev/null; then HOMEBREW_NO_AUTO_UPDATE=1 brew install ffmpeg; fi
-          ffmpeg -v error -loop 1 -i site/assets/morning-light.jpg -t 6 -vf 'scale=1280:960,crop=1280:720,format=yuv420p' -c:v libx264 "$RUNNER_TEMP/lemulip-product/Fixtures/Morning light.mov"
-          ffmpeg -v error -f lavfi -i 'aevalsrc=0.2*sin(2*PI*220*t)*(0.6+0.4*sin(2*PI*0.6*t)):s=44100:d=12' "$RUNNER_TEMP/lemulip-product/Fixtures/Quiet afternoon.wav"
+          dist/Lemulip.app/Contents/Helpers/ffmpeg -v error -loop 1 -i site/assets/morning-light.jpg -t 6 -vf 'scale=1280:960,crop=1280:720,format=yuv420p' -c:v libx264 "$RUNNER_TEMP/lemulip-product/Fixtures/Morning light.mov"
+          dist/Lemulip.app/Contents/Helpers/ffmpeg -v error -f lavfi -i 'aevalsrc=0.2*sin(2*PI*220*t)*(0.6+0.4*sin(2*PI*0.6*t)):s=44100:d=12' "$RUNNER_TEMP/lemulip-product/Fixtures/Quiet afternoon.wav"
       - name: Attempt a Temporary Native High-Density Test Display
         run: |
           xcrun clang -fobjc-arc -framework Foundation -framework CoreGraphics script/native_ui/HighDensityCaptureDisplay.m -o "$RUNNER_TEMP/capture-display"
