@@ -17,10 +17,9 @@ struct PDFMergeView: View {
         _editor = StateObject(wrappedValue: editor ?? PDFMergeEditor())
     }
 
-    private var editingPosition: Int? {
-        if case .position(let inputIndex)? = focus { return inputIndex }
-        return nil
-    }
+    // Only an uncommitted number edit blocks document actions. AppKit may
+    // restore keyboard focus to a visible field after scrolling or a drag.
+    @State private var editingPosition: Int?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -157,10 +156,10 @@ struct PDFMergeView: View {
                 .coordinateSpace(name: "pdf-merge-list")
                 .focusable().focused($focus, equals: .content)
                 .onMoveCommand { direction in
-                    guard editingPosition == nil else { return }
+                    if case .position? = focus { return }
                     if let target = editor.moveFocus(direction) { scroll.scrollTo(target) }
                 }
-                .onDeleteCommand { if editingPosition == nil { editor.removeSelection() } }
+                .onDeleteCommand { if case .position? = focus { return }; editor.removeSelection() }
                 .onChange(of: editor.scrollRequest) { request in
                     if let request {
                         scroll.scrollTo(request.inputIndex)
@@ -265,7 +264,7 @@ struct PDFMergeView: View {
                              "Bir konum yazıp Enter'a bas. Seçili dosyalar birlikte taşınır. Esc ile vazgeç."),
             invalidHint: model.text("Enter a Whole Number from \(range.lowerBound) to \(range.upperBound). The Selected Files Keep Their Relative Order.",
                                     "\(range.lowerBound) ile \(range.upperBound) arasında tam sayı gir. Seçili dosyaların kendi aralarındaki sıra korunur."),
-            focus: $focus,
+            focus: $focus, editingPosition: $editingPosition,
             beginEditing: {
                 if !editor.selectedDocuments.contains(entry.id) { editor.select(entry.id) }
             },

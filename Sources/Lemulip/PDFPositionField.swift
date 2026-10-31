@@ -17,13 +17,21 @@ struct PDFPositionField: View {
     let hint: String
     let invalidHint: String
     let focus: FocusState<PDFEditorFocus?>.Binding
+    @Binding var editingPosition: Int?
     let beginEditing: () -> Void
     let move: (Int) -> Bool
     @State private var draft = ""
     @State private var isInvalid = false
 
     var body: some View {
-        TextField("", text: $draft)
+        TextField("", text: Binding(get: { draft }, set: { value in
+            // This setter is invoked by text input, not by display updates or
+            // AppKit restoring focus after a drag in a virtualized list.
+            if editingPosition != item { beginEditing() }
+            draft = value
+            isInvalid = false
+            editingPosition = value == String(position) ? nil : item
+        }))
             .textFieldStyle(.roundedBorder)
             .multilineTextAlignment(.center)
             .font(.system(size: 12, weight: .semibold)).monospacedDigit()
@@ -48,29 +56,34 @@ struct PDFPositionField: View {
             }
             .onAppear { draft = String(position) }
             .onDisappear {
+                if editingPosition == item { editingPosition = nil }
                 if focus.wrappedValue == .position(item) { focus.wrappedValue = .content }
             }
             .onChange(of: position) { value in
-                if focus.wrappedValue != .position(item) { draft = String(value) }
+                if editingPosition != item { draft = String(value) }
             }
-            .onChange(of: draft) { _ in isInvalid = false }
             .onChange(of: focus.wrappedValue) { value in
-                isInvalid = false
-                // Unfocused updates already keep the displayed number current.
-                // A deferred focus notification must not erase the first typed digit.
-                if value == .position(item) { beginEditing() }
-                else { draft = String(position) }
+                // Passive focus is not a new edit or a selection action.
+                // Leaving a field still cancels its unsubmitted draft.
+                if value != .position(item) {
+                    if editingPosition == item { editingPosition = nil }
+                    isInvalid = false
+                    draft = String(position)
+                }
             }
             .onSubmit {
                 guard let value = Int(draft.trimmingCharacters(in: .whitespacesAndNewlines)),
                       allowedPositions.contains(value), move(value) else {
                     isInvalid = true
+                    editingPosition = item
                     return
                 }
+                editingPosition = nil
                 focus.wrappedValue = .content
             }
             .onExitCommand {
                 draft = String(position)
+                editingPosition = nil
                 isInvalid = false
                 focus.wrappedValue = .content
             }

@@ -17,10 +17,9 @@ struct PDFOrganizeView: View {
         _editor = StateObject(wrappedValue: editor ?? PDFOrganizeEditor())
     }
 
-    private var editingPosition: Int? {
-        if case .position(let sourceIndex)? = focus { return sourceIndex }
-        return nil
-    }
+    // Only an uncommitted number edit blocks document actions. AppKit may
+    // restore keyboard focus to a visible field after scrolling or a drag.
+    @State private var editingPosition: Int?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -154,10 +153,10 @@ struct PDFOrganizeView: View {
                 .coordinateSpace(name: "pdf-organizer-grid")
                 .focusable().focused($focus, equals: .content)
                 .onMoveCommand { direction in
-                    guard editingPosition == nil else { return }
+                    if case .position? = focus { return }
                     if let target = editor.moveFocus(direction, columns: columns) { scroll.scrollTo(target) }
                 }
-                .onDeleteCommand { if editingPosition == nil { editor.removeSelection() } }
+                .onDeleteCommand { if case .position? = focus { return }; editor.removeSelection() }
                 .onChange(of: editor.scrollRequest) { request in
                     if let request {
                         scroll.scrollTo(request.sourceIndex)
@@ -260,7 +259,7 @@ struct PDFOrganizeView: View {
                              "Bir konum yazıp Enter'a bas. Seçili sayfalar birlikte taşınır. Esc ile vazgeç."),
             invalidHint: model.text("Enter a Whole Number from \(range.lowerBound) to \(range.upperBound). The Selected Pages Keep Their Relative Order.",
                                     "\(range.lowerBound) ile \(range.upperBound) arasında tam sayı gir. Seçili sayfaların kendi aralarındaki sıra korunur."),
-            focus: $focus,
+            focus: $focus, editingPosition: $editingPosition,
             beginEditing: {
                 if !editor.selectedPages.contains(sourceIndex) { editor.select(sourceIndex) }
             },
