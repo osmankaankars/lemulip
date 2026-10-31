@@ -41,6 +41,7 @@ jobs:
           python3 script/test_native_ax_bridge.py
           python3 script/test_native_coverage.py
           python3 script/test_native_release_gate.py
+          python3 script/test_sound_review_gate.py
       - name: Build the Unchanged Production Application
         env:
           CONFIGURATION: debug
@@ -56,11 +57,13 @@ jobs:
           # Same-file extension intentionally shares the real-app helpers.
           position=pathlib.Path('script/native_ui/PDFPositionNoopTests.swift').read_bytes()
           options=pathlib.Path('script/native_ui/OptionsParityTests.swift').read_bytes()
-          suite.write_bytes(suite.read_bytes()+fragment+position+options)
+          sound=pathlib.Path('script/native_ui/SelectionSoundUITests.swift').read_bytes()
+          suite.write_bytes(suite.read_bytes()+fragment+position+options+sound)
           receipt=root/'provenance.json'; record=json.loads(receipt.read_text())
           record['workflowTestSourceSHA256']=hashlib.sha256(fragment).hexdigest()
           record['positionTestSourceSHA256']=hashlib.sha256(position).hexdigest()
           record['optionsParitySourceSHA256']=hashlib.sha256(options).hexdigest()
+          record['selectionSoundSourceSHA256']=hashlib.sha256(sound).hexdigest()
           record['compiledTestSourceSHA256']=hashlib.sha256(suite.read_bytes()).hexdigest()
           receipt.write_text(json.dumps(record,indent=2)+'\n')
           PYCODE

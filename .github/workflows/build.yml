@@ -47,6 +47,15 @@ jobs:
     name: Native UI Gate
     uses: ./.github/workflows/native-ui-review.yml
 
+  review-copy:
+    name: Current Unreleased Review Copy
+    needs: [test, native-ui]
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.head_ref == 'fix/quality-020-followup-20261031' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    uses: ./.github/workflows/current-ui-review.yml
+
   test:
     name: macOS Tests (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
@@ -73,6 +82,7 @@ jobs:
           python3 script/test_interface.py
           python3 script/test_native_coverage.py
           python3 script/test_native_release_gate.py
+          python3 script/test_sound_review_gate.py
       - name: Check Architecture, Toolchain, and Version
         env:
           EXPECTED_ARCH: ${{ matrix.arch }}

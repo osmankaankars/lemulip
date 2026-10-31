@@ -15,7 +15,7 @@ class NativeCoverageTests(unittest.TestCase):
                      'testOrganizerFirstCancelClickDiscardsActivePositionDraft'}
         present = set(re.findall(r'func (test\w+)\(', sources))
         self.assertFalse(required - present, f'Missing native coverage: {sorted(required - present)}')
-        self.assertEqual(len(present), 25, 'Keep the previous 17 cases and all eight replacements')
+        self.assertEqual(len(present), 27, 'Keep the previous 25 cases and both sound settings lifecycles')
 
     def test_workflow_assembles_and_records_the_new_cases(self):
         workflow = (ROOT / '.github/workflows/native-ui-review.yml').read_text()
