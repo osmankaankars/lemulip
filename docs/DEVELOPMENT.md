@@ -55,6 +55,7 @@ Format and converter constraints are documented in [Formats](FORMATS.md). The li
 
 ```bash
 python3 script/test_site.py
+python3 script/test_prepare_site.py
 python3 script/test_public_images.py
 node --check site/catalog.js
 node --check site/product.js
@@ -62,6 +63,13 @@ python3 script/test_site_browser.py --engine chromium --output /tmp/lemulip-site
 ```
 
 Playwright is a test-only dependency. CI also runs WebKit and checks the public URL after Pages deployment. Keep the nine sample files, keyboard and pointer interactions, themes, reduced motion, and mobile layout covered. The demo never reads user files.
+
+Browser checks serve the same prepared directory used by Pages, including the
+reviewed social image and absolute sharing metadata. Render a proposed share card
+with `python3 script/render_social_preview.py --output /tmp/lemulip-share-review`
+after installing the same Playwright version as CI. Review both output sizes and
+the recorded source hashes before updating the public PNG, its manifest and the
+exact image allowlist. Rendering does not publish or replace those files.
 
 ## Prepare a Release
 

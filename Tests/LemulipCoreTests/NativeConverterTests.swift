@@ -497,14 +497,16 @@ final class NativeConverterTests: XCTestCase {
         XCTAssertEqual(document.pageCount, 3)
         XCTAssertTrue(document.page(at: 0)?.string?.contains("Charlie") == true)
         XCTAssertTrue(document.page(at: 1)?.string?.contains("Alpha") == true)
-        options.pageRange = "0-9"
-        let emptyStage = try freshStage(work)
-        do {
-            _ = try await NativeConverter.convert(inputs: [source], operation: operation("pdf.extract"),
-                options: options, outputDirectory: emptyStage)
-            XCTFail("Out-of-range pages must be rejected")
-        } catch LemulipError.invalidInput { }
-        XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: emptyStage.path).isEmpty)
+        for range in ["0-9", "4", "1,,2"] {
+            options.pageRange = range
+            let emptyStage = try freshStage(work)
+            do {
+                _ = try await NativeConverter.convert(inputs: [source], operation: operation("pdf.extract"),
+                    options: options, outputDirectory: emptyStage)
+                XCTFail("Invalid or out-of-range pages must be rejected: \(range)")
+            } catch LemulipError.invalidInput { }
+            XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: emptyStage.path).isEmpty)
+        }
     }
 
     func testRotatedCropBoxRendersAnnotationsAndCorrectDimensions() async throws {

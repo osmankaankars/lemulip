@@ -18,30 +18,6 @@ ZIP if you also want the command-line tool.
 App downloads run without Xcode or Swift. See [First Launch](#first-launch)
 before opening a preview for the first time.
 
-### Verify a Download
-
-Release assets include `SHA256SUMS.txt`. To check all three archives, put them
-and the checksum file in the same folder, then run:
-
-```bash
-shasum -a 256 -c SHA256SUMS.txt
-```
-
-If you downloaded only the DMG or app ZIP, calculate that file's SHA-256 with
-`shasum -a 256` and compare it with the matching line in `SHA256SUMS.txt`.
-Checksums help detect a mismatch with the published files. Verify that the
-release comes from this repository before opening a download.
-
-## Build From Source
-
-Use Swift 5.9+ from compatible Xcode tools, then run `./Build-and-Install.command`.
-See [Development](DEVELOPMENT.md#build-and-check) for build and verification commands.
-The installer preserves an existing app; a separate build remains in `dist`.
-
-### Upgrading From Freewheel
-
-Quit the old app before opening Lemulip. Saved settings are retained; the installer leaves the old application in place. Update CLI shortcuts to `lemulip`.
-
 ## First Launch
 
 macOS may ask you to confirm a downloaded app on first launch. Check that your
@@ -77,7 +53,35 @@ for richer Office conversions, then click **Refresh** in Format Support.
 Optional installation needs internet access. File conversions stay on your Mac.
 The ZIP's CLI finds the bundled engines while it remains beside **Lemulip.app**.
 
+## Verify a Download
+
+Release assets include `SHA256SUMS.txt`. To check all three archives, put them
+and the checksum file in the same folder, then run:
+
+```bash
+shasum -a 256 -c SHA256SUMS.txt
+```
+
+If you downloaded only the DMG or app ZIP, calculate that file's SHA-256 with
+`shasum -a 256` and compare it with the matching line in `SHA256SUMS.txt`.
+Checksums help detect a mismatch with the published files. Verify that the
+release comes from this repository before opening a download.
+
+## Build From Source
+
+Use Swift 5.9+ from compatible Xcode tools, then run `./Build-and-Install.command`.
+See [Development](DEVELOPMENT.md#build-and-check) for build and verification commands.
+The installer preserves an existing app; a separate build remains in `dist`.
+
+### Upgrading From Freewheel
+
+Quit the old app before opening Lemulip. Saved settings are retained; the installer leaves the old application in place. Update CLI shortcuts to `lemulip`.
+
 ## Troubleshooting
+
+### A Conversion Fails or the Wheel Stays Hidden
+
+Check Activity for the error, then follow the [User Guide](USER_GUIDE.md#if-something-fails). Install a named engine if needed, use local files, or try the workspace.
 
 ### Permission Denied for a Build Script
 
@@ -102,10 +106,6 @@ If the failure occurs before source compilation, try compatible full Xcode using
 a `DEVELOPER_DIR` pointing at compatible full Xcode. The compiler path in the error identifies the
 toolchain in use. Keep source backups outside `Sources` and use a complete,
 fresh checkout when updating from an old development build.
-
-### A Conversion Fails or the Wheel Stays Hidden
-
-Check Activity for the error, then follow the [User Guide](USER_GUIDE.md#if-something-fails). Install a named engine if needed, use local files, or try the workspace.
 
 ## Uninstall
 

@@ -6,9 +6,11 @@ sample state changes, not file conversions. The separate opt-in player shows an
 actual native Mac recording in the same stage.
 """
 from __future__ import annotations
-import argparse,functools,http.server,json,threading
+import argparse,functools,hashlib,http.server,json,tempfile,threading
 from pathlib import Path
+from urllib.parse import urljoin
 from playwright.sync_api import sync_playwright
+from prepare_site import prepare_site, SHARE_ALT, SHARE_FILE
 ROOT=Path(__file__).resolve().parent.parent
 FAMILIES=('images','pdf','audio','video','documents','spreadsheets','presentations','subtitles','archives')
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
@@ -279,8 +281,43 @@ def check_native_recording(page,output,width):
     assert page.locator('#watch-native').evaluate('e=>e===document.activeElement')
 
 
+def check_entry_and_sharing(page, canonical):
+    """Check prepared/deployed tags and decode the exact public image bytes."""
+    def one(selector, attribute, expected):
+        control=page.locator(selector)
+        assert control.count()==1, selector
+        assert control.get_attribute(attribute)==expected, selector
+    one('link[rel="canonical"]','href',canonical)
+    expected={
+        'og:url':canonical,'og:image':canonical+'assets/'+SHARE_FILE,
+        'og:image:type':'image/png','og:image:width':'1200','og:image:height':'630',
+        'og:image:alt':SHARE_ALT,'twitter:card':'summary_large_image',
+        'twitter:image':canonical+'assets/'+SHARE_FILE,'twitter:image:alt':SHARE_ALT,
+        'twitter:title':page.locator('meta[property="og:title"]').get_attribute('content'),
+        'twitter:description':page.locator('meta[property="og:description"]').get_attribute('content'),
+    }
+    for key,value in expected.items():
+        attribute='property' if key.startswith('og:') else 'name'
+        one(f'meta[{attribute}="{key}"]','content',value)
+    manifest=json.loads((ROOT/'site/assets/social-preview.json').read_text())
+    # Local checks use the fixture canonical but fetch the locally prepared asset.
+    resource=urljoin(page.url,'assets/'+SHARE_FILE)
+    response=page.request.get(resource)
+    assert response.ok and response.headers.get('content-type','').split(';')[0]=='image/png'
+    assert hashlib.sha256(response.body()).hexdigest()==manifest['sha256']
+    size=page.evaluate('''url=>new Promise((resolve,reject)=>{
+        const image=new Image();
+        image.onload=()=>resolve([image.naturalWidth,image.naturalHeight]);
+        image.onerror=()=>reject(new Error('The public social preview could not decode'));
+        image.src=url;
+    })''',resource)
+    assert size==[1200,630],size
+    one('.release-links a:has-text("Install & first steps")','href',
+        'https://github.com/osmankaankars/lemulip/blob/main/docs/INSTALL.md')
+
+
 def exercise(page,output,width,height):
-    assert page.locator('html').get_attribute('data-site-version')=='20261029.4'
+    assert page.locator('html').get_attribute('data-site-version')=='20261029.5'
     assert 'Lemulip' in page.title()
     assert page.locator('#format-count').inner_text()=='35'
     assert page.locator('#tool-count').inner_text()=='26'
@@ -342,16 +379,25 @@ def exercise(page,output,width,height):
 
 def run(output:Path,engine:str,url:str|None,executable:str|None=None):
     output.mkdir(parents=True,exist_ok=True);results=[];errors=[];failures=[]
-    server=None;thread=None
-    if not url:
-        handler=functools.partial(QuietHandler,directory=str(ROOT))
-        server=http.server.ThreadingHTTPServer(('127.0.0.1',0),handler)
-        thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
-        url=f'http://127.0.0.1:{server.server_port}/site/'
+    server=None;thread=None;prepared=None
     try:
+        if not url:
+            prepared=tempfile.TemporaryDirectory(prefix='lemulip-site-browser-')
+            canonical='https://preview.example.invalid/lemulip/'
+            prepare_site(ROOT,Path(prepared.name)/'lemulip','osmankaankars/lemulip',canonical)
+            handler=functools.partial(QuietHandler,directory=prepared.name)
+            server=http.server.ThreadingHTTPServer(('127.0.0.1',0),handler)
+            thread=threading.Thread(target=server.serve_forever,daemon=True);thread.start()
+            url=f'http://127.0.0.1:{server.server_port}/lemulip/'
+        else:
+            canonical=url.split('#',1)[0].rstrip('/')+'/'
         with sync_playwright() as p:
             browser=getattr(p,engine).launch(**({'executable_path':executable} if executable else {}))
             try:
+                page=browser.new_page()
+                page.goto(url,wait_until='networkidle')
+                check_entry_and_sharing(page,canonical)
+                results.append({'prepared_share_metadata_image_and_first_use_link':'PASS'});page.close()
                 for width,height in ((1440,1000),(1280,900),(768,1024),(390,844),(320,740)):
                     page=browser.new_page(viewport={'width':width,'height':height})
                     page.on('pageerror',lambda e:errors.append(str(e)))
@@ -412,6 +458,7 @@ def run(output:Path,engine:str,url:str|None,executable:str|None=None):
             finally:browser.close()
     finally:
         if server:server.shutdown();thread.join(timeout=5)
+        if prepared:prepared.cleanup()
         report={'engine':engine,'url':url,'results':results,'page_errors':errors,'http_failures':failures}
         (output/'browser-results.json').write_text(json.dumps(report,indent=2)+'\n');print(json.dumps(report,indent=2))
 if __name__=='__main__':

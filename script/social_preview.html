@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1200, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Lemulip social preview source</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 1200px; height: 630px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .preview { position: relative; width: 1200px; height: 630px; overflow: hidden; background: #14251d; color: #f2f7e9; }
+    .brand { position: absolute; left: 60px; top: 46px; display: flex; align-items: center; gap: 15px; }
+    .brand-icon { width: 64px; height: 64px; }
+    .wordmark { width: 170px; height: 45px; background: #f2f7e9; mask: url("../site/assets/lemulip-wordmark.svg") center / contain no-repeat; -webkit-mask: url("../site/assets/lemulip-wordmark.svg") center / contain no-repeat; }
+    h1 { position: absolute; left: 64px; top: 179px; margin: 0; width: 500px; font-size: 70px; font-weight: 650; line-height: 1.04; letter-spacing: -.035em; }
+    h1 em { color: #bdf620; font-style: normal; }
+    .description { position: absolute; left: 67px; top: 424px; margin: 0; color: #b5c7a5; font-size: 24px; line-height: 1.4; }
+    .workspace { position: absolute; left: 630px; top: 146px; width: 510px; height: 341.5px; border-radius: 7px; box-shadow: 0 24px 48px #0005; }
+    .caption { position: absolute; left: 630px; top: 512px; width: 510px; margin: 0; font-size: 20px; line-height: 1.4; color: #b5c7a5; }
+    .availability { position: absolute; left: 67px; bottom: 48px; margin: 0; font-size: 20px; line-height: 1.4; color: #b5c7a5; }
+  </style>
+</head>
+<body>
+  <article class="preview" aria-label="Lemulip product preview">
+    <div class="brand">
+      <img class="brand-icon" src="../Resources/AppIcon.png" width="64" height="64" alt="">
+      <span class="wordmark" role="img" aria-label="Lemulip"></span>
+    </div>
+    <h1>File tools.<br><em>Right where<br>you drag.</em></h1>
+    <p class="description">Convert, crop, trim, and arrange.<br>All on your Mac.</p>
+    <img class="workspace" src="../site/assets/app-workspace.webp" width="1020" height="683" alt="The native Lemulip Workspace with a selected image and file tools">
+    <p class="caption">Your next tool, close at hand.</p>
+    <p class="availability">Free &amp; open source · macOS</p>
+  </article>
+</body>
+</html>

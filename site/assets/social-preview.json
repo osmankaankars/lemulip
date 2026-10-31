@@ -1,0 +1,38 @@
+{
+  "file": "social-preview.png",
+  "width": 1200,
+  "height": 630,
+  "sha256": "afa315675e7c98e711f4d9beb9fd1b72ea093f573cdf4ee264a72af22b5a22c5",
+  "alt": "Lemulip Workspace with selected files and tools, beside the words File tools, right where you drag.",
+  "kind": "Marketing composition using an existing native app capture",
+  "renderSourceCommit": "6047e159c9b0c0e91a53fa4bf9aecf7a1caf66bf",
+  "renderer": {
+    "name": "Chromium",
+    "version": "149.0.7827.55",
+    "deviceScaleFactor": 1,
+    "canvas": [
+      1200,
+      630
+    ]
+  },
+  "sources": [
+    {
+      "file": "script/social_preview.html",
+      "sha256": "437e84e7d792cfc314b2ecff62cea1c0e45126c88ad16af83602c01c31460891"
+    },
+    {
+      "file": "Resources/AppIcon.png",
+      "sha256": "f68b17dc79d0e13246fc425218031a3bc35db2d1e27d845ee657f17f423d8a45"
+    },
+    {
+      "file": "site/assets/app-workspace.webp",
+      "sha256": "573edfebb566202c51d0fe448ee3805e8e7d48a589a7b28677917ce5cb3e1393"
+    },
+    {
+      "file": "site/assets/lemulip-wordmark.svg",
+      "sha256": "fdab22ae75ada177540f2b40fcd22e1f351fba228b272d2666eb6e8c19df9714"
+    }
+  ],
+  "nativeCaptureRecord": "site/assets/screenshots.json",
+  "processing": "Original native screenshot placed at 510 by 341.5 pixels; no generated, repainted, sharpened or enlarged product controls. This is not a fresh Retina capture of the pending release."
+}
