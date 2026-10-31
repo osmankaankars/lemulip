@@ -11,6 +11,7 @@ on:
       - 'script/test_prepare_native_ui.py'
       - 'script/native_ax_bridge.py'
       - 'script/test_native_ax_bridge.py'
+      - 'script/test_native_coverage.py'
       - '.github/workflows/native-ui-review.yml'
   workflow_dispatch:
 
@@ -28,7 +29,7 @@ jobs:
   review:
     name: External Production UI (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 25
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
@@ -48,6 +49,7 @@ jobs:
           python3 script/test_prepare_native_ui.py
           python3 script/test_pdf_drag_types.py
           python3 script/test_native_ax_bridge.py
+          python3 script/test_native_coverage.py
       - name: Build the Unchanged Production Application
         env:
           CONFIGURATION: debug
@@ -62,13 +64,26 @@ jobs:
           fragment=pathlib.Path('script/native_ui/PDFWorkflowTests.swift').read_bytes()
           # Same-file extension intentionally shares the real-app helpers.
           position=pathlib.Path('script/native_ui/PDFPositionNoopTests.swift').read_bytes()
-          suite.write_bytes(suite.read_bytes()+fragment+position)
+          options=pathlib.Path('script/native_ui/OptionsParityTests.swift').read_bytes()
+          suite.write_bytes(suite.read_bytes()+fragment+position+options)
           receipt=root/'provenance.json'; record=json.loads(receipt.read_text())
           record['workflowTestSourceSHA256']=hashlib.sha256(fragment).hexdigest()
           record['positionTestSourceSHA256']=hashlib.sha256(position).hexdigest()
+          record['optionsParitySourceSHA256']=hashlib.sha256(options).hexdigest()
           record['compiledTestSourceSHA256']=hashlib.sha256(suite.read_bytes()).hexdigest()
           receipt.write_text(json.dumps(record,indent=2)+'\n')
           PYCODE
+      - name: Require Real Media Engine and Decode the Audio Fixture
+        env:
+          HOMEBREW_NO_ANALYTICS: '1'
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+        run: |
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
+          command -v ffmpeg > "$RUNNER_TEMP/lemulip-native-ui/ffmpeg-path.txt"
+          ffmpeg -version > "$RUNNER_TEMP/lemulip-native-ui/ffmpeg-version.txt"
+          ffmpeg -v error -f lavfi -i 'sine=frequency=440:duration=0.25' \
+            "$RUNNER_TEMP/lemulip-native-ui/Fixtures/Quality.wav"
+          ffmpeg -v error -i "$RUNNER_TEMP/lemulip-native-ui/Fixtures/Quality.wav" -f null -
       - name: Build Read-Only Authorized Accessibility Helper
         run: xcrun swiftc -parse-as-library script/native_ui/ReadOnlyAXSnapshot.swift -o "$RUNNER_TEMP/lemulip-native-ui/ReadOnlyAXSnapshot"
       - name: Exercise Actual Options and PDF Dragging
@@ -94,5 +109,7 @@ jobs:
             ${{ runner.temp }}/lemulip-native-ui/provenance.json
             ${{ runner.temp }}/lemulip-native-ui/xcodebuild.log
             ${{ runner.temp }}/lemulip-native-ui/AccessibilitySnapshots
+            ${{ runner.temp }}/lemulip-native-ui/ffmpeg-path.txt
+            ${{ runner.temp }}/lemulip-native-ui/ffmpeg-version.txt
           if-no-files-found: ignore
           retention-days: 14
