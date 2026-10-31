@@ -56,6 +56,7 @@ jobs:
           xcrun xcodebuild test \
             -project "$RUNNER_TEMP/lemulip-native-ui/Runner/QualityReview.xcodeproj" \
             -scheme QualityReview -destination 'platform=macOS' \
+            -xcconfig "$GITHUB_WORKSPACE/script/native_ui/NativeReview.xcconfig" \
             -derivedDataPath "$RUNNER_TEMP/lemulip-native-ui/DerivedData" \
             -resultBundlePath "$RUNNER_TEMP/lemulip-native-ui/Results.xcresult" \
             -parallel-testing-enabled NO CODE_SIGN_IDENTITY=- \
