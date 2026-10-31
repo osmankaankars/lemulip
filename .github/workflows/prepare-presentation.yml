@@ -1,0 +1,66 @@
+name: Prepare Reviewed Presentation
+on:
+  push:
+    branches: ['review/release-020-presentation']
+    paths: ['.github/workflows/prepare-presentation.yml']
+permissions:
+  contents: write
+  actions: read
+jobs:
+  prepare:
+    if: github.repository == 'osmankaankars/lemulip' && github.ref == 'refs/heads/review/release-020-presentation'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
+        with:
+          artifact-ids: '13061981222'
+          run-id: 41252452759
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/reviewed-native-captures
+          merge-multiple: true
+          digest-mismatch: error
+      - name: Install Isolated Export and Browser Tools
+        run: |
+          python3 -m venv "$RUNNER_TEMP/presentation-tools"
+          "$RUNNER_TEMP/presentation-tools/bin/pip" install Pillow==12.3.0 playwright==1.61.0
+          "$RUNNER_TEMP/presentation-tools/bin/python" -m playwright install --with-deps chromium webkit
+      - name: Import Only the Reviewed Originals and Prepare Text
+        run: |
+          "$RUNNER_TEMP/presentation-tools/bin/python" script/import_product_captures.py --artifact "$RUNNER_TEMP/reviewed-native-captures"
+          python3 script/prepare_release_presentation.py
+          "$RUNNER_TEMP/presentation-tools/bin/python" script/render_social_preview.py --output "$RUNNER_TEMP/presentation-share"
+          cp "$RUNNER_TEMP/presentation-share/social-preview.png" site/assets/social-preview.png
+          cp "$RUNNER_TEMP/presentation-share/social-preview.json" site/assets/social-preview.json
+          python3 script/commit_review_assets.py --allowlist-only
+      - name: Validate Actual Prepared Site and Both Browser Engines
+        run: |
+          python3 script/test_site.py
+          python3 script/test_prepare_site.py
+          python3 script/test_branding.py
+          python3 script/test_public_images.py
+          python3 script/test_release_presentation.py
+          git diff --check
+          mkdir -p "$RUNNER_TEMP/presentation-evidence"
+          "$RUNNER_TEMP/presentation-tools/bin/python" script/test_site_browser.py --engine chromium --output "$RUNNER_TEMP/presentation-evidence/chromium"
+          "$RUNNER_TEMP/presentation-tools/bin/python" script/test_site_browser.py --engine webkit --output "$RUNNER_TEMP/presentation-evidence/webkit"
+      - name: Commit Only to the Isolated Review Branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 script/commit_review_assets.py
+          python3 script/package_source.py --output "$RUNNER_TEMP/presentation-evidence/Prepared-Source.zip"
+          cp "$RUNNER_TEMP/presentation-share/social-preview-small.png" "$RUNNER_TEMP/presentation-evidence/"
+      - name: Retain Review Evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Presentation-Prepared-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/presentation-evidence
+            ${{ runner.temp }}/presentation-share
+          retention-days: 14
+          if-no-files-found: warn
