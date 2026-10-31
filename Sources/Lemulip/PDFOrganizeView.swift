@@ -196,6 +196,7 @@ struct PDFOrganizeView: View {
                         .padding(1)
                 }
                 .contentShape(Rectangle())
+                .onDrag { focus = .content; return editor.beginDrag(page.sourceIndex) }
             }
             .buttonStyle(.plain).focusable(false)
             .accessibilityLabel(model.text("Page \(outputIndex + 1), Original Page \(page.sourceIndex + 1)",
@@ -208,7 +209,6 @@ struct PDFOrganizeView: View {
             .accessibilityAction(named: Text(model.text("Remove From Selection", "Seçimden çıkar"))) {
                 if editor.selectedPages.contains(page.sourceIndex) { editor.select(page.sourceIndex, modifiers: .command) }
             }
-            .onDrag { focus = .content; return editor.beginDrag(page.sourceIndex) }
             HStack(spacing: 6) {
                 Text(model.text("Page", "Sayfa")).font(.system(size: 12, weight: .semibold))
                 positionField(page.sourceIndex, outputIndex: outputIndex)
