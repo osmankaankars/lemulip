@@ -75,16 +75,22 @@ private func snapshot(path: String) throws -> [String: Any] {
             "nodes": nodes, "truncated": false, "visitedNodes": visited.count]
 }
 
-do {
-    guard CommandLine.arguments.count == 2 else { throw InspectionFailure("Expected only the fixed review bundle path") }
-    let record = try snapshot(path: CommandLine.arguments[1])
-    let data = try JSONSerialization.data(withJSONObject: record, options: [.sortedKeys])
-    FileHandle.standardOutput.write(data)
-    FileHandle.standardOutput.write(Data([10]))
-} catch {
-    let record: [String: Any] = ["schema": 1, "ok": false, "trusted": AXIsProcessTrusted(), "error": String(describing: error)]
-    if let data = try? JSONSerialization.data(withJSONObject: record, options: [.sortedKeys]) {
-        FileHandle.standardOutput.write(data)
+@main
+private struct ReadOnlyAXSnapshot {
+    @MainActor
+    static func main() {
+        do {
+            guard CommandLine.arguments.count == 2 else { throw InspectionFailure("Expected only the fixed review bundle path") }
+            let record = try snapshot(path: CommandLine.arguments[1])
+            let data = try JSONSerialization.data(withJSONObject: record, options: [.sortedKeys])
+            FileHandle.standardOutput.write(data)
+            FileHandle.standardOutput.write(Data([10]))
+        } catch {
+            let record: [String: Any] = ["schema": 1, "ok": false, "trusted": AXIsProcessTrusted(), "error": String(describing: error)]
+            if let data = try? JSONSerialization.data(withJSONObject: record, options: [.sortedKeys]) {
+                FileHandle.standardOutput.write(data)
+            }
+            exit(1)
+        }
     }
-    exit(1)
 }

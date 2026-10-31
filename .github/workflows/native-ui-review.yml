@@ -70,7 +70,7 @@ jobs:
           receipt.write_text(json.dumps(record,indent=2)+'\n')
           PYCODE
       - name: Build Read-Only Authorized Accessibility Helper
-        run: xcrun swiftc script/native_ui/ReadOnlyAXSnapshot.swift -o "$RUNNER_TEMP/lemulip-native-ui/ReadOnlyAXSnapshot"
+        run: xcrun swiftc -parse-as-library script/native_ui/ReadOnlyAXSnapshot.swift -o "$RUNNER_TEMP/lemulip-native-ui/ReadOnlyAXSnapshot"
       - name: Exercise Actual Options and PDF Dragging
         run: |
           set -o pipefail
