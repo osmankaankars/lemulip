@@ -151,51 +151,73 @@ final class QualityUITests: XCTestCase {
     }
 
     private func sliderValueDescription(label: String) throws -> String {
-        guard AXIsProcessTrusted() else {
+        // The sandboxed XCTest app does not inherit the launcher's AX grant.
+        // Read through a separate, already-authorized fixed-target helper; do
+        // not change permissions, use private APIs or substitute numeric units.
+        let endpointURL = ReviewConfiguration.fixtures.deletingLastPathComponent()
+            .appendingPathComponent("accessibility-endpoint.json")
+        let endpoint = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(contentsOf: endpointURL)) as? [String: String])
+        let url = try XCTUnwrap(URL(string: try XCTUnwrap(endpoint["url"])))
+        guard url.scheme == "http", url.host == "127.0.0.1", url.path == "/snapshot", url.query == nil else {
             throw NSError(domain: "LemulipNativeReview", code: 1,
-                          userInfo: [NSLocalizedDescriptionKey: "The external test runner has no accessibility permission; no semantic pass is claimed"])
+                          userInfo: [NSLocalizedDescriptionKey: "Only the local fixed-target AX reviewer is allowed"])
         }
-        let instances = NSRunningApplication.runningApplications(withBundleIdentifier: "app.lemulip.NativeUIReview")
-        XCTAssertEqual(instances.count, 1, "Inspect only the isolated application started by this test")
-        let process = try XCTUnwrap(instances.first)
-        let root = AXUIElementCreateApplication(process.processIdentifier)
-        AXUIElementSetMessagingTimeout(root, 2)
-        var pending = [root]
-        var visited: [AXUIElement] = []
-        var diagnostics: [[String: String]] = []
-        while let element = pending.popLast(), visited.count < 512 {
-            if visited.contains(where: { CFEqual($0, element) }) { continue }
-            visited.append(element)
-            func attribute(_ name: String) -> CFTypeRef? {
-                var result: CFTypeRef?
-                let status = AXUIElementCopyAttributeValue(element, name as CFString, &result)
-                return status == .success ? result : nil
-            }
-            let role = attribute(kAXRoleAttribute) as? String
-            if role == kAXSliderRole {
-                let title = attribute(kAXTitleAttribute) as? String
-                let description = attribute(kAXDescriptionAttribute) as? String
-                let value = attribute(kAXValueDescriptionAttribute) as? String
-                diagnostics.append(["role": role ?? "missing", "title": title ?? "missing",
-                                    "description": description ?? "missing", "valueDescription": value ?? "missing"])
-                if title == label || description == label {
-                    let attachment = XCTAttachment(string: String(describing: diagnostics))
-                    attachment.name = "Exact external slider semantics"
-                    attachment.lifetime = .keepAlways
-                    add(attachment)
-                    return try XCTUnwrap(value, "A numeric slider value does not replace the localized description")
-                }
-            }
-            if let children = attribute(kAXChildrenAttribute) as? [AXUIElement] {
-                pending.append(contentsOf: children)
-            }
-        }
-        let attachment = XCTAttachment(string: String(describing: diagnostics))
-        attachment.name = "External slider lookup failure"
+        var request = URLRequest(url: url, timeoutInterval: 10)
+        request.setValue("Bearer " + (try XCTUnwrap(endpoint["token"])), forHTTPHeaderField: "Authorization")
+        let reply = AXReply()
+        let session = URLSession(configuration: .ephemeral)
+        defer { session.invalidateAndCancel() }
+        session.dataTask(with: request) { data, response, error in
+            reply.finish(data: data, response: response, error: error)
+        }.resume()
+        let data = try reply.wait()
+        let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+        attachment.name = "Exact authorized slider semantics"
         attachment.lifetime = .keepAlways
         add(attachment)
-        throw NSError(domain: "LemulipNativeReview", code: 2,
-                      userInfo: [NSLocalizedDescriptionKey: "No exact slider accessibility node for \(label)"])
+        let record = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        XCTAssertEqual(record["trusted"] as? Bool, true)
+        XCTAssertEqual(record["bundleIdentifier"] as? String, "app.lemulip.NativeUIReview")
+        XCTAssertEqual(record["applicationPath"] as? String,
+                       ReviewConfiguration.application.resolvingSymlinksInPath().standardizedFileURL.path)
+        let nodes = try XCTUnwrap(record["nodes"] as? [[String: Any]])
+        let matches = nodes.filter {
+            $0["role"] as? String == "AXSlider" &&
+                ($0["AXTitle"] as? String == label || $0["AXDescription"] as? String == label)
+        }
+        XCTAssertEqual(matches.count, 1, "Require one actual slider, not a nearby label")
+        let node = try XCTUnwrap(matches.first)
+        XCTAssertEqual(node["enabled"] as? Bool, true)
+        return try XCTUnwrap(node["AXValueDescription"] as? String,
+                            "A numeric slider value does not replace its localized description")
+    }
+
+    private final class AXReply: @unchecked Sendable {
+        private let done = DispatchSemaphore(value: 0)
+        private let lock = NSLock()
+        private var result: Result<Data, Error>?
+
+        func finish(data: Data?, response: URLResponse?, error: Error?) {
+            lock.lock()
+            if let error { result = .failure(error) }
+            else if let data, (response as? HTTPURLResponse)?.statusCode == 200 { result = .success(data) }
+            else {
+                let detail = data.flatMap { String(data: $0, encoding: .utf8) } ?? "No AX snapshot returned"
+                result = .failure(NSError(domain: "LemulipNativeReview", code: 2,
+                                          userInfo: [NSLocalizedDescriptionKey: detail]))
+            }
+            lock.unlock()
+            done.signal()
+        }
+
+        func wait() throws -> Data {
+            guard done.wait(timeout: .now() + 12) == .success else {
+                throw NSError(domain: "LemulipNativeReview", code: 3,
+                              userInfo: [NSLocalizedDescriptionKey: "Authorized AX inspection timed out"])
+            }
+            lock.lock(); defer { lock.unlock() }
+            return try XCTUnwrap(result).get()
+        }
     }
 
     private func openOperation(_ id: String, in app: XCUIApplication) throws {

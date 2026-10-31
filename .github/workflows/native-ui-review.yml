@@ -9,6 +9,8 @@ on:
       - 'script/native_ui/**'
       - 'script/prepare_native_ui.py'
       - 'script/test_prepare_native_ui.py'
+      - 'script/native_ax_bridge.py'
+      - 'script/test_native_ax_bridge.py'
       - '.github/workflows/native-ui-review.yml'
   workflow_dispatch:
 
@@ -45,6 +47,7 @@ jobs:
           python3 script/privacy_check.py --staged
           python3 script/test_prepare_native_ui.py
           python3 script/test_pdf_drag_types.py
+          python3 script/test_native_ax_bridge.py
       - name: Build the Unchanged Production Application
         env:
           CONFIGURATION: debug
@@ -66,10 +69,14 @@ jobs:
           record['compiledTestSourceSHA256']=hashlib.sha256(suite.read_bytes()).hexdigest()
           receipt.write_text(json.dumps(record,indent=2)+'\n')
           PYCODE
+      - name: Build Read-Only Authorized Accessibility Helper
+        run: xcrun swiftc script/native_ui/ReadOnlyAXSnapshot.swift -o "$RUNNER_TEMP/lemulip-native-ui/ReadOnlyAXSnapshot"
       - name: Exercise Actual Options and PDF Dragging
         run: |
           set -o pipefail
-          xcrun xcodebuild test \
+          python3 script/native_ax_bridge.py --directory "$RUNNER_TEMP/lemulip-native-ui" \
+            --helper "$RUNNER_TEMP/lemulip-native-ui/ReadOnlyAXSnapshot" -- \
+            xcrun xcodebuild test \
             -project "$RUNNER_TEMP/lemulip-native-ui/Runner/QualityReview.xcodeproj" \
             -scheme QualityReview -destination 'platform=macOS' \
             -xcconfig "$GITHUB_WORKSPACE/script/native_ui/NativeReview.xcconfig" \
@@ -86,5 +93,6 @@ jobs:
             ${{ runner.temp }}/lemulip-native-ui/Results.xcresult
             ${{ runner.temp }}/lemulip-native-ui/provenance.json
             ${{ runner.temp }}/lemulip-native-ui/xcodebuild.log
+            ${{ runner.temp }}/lemulip-native-ui/AccessibilitySnapshots
           if-no-files-found: ignore
           retention-days: 14
