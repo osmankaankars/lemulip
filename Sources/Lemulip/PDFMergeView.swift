@@ -156,6 +156,8 @@ struct PDFMergeView: View {
                 }
                 .coordinateSpace(name: "pdf-merge-list")
                 .focusable().focused($focus, equals: .content)
+                // Lazy rows must not make an offscreen position field the default focus.
+                .defaultFocus($focus, .content)
                 .onMoveCommand { direction in
                     guard editingPosition == nil else { return }
                     if let target = editor.moveFocus(direction) { scroll.scrollTo(target) }
