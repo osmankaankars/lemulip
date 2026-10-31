@@ -1,0 +1,76 @@
+name: Product Visual Review
+
+on:
+  push:
+    branches: ['review/release-020-presentation']
+    paths: ['script/native_ui/ProductCaptureTests.swift', 'script/native_ui/CaptureDisplay.swift', 'script/native_ui/ProductFixtures.swift', '.github/workflows/product-capture.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+
+jobs:
+  capture:
+    name: Actual Native Product Screens
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Build the Unchanged Native App
+        env:
+          CONFIGURATION: debug
+        run: ./script/build_app.sh
+      - name: Stage Separate Review Identity and Real Fixtures
+        run: |
+          python3 script/prepare_native_ui.py --app dist/Lemulip.app --output "$RUNNER_TEMP/lemulip-product"
+          cp script/native_ui/ProductCaptureTests.swift "$RUNNER_TEMP/lemulip-product/Runner/QualityUITests.swift"
+          cp site/assets/morning-light.jpg "$RUNNER_TEMP/lemulip-product/Fixtures/Morning light.jpg"
+          xcrun swift script/native_ui/ProductFixtures.swift "$RUNNER_TEMP/lemulip-product/Fixtures"
+          if ! command -v ffmpeg >/dev/null; then HOMEBREW_NO_AUTO_UPDATE=1 brew install ffmpeg; fi
+          ffmpeg -v error -loop 1 -i site/assets/morning-light.jpg -t 6 -vf 'scale=1280:960,crop=1280:720,format=yuv420p' -c:v libx264 "$RUNNER_TEMP/lemulip-product/Fixtures/Morning light.mov"
+          ffmpeg -v error -f lavfi -i 'aevalsrc=0.2*sin(2*PI*220*t)*(0.6+0.4*sin(2*PI*0.6*t)):s=44100:d=12' "$RUNNER_TEMP/lemulip-product/Fixtures/Quiet afternoon.wav"
+      - name: Choose an Offered Display Mode and Record Real Density
+        run: xcrun swift script/native_ui/CaptureDisplay.swift prepare "$RUNNER_TEMP/lemulip-product"
+      - name: Review Working Screens and Capture Actual Windows
+        run: |
+          set -o pipefail
+          xcrun xcodebuild test \
+            -project "$RUNNER_TEMP/lemulip-product/Runner/QualityReview.xcodeproj" \
+            -scheme QualityReview -destination 'platform=macOS' \
+            -xcconfig "$GITHUB_WORKSPACE/script/native_ui/NativeReview.xcconfig" \
+            -derivedDataPath "$RUNNER_TEMP/lemulip-product/DerivedData" \
+            -resultBundlePath "$RUNNER_TEMP/lemulip-product/Results.xcresult" \
+            -parallel-testing-enabled NO CODE_SIGN_IDENTITY=- \
+            2>&1 | tee "$RUNNER_TEMP/lemulip-product/xcodebuild.log"
+      - name: Export Original Screenshots and Restore Display
+        if: always()
+        run: |
+          if test -d "$RUNNER_TEMP/lemulip-product/Results.xcresult"; then
+            xcrun xcresulttool export attachments --path "$RUNNER_TEMP/lemulip-product/Results.xcresult" --output-path "$RUNNER_TEMP/lemulip-product/Attachments"
+          fi
+          if test -f "$RUNNER_TEMP/lemulip-product/display.json"; then
+            xcrun swift script/native_ui/CaptureDisplay.swift restore "$RUNNER_TEMP/lemulip-product"
+          fi
+          git rev-parse HEAD > "$RUNNER_TEMP/lemulip-product/source-commit.txt"
+          git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/lemulip-product/source-tree.txt"
+          git rev-parse 'HEAD:Sources' > "$RUNNER_TEMP/lemulip-product/application-source-tree.txt"
+      - name: Retain Visual Review Evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Product-Visuals-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/lemulip-product/Attachments
+            ${{ runner.temp }}/lemulip-product/display.json
+            ${{ runner.temp }}/lemulip-product/provenance.json
+            ${{ runner.temp }}/lemulip-product/xcodebuild.log
+            ${{ runner.temp }}/lemulip-product/source-commit.txt
+            ${{ runner.temp }}/lemulip-product/source-tree.txt
+            ${{ runner.temp }}/lemulip-product/application-source-tree.txt
+          if-no-files-found: error
+          retention-days: 30
