@@ -58,9 +58,11 @@ jobs:
           suite=root/'Runner/QualityUITests.swift'
           fragment=pathlib.Path('script/native_ui/PDFWorkflowTests.swift').read_bytes()
           # Same-file extension intentionally shares the real-app helpers.
-          suite.write_bytes(suite.read_bytes()+fragment)
+          position=pathlib.Path('script/native_ui/PDFPositionNoopTests.swift').read_bytes()
+          suite.write_bytes(suite.read_bytes()+fragment+position)
           receipt=root/'provenance.json'; record=json.loads(receipt.read_text())
           record['workflowTestSourceSHA256']=hashlib.sha256(fragment).hexdigest()
+          record['positionTestSourceSHA256']=hashlib.sha256(position).hexdigest()
           record['compiledTestSourceSHA256']=hashlib.sha256(suite.read_bytes()).hexdigest()
           receipt.write_text(json.dumps(record,indent=2)+'\n')
           PYCODE
