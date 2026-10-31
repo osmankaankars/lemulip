@@ -155,7 +155,7 @@ class ReleaseWiringTests(unittest.TestCase):
     def test_release_requires_native_packs_and_verifies_the_downloaded_app(self):
         workflow=(ROOT/'.github/workflows/build.yml').read_text()
         self.assertIn('  native-engines:',workflow)
-        self.assertIn('needs: [test, native-engines]',workflow)
+        self.assertIn('needs: [test, native-engines, native-ui]',workflow)
         self.assertIn('from merge_engine_packs import merge',workflow)
         self.assertIn("merge(sources['arm64',engine],sources['x86_64',engine]",workflow)
         self.assertIn('LEMULIP_ENGINE_PACKS:',workflow)

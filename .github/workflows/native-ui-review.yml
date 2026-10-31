@@ -1,18 +1,7 @@
 name: Native User Interaction Review
 
 on:
-  pull_request:
-    paths:
-      - 'Sources/**'
-      - 'Resources/**'
-      - 'Package.swift'
-      - 'script/native_ui/**'
-      - 'script/prepare_native_ui.py'
-      - 'script/test_prepare_native_ui.py'
-      - 'script/native_ax_bridge.py'
-      - 'script/test_native_ax_bridge.py'
-      - 'script/test_native_coverage.py'
-      - '.github/workflows/native-ui-review.yml'
+  workflow_call:
   workflow_dispatch:
 
 permissions:
@@ -22,8 +11,8 @@ env:
   DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
 
 concurrency:
-  group: native-ui-${{ github.ref }}
-  cancel-in-progress: true
+  group: native-ui-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
   review:
@@ -44,12 +33,14 @@ jobs:
           persist-credentials: false
       - name: Check Sources and Review Staging
         run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           test "$(uname -m)" = '${{ matrix.arch }}'
           python3 script/privacy_check.py --staged
           python3 script/test_prepare_native_ui.py
           python3 script/test_pdf_drag_types.py
           python3 script/test_native_ax_bridge.py
           python3 script/test_native_coverage.py
+          python3 script/test_native_release_gate.py
       - name: Build the Unchanged Production Application
         env:
           CONFIGURATION: debug

@@ -43,6 +43,10 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  native-ui:
+    name: Native UI Gate
+    uses: ./.github/workflows/native-ui-review.yml
+
   test:
     name: macOS Tests (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
@@ -67,6 +71,8 @@ jobs:
           python3 script/test_release_engines.py
           python3 script/test_publish_preview.py
           python3 script/test_interface.py
+          python3 script/test_native_coverage.py
+          python3 script/test_native_release_gate.py
       - name: Check Architecture, Toolchain, and Version
         env:
           EXPECTED_ARCH: ${{ matrix.arch }}
@@ -89,7 +95,9 @@ jobs:
         run: |
           export LEMULIP_EDITOR_REVIEW_COMMIT="$(git rev-parse HEAD)"
           xcrun --sdk macosx swift test --skip-build --skip 'EngineIntegrationTests|PDFEditorInteractionTests|SelectionFeedbackTests|OperationOptionsAccessibilityTests|PDFRangeInteractionTests'
-      # Each hosted review gets its own AppKit process. A failed sibling must
+      # Exact option semantics and pointer workflows are checked by the required
+      # real-app native-ui job; legacy synthetic diagnostics remain manual.
+      # Each remaining hosted review gets its own AppKit process. A failed sibling must
       # not hide later evidence; every failed step still fails the whole job.
       - name: Review PDF Editor Keyboard Interactions
         if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
@@ -107,13 +115,6 @@ jobs:
           export LEMULIP_SELECTION_REVIEW_COMMIT="$(git rev-parse HEAD)"
           export LEMULIP_EDITOR_REVIEW_COMMIT="$(git rev-parse HEAD)"
           xcrun --sdk macosx swift test --skip-build --filter SelectionFeedbackTests
-      - name: Review Exact Options Accessibility
-        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
-        env:
-          LEMULIP_EDITOR_REVIEW_DIR: ${{ runner.temp }}/lemulip-editor-review
-        run: |
-          export LEMULIP_EDITOR_REVIEW_COMMIT="$(git rev-parse HEAD)"
-          xcrun --sdk macosx swift test --skip-build --filter OperationOptionsAccessibilityTests
       - name: Review PDF Page Range Correction
         if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
         env:
@@ -121,18 +122,6 @@ jobs:
         run: |
           export LEMULIP_RANGE_REVIEW_COMMIT="$(git rev-parse HEAD)"
           xcrun --sdk macosx swift test --skip-build --filter PDFRangeInteractionTests
-      - name: Review Own-Window PDF Pointer Interactions
-        if: ${{ !cancelled() && steps.compile.outcome == 'success' && matrix.arch == 'arm64' }}
-        timeout-minutes: 5
-        run: python3 script/review_pdf_pointer.py --output "$RUNNER_TEMP/lemulip-pdf-pointer-review"
-      - name: Retain PDF Pointer Review
-        if: always() && matrix.arch == 'arm64'
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
-        with:
-          name: Lemulip-PDF-Pointer-${{ matrix.arch }}
-          path: ${{ runner.temp }}/lemulip-pdf-pointer-review
-          if-no-files-found: ignore
-          retention-days: 14
       - name: Retain PDF Interaction Review
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -304,7 +293,7 @@ jobs:
 
   package:
     name: Universal macOS Package
-    needs: [test, native-engines]
+    needs: [test, native-engines, native-ui]
     if: github.event_name != 'pull_request'
     runs-on: macos-15
     timeout-minutes: 30
