@@ -76,13 +76,16 @@ struct PDFPositionField: View {
                 }
             }
             .onSubmit {
+                // Return on an unchanged number only ends text editing.
+                // Reapplying a position would otherwise compact a disjoint selection.
                 guard let value = Int(draft.trimmingCharacters(in: .whitespacesAndNewlines)),
-                      allowedPositions.contains(value), move(value) else {
+                      allowedPositions.contains(value), (value == position || move(value)) else {
                     isInvalid = true
                     editingPosition = item
                     return
                 }
                 editingPosition = nil
+                isInvalid = false
                 focus.wrappedValue = .content
             }
             .onExitCommand {
