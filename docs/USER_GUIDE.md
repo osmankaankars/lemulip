@@ -24,7 +24,7 @@ The **Keyboard Shortcuts** button offers **Try With A Sample**, which opens a di
 
 ## Optional Selection Sound
 
-**Settings → Selection Sounds** adds one short cue when you confirm an operation. It starts off. **Preview** lets you hear it without enabling the setting. Browsing options, cancelling and receiving a finished result do not play this cue.
+**Settings → Selection Sounds** adds a short tick when you move to a different wheel option or confirm an operation. It starts off. **Preview** lets you hear it without enabling the setting. Pointer, keyboard and accessible wheel navigation share this feedback. Moving within the same sector, entering the center, opening the wheel, cancelling and receiving a finished result stay silent. Rapid changes are coalesced without queuing sounds.
 
 The cue follows macOS sound-effects settings. Visual feedback remains available when the sound is off. The wheel and result card also respect Reduce Motion and Reduce Transparency.
 
