@@ -1,0 +1,109 @@
+name: Native User Interaction Review
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+
+concurrency:
+  group: native-ui-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  review:
+    name: External Production UI (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Check Sources and Review Staging
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(uname -m)" = '${{ matrix.arch }}'
+          python3 script/privacy_check.py --staged
+          python3 script/test_prepare_native_ui.py
+          python3 script/test_pdf_drag_types.py
+          python3 script/test_native_ax_bridge.py
+          python3 script/test_native_coverage.py
+          python3 script/test_native_release_gate.py
+          python3 script/test_sound_review_gate.py
+      - name: Build the Unchanged Production Application
+        env:
+          CONFIGURATION: debug
+        run: ./script/build_app.sh
+      - name: Stage an Isolated Copy and External XCTest Runner
+        run: |
+          python3 script/prepare_native_ui.py --app dist/Lemulip.app --output "$RUNNER_TEMP/lemulip-native-ui"
+          python3 - <<'PYCODE'
+          import hashlib,json,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'lemulip-native-ui'
+          suite=root/'Runner/QualityUITests.swift'
+          fragment=pathlib.Path('script/native_ui/PDFWorkflowTests.swift').read_bytes()
+          # Same-file extension intentionally shares the real-app helpers.
+          position=pathlib.Path('script/native_ui/PDFPositionNoopTests.swift').read_bytes()
+          options=pathlib.Path('script/native_ui/OptionsParityTests.swift').read_bytes()
+          sound=pathlib.Path('script/native_ui/SelectionSoundUITests.swift').read_bytes()
+          suite.write_bytes(suite.read_bytes()+fragment+position+options+sound)
+          receipt=root/'provenance.json'; record=json.loads(receipt.read_text())
+          record['workflowTestSourceSHA256']=hashlib.sha256(fragment).hexdigest()
+          record['positionTestSourceSHA256']=hashlib.sha256(position).hexdigest()
+          record['optionsParitySourceSHA256']=hashlib.sha256(options).hexdigest()
+          record['selectionSoundSourceSHA256']=hashlib.sha256(sound).hexdigest()
+          record['compiledTestSourceSHA256']=hashlib.sha256(suite.read_bytes()).hexdigest()
+          receipt.write_text(json.dumps(record,indent=2)+'\n')
+          PYCODE
+      - name: Require Real Media Engine and Decode the Audio Fixture
+        env:
+          HOMEBREW_NO_ANALYTICS: '1'
+          HOMEBREW_NO_AUTO_UPDATE: '1'
+        run: |
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
+          command -v ffmpeg > "$RUNNER_TEMP/lemulip-native-ui/ffmpeg-path.txt"
+          ffmpeg -version > "$RUNNER_TEMP/lemulip-native-ui/ffmpeg-version.txt"
+          ffmpeg -v error -f lavfi -i 'sine=frequency=440:duration=0.25' \
+            "$RUNNER_TEMP/lemulip-native-ui/Fixtures/Quality.wav"
+          ffmpeg -v error -i "$RUNNER_TEMP/lemulip-native-ui/Fixtures/Quality.wav" -f null -
+      - name: Build Read-Only Authorized Accessibility Helper
+        run: xcrun swiftc -parse-as-library script/native_ui/ReadOnlyAXSnapshot.swift -o "$RUNNER_TEMP/lemulip-native-ui/ReadOnlyAXSnapshot"
+      - name: Exercise Actual Options and PDF Dragging
+        run: |
+          set -o pipefail
+          python3 script/native_ax_bridge.py --directory "$RUNNER_TEMP/lemulip-native-ui" \
+            --helper "$RUNNER_TEMP/lemulip-native-ui/ReadOnlyAXSnapshot" -- \
+            xcrun xcodebuild test \
+            -project "$RUNNER_TEMP/lemulip-native-ui/Runner/QualityReview.xcodeproj" \
+            -scheme QualityReview -destination 'platform=macOS' \
+            -xcconfig "$GITHUB_WORKSPACE/script/native_ui/NativeReview.xcconfig" \
+            -derivedDataPath "$RUNNER_TEMP/lemulip-native-ui/DerivedData" \
+            -resultBundlePath "$RUNNER_TEMP/lemulip-native-ui/Results.xcresult" \
+            -parallel-testing-enabled NO CODE_SIGN_IDENTITY=- \
+            2>&1 | tee "$RUNNER_TEMP/lemulip-native-ui/xcodebuild.log"
+      - name: Retain Native Results and Source Provenance
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-External-UI-${{ matrix.arch }}
+          path: |
+            ${{ runner.temp }}/lemulip-native-ui/Results.xcresult
+            ${{ runner.temp }}/lemulip-native-ui/provenance.json
+            ${{ runner.temp }}/lemulip-native-ui/xcodebuild.log
+            ${{ runner.temp }}/lemulip-native-ui/AccessibilitySnapshots
+            ${{ runner.temp }}/lemulip-native-ui/ffmpeg-path.txt
+            ${{ runner.temp }}/lemulip-native-ui/ffmpeg-version.txt
+          if-no-files-found: ignore
+          retention-days: 14

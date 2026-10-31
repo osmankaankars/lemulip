@@ -1,0 +1,129 @@
+name: Current Unreleased UI Review
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+  REVIEW_SOURCE_COMMIT: ${{ github.sha }}
+
+concurrency:
+  group: lemulip-current-ui-review-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Isolated UI Review Copy
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.REVIEW_SOURCE_COMMIT }}
+          persist-credentials: false
+      - name: Check Review Packaging And Public Source
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          python3 script/privacy_check.py --staged
+          python3 script/test_sound_review_gate.py
+          python3 script/test_package_ui_review.py
+      - name: Build Universal App Without Third-Party Engine Packs
+        env:
+          CONFIGURATION: release
+          LEMULIP_ENGINE_PACKS: ''
+        run: ./script/build_app.sh --universal
+      - name: Stage Separate Identity And Sign Again
+        run: >-
+          python3 script/package_ui_review.py stage --directory dist/ui-review
+          --expected-commit "$REVIEW_SOURCE_COMMIT"
+      - name: Retain Candidate For Exact ZIP Verification
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: current-ui-review-candidate
+          path: dist/ui-review/
+          if-no-files-found: error
+          retention-days: 3
+          compression-level: 0
+      - name: Retain Matching Debug Symbols Outside The Review Download
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: current-ui-review-debug-symbols
+          path: dist/Lemulip-Debug-Symbols/
+          if-no-files-found: error
+          retention-days: 90
+
+  verify:
+    name: Verify Same UI Review ZIP (${{ matrix.arch }})
+    needs: build
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.REVIEW_SOURCE_COMMIT }}
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: current-ui-review-candidate
+          path: dist/ui-review
+          digest-mismatch: error
+      - name: Verify Identity, Signatures, Architectures, Native Launch And PDF/SRT
+        env:
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: >-
+          python3 script/package_ui_review.py verify --directory dist/ui-review
+          --expected-commit "$REVIEW_SOURCE_COMMIT" --architecture "$EXPECTED_ARCH"
+          --report "dist/ui-review-checks/native-$EXPECTED_ARCH.json"
+      - name: Retain Native Verification Receipt
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: current-ui-review-native-${{ matrix.arch }}
+          path: dist/ui-review-checks/
+          if-no-files-found: error
+          retention-days: 14
+
+  retain-review:
+    name: Retain Unreleased Copy For Physical Mac Review
+    needs: [build, verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.REVIEW_SOURCE_COMMIT }}
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: current-ui-review-candidate
+          path: dist/ui-review
+          digest-mismatch: error
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: current-ui-review-native-*
+          merge-multiple: true
+          path: dist/ui-review
+          digest-mismatch: error
+      - name: Require Matching PASS Receipts Without Repacking The ZIP
+        run: >-
+          python3 script/package_ui_review.py evidence --directory dist/ui-review
+          --expected-commit "$REVIEW_SOURCE_COMMIT"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: UNRELEASED-CURRENT-UI-REVIEW-${{ github.run_id }}
+          path: dist/ui-review/
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0

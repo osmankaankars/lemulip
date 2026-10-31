@@ -3,6 +3,17 @@
 What's new in each Lemulip public preview. Release pages show the matching
 version below, followed by the installation note.
 
+## 0.1.20 · Put Your Files in Order
+
+- Arrange PDFs with a visible drag handle and insertion preview, or type a destination position and press Enter.
+- Keep the incoming document order, sort filenames naturally, reverse the current order, or restore the incoming order of the remaining files.
+- Keep your crop, trim range or PDF arrangement when you cancel the output-folder choice, then continue editing or try again.
+- Add an optional, quiet selection sound with a separate preview in Settings. It starts off and follows macOS sound-effects settings.
+- Give the wheel and result card a brief entrance, respecting Reduce Motion and Reduce Transparency. Read option values with clearer accessible names and units.
+- Reduce the application payload while keeping the included image and media engines, both Mac architectures, matching sources and license notices.
+
+Conversions create a new copy and preserve the original. Your saved preferences and themes are retained.
+
 ## 0.1.19 · Keep Your Files In Reach
 
 - Bring floating file shelves back into view after a display configuration changes.

@@ -22,9 +22,19 @@ The **Keyboard Shortcuts** button offers **Try With A Sample**, which opens a di
 
 **Settings → Appearance** offers Orchard Night, Vivid Pistachio, and Lemon Drop. The choice is remembered across the workspace, wheel, and editors.
 
+## Optional Selection Sound
+
+**Settings → Selection Sounds** adds one short cue when you confirm an operation. It starts off. **Preview** lets you hear it without enabling the setting. Browsing options, cancelling and receiving a finished result do not play this cue.
+
+The cue follows macOS sound-effects settings. Visual feedback remains available when the sound is off. The wheel and result card also respect Reduce Motion and Reduce Transparency.
+
 ## Set Options Before a Job
 
 Editors and option panels open for operations that need a selection. **Create Copy** saves the result under an unused name.
+
+If you choose an output folder for each job, cancelling that folder choice returns to the same editor with your crop, range or PDF arrangement intact. Continue editing or select **Create Copy** again.
+
+While entering a PDF position, **Esc** abandons that position edit. **Cancel** discards the pending copy with one click. Outside a position field, **Esc** also cancels the editor. The source remains unchanged.
 
 ### Visual Image Crop
 

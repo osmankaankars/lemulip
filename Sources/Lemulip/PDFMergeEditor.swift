@@ -48,6 +48,7 @@ final class PDFMergeEditor: ObservableObject {
     @Published private(set) var scrollRequest: ScrollRequest?
 
     private var initialSources: [PDFMergeSource] = []
+    private var inputNames: [String] = []
     private var sourceInputCount = 0
     private var session: PDFMergeSession?
     private var openingWorker: Task<[PDFMergeSource], Error>?
@@ -94,6 +95,7 @@ final class PDFMergeEditor: ObservableObject {
         close()
         let loadID = generation
         sourceInputCount = inputs.count
+        inputNames = inputs.map(\.lastPathComponent)
         isLoading = true
         let openedSession = PDFMergeSession(inputs: inputs)
         session = openedSession
@@ -157,6 +159,7 @@ final class PDFMergeEditor: ObservableObject {
         session = nil
         if let openedSession { Task { await openedSession.close() } }
         initialSources = []
+        inputNames = []
         sourceInputCount = 0
         documents = []
         selectedDocuments = []
@@ -283,6 +286,43 @@ final class PDFMergeEditor: ObservableObject {
         revealSelection()
     }
 
+    func positionRange(for inputIndex: Int) -> ClosedRange<Int> {
+        let selection = selectedDocuments.contains(inputIndex) ? selectedDocuments : [inputIndex]
+        return PDFReordering.positionRange(in: documents, selection: selection,
+            id: \.inputIndex, anchor: inputIndex) ?? (1...max(1, documents.count))
+    }
+
+    @discardableResult
+    func move(_ inputIndex: Int, toPosition position: Int) -> Bool {
+        let selection = selectedDocuments.contains(inputIndex) ? selectedDocuments : [inputIndex]
+        guard let next = PDFReordering.move(documents, selection: selection, id: \.inputIndex,
+                                           anchor: inputIndex, to: position) else { return false }
+        apply(next, selection: selection, focus: inputIndex)
+        revealSelection()
+        return true
+    }
+
+    func sortByFilename() {
+        let next = documents.enumerated().sorted { lhs, rhs in
+            let comparison = inputNames[lhs.element.inputIndex].localizedStandardCompare(inputNames[rhs.element.inputIndex])
+            return comparison == .orderedSame
+                ? lhs.offset < rhs.offset
+                : comparison == .orderedAscending
+        }.map(\.element)
+        apply(next, selection: selectedDocuments)
+        revealSelection()
+    }
+
+    func reverseOrder() {
+        apply(Array(documents.reversed()), selection: selectedDocuments)
+        revealSelection()
+    }
+
+    func restoreInputOrder() {
+        apply(documents.sorted { $0.inputIndex < $1.inputIndex }, selection: selectedDocuments)
+        revealSelection()
+    }
+
     func removeSelection() {
         guard canRemove else { return }
         let removedIndex = documents.firstIndex { selectedDocuments.contains($0.inputIndex) } ?? 0
@@ -318,6 +358,7 @@ final class PDFMergeEditor: ObservableObject {
     }
 
     func beginDrag(_ inputIndex: Int) -> NSItemProvider {
+        guard documents.contains(where: { $0.inputIndex == inputIndex }) else { return NSItemProvider() }
         if !selectedDocuments.contains(inputIndex) { select(inputIndex) }
         let token = UUID().uuidString
         dragToken = token
@@ -352,11 +393,9 @@ final class PDFMergeEditor: ObservableObject {
     private func finishDrop(at position: DropPosition) {
         let dragged = Set(draggedDocuments)
         defer { dragToken = nil; draggedDocuments = []; dropPosition = nil }
-        guard !dragged.isEmpty, !dragged.contains(position.inputIndex) else { return }
-        let moving = documents.filter { dragged.contains($0.inputIndex) }
-        var next = documents.filter { !dragged.contains($0.inputIndex) }
-        guard let target = next.firstIndex(where: { $0.inputIndex == position.inputIndex }) else { return }
-        next.insert(contentsOf: moving, at: target + (position.after ? 1 : 0))
+        guard let target = documents.firstIndex(where: { $0.inputIndex == position.inputIndex }),
+              let next = PDFReordering.drop(documents, selection: dragged, id: \.inputIndex,
+                                            at: target + (position.after ? 1 : 0)) else { return }
         apply(next, selection: dragged)
         revealSelection()
     }
@@ -373,6 +412,10 @@ final class PDFMergeEditor: ObservableObject {
 
     private func apply(_ next: [PDFMergeSource], selection: Set<Int>, focus: Int? = nil) {
         guard documents != next else { return }
+        // An intervening edit invalidates any asynchronously loading old drop.
+        dragToken = nil
+        draggedDocuments = []
+        dropPosition = nil
         append(snapshot, to: &undoStack)
         redoStack.removeAll(keepingCapacity: true)
         documents = next

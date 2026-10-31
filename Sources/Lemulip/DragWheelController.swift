@@ -12,6 +12,7 @@ final class DragWheelController {
 
     private var timer: Timer?
     private var panel: WheelPanel?
+    private let panelAppearance = PanelAppearance()
     private var wheelView: DragWheelView?
     private var idleChangeCount = NSPasteboard(name: .drag).changeCount
     private var trackedChangeCount: Int?
@@ -60,7 +61,7 @@ final class DragWheelController {
 
     func dismiss() {
         dismissalGeneration += 1
-        panel?.orderOut(nil)
+        panelAppearance.dismiss()
         wheelView?.clearDrag()
     }
 
@@ -128,8 +129,10 @@ final class DragWheelController {
         wheelView?.selectedIndex = manual && !visibleOperations.isEmpty ? 0 : nil
         wheelView?.needsDisplay = true
         wheelView?.updateAccessibility(notify: false)
-        if manual { panel.makeKeyAndOrderFront(nil); panel.makeFirstResponder(wheelView) }
-        else { panel.orderFrontRegardless() }
+        panelAppearance.present(panel, kind: .wheel) {
+            if manual { panel.makeKeyAndOrderFront(nil); panel.makeFirstResponder(wheelView) }
+            else { panel.orderFrontRegardless() }
+        }
         if manual { wheelView?.announceAccessibilityFocus() }
     }
 

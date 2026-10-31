@@ -309,7 +309,7 @@ struct VideoTrimView: View {
               availableFormats(preview).contains(outputFormat) else { return }
         var options = ConversionOptions()
         options.videoTrim = selection
-        closePreview()
+        playback.pause()
         model.submitPending(options, outputExtension: outputFormat.rawValue)
     }
 }

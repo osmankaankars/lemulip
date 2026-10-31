@@ -25,8 +25,10 @@ struct OperationOptionsView: View {
             }
             VStack(alignment: .leading, spacing: 18) {
                 if operation.id.hasSuffix("compress") {
-                    HStack { Text(model.text("Quality", "Kalite")); Spacer(); Text("\(Int(quality * 100))% ").monospacedDigit().foregroundStyle(Palette.accent) }
+                    HStack { Text(model.text("Quality", "Kalite")); Spacer(); Text("\(Int((quality * 100).rounded()))% ").monospacedDigit().foregroundStyle(Palette.accent) }
                     Slider(value: $quality, in: 0.15...1, step: 0.01)
+                        .accessibilityLabel(model.text("Quality", "Kalite"))
+                        .accessibilityValue(percentageValue(quality))
                     HStack { Text(model.text("Smaller File", "Daha küçük dosya")); Spacer(); Text(model.text("Higher Quality", "Daha yüksek kalite")) }.font(.system(size: 10)).foregroundStyle(Palette.muted)
                 }
                 if operation.id.hasSuffix("resize") || operation.id == "pdf.compress" {
@@ -43,12 +45,16 @@ struct OperationOptionsView: View {
                         .font(.system(size: 10)).foregroundStyle(Palette.muted)
                 }
                 if operation.id == "media.speed" {
-                    HStack { Text(model.text("Playback Speed", "Oynatma hızı")); Spacer(); Text(String(format: "%.2f×", speed)).foregroundStyle(Palette.accent).monospacedDigit() }
+                    HStack { Text(model.text("Playback Speed", "Oynatma hızı")); Spacer(); Text(speedNumber + "×").foregroundStyle(Palette.accent).monospacedDigit() }
                     Slider(value: $speed, in: 0.5...4, step: 0.25)
+                        .accessibilityLabel(model.text("Playback Speed", "Oynatma hızı"))
+                        .accessibilityValue(speedValue)
                 }
                 if operation.id == "media.volume" {
-                    HStack { Text(model.text("Volume", "Ses düzeyi")); Spacer(); Text("\(Int(volume * 100))%").foregroundStyle(Palette.accent).monospacedDigit() }
+                    HStack { Text(model.text("Volume", "Ses düzeyi")); Spacer(); Text("\(Int((volume * 100).rounded()))%").foregroundStyle(Palette.accent).monospacedDigit() }
                     Slider(value: $volume, in: 0...3, step: 0.05)
+                        .accessibilityLabel(model.text("Volume", "Ses düzeyi"))
+                        .accessibilityValue(percentageValue(volume))
                 }
                 if operation.id == "pdf.compress" {
                     VStack(alignment: .leading, spacing: 10) {
@@ -67,8 +73,18 @@ struct OperationOptionsView: View {
         }.frame(width: 520).background(Palette.background).foregroundStyle(Palette.ink).tint(Palette.accent)
     }
     private func field(_ title: String, value: Binding<String>) -> some View {
-        VStack(alignment: .leading, spacing: 7) { Text(title).font(.system(size: 11)).foregroundStyle(Palette.muted); TextField("", text: value).textFieldStyle(.roundedBorder) }
+        VStack(alignment: .leading, spacing: 7) {
+            Text(title).font(.system(size: 11)).foregroundStyle(Palette.muted)
+            TextField("", text: value).textFieldStyle(.roundedBorder).accessibilityLabel(title)
+        }
     }
+    private func percentageValue(_ value: Double) -> String {
+        model.text("\(Int((value * 100).rounded())) percent", "Yüzde \(Int((value * 100).rounded()))")
+    }
+    private var speedNumber: String {
+        String(format: "%.2f", locale: Locale(identifier: model.language == "tr" ? "tr_TR" : "en_US"), speed)
+    }
+    private var speedValue: String { model.text("\(speedNumber) times", "\(speedNumber) kat") }
     private var canSubmit: Bool {
         validationError == nil && !(operation.id == "pdf.compress" && !flattenAcknowledged)
     }
