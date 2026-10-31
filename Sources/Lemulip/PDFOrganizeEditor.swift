@@ -240,6 +240,22 @@ final class PDFOrganizeEditor: ObservableObject {
         apply(next, selection: selectedPages)
     }
 
+    func positionRange(for sourceIndex: Int) -> ClosedRange<Int> {
+        let selection = selectedPages.contains(sourceIndex) ? selectedPages : [sourceIndex]
+        return PDFReordering.positionRange(in: pages, selection: selection,
+            id: \.sourceIndex, anchor: sourceIndex) ?? (1...max(1, pages.count))
+    }
+
+    @discardableResult
+    func move(_ sourceIndex: Int, toPosition position: Int) -> Bool {
+        let selection = selectedPages.contains(sourceIndex) ? selectedPages : [sourceIndex]
+        guard let next = PDFReordering.move(pages, selection: selection, id: \.sourceIndex,
+                                           anchor: sourceIndex, to: position) else { return false }
+        apply(next, selection: selection, focus: sourceIndex)
+        revealSelection()
+        return true
+    }
+
     func removeSelection() {
         guard canRemove else { return }
         let firstRemovedIndex = pages.firstIndex { selectedPages.contains($0.sourceIndex) } ?? 0
@@ -276,6 +292,7 @@ final class PDFOrganizeEditor: ObservableObject {
     }
 
     func beginDrag(_ sourceIndex: Int) -> NSItemProvider {
+        guard pages.contains(where: { $0.sourceIndex == sourceIndex }) else { return NSItemProvider() }
         if !selectedPages.contains(sourceIndex) { select(sourceIndex) }
         let token = UUID().uuidString
         dragToken = token
@@ -310,11 +327,9 @@ final class PDFOrganizeEditor: ObservableObject {
     private func finishDrop(at position: DropPosition) {
         let dragged = Set(draggedPages)
         defer { dragToken = nil; draggedPages = []; dropPosition = nil }
-        guard !dragged.isEmpty, !dragged.contains(position.sourceIndex) else { return }
-        let moving = pages.filter { dragged.contains($0.sourceIndex) }
-        var next = pages.filter { !dragged.contains($0.sourceIndex) }
-        guard let target = next.firstIndex(where: { $0.sourceIndex == position.sourceIndex }) else { return }
-        next.insert(contentsOf: moving, at: target + (position.after ? 1 : 0))
+        guard let target = pages.firstIndex(where: { $0.sourceIndex == position.sourceIndex }),
+              let next = PDFReordering.drop(pages, selection: dragged, id: \.sourceIndex,
+                                            at: target + (position.after ? 1 : 0)) else { return }
         apply(next, selection: dragged)
         revealSelection()
     }
@@ -330,6 +345,10 @@ final class PDFOrganizeEditor: ObservableObject {
 
     private func apply(_ next: [PDFPageEdit], selection: Set<Int>, focus: Int? = nil) {
         guard pages != next else { return }
+        // An intervening edit invalidates any asynchronously loading old drop.
+        dragToken = nil
+        draggedPages = []
+        dropPosition = nil
         append(snapshot, to: &undoStack)
         redoStack.removeAll(keepingCapacity: true)
         pages = next

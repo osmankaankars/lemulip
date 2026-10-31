@@ -249,7 +249,9 @@ struct AudioTrimView: View {
     private func submit() {
         guard validationError == nil, let selection, let preview,
               availableFormats(preview).contains(outputFormat) else { return }
-        playback.shutdown()
+        // Keep the preview usable if the destination picker is cancelled.
+        // Final dismissal releases playback through onDisappear.
+        playback.pause()
         var options = ConversionOptions()
         options.audioTrim = selection
         model.submitPending(options, outputExtension: outputFormat.rawValue)

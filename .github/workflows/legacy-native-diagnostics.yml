@@ -1,0 +1,65 @@
+name: Legacy Synthetic Native Diagnostics
+
+# Kept for diagnosing the synthetic AppKit host. Release acceptance uses the
+# normally launched production app in native-ui-review.yml, not this host.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+
+jobs:
+  options:
+    name: Synthetic Options (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Run the Original Exact Options Diagnostic
+        env:
+          LEMULIP_EDITOR_REVIEW_DIR: ${{ runner.temp }}/legacy-options
+        run: |
+          export LEMULIP_EDITOR_REVIEW_COMMIT="$(git rev-parse HEAD)"
+          xcrun --sdk macosx swift test --jobs 2 --filter OperationOptionsAccessibilityTests
+      - name: Retain the Actual Diagnostic Result
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Legacy-Options-${{ matrix.arch }}
+          path: ${{ runner.temp }}/legacy-options
+          if-no-files-found: ignore
+          retention-days: 14
+
+  pointer:
+    name: Synthetic Pointer (arm64)
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Compile the Original Diagnostic Host
+        run: xcrun --sdk macosx swift build --build-tests --jobs 2
+      - name: Run All Four Bounded Pointer Diagnostics
+        run: python3 script/review_pdf_pointer.py --output "$RUNNER_TEMP/legacy-pointer"
+      - name: Retain the Actual Diagnostic Result
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Legacy-Pointer-arm64
+          path: ${{ runner.temp }}/legacy-pointer
+          if-no-files-found: ignore
+          retention-days: 14

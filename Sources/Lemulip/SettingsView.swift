@@ -28,6 +28,24 @@ struct SettingsContent: View {
                         .labelsHidden().toggleStyle(.switch).controlSize(.small)
                 }
             }
+            settingRow(model.text("Selection Sounds", "Seçim Sesleri"),
+                       subtitle: model.text("A short tick as you move between wheel options or confirm an operation. Follows macOS sound effects settings.",
+                                            "Çarkta seçenek değiştirirken veya işlemi onayladığında kısa bir ses. macOS ses efekti ayarlarına uyar.")) {
+                HStack(spacing: 12) {
+                    Button { model.previewSelectionSound() } label: {
+                        Label(model.text("Preview", "Dinle"), systemImage: "speaker.wave.1")
+                    }.buttonStyle(.bordered).controlSize(.small)
+                        .accessibilityLabel(model.text("Preview Selection Sound", "Seçim Sesini Dinle"))
+                        .accessibilityHint(model.text("Play once without changing the setting. Follows macOS sound effects settings.",
+                                                      "Ayarı değiştirmeden bir kez çal. macOS ses efekti ayarlarına uyar."))
+                        .accessibilityIdentifier("settings.selection-sounds.preview")
+                    Toggle(model.text("Selection Sounds", "Seçim Sesleri"), isOn: $model.selectionSoundsEnabled)
+                        .labelsHidden().toggleStyle(.switch).controlSize(.small)
+                        .accessibilityHint(model.text("Play when the highlighted wheel option changes or an operation is confirmed. Off by default.",
+                                                      "Çarkta seçili seçenek değiştiğinde veya işlem onaylandığında çal. Başlangıçta kapalı."))
+                        .accessibilityIdentifier("settings.selection-sounds")
+                }
+            }.background(Palette.panel, in: RoundedRectangle(cornerRadius: 12))
             settingsGroup(model.text("Output", "Çıktı")) {
                 settingRow(model.text("Save Beside The Original", "Orijinalin Yanına Kaydet"), subtitle: model.text("Turn Off To Choose A Folder For Each Job.", "Her İşlemde Klasör Seçmek İçin Kapat.")) {
                     Toggle(model.text("Save Beside The Original", "Orijinalin Yanına Kaydet"), isOn: $model.outputAlongsideOriginal)

@@ -19,6 +19,43 @@ concurrency:
   cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 jobs:
+  source-snapshot:
+    name: Retain Checked Source for This Candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Check and Package Exact Public Sources
+        run: |
+          python3 script/privacy_check.py --staged
+          mkdir "$RUNNER_TEMP/checked-source"
+          python3 script/package_source.py --output "$RUNNER_TEMP/checked-source/Lemulip-Candidate-Source.zip"
+          git rev-parse HEAD > "$RUNNER_TEMP/checked-source/source-commit.txt"
+          git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/checked-source/source-tree.txt"
+          cd "$RUNNER_TEMP/checked-source"
+          sha256sum Lemulip-Candidate-Source.zip source-commit.txt source-tree.txt > SHA256SUMS.txt
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Candidate-Source-${{ github.run_id }}
+          path: ${{ runner.temp }}/checked-source
+          if-no-files-found: error
+          retention-days: 14
+
+  native-ui:
+    name: Native UI Gate
+    uses: ./.github/workflows/native-ui-review.yml
+
+  review-copy:
+    name: Current Unreleased Review Copy
+    needs: [test, native-ui]
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.head_ref == 'fix/quality-020-followup-20261031' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    uses: ./.github/workflows/current-ui-review.yml
+
   test:
     name: macOS Tests (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
@@ -43,6 +80,9 @@ jobs:
           python3 script/test_release_engines.py
           python3 script/test_publish_preview.py
           python3 script/test_interface.py
+          python3 script/test_native_coverage.py
+          python3 script/test_native_release_gate.py
+          python3 script/test_sound_review_gate.py
       - name: Check Architecture, Toolchain, and Version
         env:
           EXPECTED_ARCH: ${{ matrix.arch }}
@@ -56,14 +96,66 @@ jobs:
           VERSION=$(/usr/libexec/PlistBuddy -c 'Print CFBundleShortVersionString' Resources/Info.plist)
           [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
           if [[ "$REF_TYPE" == tag ]]; then test "$REF_NAME" = "v$VERSION"; fi
-      - name: Compile and Test Built-In Engines
-        run: xcrun --sdk macosx swift test --jobs 2 --skip 'EngineIntegrationTests|PDFRangeInteractionTests'
-      - name: Verify PDF Range Editing in Its Own Native Window
+      - name: Compile Source and Native Test Targets
+        id: compile
+        run: xcrun --sdk macosx swift build --build-tests --jobs 2
+      - name: Test Built-In Engines and Models
+        env:
+          LEMULIP_EDITOR_REVIEW_DIR: ${{ runner.temp }}/lemulip-editor-review
+        run: |
+          export LEMULIP_EDITOR_REVIEW_COMMIT="$(git rev-parse HEAD)"
+          xcrun --sdk macosx swift test --skip-build --skip 'EngineIntegrationTests|PDFEditorInteractionTests|SelectionFeedbackTests|OperationOptionsAccessibilityTests|PDFRangeInteractionTests'
+      # Exact option semantics and pointer workflows are checked by the required
+      # real-app native-ui job; legacy synthetic diagnostics remain manual.
+      # Each remaining hosted review gets its own AppKit process. A failed sibling must
+      # not hide later evidence; every failed step still fails the whole job.
+      - name: Review PDF Editor Keyboard Interactions
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        env:
+          LEMULIP_PDF_REVIEW_DIR: ${{ runner.temp }}/lemulip-pdf-review
+        run: |
+          export LEMULIP_PDF_REVIEW_COMMIT="$(git rev-parse HEAD)"
+          xcrun --sdk macosx swift test --skip-build --filter PDFEditorInteractionTests
+      - name: Review Selection Feedback and Editor Continuity
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+        env:
+          LEMULIP_SELECTION_REVIEW_DIR: ${{ runner.temp }}/lemulip-selection-review
+          LEMULIP_EDITOR_REVIEW_DIR: ${{ runner.temp }}/lemulip-editor-review
+        run: |
+          export LEMULIP_SELECTION_REVIEW_COMMIT="$(git rev-parse HEAD)"
+          export LEMULIP_EDITOR_REVIEW_COMMIT="$(git rev-parse HEAD)"
+          xcrun --sdk macosx swift test --skip-build --filter SelectionFeedbackTests
+      - name: Review PDF Page Range Correction
+        if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
         env:
           LEMULIP_RANGE_REVIEW_DIR: ${{ runner.temp }}/lemulip-range-review
         run: |
           export LEMULIP_RANGE_REVIEW_COMMIT="$(git rev-parse HEAD)"
           xcrun --sdk macosx swift test --skip-build --filter PDFRangeInteractionTests
+      - name: Retain PDF Interaction Review
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-PDF-Interaction-${{ matrix.arch }}
+          path: ${{ runner.temp }}/lemulip-pdf-review
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Retain Editor Continuity Review
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Editor-Review-${{ matrix.arch }}
+          path: ${{ runner.temp }}/lemulip-editor-review
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Retain Selection Sound Audition
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Selection-Sound-${{ matrix.arch }}
+          path: ${{ runner.temp }}/lemulip-selection-review
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Retain PDF Range Review
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -211,7 +303,7 @@ jobs:
 
   package:
     name: Universal macOS Package
-    needs: [test, native-engines]
+    needs: [test, native-engines, native-ui]
     if: github.event_name != 'pull_request'
     runs-on: macos-15
     timeout-minutes: 30

@@ -1,0 +1,4 @@
+// XCUIApplication.open requires macOS 13.3. This config belongs only to the
+// external test runner; the production app continues to target macOS 13.0.
+MACOSX_DEPLOYMENT_TARGET = 13.3
+ONLY_ACTIVE_ARCH = YES

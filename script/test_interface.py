@@ -44,7 +44,8 @@ class InterfaceTests(unittest.TestCase):
         if shared.exists():
             source = shared.read_text()
             self.assertIn('.keyboardShortcut(.defaultAction)', source)
-            self.assertIn('.keyboardShortcut(.cancelAction)', source)
+            self.assertIn('var cancelShortcut: KeyboardShortcut? = .cancelAction', source)
+            self.assertIn('.keyboardShortcut(cancelShortcut)', source)
             self.assertIn('Palette.primaryAction', source)
 
     def test_engine_paths_and_help_are_progressively_disclosed(self):

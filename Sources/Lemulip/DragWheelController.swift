@@ -8,10 +8,12 @@ import LemulipCore
 final class DragWheelController {
     var enabled = true { didSet { if !enabled { dismiss(); resetDrag() } } }
     var onDrop: (([URL], FileOperation) -> Void)?
+    var onSelectionChange: (() -> Void)?
     var onShowMain: (() -> Void)?
 
     private var timer: Timer?
     private var panel: WheelPanel?
+    private let panelAppearance = PanelAppearance()
     private var wheelView: DragWheelView?
     private var idleChangeCount = NSPasteboard(name: .drag).changeCount
     private var trackedChangeCount: Int?
@@ -60,7 +62,7 @@ final class DragWheelController {
 
     func dismiss() {
         dismissalGeneration += 1
-        panel?.orderOut(nil)
+        panelAppearance.dismiss()
         wheelView?.clearDrag()
     }
 
@@ -128,8 +130,10 @@ final class DragWheelController {
         wheelView?.selectedIndex = manual && !visibleOperations.isEmpty ? 0 : nil
         wheelView?.needsDisplay = true
         wheelView?.updateAccessibility(notify: false)
-        if manual { panel.makeKeyAndOrderFront(nil); panel.makeFirstResponder(wheelView) }
-        else { panel.orderFrontRegardless() }
+        panelAppearance.present(panel, kind: .wheel) {
+            if manual { panel.makeKeyAndOrderFront(nil); panel.makeFirstResponder(wheelView) }
+            else { panel.orderFrontRegardless() }
+        }
         if manual { wheelView?.announceAccessibilityFocus() }
     }
 
@@ -281,7 +285,7 @@ private final class DragWheelView: NSView {
     private func selectOperation(_ operation: FileOperation, mode: WheelMode, page: Int) -> Bool {
         guard canPerformManualAction, let controller, controller.mode == mode, controller.page == page,
               let index = controller.visibleOperations.firstIndex(of: operation) else { return false }
-        selectedIndex = index
+        selectFromInteraction(index)
         return true
     }
     private func selectMode(_ mode: WheelMode) -> Bool {
@@ -449,7 +453,15 @@ private final class DragWheelView: NSView {
         NSImage(systemSymbolName: name, accessibilityDescription: nil)?.withSymbolConfiguration(NSImage.SymbolConfiguration(paletteColors: [color]))?.draw(in: rect)
     }
 
-    override func mouseMoved(with event: NSEvent) { selectedIndex = index(at: convert(event.locationInWindow, from: nil)) }
+    // Programmatic presentation, page changes and dismissal assign selectedIndex
+    // directly. Only a changed, valid user highlight requests optional feedback.
+    private func selectFromInteraction(_ index: Int?) {
+        guard selectedIndex != index else { return }
+        selectedIndex = index
+        if selectedOperation != nil { controller?.onSelectionChange?() }
+    }
+
+    override func mouseMoved(with event: NSEvent) { selectFromInteraction(index(at: convert(event.locationInWindow, from: nil))) }
     override func mouseExited(with event: NSEvent) { if controller?.manual == false { selectedIndex = nil } }
     override func mouseDown(with event: NSEvent) {
         guard let controller, controller.manual else { return }
@@ -489,7 +501,7 @@ private final class DragWheelView: NSView {
         guard let count = controller?.visibleOperations.count, count > 0 else { return false }
         let next = ((selectedIndex ?? (delta > 0 ? -1 : 0)) + delta + count) % count
         guard next != selectedIndex else { return false }
-        selectedIndex = next
+        selectFromInteraction(next)
         return true
     }
     override func scrollWheel(with event: NSEvent) {
@@ -505,7 +517,7 @@ private final class DragWheelView: NSView {
     }
     override func draggingUpdated(_ sender: NSDraggingInfo) -> NSDragOperation {
         guard acceptedSequence == sender.draggingSequenceNumber, !acceptedURLs.isEmpty else { return [] }
-        selectedIndex = index(at: convert(sender.draggingLocation, from: nil))
+        selectFromInteraction(index(at: convert(sender.draggingLocation, from: nil)))
         return selectedIndex == nil ? [] : .copy
     }
     override func draggingExited(_ sender: NSDraggingInfo?) { clearDrag() }
