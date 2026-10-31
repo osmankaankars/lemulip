@@ -104,8 +104,11 @@ extension QualityUITests {
         try openOperation(organize ? "pdf.organize" : "pdf.merge", in: app)
         let count = organize ? 24 : 18
         let last = app.textFields["pdf.position.\(count - 1)"]
-        let window = app.windows.containing(.button, identifier: "editor.create-copy").firstMatch
-        let scroller = window.scrollViews.firstMatch
+        let sheet = app.sheets.containing(.button, identifier: "editor.create-copy").firstMatch
+        XCTAssertTrue(sheet.waitForExistence(timeout: 10))
+        // The window also exposes the disabled workspace behind this sheet.
+        // Select the named production PDF scroller, not the window's first one.
+        let scroller = sheet.scrollViews[organize ? "PDF Pages" : "PDF Merge Order"]
         XCTAssertTrue(scroller.waitForExistence(timeout: 10))
         XCTAssertFalse(last.exists && last.isHittable, "The fixture must require a real scroll")
         var scrolls = 0
