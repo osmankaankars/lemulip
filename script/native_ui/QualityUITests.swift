@@ -75,6 +75,14 @@ final class QualityUITests: XCTestCase {
     }
 
     func testOrganizerDragPublishesTheDisplayedOrderAndPreservesOriginal() throws {
+        try organizerDrag(usingHandle: false)
+    }
+
+    func testOrganizerHandleDragPublishesTheDisplayedOrderAndPreservesOriginal() throws {
+        try organizerDrag(usingHandle: true)
+    }
+
+    private func organizerDrag(usingHandle: Bool) throws {
         let app = launch(language: "en")
         let input = ReviewConfiguration.fixtures.appendingPathComponent("Organize/Page-Order.pdf")
         let original = try Data(contentsOf: input)
@@ -87,9 +95,21 @@ final class QualityUITests: XCTestCase {
         XCTAssertTrue(first.waitForExistence(timeout: 10))
         XCTAssertTrue(second.waitForExistence(timeout: 10))
         XCTAssertEqual(app.textFields["pdf.position.0"].value as? String, "1")
-        // Drag the thumbnail button and insert into the right half of page 2.
-        first.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35))
-            .click(forDuration: 0.7, thenDragTo: second.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.35)))
+        // Keep the original thumbnail scenario; independently exercise the
+        // visible handle beside the position field to isolate drag initiation.
+        // Its center is 24 points left of the card's trailing edge and aligned
+        // vertically with the real position field. No screen-global coordinates.
+        let start: XCUICoordinate
+        if usingHandle {
+            let fieldFrame = app.textFields["pdf.position.0"].frame
+            let frame = first.frame
+            start = first.coordinate(withNormalizedOffset: .zero)
+                .withOffset(CGVector(dx: frame.width - 24, dy: fieldFrame.midY - frame.minY))
+        } else {
+            start = first.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35))
+        }
+        start.click(forDuration: 0.7,
+                    thenDragTo: second.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.35)))
         try expectValue("2", of: app.textFields["pdf.position.0"])
         try expectValue("1", of: app.textFields["pdf.position.1"])
         let create = app.buttons["editor.create-copy"]
