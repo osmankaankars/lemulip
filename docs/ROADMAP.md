@@ -1,5 +1,36 @@
 # Product Quality Roadmap
 
+Updated **1 November 2026 (Europe/Istanbul)**. This section is current; dated
+investigations below are retained as history, not as still-open PR statuses.
+
+## Current Delivery
+
+Release target: **0.1.20 / build 23**, source `eaa783c949a1814130a6618395269ba17c1baa6f`.
+PR #33 is merged. Superseded #20/#23/#25/#26/#30 are closed with history retained.
+This presentation must not replace the live download before the exact v0.1.20
+archives are published and verified. Older candidates are never relabelled.
+
+| Work | Current state |
+| --- | --- |
+| P1/P2: PDF ordering | Main includes explicit sort commands, dragging, numeric moves, groups, Undo/Redo, first-click Cancel and long-list fixes. Two-architecture real-app tests passed. |
+| A1: Optional sound | Changed wheel selections and accepted actions use the shared optional cue. Default off; repeats, centre, opening/reset and cancellation stay quiet. Kaan owns ongoing acoustic/system-mute review and will report issues. |
+| Q1: Native finish | 29 real-app cases per Mac architecture plus seven full-app visual scenarios. See [VISUAL_REVIEW.md](VISUAL_REVIEW.md) for actual findings and limits. |
+| B1/B2: Smaller payload | Lossless source compression and retained GUI/CLI symbols are in main. Architectures, required engines and license/source files remain. Public size claims must use final released files. |
+| W1/W2/W4: Product page | Compact gallery, closed catalog, manual keyboard-accessible tabs, bounded motion and themes are retained. PDF Pages replaces Activity instead of adding another large section. |
+| W3: Fresh captures | Completed: real 2040 x 1400 images of 1020 x 700 windows rendered natively at 2x on a temporary macOS HiDPI display. No enlargement or repainted controls; not a physical Retina-panel claim. |
+| M1: Release presentation | Current native gallery, sharing card, clear feature copy and 0.1.20 download transition are grouped in one changeset. Exact release verification and deployed browser checks remain delivery gates. |
+| VoiceOver / listening | Owner follow-up during normal use, explicitly not a release blocker. Automated semantics are verified; audible narration is not claimed. |
+| V1: Film | Last. Discuss together after this release and website delivery. |
+
+Further binary architecture changes and new editing tools remain later work; no
+new feature scope is being added to finish this release.
+
+## Historical Investigation — 29 October 2026
+
+The old PR/download states below explain the original work and are superseded by
+the current table. Candidate measurements are not current public-release claims.
+
+
 Updated 29 October 2026. This plan turns the product review into small, verifiable changes. A prepared change is not a shipped feature: the website can improve independently, while app changes need native checks and a new verified release. The current public download remains **0.1.19 / build 22**.
 
 ## Direction

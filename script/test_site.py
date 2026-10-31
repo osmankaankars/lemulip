@@ -7,7 +7,7 @@ from urllib.parse import urlsplit
 ROOT=Path(__file__).resolve().parent.parent
 # Advance only after verifying the new public release and both Mac downloads.
 # Never derive this from the pending application's Resources/Info.plist.
-PUBLISHED_VERSION='0.1.19'
+PUBLISHED_VERSION='0.1.20'
 class Tags(HTMLParser):
     def __init__(self): super().__init__(); self.ids=[]; self.assets=[]
     def handle_starttag(self,tag,attrs):
@@ -95,7 +95,7 @@ class SiteTests(unittest.TestCase):
         self.assertLess(page.index('id="features"'),page.index('id="app-gallery"'))
         self.assertLess(page.index('id="app-gallery"'),page.index('id="formats"'))
         gallery=page.split('id="app-gallery"',1)[1].split('</section>',1)[0]
-        self.assertEqual(['workspace','crop-video','trim-audio','activity'],re.findall(r'data-screen="([^"]+)"',gallery))
+        self.assertEqual(['workspace','pdf-organize','crop-video','trim-audio'],re.findall(r'data-screen="([^"]+)"',gallery))
         self.assertEqual(4,gallery.count('role="tabpanel"'))
         self.assertEqual(4,gallery.count('role="tab"'))
         self.assertIn('<noscript>',gallery)
@@ -129,8 +129,8 @@ class SiteTests(unittest.TestCase):
             self.assertNotRegex(p.read_text(),r'(?i)developer id|notariz|ad hoc sign',str(p))
     def test_motion_and_stale_assets_are_explicit(self):
         page=(ROOT/'site/index.html').read_text(); js=(ROOT/'site/product.js').read_text()
-        self.assertIn('data-site-version="20261029.5"',page)
-        self.assertIn('product.js?v=20261029.5',page)
+        self.assertIn('data-site-version="20261101.1"',page)
+        self.assertIn('product.js?v=20261101.1',page)
         for event in ('visibilitychange','prefers-reduced-motion','pointercancel'):self.assertIn(event,js)
         self.assertIn('Interactive example. Nothing is uploaded.',page)
         self.assertNotRegex(js,r'\b(FileReader|XMLHttpRequest)\s*\(')

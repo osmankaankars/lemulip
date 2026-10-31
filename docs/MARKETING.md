@@ -1,100 +1,76 @@
 # Lemulip Product Story
 
-Working reference for the next promotion pass, updated 29 October 2026. The public
-download is **0.1.19 / build 22**. Product improvements in draft pull requests are
-not part of that download. This document prepares the message; it is not a launch
-announcement or a promotional-film storyboard.
+Updated 1 November 2026 for **0.1.20 / build 23**. PR #33 is merged. Download
+links switch only after the exact tagged release archives have been verified.
+This is the product-story reference, not a promotional-film storyboard.
 
 ## The Main Idea
 
 **File tools, right where you drag.**
 
-Lemulip brings local file tools to your Mac's desktop and Finder. Drag a file,
-tap a key, and choose what happens next. Convert images, crop and trim media,
-or arrange PDF pages. Workspace gives you another way to select files and tools.
-Lemulip is free and open source, with no account or subscription.
-
-**Turkish adaptation**
+Drag a local file, tap a key, and choose what happens next. Convert an image,
+trim a clip or put PDF pages in order. Workspace offers another way to select
+files and tools. Lemulip is free and open source, without an account or subscription.
 
 **Dosyanın olduğu yerde, ihtiyacın olan araç.**
 
-Lemulip, dosya araçlarını Mac'inin masaüstüne ve Finder'a getirir. Dosyanı sürükle,
-bir tuşa dokun, yapmak istediğin işlemi seç. Görselleri dönüştür, video ve ses
-dosyalarını düzenle, PDF sayfalarını sırala. Dosyalarını ve araçlarını Çalışma
-Alanı'ndan da seçebilirsin. Lemulip ücretsiz ve açık kaynaklıdır; hesap veya
-abonelik gerektirmez.
+Dosyanı sürükle, bir tuşa dokun, yapmak istediğin işlemi seç. Görselleri dönüştür,
+video ve ses dosyalarını düzenle, PDF sayfalarını sırala. Çalışma Alanı aynı
+araçlara ulaşmanın başka bir yolu. Ücretsiz ve açık kaynaklı; hesap gerektirmez.
 
-Keep the drag, choice and useful result at the center of the presentation. The
-three themes and the operation wheel give the product its own visual identity.
-Explain a concrete job before listing the whole catalog.
+## Four Specific Product Moments
 
-## Three Released Workflows to Show
-
-| Story | What to demonstrate | Proof and limits |
-| --- | --- | --- |
-| An image in the format you need | Drag a local HEIC or PNG, tap Shift, drop onto JPG, find the new copy | The existing [Finder recording](../site/assets/finder-conversion.mp4) shows a real conversion. [Its capture record](../site/assets/native-recording.json) records the source and processing. |
-| Keep the useful part | Choose a video crop or audio range, inspect the selection, create the output | The gallery contains actual crop and waveform editors. Codec availability depends on the input and output; [the format guide](FORMATS.md) defines the routes. |
-| Bring PDF pages together | Inspect the page list, arrange it, then create a new PDF | Merge and Organize are released. The newer ordering commands, numeric position entry and revised drag interaction remain pending in [PR #20](https://github.com/osmankaankars/lemulip/pull/20). |
-
-Conversion outputs preserve the original. **Move To…** is a separate file action
-that relocates the selected original; do not extend the conversion promise to
-every action.
-
-## Facts for Public Copy
-
-| Fact | Source and wording boundary |
+| Screen | Useful story |
 | --- | --- |
-| macOS 13+, Apple silicon and Intel | [Installation](INSTALL.md), release metadata and verified universal packages. The download is a public preview. |
-| 35 conversion output formats, 26 tools, 6 file actions | [The catalog](../site/catalog.js), generated from [native operations](../Sources/LemulipCore/Catalog.swift). These are output formats and catalog entries, not a claim that every input converts to every output. |
-| Local processing | [The user guide](USER_GUIDE.md) and the native engines. Optional engine installation needs an internet connection; AirDrop sends files only when chosen. |
-| Included image and media support | FFmpeg and ImageMagick ship with the Mac download. Pandoc and LibreOffice remain optional; describe that distinction when demonstrating advanced document routes. |
-| Free and open source | [MIT license](../LICENSE), with [third-party notices](../THIRD_PARTY_NOTICES.md) for the bundled components. |
+| Workspace | Find a format, choose a tool, keep the original and work with a new copy. |
+| PDF Pages | Drag thumbnails/handles or type a position, inspect the order and create the arranged PDF. Natural filename, reverse and incoming-order commands are also available in Merge. |
+| Crop Video | See the retained area, aspect ratio and exact output dimensions before creating the copy. |
+| Trim Audio | Inspect the waveform and selected time range before exporting. |
 
-Use measured size figures only for the version available from the adjacent
-download link. Candidate package savings belong in [the quality roadmap](ROADMAP.md)
-until the smaller package is released. Do not claim instantaneous processing,
-lossless output for every format, universal document fidelity, or customer usage
-figures without evidence.
+The existing Finder conversion recording remains a real recording, separately
+identified from the interactive browser simulation. Conversion preserves originals;
+**Move To…** is an explicit file action that relocates the selected original.
 
-## Visual Assets
+## Public Facts and Boundaries
 
-The existing screenshots are genuine native captures with source commit,
-workflow, dimensions and hashes in [the screenshot inventory](../site/assets/screenshots.json).
-Their 1020-pixel width supports a maximum 510 CSS-pixel presentation at two source
-pixels per CSS pixel. The website and repository preview use that scale.
+- macOS 13+, Apple Silicon and Intel; the download is a public preview.
+- 35 conversion output formats, 26 tools and six file actions, generated from the
+  native catalog. Not every input converts to every output.
+- Local processing. Optional engine installation needs the internet; AirDrop sends
+  only when chosen. FFmpeg/ImageMagick are included; Pandoc/LibreOffice are optional.
+- Optional selection sound now acknowledges changed wheel choices as well as
+  accepted operations. Default off, independent preview, persisted preference.
+- Only use the exact published package sizes beside its matching download link.
+  Do not claim universal losslessness, instantaneous processing or invented usage.
 
-The next asset set must show the verified updated app, including one useful PDF
-arrangement. Record the source commit, logical window size, actual pixel size,
-capture method and hashes. A larger bitmap alone does not establish a fresh
-high-density render. Retain the original captures; export web derivatives after
-visual review. Do not generate, repaint or artificially sharpen product controls.
+## Actual Visual Assets
 
-The current [social preview](../site/assets/social-preview.png) repairs the retired
-simulation previously used when sharing the website. It combines the approved
-headline and original brand with the existing real Workspace capture. Its
-[provenance](../site/assets/social-preview.json) records the input hashes, layout
-source and actual export dimensions. The composition keeps the native source at
-half its original width; it is not a fresh Retina capture or a preview of
-unreleased controls.
+The gallery uses the complete 0.1.20 app. The screenshot inventory records original
+PNG hashes, logical/pixel geometry, capture workflow and exact application archive.
+A temporary macOS HiDPI test display renders **1020 x 700 windows at 2040 x 1400**.
+These are real native 2x renders, not physical-panel photography or enlarged 1x images.
 
-Refresh the social preview again when the final native asset set is ready. Keep a
-readable headline, a real product moment and the existing brand; omit invented
-ratings, customer logos and unsupported claims. No promotional video work starts
-yet.
+Keep the gallery at **510 CSS pixels maximum**. Four meaningful screens are enough;
+the catalog stays available on demand. Only 290 pure-black pixels outside the
+rounded window corners become transparent before metadata-free WebP encoding.
+Product text and controls are neither repainted nor sharpened. Test documents and
+media are synthetic; application interactions and outputs are real.
 
-## From the Website to the First Result
+The 1200 x 630 sharing card is a marketing composition of the current Workspace,
+approved icon/wordmark and headline. Its manifest records the sources and renderer.
+No invented ratings, customer logos or fake product capabilities.
 
-The primary download opens the verified version's DMG. The adjacent **Install &
-first steps** link leads to [installation and a first conversion](INSTALL.md).
-The built-in practice file lets someone try the Finder gesture immediately.
-Workspace remains available when a source app cannot supply a compatible local
-file drag. [Activity and troubleshooting](USER_GUIDE.md#if-something-fails) explain
-where to look when a job needs attention.
+## From Download to First Result
 
-## Before the Promotional Film
+The main button selects the verified release DMG. **Install & first steps** opens
+installation, first launch and the built-in sample in that order. Workspace is the
+alternative when the source application does not provide a compatible local drag.
+Activity and the user guide explain completed outputs and errors.
 
-Complete the PDF interaction review, release the verified native changes and
-smaller package, then update the real captures and public feature story to that
-same version. Check the website's download and first-use path against the released
-app. Only then choose the film's shot list and record the final workflows. The
-film should show the product people can download at that moment.
+## Final Owner Review and Film
+
+Kaan will assess sound on speakers/headphones, system mute and VoiceOver narration
+while using the app and report issues. That agreement is not an acoustic test pass,
+and does not stall publication. The 29-case native regression gates and bounded
+visual review are separate. After exact release and deployed website verification,
+discuss the promotional film together. Record only the experience people can download.

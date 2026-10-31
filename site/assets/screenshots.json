@@ -1,94 +1,182 @@
 [
   {
     "file": "app-workspace.webp",
-    "origin": "Native app window capture",
-    "sourceSHA256": "3a0e66c1f6ced80e84cfd496c6f67b0b74b6e69cdd94f8a90404759ad66d13c2",
-    "sourceCommit": "f9496dd2c040a3a538bb4fea650355defcb7058d",
-    "sourceWorkflowRun": 40740281239,
-    "sourceArtifact": 12839116953,
+    "sha256": "90bbd2691c4e37cd2be4cbc6fd919a8cba3aa5956ba3c076644837060bd044a5",
+    "width": 2040,
+    "height": 1400,
     "sourceSize": [
-      1020,
-      683
+      2040,
+      1400
     ],
     "cropBox": [
       0,
       0,
-      1020,
-      683
+      2040,
+      1400
     ],
+    "origin": "Native app window capture",
     "capture": "Window capture without desktop or shadow",
-    "processing": "Window-only crop supplied by macOS capture; metadata removed; no UI content generated or repainted",
-    "sha256": "573edfebb566202c51d0fe448ee3805e8e7d48a589a7b28677917ce5cb3e1393",
-    "width": 1020,
-    "height": 683
+    "captureMethod": "XCTest screenshot of running application",
+    "sourceCommit": "a45a19cf48310a8d5a3b87ad78d6b7253b3e6213",
+    "sourceWorkflowRun": 41252452759,
+    "sourceArtifact": 13061981222,
+    "sourceArtifactSHA256": "ab58b67460ee90521a53d43cdb9175469188da8305aaa763163b65c5b704a0b8",
+    "sourcePNG_SHA256": "4a7d27a265c6bbd960c7297e3a58f3635b00b30937052fd3487c9757e8dd3470",
+    "applicationBuildCommit": "eaa783c949a1814130a6618395269ba17c1baa6f",
+    "applicationSourceTree": "e806e18a0d3b0768f15e2e16aa6f21bc7d3584d5",
+    "applicationArchiveSHA256": "1c31268279a094d64dbf8edc1680112705ee1152ad6b2a9c98e782b29aae8523",
+    "appVersion": "0.1.20",
+    "appBuild": 23,
+    "bundledEngines": true,
+    "logicalWindowSize": [
+      1020,
+      700
+    ],
+    "nativeScale": [
+      2,
+      2
+    ],
+    "upscaled": false,
+    "retinaCapture": false,
+    "highDensityRendered": true,
+    "display": "Temporary macOS virtual HiDPI test display; not a physical Retina panel",
+    "maxDisplayWidth": 510,
+    "syntheticInput": true,
+    "processing": "Window-only crop at original dimensions. Remove 290 border-connected pure-black exterior corner-padding pixels only; preserve all UI pixels before metadata-free WebP encoding (quality 96). No resize, sharpening, repainting or generated controls."
+  },
+  {
+    "file": "app-pdf-organize.webp",
+    "sha256": "10755253f2d99c09f2ed9ccdf495e50e4e73137f2bea865ed3d52d818598f631",
+    "width": 2040,
+    "height": 1400,
+    "sourceSize": [
+      2040,
+      1400
+    ],
+    "cropBox": [
+      0,
+      0,
+      2040,
+      1400
+    ],
+    "origin": "Native app window capture",
+    "capture": "Window capture without desktop or shadow",
+    "captureMethod": "XCTest screenshot of running application",
+    "sourceCommit": "a45a19cf48310a8d5a3b87ad78d6b7253b3e6213",
+    "sourceWorkflowRun": 41252452759,
+    "sourceArtifact": 13061981222,
+    "sourceArtifactSHA256": "ab58b67460ee90521a53d43cdb9175469188da8305aaa763163b65c5b704a0b8",
+    "sourcePNG_SHA256": "06663d6647ff07c66ff78a4ec6918c4cc6e7d5b6ae305f9fb3d1795e73ef4ad2",
+    "applicationBuildCommit": "eaa783c949a1814130a6618395269ba17c1baa6f",
+    "applicationSourceTree": "e806e18a0d3b0768f15e2e16aa6f21bc7d3584d5",
+    "applicationArchiveSHA256": "1c31268279a094d64dbf8edc1680112705ee1152ad6b2a9c98e782b29aae8523",
+    "appVersion": "0.1.20",
+    "appBuild": 23,
+    "bundledEngines": true,
+    "logicalWindowSize": [
+      1020,
+      700
+    ],
+    "nativeScale": [
+      2,
+      2
+    ],
+    "upscaled": false,
+    "retinaCapture": false,
+    "highDensityRendered": true,
+    "display": "Temporary macOS virtual HiDPI test display; not a physical Retina panel",
+    "maxDisplayWidth": 510,
+    "syntheticInput": true,
+    "processing": "Window-only crop at original dimensions. Remove 290 border-connected pure-black exterior corner-padding pixels only; preserve all UI pixels before metadata-free WebP encoding (quality 96). No resize, sharpening, repainting or generated controls."
   },
   {
     "file": "app-crop-video.webp",
-    "origin": "Native app window capture",
-    "sourceSHA256": "99457a314e86344ac521eb75a3cb3637405c85866bfa7f23a6281ff56a973acc",
-    "sourceCommit": "f9496dd2c040a3a538bb4fea650355defcb7058d",
-    "sourceWorkflowRun": 40740281239,
-    "sourceArtifact": 12839116953,
+    "sha256": "72b1c5cf608ecbc00ca70b0fe67a82e461511d3d6171c1c408cd13728c79eb93",
+    "width": 2040,
+    "height": 1400,
     "sourceSize": [
-      1020,
-      670
+      2040,
+      1400
     ],
     "cropBox": [
       0,
       0,
-      1020,
-      670
+      2040,
+      1400
     ],
+    "origin": "Native app window capture",
     "capture": "Window capture without desktop or shadow",
-    "processing": "Window-only crop supplied by macOS capture; metadata removed; no UI content generated or repainted",
-    "sha256": "907260940370ef8683bde30182a847a3e99fdcb3824584a981c19f43747e9b35",
-    "width": 1020,
-    "height": 670
+    "captureMethod": "XCTest screenshot of running application",
+    "sourceCommit": "a45a19cf48310a8d5a3b87ad78d6b7253b3e6213",
+    "sourceWorkflowRun": 41252452759,
+    "sourceArtifact": 13061981222,
+    "sourceArtifactSHA256": "ab58b67460ee90521a53d43cdb9175469188da8305aaa763163b65c5b704a0b8",
+    "sourcePNG_SHA256": "634caac376f3ec603b129145c84b4ab3ebdd3ce20636f92a9d61a2fe4551a6e6",
+    "applicationBuildCommit": "eaa783c949a1814130a6618395269ba17c1baa6f",
+    "applicationSourceTree": "e806e18a0d3b0768f15e2e16aa6f21bc7d3584d5",
+    "applicationArchiveSHA256": "1c31268279a094d64dbf8edc1680112705ee1152ad6b2a9c98e782b29aae8523",
+    "appVersion": "0.1.20",
+    "appBuild": 23,
+    "bundledEngines": true,
+    "logicalWindowSize": [
+      1020,
+      700
+    ],
+    "nativeScale": [
+      2,
+      2
+    ],
+    "upscaled": false,
+    "retinaCapture": false,
+    "highDensityRendered": true,
+    "display": "Temporary macOS virtual HiDPI test display; not a physical Retina panel",
+    "maxDisplayWidth": 510,
+    "syntheticInput": true,
+    "processing": "Window-only crop at original dimensions. Remove 290 border-connected pure-black exterior corner-padding pixels only; preserve all UI pixels before metadata-free WebP encoding (quality 96). No resize, sharpening, repainting or generated controls."
   },
   {
     "file": "app-trim-audio.webp",
-    "origin": "Native app window capture",
-    "sourceSHA256": "bd9ebf83259ccbe94325f7cb06e46cb904f918854ceb3867166aaddcc8bdc688",
-    "sourceCommit": "f9496dd2c040a3a538bb4fea650355defcb7058d",
-    "sourceWorkflowRun": 40740281239,
-    "sourceArtifact": 12839116953,
+    "sha256": "1ee09d39df1c15128db232f1bb5a85f6ece76391d41147640530e7670eb8192d",
+    "width": 2040,
+    "height": 1400,
     "sourceSize": [
-      1020,
-      670
+      2040,
+      1400
     ],
     "cropBox": [
       0,
       0,
-      1020,
-      670
+      2040,
+      1400
     ],
-    "capture": "Window capture without desktop or shadow",
-    "processing": "Window-only crop supplied by macOS capture; metadata removed; no UI content generated or repainted",
-    "sha256": "eaa7b154c0e28b4394cf7194495adf5300f9387b265b66658a0b9b3a48cf7a88",
-    "width": 1020,
-    "height": 670
-  },
-  {
-    "file": "app-activity.webp",
     "origin": "Native app window capture",
-    "sourceSHA256": "0b1838962e639d48654762f92ab581f04f3b143f5f99032cb3c1f322fa5ec983",
-    "sourceCommit": "f9496dd2c040a3a538bb4fea650355defcb7058d",
-    "sourceWorkflowRun": 40740281239,
-    "sourceArtifact": 12839116953,
-    "sourceSize": [
-      1020,
-      670
-    ],
-    "cropBox": [
-      0,
-      0,
-      1020,
-      670
-    ],
     "capture": "Window capture without desktop or shadow",
-    "processing": "Window-only crop supplied by macOS capture; metadata removed; no UI content generated or repainted",
-    "sha256": "bd06c66d98f0591abb5aa43d7441e181fbf7f65b3f9893712deecd5a23028f47",
-    "width": 1020,
-    "height": 670
+    "captureMethod": "XCTest screenshot of running application",
+    "sourceCommit": "a45a19cf48310a8d5a3b87ad78d6b7253b3e6213",
+    "sourceWorkflowRun": 41252452759,
+    "sourceArtifact": 13061981222,
+    "sourceArtifactSHA256": "ab58b67460ee90521a53d43cdb9175469188da8305aaa763163b65c5b704a0b8",
+    "sourcePNG_SHA256": "f4a8593d7ffe9343c3800bcebe25180895fdffbf19bed5e985684f72678042c0",
+    "applicationBuildCommit": "eaa783c949a1814130a6618395269ba17c1baa6f",
+    "applicationSourceTree": "e806e18a0d3b0768f15e2e16aa6f21bc7d3584d5",
+    "applicationArchiveSHA256": "1c31268279a094d64dbf8edc1680112705ee1152ad6b2a9c98e782b29aae8523",
+    "appVersion": "0.1.20",
+    "appBuild": 23,
+    "bundledEngines": true,
+    "logicalWindowSize": [
+      1020,
+      700
+    ],
+    "nativeScale": [
+      2,
+      2
+    ],
+    "upscaled": false,
+    "retinaCapture": false,
+    "highDensityRendered": true,
+    "display": "Temporary macOS virtual HiDPI test display; not a physical Retina panel",
+    "maxDisplayWidth": 510,
+    "syntheticInput": true,
+    "processing": "Window-only crop at original dimensions. Remove 290 border-connected pure-black exterior corner-padding pixels only; preserve all UI pixels before metadata-free WebP encoding (quality 96). No resize, sharpening, repainting or generated controls."
   }
 ]

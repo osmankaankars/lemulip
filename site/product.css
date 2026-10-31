@@ -470,3 +470,6 @@ html {scroll-behavior:auto}
   to {opacity:1;transform:translateY(0)}
 }
 @keyframes catalog-arrive {from {opacity:0} to {opacity:1}}
+
+/* A single release detail, not another feature section. */
+.release-highlight { max-width:32ch; margin:18px 0 0; color:var(--muted); font-size:13px; line-height:1.6; }

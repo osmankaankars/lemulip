@@ -1,5 +1,21 @@
 # 0.1.20 Quality Roadmap Follow-Up
 
+## Current Status — 1 November 2026
+
+PR #33 is merged, including real wheel-selection sound routing. Its 29 real-app
+cases passed on Apple Silicon and Intel; old synthetic diagnostic failures below
+are historical, not current product failures. A new **seven-case full-app visual
+review and genuine 2x capture pass** is recorded in [VISUAL_REVIEW.md](VISUAL_REVIEW.md).
+
+Kaan will assess audible sound/system mute and VoiceOver narration during routine
+use and report problems. Those physical observations are not claimed complete and
+are not a release blocker by the owner's explicit instruction. Final publication
+uses the exact v0.1.20 tagged archive verification; older candidates are not relabelled.
+Website delivery is tracked in [ROADMAP.md](ROADMAP.md). The promotional film is last.
+
+## Historical Evidence
+
+
 Updated 31 October 2026. This supplements [the product roadmap](ROADMAP.md). The candidate is **not a published download**. Public downloads remain **0.1.19 / build 22**. The promotional film remains last.
 
 ## Source and Integration
