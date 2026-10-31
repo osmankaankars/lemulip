@@ -3,7 +3,7 @@ name: Product Visual Review
 on:
   push:
     branches: ['review/release-020-presentation']
-    paths: ['script/native_ui/ProductCaptureTests.swift', 'script/native_ui/CaptureDisplay.swift', 'script/native_ui/ProductFixtures.swift', '.github/workflows/product-capture.yml']
+    paths: ['script/native_ui/ProductCaptureTests.swift', 'script/native_ui/CaptureDisplay.swift', 'script/native_ui/ProductFixtures.swift', 'script/native_ui/HighDensityCaptureDisplay.m', '.github/workflows/product-capture.yml']
   workflow_dispatch:
 
 permissions:
@@ -34,6 +34,16 @@ jobs:
           if ! command -v ffmpeg >/dev/null; then HOMEBREW_NO_AUTO_UPDATE=1 brew install ffmpeg; fi
           ffmpeg -v error -loop 1 -i site/assets/morning-light.jpg -t 6 -vf 'scale=1280:960,crop=1280:720,format=yuv420p' -c:v libx264 "$RUNNER_TEMP/lemulip-product/Fixtures/Morning light.mov"
           ffmpeg -v error -f lavfi -i 'aevalsrc=0.2*sin(2*PI*220*t)*(0.6+0.4*sin(2*PI*0.6*t)):s=44100:d=12' "$RUNNER_TEMP/lemulip-product/Fixtures/Quiet afternoon.wav"
+      - name: Attempt a Temporary Native High-Density Test Display
+        run: |
+          xcrun clang -fobjc-arc -framework Foundation -framework CoreGraphics script/native_ui/HighDensityCaptureDisplay.m -o "$RUNNER_TEMP/capture-display"
+          "$RUNNER_TEMP/capture-display" "$RUNNER_TEMP/lemulip-product" > "$RUNNER_TEMP/lemulip-product/virtual-display.log" 2>&1 &
+          echo $! > "$RUNNER_TEMP/lemulip-product/virtual-display.pid"
+          for step in $(seq 1 30); do
+            test -f "$RUNNER_TEMP/lemulip-product/virtual-display.json" && break
+            sleep 0.5
+          done
+          cat "$RUNNER_TEMP/lemulip-product/virtual-display.json"
       - name: Choose an Offered Display Mode and Record Real Density
         run: xcrun swift script/native_ui/CaptureDisplay.swift prepare "$RUNNER_TEMP/lemulip-product"
       - name: Review Working Screens and Capture Actual Windows
@@ -56,6 +66,7 @@ jobs:
           if test -f "$RUNNER_TEMP/lemulip-product/display.json"; then
             xcrun swift script/native_ui/CaptureDisplay.swift restore "$RUNNER_TEMP/lemulip-product"
           fi
+          touch "$RUNNER_TEMP/lemulip-product/virtual-display.stop"
           git rev-parse HEAD > "$RUNNER_TEMP/lemulip-product/source-commit.txt"
           git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/lemulip-product/source-tree.txt"
           git rev-parse 'HEAD:Sources' > "$RUNNER_TEMP/lemulip-product/application-source-tree.txt"
@@ -67,6 +78,8 @@ jobs:
           path: |
             ${{ runner.temp }}/lemulip-product/Attachments
             ${{ runner.temp }}/lemulip-product/display.json
+            ${{ runner.temp }}/lemulip-product/virtual-display.json
+            ${{ runner.temp }}/lemulip-product/virtual-display.log
             ${{ runner.temp }}/lemulip-product/provenance.json
             ${{ runner.temp }}/lemulip-product/xcodebuild.log
             ${{ runner.temp }}/lemulip-product/source-commit.txt
