@@ -18,7 +18,7 @@ PR #34 after the public release assets were verified. See
 | W1/W2/W4: Product page | Compact manual gallery, closed searchable catalog, keyboard navigation, bounded motion and themes retained. The three download buttons point to verified 0.1.20. |
 | W3: Fresh captures | Four real 2040 x 1400 captures of 1020 x 700 native windows. Temporary macOS HiDPI display, no enlarged 1x images or repainted controls; not a physical Retina-panel claim. |
 | M1: Release presentation | Current Workspace/PDF Pages/Crop Video/Trim Audio images, task-led copy and refreshed 1200 x 630 sharing card. See delivery evidence for actual deployed browser checks. |
-| Sound / VoiceOver listening | Owner follow-up during normal use, not an outstanding release blocker. Acoustic/system-mute behavior and audible narration are not reported as verified by automation. |
+| Daily-use feedback, including sound / VoiceOver follow-up | Completed by owner acceptance on 1 November 2026: Kaan reported no issues and explicitly requested closing this stage. This is user acceptance, not an automated acoustic or VoiceOver narration certification. |
 | V1: Promotional film | Not started. Discuss together after this delivered release; no storyboard or film is implied by these screenshots. |
 
 ## Product Direction and Guardrails
