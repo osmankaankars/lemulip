@@ -1,0 +1,51 @@
+name: Film Music Research Only
+on:
+  push:
+    branches: ['media/film-motion-20261101']
+    paths: ['.github/workflows/film-music-research.yml']
+permissions:
+  contents: read
+jobs:
+  collect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Fetch public music and licensing evidence
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, urllib.request
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'film-music';root.mkdir()
+          sources={
+            'Funkorama.mp3':'https://incompetech.com/music/royalty-free/mp3-royaltyfree/Funkorama.mp3',
+            'incompetech-licenses.html':'https://incompetech.com/music/royalty-free/licenses/',
+            'mixkit-funk.html':'https://mixkit.co/free-stock-music/funk/',
+            'mixkit-music-license.html':'https://mixkit.co/license/modal/musicFree/',
+            'mixkit-terms.html':'https://mixkit.co/terms/'
+          }
+          receipts=[]
+          for name,url in sources.items():
+            try:
+              request=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 (public licensed music research)'})
+              with urllib.request.urlopen(request,timeout=40) as response:
+                data=response.read(25*1024*1024+1)
+                if len(data)>25*1024*1024:raise ValueError('Public asset exceeds bounded size')
+                final_url=response.url
+              if not data:raise ValueError('Empty download')
+              (root/name).write_bytes(data)
+              receipts.append({'file':name,'url':url,'finalURL':final_url,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest()})
+            except Exception as exc:
+              receipts.append({'file':name,'url':url,'error':str(exc)})
+          (root/'sources.json').write_text(json.dumps(receipts,indent=2)+'\n')
+          (root/'SCOPE.txt').write_text('Film production research only. No application build, release, website change, PR or main update. Public music is not claimed to be composed by Lemulip. The selected license and attribution must accompany any final film.\n')
+          print(json.dumps(receipts,indent=2))
+          if not (root/'Funkorama.mp3').is_file():raise SystemExit('Music download failed; retain diagnostics, do not claim success.')
+          PY
+      - name: Retain bounded research assets
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Film-Licensed-Music
+          path: ${{ runner.temp }}/film-music
+          retention-days: 7
+          if-no-files-found: error
