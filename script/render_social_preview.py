@@ -85,8 +85,8 @@ def render(destination):
             })''')
             if geometry['document'] != [1200, 630]:
                 raise RuntimeError('Share layout exceeds its 1200 by 630 canvas')
-            if geometry['workspace'] != {'source': [1020, 683], 'displayed': [510, 341.5]}:
-                raise RuntimeError('The approved native screenshot must keep its aspect and half-size presentation')
+            if geometry['workspace'] != {'source': [2040, 1400], 'displayed': [510, 350]}:
+                raise RuntimeError('The approved native screenshot must keep its aspect and four-source-pixels-per-CSS-pixel presentation')
             for box in geometry['boxes']:
                 if min(box['x'], box['y']) < 0 or box['right'] > 1200 or box['bottom'] > 630:
                     raise RuntimeError('Share-card content extends beyond the canvas')
@@ -102,16 +102,16 @@ def render(destination):
             manifest = {
                 'file': image.name, 'width': 1200, 'height': 630,
                 'sha256': digest(image), 'alt': ALT,
-                'kind': 'Marketing composition using an existing native app capture',
+                'kind': 'Marketing composition using an fresh native app capture',
                 'renderSourceCommit': subprocess.check_output(
                     ['git', 'rev-parse', 'HEAD'], cwd=ROOT, text=True).strip(),
                 'renderer': {'name': 'Chromium', 'version': browser.version,
                              'deviceScaleFactor': 1, 'canvas': [1200, 630]},
                 'sources': [{'file': name, 'sha256': value} for name, value in before.items()],
                 'nativeCaptureRecord': 'site/assets/screenshots.json',
-                'processing': 'Original native screenshot placed at 510 by 341.5 pixels; '
+                'processing': 'Original native screenshot placed at 510 by 350 pixels; '
                               'no generated, repainted, sharpened or enlarged product controls. '
-                              'This is not a fresh Retina capture of the pending release.',
+                              'The source is a genuine 2x native render of 0.1.20 on a virtual HiDPI Mac display, not a physical Retina panel; no screenshot enlargement.',
             }
             (destination / 'social-preview.json').write_text(json.dumps(manifest, indent=2) + '\n')
             (destination / 'layout-review.json').write_text(json.dumps(geometry, indent=2) + '\n')

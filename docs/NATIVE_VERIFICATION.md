@@ -1,5 +1,21 @@
 # Native Verification Gate
 
+## Current Status — 1 November 2026
+
+PR #33 is merged, including real wheel-selection sound routing. Its 29 real-app
+cases passed on Apple Silicon and Intel; old synthetic diagnostic failures below
+are historical, not current product failures. A new **seven-case full-app visual
+review and genuine 2x capture pass** is recorded in [VISUAL_REVIEW.md](VISUAL_REVIEW.md).
+
+Kaan will assess audible sound/system mute and VoiceOver narration during routine
+use and report problems. Those physical observations are not claimed complete and
+are not a release blocker by the owner's explicit instruction. Final publication
+uses the exact v0.1.20 tagged archive verification; older candidates are not relabelled.
+Website delivery is tracked in [ROADMAP.md](ROADMAP.md). The promotional film is last.
+
+## Historical Evidence
+
+
 The production-app acceptance suite runs a separately identified copy of Lemulip with its normal macOS event loop. External XCTest input drives the real controls. It is not a website simulation or a direct call to the editor's reorder method. Nothing is installed over a user's application.
 
 ## Coverage

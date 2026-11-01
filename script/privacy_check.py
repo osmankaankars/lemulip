@@ -56,14 +56,15 @@ ALLOWED_EMAILS = {
 # retains its provenance; no image may carry private metadata.
 # Update a digest only after reviewing the new image and its metadata.
 PUBLIC_IMAGES = {
-    "site/assets/social-preview.png": "afa315675e7c98e711f4d9beb9fd1b72ea093f573cdf4ee264a72af22b5a22c5",
+    "site/assets/social-preview.png": "df4fbfa5b299965f066d6edd5ec93d9caf53285ed776feb40898e87af878cc41",
     "site/assets/morning-light.jpg": "e79abf44c036845255ecfd5e62ec378ec142b5b731fcc900759a7c8931ec5652",
     "Resources/AppIcon.png": "f68b17dc79d0e13246fc425218031a3bc35db2d1e27d845ee657f17f423d8a45",
-    "site/assets/app-workspace.webp": "573edfebb566202c51d0fe448ee3805e8e7d48a589a7b28677917ce5cb3e1393",
-    "site/assets/app-crop-video.webp": "907260940370ef8683bde30182a847a3e99fdcb3824584a981c19f43747e9b35",
-    "site/assets/app-trim-audio.webp": "eaa7b154c0e28b4394cf7194495adf5300f9387b265b66658a0b9b3a48cf7a88",
+    "site/assets/app-workspace.webp": "90bbd2691c4e37cd2be4cbc6fd919a8cba3aa5956ba3c076644837060bd044a5",
+    "site/assets/app-crop-video.webp": "72b1c5cf608ecbc00ca70b0fe67a82e461511d3d6171c1c408cd13728c79eb93",
+    "site/assets/app-trim-audio.webp": "1ee09d39df1c15128db232f1bb5a85f6ece76391d41147640530e7670eb8192d",
     "site/assets/app-activity.webp": "bd06c66d98f0591abb5aa43d7441e181fbf7f65b3f9893712deecd5a23028f47",
     "site/assets/finder-conversion.webp": "5dbdf9202eb3c1f9d0fea0e9ca0025df30a6193afcc8d85c13d6f0d1c4cafca3",
+    "site/assets/app-pdf-organize.webp": "10755253f2d99c09f2ed9ccdf495e50e4e73137f2bea865ed3d52d818598f631"
 }
 # A single visually reviewed, silent native recording. Any byte change requires
 # a new review; this is an exact allowlist, not a general video upload exemption.

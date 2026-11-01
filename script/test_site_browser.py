@@ -90,7 +90,7 @@ def check_presentation(page,output,width,height):
 
 
 
-GALLERY_SCREENS = ("workspace", "crop-video", "trim-audio", "activity")
+GALLERY_SCREENS = ("workspace", "pdf-organize", "crop-video", "trim-audio")
 
 
 def check_native_gallery(page, output: Path, width: int, height: int) -> None:
@@ -134,9 +134,9 @@ def check_native_gallery(page, output: Path, width: int, height: int) -> None:
         assert panel.locator("a").evaluate("e=>e===document.activeElement"), screen
         page.keyboard.press("Shift+Tab")
         assert tab.evaluate("e=>e===document.activeElement")
-    page.locator("#tab-activity").focus()
-    for key, screen in (("ArrowRight", "workspace"), ("ArrowLeft", "activity"),
-                        ("Home", "workspace"), ("End", "activity")):
+    page.locator("#tab-trim-audio").focus()
+    for key, screen in (("ArrowRight", "workspace"), ("ArrowLeft", "trim-audio"),
+                        ("Home", "workspace"), ("End", "trim-audio")):
         page.keyboard.press(key)
         assert page.locator("#screen-" + screen).is_visible()
         assert page.locator("#tab-" + screen).evaluate("e=>e===document.activeElement")
@@ -246,7 +246,7 @@ def check_catalog_search(page):
     assert search.input_value()==''
     assert page.locator('.format-row').count()==9
     assert page.locator('#sample-grid [data-sample]').count()==9
-    assert page.locator('a[href$="Lemulip-0.1.19-macOS-universal.dmg"]').count()==3
+    assert page.locator('a[href$="Lemulip-0.1.20-macOS-universal.dmg"]').count()==3
     summary.click()
     summary.press('Space')
     assert details.evaluate('e=>e.open')
@@ -317,7 +317,7 @@ def check_entry_and_sharing(page, canonical):
 
 
 def exercise(page,output,width,height):
-    assert page.locator('html').get_attribute('data-site-version')=='20261029.5'
+    assert page.locator('html').get_attribute('data-site-version')=='20261101.1'
     assert 'Lemulip' in page.title()
     assert page.locator('#format-count').inner_text()=='35'
     assert page.locator('#tool-count').inner_text()=='26'
