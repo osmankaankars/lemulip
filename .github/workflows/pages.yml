@@ -3,9 +3,9 @@ name: Website and Interactive Demo
 on:
   push:
     branches: [main]
-    paths: ['site/**', 'Resources/AppIcon.png', '.github/workflows/pages.yml', 'script/prepare_site.py', 'script/test_prepare_site.py', 'script/privacy_check.py']
+    paths: ['site/**', 'Resources/AppIcon.png', '.github/workflows/pages.yml', 'script/prepare_site.py', 'script/test_prepare_site.py', 'script/test_release_presentation.py', 'script/import_product_captures.py', 'script/privacy_check.py']
   pull_request:
-    paths: ['site/**', 'Resources/AppIcon.png', '.github/workflows/pages.yml', 'script/prepare_site.py', 'script/test_prepare_site.py', 'script/privacy_check.py']
+    paths: ['site/**', 'Resources/AppIcon.png', '.github/workflows/pages.yml', 'script/prepare_site.py', 'script/test_prepare_site.py', 'script/test_release_presentation.py', 'script/import_product_captures.py', 'script/privacy_check.py']
   workflow_dispatch:
 
 permissions:
@@ -31,6 +31,7 @@ jobs:
         run: |
           python3 script/privacy_check.py --staged
           python3 script/test_prepare_site.py
+          python3 script/test_release_presentation.py
           test -s site/index.html
           test -z "$(find site -type l -print -quit)"
       - name: Read Pages Configuration

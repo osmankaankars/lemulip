@@ -2,9 +2,9 @@ name: Website Browser Checks
 on:
   push:
     branches: [main, 'refresh/**', 'fix/**']
-    paths: ['site/**', 'script/test_site*', 'script/prepare_site.py', 'script/test_prepare_site.py', 'script/privacy_check.py', 'script/test_public_images.py', 'Resources/AppIcon.png', 'Resources/Info.plist', 'docs/INSTALL.md', 'docs/RELEASE_NOTES.md', '.github/workflows/pages.yml', '.github/workflows/site-review.yml']
+    paths: ['site/**', 'script/test_site*', 'script/prepare_site.py', 'script/test_prepare_site.py', 'script/test_release_presentation.py', 'script/import_product_captures.py', 'script/privacy_check.py', 'script/test_public_images.py', 'Resources/AppIcon.png', 'Resources/Info.plist', 'docs/INSTALL.md', 'docs/RELEASE_NOTES.md', '.github/workflows/pages.yml', '.github/workflows/site-review.yml']
   pull_request:
-    paths: ['site/**', 'script/test_site*', 'script/prepare_site.py', 'script/test_prepare_site.py', 'script/privacy_check.py', 'script/test_public_images.py', 'Resources/AppIcon.png', 'Resources/Info.plist', 'docs/INSTALL.md', 'docs/RELEASE_NOTES.md', '.github/workflows/pages.yml', '.github/workflows/site-review.yml']
+    paths: ['site/**', 'script/test_site*', 'script/prepare_site.py', 'script/test_prepare_site.py', 'script/test_release_presentation.py', 'script/import_product_captures.py', 'script/privacy_check.py', 'script/test_public_images.py', 'Resources/AppIcon.png', 'Resources/Info.plist', 'docs/INSTALL.md', 'docs/RELEASE_NOTES.md', '.github/workflows/pages.yml', '.github/workflows/site-review.yml']
   workflow_dispatch:
   workflow_run:
     workflows: [Website and Interactive Demo]
@@ -28,6 +28,7 @@ jobs:
         run: |
           python3 script/test_site.py
           python3 script/test_prepare_site.py
+          python3 script/test_release_presentation.py
           python3 script/test_branding.py
           python3 script/test_public_images.py
           python3 script/privacy_check.py --staged

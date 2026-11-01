@@ -1,4 +1,4 @@
-/* 1020px native captures stay at or below 510 CSS px for two source pixels per CSS pixel. */
+/* Actual 2040px native captures retain the compact 510 CSS px presentation. */
 .app-gallery { padding-top:56px; padding-bottom:56px; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,510px); gap:48px; align-items:center; }
 .gallery-intro { max-width:410px; }
 .app-gallery h2 { margin:0 0 18px; font-size:clamp(30px,3.5vw,44px); line-height:1.1; letter-spacing:-.03em; }
