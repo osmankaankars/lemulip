@@ -13,8 +13,17 @@ or start the promotional film.
 | 4: Fresh product images | Four genuine native 2x captures, not enlarged 1x bitmaps. Workspace, PDF Pages, Crop Video and Trim Audio. |
 | 5: Website and story | PR #34 merged; public 0.1.20 links, task-led gallery copy and refreshed sharing card passed deployed Chromium/WebKit checks. |
 | Tracking | Current roadmap and delivery state separated from the complete unchanged historical roadmap; detailed native/marketing notes retained. |
-| 2: Listening | Kaan will assess sound/system mute and VoiceOver narration during use and report issues. No automated acoustic approval is claimed. |
+| 2: Daily-use feedback | Completed by owner acceptance on 1 November 2026. Kaan reported no issues and explicitly requested closing this stage, including the previously delegated sound/system-mute and VoiceOver follow-up. No automated acoustic or narration certification is claimed. |
 | 6: Film | Not started; reserved for a later joint discussion. |
+
+## Owner Acceptance
+
+On **1 November 2026**, Kaan confirmed that there were no issues and asked for the
+"Daily-use feedback" stage to be considered complete. This closes the owner
+follow-up; it is not a new automated test run or a claim about individual device,
+mute or narration scenarios. Earlier handoff notes describe the state before this
+acceptance. The promotional film remains the only deferred item in the approved
+delivery scope. Future issue reports and candidate features are separate work.
 
 ## Exact Published Package
 
