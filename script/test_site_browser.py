@@ -210,10 +210,30 @@ def check_retained_mode_replay(page) -> None:
         page.locator('[data-mode="'+mode+'"]').click()
         page.locator('#wheel-svg').get_by_role('button', name=operation, exact=True).click()
         assert page.locator('#demo-hint').inner_text() == 'Sample result'
-        page.locator('#tour-toggle').click()
-        page.wait_for_function('document.querySelector("#desktop-demo").dataset.step==="1"')
-        assert page.locator('#demo-instruction').inner_text() == 'Tap '+key+' for '+mode+'.'
-        assert page.locator('#demo-hint').inner_text() == 'Tap '+key
+        # Step one lasts 1.7 seconds. Observe it before the input command so a
+        # slow driver round trip cannot miss a correctly displayed instruction.
+        page.evaluate('''() => {
+            window.__replayStepOne = null;
+            const observer = new MutationObserver(() => {
+                if (document.getElementById('desktop-demo').dataset.step !== '1') return;
+                window.__replayStepOne = {
+                    instruction: document.getElementById('demo-instruction').textContent,
+                    hint: document.getElementById('demo-hint').textContent
+                };
+                observer.disconnect();
+            });
+            observer.observe(document.getElementById('desktop-demo'), {
+                attributes: true, attributeFilter: ['data-step']
+            });
+            window.__replayObserver = observer;
+        }''')
+        try:
+            page.locator('#tour-toggle').click()
+            displayed = page.wait_for_function('window.__replayStepOne').json_value()
+        finally:
+            page.evaluate('window.__replayObserver.disconnect()')
+        assert displayed['instruction'] == 'Tap '+key+' for '+mode+'.', (mode, displayed)
+        assert displayed['hint'] == 'Tap '+key, (mode, displayed)
         page.wait_for_function('document.querySelector("#desktop-demo").dataset.step==="3"')
         assert page.locator('[data-mode="'+mode+'"]').get_attribute('aria-pressed') == 'true'
         assert page.locator('#output-name').inner_text() == operation
