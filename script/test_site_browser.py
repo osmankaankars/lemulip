@@ -198,6 +198,23 @@ def check_wheel_keyboard_feedback(page) -> None:
     assert page.locator('#sample-file').evaluate('e=>e===document.activeElement')
 
 
+REPLAY_STAGE_FRAMED = '''() => {
+    const r = document.getElementById('desktop-demo').getBoundingClientRect();
+    return Math.min(innerHeight, r.bottom) - Math.max(0, r.top) >= Math.min(r.height, innerHeight) / 2;
+}'''
+
+
+def click_visible_play(page) -> None:
+    """Use the real pointer without allowing locator.click() to scroll the page."""
+    point = page.locator('#tour-toggle').evaluate('''button => {
+        const r = button.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+        return {x, y, clickable: r.top >= 0 && r.bottom <= innerHeight && r.left >= 0 &&
+            r.right <= innerWidth && button.contains(document.elementFromPoint(x, y))};
+    }''')
+    assert point['clickable'], point
+    page.mouse.click(point['x'], point['y'])
+
+
 def check_retained_mode_replay(page) -> None:
     """A replay keeps its operation and explains the corresponding shortcut."""
     for family, hint in (('images', 'Sample copy'), ('archives', 'Sample extracted folder')):
@@ -213,6 +230,15 @@ def check_retained_mode_replay(page) -> None:
         # Step one lasts 1.7 seconds. Observe it before the input command so a
         # slow driver round trip cannot miss a correctly displayed instruction.
         page.evaluate('''() => {
+            const desktop = document.getElementById('desktop-demo'), play = document.getElementById('tour-toggle');
+            const frame = () => { const r = desktop.getBoundingClientRect(); return {y: scrollY, top: r.top, bottom: r.bottom}; };
+            const frames = window.__replayFrames = {manualResult: frame()};
+            document.getElementById('try').scrollIntoView({block: 'center', inline: 'nearest', behavior: 'instant'});
+            window.__replayClickCapture = () => {
+                frames.click = frame();
+                requestAnimationFrame(() => { frames.nextFrame = frame(); });
+            };
+            play.addEventListener('click', window.__replayClickCapture, {capture: true, once: true});
             window.__replayStepOne = null;
             const observer = new MutationObserver(() => {
                 if (document.getElementById('desktop-demo').dataset.step !== '1') return;
@@ -229,7 +255,8 @@ def check_retained_mode_replay(page) -> None:
         }''')
         failed = False
         try:
-            page.locator('#tour-toggle').click()
+            assert page.evaluate(REPLAY_STAGE_FRAMED), 'The shortcut-label fixture requires the stage in view'
+            click_visible_play(page)
             displayed = page.wait_for_function('window.__replayStepOne').json_value()
             assert displayed['instruction'] == 'Tap '+key+' for '+mode+'.', (mode, displayed)
             assert displayed['hint'] == 'Tap '+key, (mode, displayed)
@@ -247,7 +274,7 @@ def check_retained_mode_replay(page) -> None:
                     return {
                         mode: document.querySelector('[data-mode][aria-pressed="true"]')?.dataset.mode,
                         step: desktop?.dataset.step, autoplay: desktop?.dataset.autoplay,
-                        hidden: document.hidden, scrollY,
+                        hidden: document.hidden, scrollY, frames: window.__replayFrames,
                         activeElement: active && {tag: active.tagName, id: active.id,
                             label: active.getAttribute('aria-label')},
                         rect: desktop?.getBoundingClientRect().toJSON()
@@ -259,7 +286,10 @@ def check_retained_mode_replay(page) -> None:
             raise
         finally:
             try:
-                page.evaluate('window.__replayObserver?.disconnect()')
+                page.evaluate('''() => {
+                    window.__replayObserver?.disconnect();
+                    document.getElementById('tour-toggle').removeEventListener('click', window.__replayClickCapture, true);
+                }''')
             except Exception:
                 if not failed:
                     raise
@@ -352,23 +382,22 @@ def check_replay_frames_selected_example(page) -> None:
         return {top, bottom};
     }''')
     assert edge['top'] < 0 and 17 <= edge['bottom'] <= 19, edge
-    for clipped in (True, False):
+    for case in ('clipped', 'already-framed', 'default-scroll-at-click'):
+        if case == 'default-scroll-at-click':
+            desktop.evaluate('''e => {
+                window.scrollTo({top: 0, behavior: 'instant'});
+                const edge = scrollY + e.getBoundingClientRect().bottom - 18;
+                // Exercise a default scroll initiated before the Play handler.
+                // Nothing scrolls the page from the test after activation.
+                document.getElementById('tour-toggle').addEventListener('click',
+                    () => window.scrollTo({top: edge}), {capture: true, once: true});
+            }''')
+        if case != 'clipped':
+            assert page.evaluate(REPLAY_STAGE_FRAMED), case
         start_y = page.evaluate('scrollY')
-        # Use the real pointer, without locator.click() scrolling the fixture.
-        point = play.evaluate('''button => {
-            const r = button.getBoundingClientRect();
-            const x = r.left + r.width / 2, y = r.top + r.height / 2;
-            return {x, y, clickable: r.top >= 0 && r.bottom <= innerHeight &&
-                r.left >= 0 && r.right <= innerWidth && button.contains(document.elementFromPoint(x, y))};
-        }''')
-        assert point['clickable'], point
-        page.mouse.click(point['x'], point['y'])
-        page.wait_for_function('''() => {
-            const desktop = document.getElementById('desktop-demo');
-            const r = desktop.getBoundingClientRect();
-            const visible = Math.min(innerHeight, r.bottom) - Math.max(0, r.top);
-            return desktop.dataset.autoplay === 'true' && visible >= Math.min(r.height, innerHeight) / 2;
-        }''', timeout=5000)
+        click_visible_play(page)
+        page.wait_for_function('() => document.getElementById("desktop-demo").dataset.autoplay === "true" && ('
+                               + REPLAY_STAGE_FRAMED + ')()', timeout=5000)
         page.wait_for_function('''() => {
             const desktop = document.getElementById('desktop-demo');
             return desktop.dataset.step === '3' && desktop.dataset.autoplay === 'false';
@@ -377,7 +406,8 @@ def check_replay_frames_selected_example(page) -> None:
         assert page.locator('#output-name').inner_text() == 'Move To…'
         assert page.locator('#sample-file').get_attribute('data-sample') == sample
         assert play.get_attribute('aria-pressed') == 'false'
-        if not clipped:
+        assert page.evaluate(REPLAY_STAGE_FRAMED), ('The completed result should remain in view', case)
+        if case == 'already-framed':
             assert abs(page.evaluate('scrollY') - start_y) <= 1, 'An already framed replay must leave the page in place'
 
 

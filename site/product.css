@@ -3,7 +3,8 @@
 [data-theme=pistachio] {color-scheme:light;--bg:#fff9eb;--panel:#fffef6;--raised:#edf1dc;--text:#173c2a;--muted:#526448;--line:#d2dec5;--link:#27591f}
 [data-theme=lemonade] {color-scheme:light;--bg:#fffaed;--panel:#fffef7;--raised:#fff0c0;--text:#3c3318;--muted:#6e6040;--line:#e7d9b5;--accent:#ffdb23;--ink:#3c3318;--link:#76551c}
 * {box-sizing:border-box}
-html {scroll-behavior:smooth;scroll-padding-top:30px}
+/* Native focus scrolling must settle before Play measures the demo. */
+html {scroll-padding-top:30px}
 body {margin:0;background:var(--bg);color:var(--text);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 h1, h2, h3, p {margin:0}
 h1, h2, h3 {line-height:1.08;letter-spacing:-.045em}
