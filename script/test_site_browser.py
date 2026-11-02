@@ -79,7 +79,8 @@ def check_presentation(page,output,width,height):
     for paragraph in page.locator('.format-engine .engine-note p').all():
         assert paragraph.evaluate('e=>getComputedStyle(e).display')=='block'
     assert page.locator('.format-engine .engine-note').count()>=14
-    colors=page.locator('.shortcut-list > div').evaluate_all('es=>es.map(e=>getComputedStyle(e).backgroundColor)')
+    colors=page.locator('.shortcut-list kbd').evaluate_all('es=>es.map(e=>getComputedStyle(e).backgroundColor)')
+    assert len(colors)==3
     assert len(set(colors))==3
     if width in (1440,390):
         page.locator('#formats').screenshot(path=str(output/f'formats-{width}.png'))
@@ -197,6 +198,49 @@ def check_wheel_keyboard_feedback(page) -> None:
     assert page.locator('#sample-file').evaluate('e=>e===document.activeElement')
 
 
+def check_retained_mode_replay(page) -> None:
+    """A replay keeps its operation and explains the corresponding shortcut."""
+    for family, hint in (('images', 'Sample copy'), ('archives', 'Sample extracted folder')):
+        page.locator('[data-sample="'+family+'"]').click()
+        page.locator('[data-mode="convert"]').click()
+        page.locator('.wheel-choice').first.click()
+        assert page.locator('#demo-hint').inner_text() == hint
+    page.locator('[data-sample="images"]').click()
+    for mode, key, operation in (('tools', 'Command', 'Crop'), ('actions', 'Control', 'Move To…')):
+        page.locator('[data-mode="'+mode+'"]').click()
+        page.locator('#wheel-svg').get_by_role('button', name=operation, exact=True).click()
+        assert page.locator('#demo-hint').inner_text() == 'Sample result'
+        # Step one lasts 1.7 seconds. Observe it before the input command so a
+        # slow driver round trip cannot miss a correctly displayed instruction.
+        page.evaluate('''() => {
+            window.__replayStepOne = null;
+            const observer = new MutationObserver(() => {
+                if (document.getElementById('desktop-demo').dataset.step !== '1') return;
+                window.__replayStepOne = {
+                    instruction: document.getElementById('demo-instruction').textContent,
+                    hint: document.getElementById('demo-hint').textContent
+                };
+                observer.disconnect();
+            });
+            observer.observe(document.getElementById('desktop-demo'), {
+                attributes: true, attributeFilter: ['data-step']
+            });
+            window.__replayObserver = observer;
+        }''')
+        try:
+            page.locator('#tour-toggle').click()
+            displayed = page.wait_for_function('window.__replayStepOne').json_value()
+        finally:
+            page.evaluate('window.__replayObserver.disconnect()')
+        assert displayed['instruction'] == 'Tap '+key+' for '+mode+'.', (mode, displayed)
+        assert displayed['hint'] == 'Tap '+key, (mode, displayed)
+        page.wait_for_function('document.querySelector("#desktop-demo").dataset.step==="3"')
+        assert page.locator('[data-mode="'+mode+'"]').get_attribute('aria-pressed') == 'true'
+        assert page.locator('#output-name').inner_text() == operation
+        assert page.locator('#demo-hint').inner_text() == 'Sample result'
+        assert page.locator('#tour-toggle').get_attribute('aria-pressed') == 'false'
+
+
 def check_gallery_without_javascript(page) -> None:
     assert page.locator("#screen-workspace").is_visible()
     assert page.locator("#gallery-tabs").is_hidden()
@@ -230,7 +274,7 @@ def check_catalog_search(page):
     assert page.locator('#format-search-status').inner_text()=='2 file families · 2 matching tools'
     summary.click()
     assert search.is_hidden()
-    page.locator('.count-note a[href="#formats"]').click()
+    page.locator('.header a[href="#formats"]').click()
     assert search.is_visible() and search.input_value()=='crop'
     search.fill('EXCEL')
     assert 'Spreadsheets' in page.locator('#format-directory').inner_text()
@@ -259,11 +303,16 @@ def check_native_recording(page,output,width):
     assert not player.is_visible()
     assert not player.get_attribute('autoplay')
     assert player.get_attribute('preload')=='none'
+    assert page.locator('#watch-native').inner_text()=='Watch Mac recording'
     before=page.locator('#features').evaluate('e=>e.getBoundingClientRect().top+scrollY')
     page.locator('#watch-native').click()
     assert player.is_visible()
     assert page.locator('#desktop-demo').evaluate('e=>e.inert')
     assert page.locator('#tour-toggle').get_attribute('aria-pressed')=='false'
+    assert page.locator('#watch-native').inner_text()=='Back to the wheel'
+    assert page.locator('#demo-source').inner_text()=='Actual Mac recording. A JPG copy appears beside the original.'
+    assert page.locator('#demo-instruction').is_hidden()
+    assert page.locator('#demo-instruction').get_attribute('aria-hidden')=='true'
     page.wait_for_function('document.getElementById("native-video").currentTime > 0.1')
     assert player.evaluate('v=>v.videoWidth > 0 && v.videoHeight > 0')
     assert abs(page.locator('#features').evaluate('e=>e.getBoundingClientRect().top+scrollY')-before)<1
@@ -274,6 +323,10 @@ def check_native_recording(page,output,width):
     assert not player.is_visible()
     assert page.locator('#sample-grid [data-sample]:visible').count()==9
     assert not page.locator('#desktop-demo').evaluate('e=>e.inert')
+    assert page.locator('#watch-native').inner_text()=='Watch Mac recording'
+    assert page.locator('#demo-source').inner_text()=='Interactive example. Nothing is uploaded.'
+    assert page.locator('#demo-instruction').is_visible()
+    assert page.locator('#demo-instruction').get_attribute('aria-hidden')=='false'
     page.locator('#watch-native').focus();page.keyboard.press('Enter')
     assert player.is_visible()
     player.focus();page.keyboard.press('Escape')
@@ -317,7 +370,7 @@ def check_entry_and_sharing(page, canonical):
 
 
 def exercise(page,output,width,height):
-    assert page.locator('html').get_attribute('data-site-version')=='20261101.1'
+    assert page.locator('html').get_attribute('data-site-version')=='20261102.1'
     assert 'Lemulip' in page.title()
     assert page.locator('#format-count').inner_text()=='35'
     assert page.locator('#tool-count').inner_text()=='26'
@@ -418,13 +471,50 @@ def run(output:Path,engine:str,url:str|None,executable:str|None=None):
                     page.close()
                 page=browser.new_page(viewport={'width':1440,'height':1000})
                 page.goto(url,wait_until='networkidle')
-                page.wait_for_function('document.querySelector("#desktop-demo").dataset.step!=="0"')
-                page.locator('#tour-toggle').click();before=page.locator('#desktop-demo').get_attribute('data-step');page.wait_for_timeout(2400)
+                tour=page.locator('#tour-toggle');desktop=page.locator('#desktop-demo')
+                assert desktop.get_attribute('data-step')=='0'
+                assert tour.get_attribute('aria-pressed')=='false'
+                assert tour.get_attribute('aria-label')=='Play example'
+                initial_sample=page.locator('#sample-file').get_attribute('data-sample')
+                page.wait_for_timeout(2400)
+                assert desktop.get_attribute('data-step')=='0','The example must remain idle before Play'
+                assert page.locator('#sample-file').get_attribute('data-sample')==initial_sample
+                # Play demonstrates the selected file, not an automatic carousel of samples.
+                page.locator('[data-sample="documents"]').click()
+                page.locator('#origin-desktop').click()
+                tour.click()
+                assert tour.get_attribute('aria-pressed')=='true'
+                assert tour.get_attribute('aria-label')=='Pause example'
+                page.wait_for_function('document.querySelector("#desktop-demo").dataset.step==="1"')
+                tour.click();before=desktop.get_attribute('data-step');page.wait_for_timeout(2400)
+                assert tour.get_attribute('aria-pressed')=='false'
+                assert tour.get_attribute('aria-label')=='Play example'
                 assert page.locator('#desktop-demo').get_attribute('data-step')==before
                 page.locator('#tab-trim-audio').click();page.wait_for_timeout(2600)
                 assert page.locator('#screen-trim-audio').is_visible(),'The gallery must never autoplay'
                 page.locator('#next-step').click();assert page.locator('#desktop-demo').get_attribute('data-step')!=before
+                assert tour.get_attribute('aria-pressed')=='false','Manual Next must not start a tour'
+                tour.click()
+                page.wait_for_function('document.querySelector("#desktop-demo").dataset.step==="3"')
+                assert tour.get_attribute('aria-pressed')=='false','The example stops at its result'
+                assert page.locator('#sample-file').get_attribute('data-sample')=='documents'
+                assert page.locator('#output-name').inner_text()=='weekend-notes.pdf'
+                assert page.locator('#next-step').get_attribute('aria-label')=='Replay example'
+                page.locator('#next-step').click()
+                assert desktop.get_attribute('data-step')=='0'
+                assert tour.get_attribute('aria-pressed')=='false'
+                assert page.locator('#sample-file').get_attribute('data-sample')=='documents'
+                tour.click()
+                page.wait_for_function('document.querySelector("#desktop-demo").dataset.step==="3"')
+                assert tour.get_attribute('aria-pressed')=='false'
+                assert tour.get_attribute('aria-label')=='Play example'
+                page.wait_for_timeout(2400)
+                assert desktop.get_attribute('data-step')=='3','A completed replay must remain on its result'
+                assert page.locator('#sample-file').get_attribute('data-sample')=='documents'
+                assert page.locator('#output-name').inner_text()=='weekend-notes.pdf'
+                check_retained_mode_replay(page)
                 # A genuine pointer drag and modifier key must submit only on a wheel drop.
+                page.locator('[data-sample="images"]').click()
                 page.locator('#origin-desktop').click();box=page.locator('#sample-file').bounding_box();assert box
                 page.mouse.move(box['x']+box['width']/2,box['y']+box['height']/2);page.mouse.down()
                 page.mouse.move(box['x']+box['width']/2+25,box['y']+box['height']/2+10,steps=4)
@@ -432,10 +522,13 @@ def run(output:Path,engine:str,url:str|None,executable:str|None=None):
                 target=page.locator('.wheel-choice').first.bounding_box();assert target
                 page.mouse.move(target['x']+target['width']/2,target['y']+target['height']/4,steps=8);page.mouse.up()
                 assert page.locator('#sample-output').is_visible()
-                results.append({'autoplay_advances_and_pauses':'PASS','pointer_drag_shift_and_drop':'PASS'});page.close()
+                assert page.locator('#output-name').inner_text()=='morning-light.png'
+                results.append({'user_started_example_idle_pause_replay_and_stop':'PASS','retained_mode_replay_and_result_feedback':'PASS','pointer_drag_shift_and_drop':'PASS'});page.close()
                 page=browser.new_page();page.goto(url,wait_until='networkidle')
+                page.locator('#tour-toggle').click()
+                assert page.locator('#tour-toggle').get_attribute('aria-pressed')=='true'
                 page.locator('#desktop-demo').focus()
-                assert page.locator('#tour-toggle').get_attribute('aria-pressed')=='false', 'Keyboard entry owns the demo; autoplay must stop'
+                assert page.locator('#tour-toggle').get_attribute('aria-pressed')=='false', 'Keyboard entry owns the demo; the running example must stop'
                 results.append({'keyboard_entry_pauses_tour':'PASS'});page.close()
                 page=browser.new_page(viewport={'width':390,'height':844},reduced_motion='reduce');page.goto(url,wait_until='networkidle')
                 assert page.locator('#tour-toggle').get_attribute('aria-pressed')=='false'

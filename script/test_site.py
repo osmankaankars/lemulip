@@ -40,6 +40,10 @@ class SiteTests(unittest.TestCase):
         self.assertEqual(35,data['counts']['formats']);self.assertEqual(26,data['counts']['tools']);self.assertEqual(6,data['counts']['actions'])
         self.assertEqual(9,len(data['samples']))
         self.assertEqual(ids,set(data['operationIDs']))
+        page=(ROOT/'site/index.html').read_text()
+        formats_section=page.split('id="formats"',1)[1].split('</section>',1)[0]
+        for count_id in ('format-count','tool-count','action-count'):
+            self.assertIn('id="'+count_id+'"',formats_section)
     def test_format_search_is_local_accessible_and_clearable(self):
         page=(ROOT/'site/index.html').read_text()
         for marker in ('id="format-search"','id="format-search-clear"','id="format-search-status"','aria-controls="format-directory tool-directory"'):
@@ -53,6 +57,10 @@ class SiteTests(unittest.TestCase):
         page=(ROOT/'site/index.html').read_text()
         expected=f'https://github.com/osmankaankars/lemulip/releases/download/v{PUBLISHED_VERSION}/Lemulip-{PUBLISHED_VERSION}-macOS-universal.dmg'
         self.assertEqual(3,page.count('href="'+expected+'"'))
+        labels=re.findall(r'<a\b[^>]*href="'+re.escape(expected)+r'"[^>]*>(.*?)</a>',page,re.S)
+        for label in labels:
+            text=' '.join(re.sub(r'<[^>]+>','',label).split())
+            self.assertRegex(text,r'^Download for Mac(?:\s*[↓↗])?$')
         self.assertIn('Preview release notes',page)
         self.assertIn('Apple silicon &amp; Intel · v'+PUBLISHED_VERSION,page)
         self.assertNotIn('v0.1.17',page)
@@ -129,8 +137,8 @@ class SiteTests(unittest.TestCase):
             self.assertNotRegex(p.read_text(),r'(?i)developer id|notariz|ad hoc sign',str(p))
     def test_motion_and_stale_assets_are_explicit(self):
         page=(ROOT/'site/index.html').read_text(); js=(ROOT/'site/product.js').read_text()
-        self.assertIn('data-site-version="20261101.1"',page)
-        self.assertIn('product.js?v=20261101.1',page)
+        self.assertIn('data-site-version="20261102.1"',page)
+        self.assertIn('product.js?v=20261102.1',page)
         for event in ('visibilitychange','prefers-reduced-motion','pointercancel'):self.assertIn(event,js)
         self.assertIn('Interactive example. Nothing is uploaded.',page)
         self.assertNotRegex(js,r'\b(FileReader|XMLHttpRequest)\s*\(')

@@ -1,6 +1,6 @@
 # Lemulip Design Direction
 
-Updated 29 October 2026. This is the shared direction for the quality roadmap, the public website and the later promotional film.
+Updated 2 November 2026. This is the shared direction for the quality roadmap, the public website and promotional work. The website's retained decisions, page structure and reference workflow are recorded in [Website Direction](WEBSITE.md).
 
 ## Character
 
@@ -23,7 +23,7 @@ The website is an invitation to experience that interaction. The app is a place 
 
 **Feedback:** brief color/pressed states, a clear selected operation, visible output confirmation, and the optional native selection cue. Keyboard focus must remain on a useful control after each transition.
 
-**Budget:** 120 ms control feedback; 180–280 ms routine reveals. Keep animation to the bounded demo, active screenshot or opened disclosure. Use existing CSS and native APIs, with no new animation runtime, continuous shader, background video or remote font. Stop automatic examples when hidden or offscreen. Reduce Motion removes the spatial transitions while retaining all states and controls.
+**Budget:** 120 ms control feedback; 180–280 ms routine reveals. Keep animation to the bounded demo, active screenshot or opened disclosure. Use existing CSS and native APIs, with no new animation runtime, continuous shader, background video or remote font. The website example starts on request, plays the selected file once and waits at the result. Pause it when hidden or offscreen. Reduce Motion removes the spatial transitions while retaining all states and controls.
 
 ## Finish and Marketing Readiness
 

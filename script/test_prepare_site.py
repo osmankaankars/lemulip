@@ -77,7 +77,7 @@ class PreparedSiteTests(unittest.TestCase):
             "twitter:image": self.canonical + "assets/social-preview.png",
             "twitter:image:alt": SHARE_ALT,
             "twitter:title": "Lemulip · File tools, right where you drag.",
-            "twitter:description": "35 conversion output formats. 26 tools. 6 file actions. Free, open source, and local to your Mac.",
+                "twitter:description": "Drag a file, tap a key, and choose what to do with it. Local file tools for Mac, free and open source.",
         }
         self.assertEqual(GENERATED_KEYS, set(expected))
         for key, value in expected.items():

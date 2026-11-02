@@ -17,7 +17,7 @@ button:focus-visible, a:focus-visible, select:focus-visible, input:focus-visible
 button:disabled {cursor:default;opacity:.4}
 [hidden] {display:none!important}
 em {font-style:normal;color:var(--link)}
-.shell {width:min(1280px,calc(100% - 96px));margin:auto}
+.shell {width:min(1160px,calc(100% - 96px));margin:auto}
 .header {display:flex;align-items:center;justify-content:space-between;padding:25px 0}
 .brand {display:flex;align-items:center;gap:10px;text-decoration:none}
 .brand img {object-fit:contain}
@@ -73,11 +73,9 @@ select {background:var(--panel);border:1px solid var(--line);border-radius:8px;p
 .sample-output b {overflow-wrap:anywhere}
 .sample-output>span:last-child {font-size:10px}
 .output-icon {display:grid;place-items:center;width:55px;height:68px;background:#f2f7e9;color:#426e12;border-radius:5px;font-size:26px;text-shadow:none;box-shadow:0 3px 8px #0004}
-.tour-cursor {position:absolute;left:24%;top:63%;width:22px;height:28px;fill:white;stroke:#14251d;stroke-width:1.5;z-index:8;pointer-events:none;transition:left .75s ease,top .75s ease;filter:drop-shadow(0 1px 3px #0008)}
-[data-step="1"] .tour-cursor {left:28%;top:53%}
-[data-step="2"] .tour-cursor {left:62%;top:40%}
-[data-step="3"] .tour-cursor {left:80%;top:60%;opacity:0}
-.drag-ghost {position:absolute;pointer-events:none;z-index:9;padding:6px 10px;background:#dce8cc;color:#173c2a;border-radius:7px;font-size:11px;transform:translate(-50%,-110%)}
+.tour-cursor {position:absolute;left:0;top:0;width:22px;height:28px;fill:white;stroke:#14251d;stroke-width:1.5;z-index:8;pointer-events:none;transition:transform .6s cubic-bezier(.16,1,.3,1),opacity .12s ease;filter:drop-shadow(0 1px 3px #0008)}
+[data-step="3"] .tour-cursor, .desktop[data-autoplay="false"] .tour-cursor {opacity:0}
+.drag-ghost {position:absolute;left:0;top:0;pointer-events:none;z-index:9;padding:6px 10px;background:#dce8cc;color:#173c2a;border-radius:7px;font-size:11px;transform:translate(-50%,-110%)}
 .demo-modes {display:flex;justify-content:center;gap:6px;padding:10px 0}
 .demo-modes button {display:flex;align-items:center;gap:8px;background:transparent;border:1px solid transparent;border-radius:8px;padding:8px 13px;font-size:12px}
 .demo-modes button[aria-pressed=true] {border-color:var(--line);background:var(--panel)}
@@ -447,7 +445,7 @@ html {scroll-behavior:auto}
 
 /* The wheel is the focal movement. Controls stay available during every transition. */
 :root {--motion-fast:120ms;--motion-enter:280ms;--motion-ease:cubic-bezier(.16,1,.3,1)}
-.hero h1 {letter-spacing:-.045em;text-wrap:balance}
+.hero h1 {font-size:clamp(44px,4.05vw,60px);letter-spacing:-.035em;text-wrap:wrap}
 .hero-copy .intro {line-height:1.65;max-width:34ch}
 .numbers h2 {line-height:1.35}
 .button, .origin-picker button, .demo-modes button, .quiet-button, .watch-native {
@@ -471,5 +469,80 @@ html {scroll-behavior:auto}
 }
 @keyframes catalog-arrive {from {opacity:0} to {opacity:1}}
 
-/* A single release detail, not another feature section. */
-.release-highlight { max-width:32ch; margin:18px 0 0; color:var(--muted); font-size:13px; line-height:1.6; }
+/* The page follows the file task. Supporting facts sit beside the relevant choice. */
+::selection {background:var(--accent);color:var(--ink)}
+input {caret-color:var(--link)}
+h2, h3 {letter-spacing:-.03em;text-wrap:balance}
+.hero {padding-top:34px;padding-bottom:38px;gap:44px}
+.hero .lead {max-width:34ch;margin:22px 0 26px;font-size:18px;line-height:1.65;color:var(--muted)}
+.hero-copy > .requirements {display:block;margin:15px 0 0;font-size:12px}
+.release-links {gap:0 18px}
+.demo-instruction {min-height:1.6em;margin:12px 0 0;font-size:13px;line-height:1.6;color:var(--text)}
+.product-demo > .simulation-note {font-size:11px;line-height:1.6;margin-top:4px}
+.demo-modes button, .play-controls .quiet-button {min-height:44px}
+.play-controls {gap:4px}
+.play-controls #tour-toggle {width:auto;min-width:48px;padding-inline:10px;font-size:12px;border:1px solid var(--line)}
+.play-controls #next-step {width:36px;font-size:18px}
+.play-controls .step-number {font-variant-numeric:tabular-nums}
+.watch-native {min-height:44px}
+.shortcuts {grid-template-columns:210px minmax(0,1fr);gap:40px;padding:30px 0;align-items:center}
+.shortcuts h2 {font-size:23px;line-height:1.2;letter-spacing:-.025em}
+.shortcut-intro p {margin-top:10px;font-size:13px;line-height:1.6}
+.shortcut-list {grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.shortcut-list > div {display:block;padding:0;border-radius:0}
+.shortcut-list .shortcut-convert, .shortcut-list .shortcut-tools, .shortcut-list .shortcut-actions {background:transparent;color:var(--text)}
+.shortcut-list kbd {width:38px;height:40px;margin-bottom:10px;border:0;border-radius:8px;font-size:22px}
+.shortcut-convert kbd {background:#daf0a3;color:#203a29}
+.shortcut-tools kbd {background:#f3cfb3;color:#623f2b}
+.shortcut-actions kbd {background:#ded2ef;color:#4c3c64}
+.shortcut-list h3 {margin:0;font-size:16px;line-height:1.3;letter-spacing:-.015em}
+.shortcut-list p {max-width:24ch;margin:5px 0 0;font-size:13px;line-height:1.55;color:var(--muted);opacity:1}
+.catalog-heading {gap:10px}
+.catalog-summary-note {font-size:14px;line-height:1.7}
+.catalog-summary-note span {font-variant-numeric:tabular-nums}
+.final-section h2 {font-size:clamp(30px,3.1vw,43px);line-height:1.12;letter-spacing:-.03em}
+.final-section p {font-size:15px;margin-top:16px}
+.final-section .requirements {font-size:12px}
+.footer {padding:26px 0 32px}
+.footer > div {flex-wrap:wrap;gap:12px 22px}
+@media(max-width:1100px) {
+  .hero {gap:28px}
+  .hero .lead {font-size:17px}
+  .demo-controls {flex-wrap:wrap;row-gap:8px}
+  .shortcuts {grid-template-columns:180px minmax(0,1fr);gap:28px}
+  .shortcut-list {gap:18px}
+}
+@media(max-width:800px) {
+  .hero {padding-top:18px;padding-bottom:30px;gap:28px}
+  .hero .lead {max-width:40ch}
+  .shortcuts {grid-template-columns:1fr;gap:22px;padding:26px 0}
+  .shortcut-intro p {margin-top:8px}
+  .shortcut-intro br {display:none}
+  .shortcut-list {gap:20px}
+}
+@media(max-width:500px) {
+  .hero h1 {font-size:44px;line-height:1.05}
+  .hero .lead {margin:18px 0 22px;font-size:16px;line-height:1.65}
+  .hero-copy > .requirements {font-size:12px;line-height:1.65;margin-top:14px}
+  .release-links {gap:0 17px}
+  .release-link {font-size:12px;margin-top:9px}
+  .demo-instruction {font-size:12px;min-height:3.2em;margin-top:10px}
+  .demo-controls {gap:5px}
+  .demo-modes button {padding:6px 7px;min-height:44px}
+  .play-controls .quiet-button {min-height:44px}
+  .play-controls #tour-toggle {min-width:42px;padding:6px;font-size:11px}
+  .play-controls #next-step {width:30px}
+  .watch-native {font-size:11px;padding:7px 9px}
+  .product-demo > .simulation-note {font-size:11px}
+  #demo-source {min-height:3.2em}
+  .shortcuts h2 {font-size:22px}
+  .shortcut-list {gap:14px}
+  .shortcut-list p {font-size:12px;line-height:1.5}
+  .shortcut-list h3 {font-size:15px}
+  .catalog-details > summary {gap:18px}
+  .catalog-summary-note {max-width:30ch;font-size:13px}
+  .final-section {padding:36px 0}
+  .final-section h2 {font-size:32px}
+  .final-section p {font-size:14px}
+  .footer {font-size:12px;line-height:1.6}
+}
