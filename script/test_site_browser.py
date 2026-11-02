@@ -337,6 +337,50 @@ def check_queued_visibility_replay(page) -> None:
     assert tour.get_attribute('aria-pressed') == 'false', 'Visibility must not resume a cancelled replay'
 
 
+def check_replay_frames_selected_example(page) -> None:
+    """Play frames a clipped stage and leaves an already framed replay in place."""
+    desktop = page.locator('#desktop-demo')
+    play = page.locator('#tour-toggle')
+    sample = page.locator('#sample-file').get_attribute('data-sample')
+    page.locator('[data-mode="actions"]').click()
+    page.locator('#wheel-svg').get_by_role('button', name='Move To…', exact=True).click()
+    assert page.locator('#output-name').inner_text() == 'Move To…'
+
+    edge = desktop.evaluate('''e => {
+        window.scrollTo({top: scrollY + e.getBoundingClientRect().bottom - 18, behavior: 'instant'});
+        const {top, bottom} = e.getBoundingClientRect();
+        return {top, bottom};
+    }''')
+    assert edge['top'] < 0 and 17 <= edge['bottom'] <= 19, edge
+    for clipped in (True, False):
+        start_y = page.evaluate('scrollY')
+        # Use the real pointer, without locator.click() scrolling the fixture.
+        point = play.evaluate('''button => {
+            const r = button.getBoundingClientRect();
+            const x = r.left + r.width / 2, y = r.top + r.height / 2;
+            return {x, y, clickable: r.top >= 0 && r.bottom <= innerHeight &&
+                r.left >= 0 && r.right <= innerWidth && button.contains(document.elementFromPoint(x, y))};
+        }''')
+        assert point['clickable'], point
+        page.mouse.click(point['x'], point['y'])
+        page.wait_for_function('''() => {
+            const desktop = document.getElementById('desktop-demo');
+            const r = desktop.getBoundingClientRect();
+            const visible = Math.min(innerHeight, r.bottom) - Math.max(0, r.top);
+            return desktop.dataset.autoplay === 'true' && visible >= Math.min(r.height, innerHeight) / 2;
+        }''', timeout=5000)
+        page.wait_for_function('''() => {
+            const desktop = document.getElementById('desktop-demo');
+            return desktop.dataset.step === '3' && desktop.dataset.autoplay === 'false';
+        }''')
+        assert page.locator('[data-mode="actions"]').get_attribute('aria-pressed') == 'true'
+        assert page.locator('#output-name').inner_text() == 'Move To…'
+        assert page.locator('#sample-file').get_attribute('data-sample') == sample
+        assert play.get_attribute('aria-pressed') == 'false'
+        if not clipped:
+            assert abs(page.evaluate('scrollY') - start_y) <= 1, 'An already framed replay must leave the page in place'
+
+
 def check_gallery_without_javascript(page) -> None:
     assert page.locator("#screen-workspace").is_visible()
     assert page.locator("#gallery-tabs").is_hidden()
@@ -626,6 +670,11 @@ def run(output:Path,engine:str,url:str|None,executable:str|None=None):
                 page.goto(url,wait_until='networkidle')
                 check_queued_visibility_replay(page)
                 results.append({'queued_visibility_order_idle_resume_keyboard_and_result':'PASS'});page.close()
+                page=browser.new_page(viewport={'width':1440,'height':1000})
+                page.on('pageerror',lambda e:errors.append(str(e)))
+                page.goto(url,wait_until='networkidle')
+                check_replay_frames_selected_example(page)
+                results.append({'clipped_replay_framed_and_framed_replay_stays_put':'PASS'});page.close()
                 page=browser.new_page();page.goto(url,wait_until='networkidle')
                 page.locator('#tour-toggle').click()
                 assert page.locator('#tour-toggle').get_attribute('aria-pressed')=='true'
