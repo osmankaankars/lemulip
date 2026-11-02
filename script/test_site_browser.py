@@ -308,7 +308,7 @@ def check_queued_visibility_replay(page) -> None:
     page.evaluate('window.__deliverDemoVisibility([false, true])')
     tour.click()
     assert tour.get_attribute('aria-pressed') == 'true', 'Play must start a new replay from the manual result'
-    page.wait_for_function('document.getElementById("desktop-demo").dataset.step==="3"', timeout=7000)
+    page.wait_for_function('document.getElementById("desktop-demo").dataset.step==="3"')
     assert page.locator('#output-name').inner_text() == 'Crop'
     assert page.locator('[data-mode="tools"]').get_attribute('aria-pressed') == 'true'
     assert tour.get_attribute('aria-pressed') == 'false'
@@ -320,7 +320,7 @@ def check_queued_visibility_replay(page) -> None:
     assert tour.get_attribute('aria-pressed') == 'true', 'Visibility suspension must retain the playback request'
     assert page.locator('#sample-output').is_hidden()
     page.evaluate('window.__deliverDemoVisibility([true])')
-    page.wait_for_function('document.getElementById("desktop-demo").dataset.step==="3"', timeout=7000)
+    page.wait_for_function('document.getElementById("desktop-demo").dataset.step==="3"')
     assert page.locator('#output-name').inner_text() == 'Crop'
     assert page.locator('#sample-file').get_attribute('data-sample') == 'images'
     assert tour.get_attribute('aria-pressed') == 'false'
