@@ -47,8 +47,9 @@ The fixture now resolves Git through the runner's `PATH`, retains its sanitized
 `GIT_*` environment and disabled hooks, and allows 30 seconds for `init` while
 keeping subsequent commands bounded at ten seconds. Real repository creation,
 archive compression, metadata and manifest assertions remain in place. The
-Intel CI run must confirm whether this addresses the observed timeout; a local
-pass alone cannot establish that.
+fixture suite also runs in the ordinary PR guardrails on both native hosts, so
+this change is exercised before merge. Those runs must confirm whether it
+addresses the observed timeout; a local pass alone cannot establish that.
 
 The historical 0.1.20 UI review workflow is manual-only and remains restricted
 to `review/quality-020`. Its build, exact-ZIP checks and evidence retention are
