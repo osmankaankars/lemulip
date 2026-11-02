@@ -11,8 +11,8 @@ class ReleasePresentationTests(unittest.TestCase):
         page=(ROOT/'site/index.html').read_text()
         gallery=page.split('id="app-gallery"',1)[1].split('</section>',1)[0]
         self.assertEqual(['workspace','pdf-organize','crop-video','trim-audio'],re.findall(r'data-screen="([^"]+)"',gallery))
-        self.assertIn('Drag pages into place',gallery)
-        self.assertIn('type a page number',gallery)
+        self.assertIn('Drag a page into place',gallery)
+        self.assertIn('type its position',gallery)
         self.assertNotIn('app-activity.webp',gallery)
 
     def test_screen_provenance_records_real_density_without_physical_retina_claim(self):
@@ -33,9 +33,9 @@ class ReleasePresentationTests(unittest.TestCase):
         page=(ROOT/'site/index.html').read_text()
         self.assertEqual(3,page.count('releases/download/v0.1.20/Lemulip-0.1.20-macOS-universal.dmg'))
         self.assertNotIn('v0.1.19',page)
-        self.assertIn('Captured in Lemulip 0.1.20',page)
-        self.assertIn('data-site-version="20261101.1"',page)
-        self.assertIn('PDF page ordering',page)
-        self.assertIn('optional wheel sounds',page)
+        self.assertIn('Lemulip 0.1.20. Select an image',page)
+        self.assertIn('data-site-version="20261102.1"',page)
+        self.assertIn('Put PDF pages in order.',page)
+        self.assertIn('releases/tag/v0.1.20',page)
 
 if __name__=='__main__': unittest.main()

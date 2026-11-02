@@ -9,6 +9,7 @@
   const button = get('watch-native'), stage = get('demo-stage');
   const illustration = get('desktop-demo'), layer = get('native-recording');
   const video = get('native-video'), controls = get('demo-controls');
+  const instruction = get('demo-instruction');
   const note = get('demo-source'), error = get('native-error');
   if (!button || !stage || !illustration || !layer || !video || !controls || !note || !error) return;
   let watching = false;
@@ -23,10 +24,14 @@
     illustration.setAttribute('aria-hidden', String(watch));
     controls.setAttribute('aria-hidden', String(watch));
     controls.style && (controls.style.visibility = watch ? 'hidden' : '');
+    if (instruction) {
+      instruction.style.visibility = watch ? 'hidden' : '';
+      instruction.setAttribute('aria-hidden', String(watch));
+    }
     layer.hidden = !watch;
     button.setAttribute('aria-pressed', String(watch));
-    button.textContent = watch ? 'Back to the wheel' : 'Watch on a Mac';
-    note.textContent = watch ? 'Recorded in Lemulip. Finder to finished file.' : 'Interactive example. Nothing is uploaded.';
+    button.textContent = watch ? 'Back to the wheel' : 'Watch Mac recording';
+    note.textContent = watch ? 'Actual Mac recording. A JPG copy appears beside the original.' : 'Interactive example. Nothing is uploaded.';
     if (watch) {
       video.focus({ preventScroll: true });
       // A rejected playback request leaves the native Play control available.

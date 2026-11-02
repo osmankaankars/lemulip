@@ -10,7 +10,8 @@
   let source = $('sample-file');
   const sampleFiles = [...grid.querySelectorAll('[data-sample]')];
   let sampleIndex = 0, mode = 'convert', step = 0, wheelPage = 0, selected = 0;
-  let autoplay = !reduced.matches, visible = true, timer = null, pointer = null, suppressClick = false;
+  let autoplay = false, visible = true, timer = null, pointer = null, suppressClick = false;
+  let dragFrame = null, dragPosition = null;
   const sample = () => data.samples[sampleIndex];
   const stem = name => name.replace(/\.[^.]+$/, '');
   const announce = text => { $('announcer').textContent = text; };
@@ -43,22 +44,24 @@
     const input = sample().name.split('.').pop();
     return sample().formats.filter(x => x !== input).map(ext => ({id:'convert.'+ext,title:ext.toUpperCase(),extension:ext,engine:engineFor(ext)}));
   }
-  function stopTour() { autoplay = false; clearTimeout(timer); updatePlay(); }
+  function stopTour() { autoplay = false; clearTimeout(timer); timer = null; updatePlay(); }
   document.addEventListener('lemulip:watch-native', () => { stopTour(); setStep(0); });
   function updatePlay() {
-    $('tour-toggle').textContent = autoplay ? 'Ⅱ' : '▶';
-    $('tour-toggle').setAttribute('aria-label', autoplay ? 'Pause tour' : 'Play tour');
-    $('tour-toggle').title = autoplay ? 'Pause tour' : 'Play tour';
+    $('tour-toggle').textContent = autoplay ? 'Pause' : 'Play';
+    $('tour-toggle').setAttribute('aria-label', autoplay ? 'Pause example' : 'Play example');
+    $('tour-toggle').title = autoplay ? 'Pause example' : 'Play example';
     $('tour-toggle').setAttribute('aria-pressed', String(autoplay));
     desktop.dataset.autoplay = String(autoplay);
   }
   function schedule() {
-    clearTimeout(timer);
+    clearTimeout(timer); timer = null;
+    if (autoplay && step === 3) { stopTour(); return; }
     if (autoplay && visible && !document.hidden) timer = setTimeout(() => {
-      if (step === 3) { sampleIndex = (sampleIndex+1)%data.samples.length; setSample(); }
-      else setStep(step+1);
+      timer = null;
+      if (!autoplay || !visible || document.hidden) return;
+      setStep(step+1);
       schedule();
-    }, step === 3 ? 2600 : step === 2 ? 2100 : 1700);
+    }, step === 2 ? 2100 : 1700);
   }
   function setSample() {
     source.removeAttribute('id');
@@ -74,19 +77,29 @@
   function updateModes() {
     document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed',String(b.dataset.mode === mode)));
   }
-  const captions = ['Drag a file, or click it to begin.','Tap Shift for formats.','Drop onto a segment, or click an operation.','A new sample copy, beside the original.'];
-  const hints = ['Pick up a file', 'Tap Shift', 'Choose an operation', 'New copy created'];
+  const shortcutKeys = {convert:'Shift', tools:'Command', actions:'Control'};
+  const captions = ['Drag a file, or click it to begin.',null,'Drop onto a segment, or click an operation.','Your sample result.'];
+  const hints = ['Pick up a file', null, 'Choose an operation', 'Sample result'];
+  function positionTourCursor() {
+    const cursor = $('tour-cursor'), desktopRect = desktop.getBoundingClientRect();
+    if (!desktopRect.width || !desktopRect.height) return;
+    let x = desktop.clientWidth * .57, y = desktop.clientHeight * .42;
+    if (step < 2) {
+      const fileRect = source.getBoundingClientRect();
+      x = fileRect.left - desktopRect.left - desktop.clientLeft + fileRect.width * .7;
+      y = fileRect.top - desktopRect.top - desktop.clientTop + fileRect.height * .75;
+    }
+    cursor.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+  }
   function setStep(value) {
     step = value; desktop.dataset.step = String(step);
-    $('demo-hint').textContent = hints[step];
+    $('demo-hint').textContent = step === 1 ? 'Tap '+shortcutKeys[mode] : hints[step];
     $('step-number').textContent = '0'+(step+1)+' / 04';
-    $('demo-instruction').textContent = captions[step];
+    $('demo-instruction').textContent = step === 1 ? 'Tap '+shortcutKeys[mode]+' for '+(mode === 'convert' ? 'formats' : mode)+'.' : captions[step];
     $('floating-wheel').hidden = step !== 2;
     $('sample-output').hidden = step !== 3;
     source.classList.toggle('picked',step === 1 || step === 2);
-    const cursor=$('tour-cursor');
-    if(step<2){const d=desktop.getBoundingClientRect(),f=source.getBoundingClientRect();cursor.style.left=(f.left-d.left+f.width*.7)+'px';cursor.style.top=(f.top-d.top+f.height*.75)+'px';}
-    else {cursor.style.left='57%';cursor.style.top='42%';}
+    positionTourCursor();
     $('next-step').textContent = step === 3 ? '↻' : '→';
     $('next-step').setAttribute('aria-label',step === 3 ? 'Replay example' : 'Next step');
     $('next-step').title = step === 3 ? 'Replay example' : 'Next step';
@@ -125,11 +138,12 @@
   }
   function showResult(op) {
     if (!op) return;
-    let name,detail;
-    if (op.extension) {name=stem(sample().name)+'.'+op.extension;detail='Sample copy · original kept'+(op.engine?' · '+op.engine:'');}
-    else if(op.id==='archive.extract'){name=stem(sample().name)+'/';detail='Sample extracted folder · archive kept';}
-    else {name=op.title;detail=op.detail+'. In the Mac app.';}
+    let name,detail,hint;
+    if (op.extension) {name=stem(sample().name)+'.'+op.extension;detail='Sample copy · original kept'+(op.engine?' · '+op.engine:'');hint='Sample copy';}
+    else if(op.id==='archive.extract'){name=stem(sample().name)+'/';detail='Sample extracted folder · archive kept';hint='Sample extracted folder';}
+    else {name=op.title;detail=op.detail+'. In the Mac app.';hint='Sample result';}
     $('output-name').textContent=name;$('output-detail').textContent=detail;
+    $('demo-hint').textContent=hint;
     $('demo-instruction').textContent=op.extension?'Example: '+name+' · original kept.':'Example: '+op.title+'.';
   }
   function choose(index) {
@@ -173,8 +187,24 @@
     }
     else if(e.key==='Enter' && e.target===desktop){e.preventDefault();if(step===2)choose(selected);else{stopTour();setStep(1);}}
   });
+  function cancelDragFrame() {
+    if (dragFrame !== null) cancelAnimationFrame(dragFrame);
+    dragFrame = null; dragPosition = null;
+  }
+  function drawDragFrame() {
+    dragFrame = null;
+    const position = dragPosition; dragPosition = null;
+    if (!pointer || !pointer.moved || !position || position.id !== pointer.id) return;
+    const ghost = $('drag-ghost'); if (!ghost) return;
+    const rect = desktop.getBoundingClientRect();
+    const hit = document.elementFromPoint(position.x, position.y)?.closest('.wheel-choice');
+    const x = position.x - rect.left - desktop.clientLeft;
+    const y = position.y - rect.top - desktop.clientTop;
+    ghost.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -110%)`;
+    svg.querySelectorAll('.wheel-choice').forEach(g => g.classList.toggle('selected', g === hit));
+  }
   grid.addEventListener('pointerdown',e=>{
-    const file=e.target.closest('[data-sample]');if(e.button!==0||!file)return;
+    const file=e.target.closest('[data-sample]');if(e.button!==0||!file||pointer)return;
     stopTour();const index=sampleFiles.indexOf(file);
     if(index!==sampleIndex){sampleIndex=index;setSample();}
     pointer={id:e.pointerId,x:e.clientX,y:e.clientY,moved:false};source.setPointerCapture(e.pointerId);
@@ -185,13 +215,14 @@
       pointer.moved=true;stopTour();setStep(1);desktop.focus({preventScroll:true});
       const ghost=document.createElement('span');ghost.id='drag-ghost';ghost.className='drag-ghost';ghost.textContent=sample().name;desktop.append(ghost);
     }
-    if(pointer.moved){e.preventDefault();const rect=desktop.getBoundingClientRect(),ghost=$('drag-ghost');ghost.style.left=(e.clientX-rect.left)+'px';ghost.style.top=(e.clientY-rect.top)+'px';
-      const hit=document.elementFromPoint(e.clientX,e.clientY)?.closest('.wheel-choice');
-      svg.querySelectorAll('.wheel-choice').forEach(g=>g.classList.toggle('selected',g===hit));
+    if(pointer.moved){e.preventDefault();
+      dragPosition={id:e.pointerId,x:e.clientX,y:e.clientY};
+      if(dragFrame===null)dragFrame=requestAnimationFrame(drawDragFrame);
     }
   });
   function finishDrag(e,cancel=false){
     if(!pointer||pointer.id!==e.pointerId)return;
+    cancelDragFrame();
     if(pointer.moved){suppressClick=true;const hit=cancel?null:document.elementFromPoint(e.clientX,e.clientY)?.closest('.wheel-choice');
       if(hit)choose(Number(hit.dataset.index));else setStep(0);
       $('drag-ghost')?.remove();setTimeout(()=>{suppressClick=false;},0);
@@ -203,6 +234,7 @@
   reduced.addEventListener('change',()=>{if(reduced.matches)stopTour();});
   document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(timer);}else schedule();});
   if('IntersectionObserver' in window)new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;schedule();},{threshold:.15}).observe(desktop);
+  window.addEventListener('resize',positionTourCursor);
 
   $('format-count').textContent=data.counts.formats;$('tool-count').textContent=data.counts.tools;$('action-count').textContent=data.counts.actions;
   const prefixes={image:'Image',pdf:'PDF',media:'Media',document:'Document',archive:'Archive',action:''};
