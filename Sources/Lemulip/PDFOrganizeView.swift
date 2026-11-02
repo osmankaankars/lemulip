@@ -126,6 +126,9 @@ struct PDFOrganizeView: View {
             }
             Text(orderingHint)
                 .font(.system(size: 10)).foregroundStyle(Palette.muted)
+            EditorHelp(language: model.language, explanation: model.text(
+                "⌘-click a page to add or remove it from the selection. Shift-click to select a range. Drag the handle to move selected pages together.",
+                "Bir sayfayı seçime eklemek veya seçimden çıkarmak için ⌘ ile tıkla. Aralık seçmek için Shift ile tıkla. Seçili sayfaları birlikte taşımak için tutamaktan sürükle."))
         }
     }
 
@@ -133,10 +136,10 @@ struct PDFOrganizeView: View {
         if let editingPosition {
             let range = editor.positionRange(for: editingPosition)
             return model.text("Position \(range.lowerBound)–\(range.upperBound) · Enter to Move · Esc to Cancel · Selected Pages Move Together",
-                              "Konum \(range.lowerBound)–\(range.upperBound) · Enter ile taşı · Esc ile vazgeç · Seçili sayfalar birlikte taşınır")
+                              "Sıra \(range.lowerBound)–\(range.upperBound) · Enter ile taşı · Esc ile vazgeç · Seçili sayfalar birlikte taşınır")
         }
-        return model.text("⌘-Click to Add · Shift-Click for a Range · Drag the Handle or Edit a Page Number",
-                          "⌘ ile seçime ekle · Shift ile aralık seç · Tutamaktan sürükle veya sayfa numarasını değiştir")
+        return model.text("Drag pages or edit their position.",
+                          "Sayfaları sürükle veya sıra numaralarını değiştir.")
     }
 
     private var pageGrid: some View {
@@ -217,7 +220,7 @@ struct PDFOrganizeView: View {
                 if editor.selectedPages.contains(page.sourceIndex) { editor.select(page.sourceIndex, modifiers: .command) }
             }
             HStack(spacing: 6) {
-                Text(model.text("Page", "Sayfa")).font(.system(size: 12, weight: .semibold))
+                Text(model.text("Position", "Sıra")).font(.system(size: 12, weight: .semibold))
                 positionField(page.sourceIndex, outputIndex: outputIndex)
                 Spacer(minLength: 2)
                 Image(systemName: "line.3.horizontal").font(.system(size: 12, weight: .medium))
@@ -260,7 +263,7 @@ struct PDFOrganizeView: View {
             allowedPositions: range,
             label: model.text("Output Position for Original Page \(sourceIndex + 1)", "Orijinal sayfa \(sourceIndex + 1) için çıktı sırası"),
             hint: model.text("Enter a Position and Press Return. Selected Pages Move Together. Esc Cancels.",
-                             "Bir konum yazıp Enter'a bas. Seçili sayfalar birlikte taşınır. Esc ile vazgeç."),
+                             "Bir sıra numarası yazıp Enter'a bas. Seçili sayfalar birlikte taşınır. Esc ile vazgeç."),
             invalidHint: model.text("Enter a Whole Number from \(range.lowerBound) to \(range.upperBound). The Selected Pages Keep Their Relative Order.",
                                     "\(range.lowerBound) ile \(range.upperBound) arasında tam sayı gir. Seçili sayfaların kendi aralarındaki sıra korunur."),
             focus: $focus, editingPosition: $editingPosition,

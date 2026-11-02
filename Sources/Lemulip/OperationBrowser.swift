@@ -12,7 +12,7 @@ struct OperationBrowser: View {
         let available = searching ? model.availableOperations : model.operations
         return OperationDiscovery.matching(available, query: query,
             localizedTitles: Dictionary(uniqueKeysWithValues: available.map { ($0.id, OperationNames.title($0, language: model.language)) }),
-            localizedDetails: Dictionary(uniqueKeysWithValues: available.map { ($0.id, OperationNames.detail($0, language: model.language)) }))
+            localizedDetails: Dictionary(uniqueKeysWithValues: available.map { ($0.id, OperationNames.help($0, language: model.language)) }))
     }
     private var pinned: [FileOperation] {
         OperationDiscovery.pinned(from: model.availableOperations, identifiers: model.pinnedOperationIDs)

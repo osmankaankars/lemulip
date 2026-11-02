@@ -124,6 +124,7 @@ struct AudioTrimView: View {
                 Picker(model.text("Save As", "Çıktı biçimi"), selection: $outputFormat) {
                     ForEach(availableFormats(preview)) { format in Text(format.title).tag(format) }
                 }.labelsHidden().pickerStyle(.menu)
+                    .accessibilityIdentifier("audio-trim.output-format")
                 Text(outputFormat == .m4a ? model.text("AAC Re-Encoded Copy", "AAC olarak yeniden kodlanır") : model.text("Uncompressed 16-Bit Copy", "Sıkıştırılmamış 16 bit kopya"))
                     .font(.system(size: 9)).foregroundStyle(Palette.muted)
                     .fixedSize(horizontal: false, vertical: true)
@@ -230,7 +231,9 @@ struct AudioTrimView: View {
         do {
             let result = try await withTaskCancellationHandler(operation: { try await worker.value }, onCancel: { worker.cancel() })
             try Task.checkCancellation()
-            guard let format = availableFormats(result).first else {
+            let formats = availableFormats(result)
+            let sourceExtension = Catalog.normalizedExtension(input.pathExtension)
+            guard let format = formats.first(where: { $0.rawValue == sourceExtension }) ?? formats.first else {
                 throw LemulipError.unsupported("No native output format is available for this audio file. Convert it to WAV or M4A, then reopen the editor.")
             }
             preview = result
