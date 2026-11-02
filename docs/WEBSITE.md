@@ -32,7 +32,9 @@ Each section must add information. Do not restore a separate large statistics se
 
 Supporting copy should read as ordinary English: name the file, operation, choice or output. Keep actual product terms consistent. Remove repeated promises, staged introductions, forced three-part phrasing and vague claims of effortless or revolutionary work. Do not manufacture warmth through slang, typos, testimonials, performance numbers or a founder story. Keep the owner’s preference against long dashes.
 
-The example starts with the visitor. **Play runs one selected example and stops at its result**; replay and manual controls remain available, and the nine samples remain selectable. Stop playback when interaction takes over; preserve hidden/offscreen handling. Keep the wheel as the focal movement, with short feedback and stable result states. Use transforms for cursor/drag movement and coalesce pointer updates. Reduced motion retains complete controls and understandable states. No new animation runtime, background video, remote font or decorative motion quota is required.
+The example starts with the visitor. **Play runs one selected example and stops at its result**; replay and manual controls remain available, and the nine samples remain selectable. If Play is visible but most of the example is clipped, bring the example and Pause into view once. Leave an already framed example in place. Keep ordinary page and focus scrolling immediate so an earlier scroll cannot carry the example away after Play. Pause offscreen, and stop playback when the visitor takes over.
+
+Keep the wheel as the focal movement, with short feedback and stable result states. Use transforms for cursor/drag movement and coalesce pointer updates. Reduced motion retains complete controls and understandable states. No new animation runtime, background video, remote font or decorative motion quota is required.
 
 ## Reference Roles
 

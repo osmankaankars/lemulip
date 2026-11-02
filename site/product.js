@@ -53,6 +53,16 @@
     $('tour-toggle').setAttribute('aria-pressed', String(autoplay));
     desktop.dataset.autoplay = String(autoplay);
   }
+  function revealExampleForPlay() {
+    const rect = desktop.getBoundingClientRect(), viewport = document.documentElement.clientHeight;
+    const shown = Math.max(0, Math.min(rect.bottom, viewport) - Math.max(rect.top, 0));
+    // Play can still be visible below a clipped stage. Frame the example and its controls together.
+    if (shown >= Math.min(rect.height, viewport) / 2) return;
+    const demo = $('try'), shortScreen = rect.top < 0 && demo.getBoundingClientRect().height > viewport;
+    (shortScreen ? $('demo-controls') : demo).scrollIntoView({
+      block:shortScreen?'end':'nearest', inline:'nearest', behavior:reduced.matches?'instant':'smooth'
+    });
+  }
   function schedule() {
     clearTimeout(timer); timer = null;
     if (autoplay && step === 3) { stopTour(); return; }
@@ -164,7 +174,11 @@
     setStep(step===2?0:1);desktop.focus({preventScroll:true});
   });
   $('next-step').addEventListener('click',()=>{stopTour();setStep(step===3?0:step+1);announce($('demo-instruction').textContent);});
-  $('tour-toggle').addEventListener('click',()=>{autoplay=!autoplay;updatePlay();if(autoplay&&step===3)setStep(0);schedule();});
+  $('tour-toggle').addEventListener('click',()=>{
+    autoplay=!autoplay;updatePlay();
+    if(autoplay){if(step===3)setStep(0);revealExampleForPlay();}
+    schedule();
+  });
   document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>chooseMode(b.dataset.mode)));
   $('wheel-cancel').addEventListener('click',()=>{stopTour();setStep(0);announce('Example cancelled. Original unchanged.');source.focus({preventScroll:true});});
   for(const [id,direction] of [['wheel-prev',-1],['wheel-next',1]]) $(id).addEventListener('click',()=>{const pages=Math.ceil(operations().length/8);wheelPage=(wheelPage+direction+pages)%pages;selected=wheelPage*8;drawWheel();});
@@ -233,7 +247,10 @@
   desktop.addEventListener('dragover',e=>e.preventDefault());desktop.addEventListener('drop',e=>{e.preventDefault();announce('Choose one of the sample files. Nothing is uploaded.');});
   reduced.addEventListener('change',()=>{if(reduced.matches)stopTour();});
   document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(timer);}else schedule();});
-  if('IntersectionObserver' in window)new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;schedule();},{threshold:.15}).observe(desktop);
+  if('IntersectionObserver' in window)new IntersectionObserver(entries=>{
+    // A quick exit and re-entry can arrive in one batch. Use its latest state.
+    visible=entries[entries.length-1].isIntersecting;schedule();
+  },{threshold:.15}).observe(desktop);
   window.addEventListener('resize',positionTourCursor);
 
   $('format-count').textContent=data.counts.formats;$('tool-count').textContent=data.counts.tools;$('action-count').textContent=data.counts.actions;
