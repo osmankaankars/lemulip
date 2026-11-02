@@ -227,18 +227,114 @@ def check_retained_mode_replay(page) -> None:
             });
             window.__replayObserver = observer;
         }''')
+        failed = False
         try:
             page.locator('#tour-toggle').click()
             displayed = page.wait_for_function('window.__replayStepOne').json_value()
+            assert displayed['instruction'] == 'Tap '+key+' for '+mode+'.', (mode, displayed)
+            assert displayed['hint'] == 'Tap '+key, (mode, displayed)
+            page.wait_for_function('document.querySelector("#desktop-demo").dataset.step==="3"')
+            assert page.locator('[data-mode="'+mode+'"]').get_attribute('aria-pressed') == 'true'
+            assert page.locator('#output-name').inner_text() == operation
+            assert page.locator('#demo-hint').inner_text() == 'Sample result'
+            assert page.locator('#tour-toggle').get_attribute('aria-pressed') == 'false'
+        except Exception:
+            failed = True
+            try:
+                state = page.evaluate('''() => {
+                    const desktop = document.getElementById('desktop-demo');
+                    const active = document.activeElement;
+                    return {
+                        mode: document.querySelector('[data-mode][aria-pressed="true"]')?.dataset.mode,
+                        step: desktop?.dataset.step, autoplay: desktop?.dataset.autoplay,
+                        hidden: document.hidden, scrollY,
+                        activeElement: active && {tag: active.tagName, id: active.id,
+                            label: active.getAttribute('aria-label')},
+                        rect: desktop?.getBoundingClientRect().toJSON()
+                    };
+                }''')
+            except Exception as snapshot_error:
+                state = {'snapshot_error': str(snapshot_error)}
+            print(json.dumps({'retained_mode_replay_failure': {'expected_mode': mode, **state}}), flush=True)
+            raise
         finally:
-            page.evaluate('window.__replayObserver.disconnect()')
-        assert displayed['instruction'] == 'Tap '+key+' for '+mode+'.', (mode, displayed)
-        assert displayed['hint'] == 'Tap '+key, (mode, displayed)
-        page.wait_for_function('document.querySelector("#desktop-demo").dataset.step==="3"')
-        assert page.locator('[data-mode="'+mode+'"]').get_attribute('aria-pressed') == 'true'
-        assert page.locator('#output-name').inner_text() == operation
-        assert page.locator('#demo-hint').inner_text() == 'Sample result'
-        assert page.locator('#tour-toggle').get_attribute('aria-pressed') == 'false'
+            try:
+                page.evaluate('window.__replayObserver?.disconnect()')
+            except Exception:
+                if not failed:
+                    raise
+
+
+def install_visibility_batch_probe(page) -> None:
+    """Keep native observation, with a way to deliver a controlled queued batch."""
+    page.add_init_script('''(() => {
+        const NativeObserver = window.IntersectionObserver;
+        window.IntersectionObserver = class extends NativeObserver {
+            constructor(callback, options) {
+                super(callback, options);
+                this.testCallback = callback;
+            }
+            observe(target) {
+                super.observe(target);
+                if (target.id !== 'desktop-demo') return;
+                window.__deliverDemoVisibility = states => {
+                    // After native setup, isolate this target's controlled queue
+                    // from live entries that could overwrite the test stimulus.
+                    this.disconnect();
+                    this.takeRecords();
+                    const now = performance.now();
+                    this.testCallback(states.map((visible, index) => ({
+                        target, time: now - states.length + index + 1,
+                        isIntersecting: visible, intersectionRatio: visible ? 1 : 0
+                    })), this);
+                };
+            }
+        };
+    })();''')
+
+
+def check_queued_visibility_replay(page) -> None:
+    """The latest queued visibility controls a requested replay, never starts one."""
+    page.wait_for_function('typeof window.__deliverDemoVisibility === "function"')
+    desktop = page.locator('#desktop-demo')
+    tour = page.locator('#tour-toggle')
+    page.evaluate('window.__deliverDemoVisibility([false, true])')
+    page.wait_for_timeout(2400)
+    assert desktop.get_attribute('data-step') == '0'
+    assert tour.get_attribute('aria-pressed') == 'false', 'Visibility alone must not start playback'
+
+    page.locator('[data-mode="tools"]').click()
+    page.locator('#wheel-svg').get_by_role('button', name='Crop', exact=True).click()
+    page.evaluate('window.__deliverDemoVisibility([false, true])')
+    tour.click()
+    assert tour.get_attribute('aria-pressed') == 'true', 'Play must start a new replay from the manual result'
+    page.wait_for_function('document.getElementById("desktop-demo").dataset.step==="3"', timeout=7000)
+    assert page.locator('#output-name').inner_text() == 'Crop'
+    assert page.locator('[data-mode="tools"]').get_attribute('aria-pressed') == 'true'
+    assert tour.get_attribute('aria-pressed') == 'false'
+
+    page.evaluate('window.__deliverDemoVisibility([true, false])')
+    tour.click()
+    page.wait_for_timeout(2400)
+    assert desktop.get_attribute('data-step') == '0', 'A later hidden entry must suspend the requested replay'
+    assert tour.get_attribute('aria-pressed') == 'true', 'Visibility suspension must retain the playback request'
+    assert page.locator('#sample-output').is_hidden()
+    page.evaluate('window.__deliverDemoVisibility([true])')
+    page.wait_for_function('document.getElementById("desktop-demo").dataset.step==="3"', timeout=7000)
+    assert page.locator('#output-name').inner_text() == 'Crop'
+    assert page.locator('#sample-file').get_attribute('data-sample') == 'images'
+    assert tour.get_attribute('aria-pressed') == 'false'
+    page.wait_for_timeout(2400)
+    assert desktop.get_attribute('data-step') == '3', 'A resumed replay must stop at its result'
+
+    page.evaluate('window.__deliverDemoVisibility([true, false])')
+    tour.click()
+    desktop.focus()
+    assert tour.get_attribute('aria-pressed') == 'false', 'Keyboard entry must cancel the suspended replay'
+    page.evaluate('window.__deliverDemoVisibility([true])')
+    page.wait_for_timeout(2400)
+    assert desktop.get_attribute('data-step') == '0'
+    assert tour.get_attribute('aria-pressed') == 'false', 'Visibility must not resume a cancelled replay'
 
 
 def check_gallery_without_javascript(page) -> None:
@@ -370,7 +466,7 @@ def check_entry_and_sharing(page, canonical):
 
 
 def exercise(page,output,width,height):
-    assert page.locator('html').get_attribute('data-site-version')=='20261102.1'
+    assert page.locator('html').get_attribute('data-site-version')=='20261102.2'
     assert 'Lemulip' in page.title()
     assert page.locator('#format-count').inner_text()=='35'
     assert page.locator('#tool-count').inner_text()=='26'
@@ -524,6 +620,12 @@ def run(output:Path,engine:str,url:str|None,executable:str|None=None):
                 assert page.locator('#sample-output').is_visible()
                 assert page.locator('#output-name').inner_text()=='morning-light.png'
                 results.append({'user_started_example_idle_pause_replay_and_stop':'PASS','retained_mode_replay_and_result_feedback':'PASS','pointer_drag_shift_and_drop':'PASS'});page.close()
+                page=browser.new_page(viewport={'width':1440,'height':1000})
+                page.on('pageerror',lambda e:errors.append(str(e)))
+                install_visibility_batch_probe(page)
+                page.goto(url,wait_until='networkidle')
+                check_queued_visibility_replay(page)
+                results.append({'queued_visibility_order_idle_resume_keyboard_and_result':'PASS'});page.close()
                 page=browser.new_page();page.goto(url,wait_until='networkidle')
                 page.locator('#tour-toggle').click()
                 assert page.locator('#tour-toggle').get_attribute('aria-pressed')=='true'

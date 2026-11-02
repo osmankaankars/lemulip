@@ -233,7 +233,10 @@
   desktop.addEventListener('dragover',e=>e.preventDefault());desktop.addEventListener('drop',e=>{e.preventDefault();announce('Choose one of the sample files. Nothing is uploaded.');});
   reduced.addEventListener('change',()=>{if(reduced.matches)stopTour();});
   document.addEventListener('visibilitychange',()=>{if(document.hidden){clearTimeout(timer);}else schedule();});
-  if('IntersectionObserver' in window)new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;schedule();},{threshold:.15}).observe(desktop);
+  if('IntersectionObserver' in window)new IntersectionObserver(entries=>{
+    // A quick exit and re-entry can arrive in one batch. Use its latest state.
+    visible=entries[entries.length-1].isIntersecting;schedule();
+  },{threshold:.15}).observe(desktop);
   window.addEventListener('resize',positionTourCursor);
 
   $('format-count').textContent=data.counts.formats;$('tool-count').textContent=data.counts.tools;$('action-count').textContent=data.counts.actions;

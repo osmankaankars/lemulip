@@ -34,7 +34,7 @@ class ReleasePresentationTests(unittest.TestCase):
         self.assertEqual(3,page.count('releases/download/v0.1.20/Lemulip-0.1.20-macOS-universal.dmg'))
         self.assertNotIn('v0.1.19',page)
         self.assertIn('Lemulip 0.1.20. Select an image',page)
-        self.assertIn('data-site-version="20261102.1"',page)
+        self.assertIn('data-site-version="20261102.2"',page)
         self.assertIn('Put PDF pages in order.',page)
         self.assertIn('releases/tag/v0.1.20',page)
 
