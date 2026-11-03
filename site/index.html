@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-repository="" data-theme="orchard" data-site-version="20261102.2">
+<html lang="en" data-repository="" data-theme="orchard" data-site-version="20261104.1">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,13 +10,13 @@
   <meta property="og:description" content="Drag a file, tap a key, and choose what to do with it. Local file tools for Mac, free and open source.">
   <title>Lemulip · File tools, right where you drag.</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./product.css?v=20261102.2">
-  <script src="./catalog.js?v=20261102.2" defer></script>
-  <script src="./catalog-search.js?v=20261102.2" defer></script>
-  <script src="./product.js?v=20261102.2" defer></script>
-  <script src="./demo-view.js?v=20261102.2" defer></script>
-  <link rel="stylesheet" href="./gallery.css?v=20261102.2">
-  <script src="./gallery.js?v=20261102.2" defer></script>
+  <link rel="stylesheet" href="./product.css?v=20261104.1">
+  <script src="./catalog.js?v=20261104.1" defer></script>
+  <script src="./catalog-search.js?v=20261104.1" defer></script>
+  <script src="./product.js?v=20261104.1" defer></script>
+  <script src="./demo-view.js?v=20261104.1" defer></script>
+  <link rel="stylesheet" href="./gallery.css?v=20261104.1">
+  <script src="./gallery.js?v=20261104.1" defer></script>
 </head>
 <body>
 <a class="skip" href="#try">Skip to interactive demo</a>
@@ -29,7 +29,7 @@
 <section class="shell hero" aria-labelledby="hero-title">
   <div class="hero-copy">
     <h1 id="hero-title">File tools.<br><em>Right where<br>you drag.</em></h1>
-    <p class="lead">Drag a file from Finder or your desktop, tap a key, and choose what to do with it.</p>
+    <p class="lead">Convert a photo or put PDF pages in order, straight from Finder or your desktop.</p>
     <a class="button primary" href="https://github.com/osmankaankars/lemulip/releases/download/v0.1.20/Lemulip-0.1.20-macOS-universal.dmg">Download for Mac <span aria-hidden="true">↓</span></a>
     <p class="requirements">Free &amp; open source · <span class="verbatim">macOS</span> 13+<br>Apple silicon &amp; Intel · v0.1.20</p>
     <div class="release-links"><a class="release-link" href="https://github.com/osmankaankars/lemulip/releases/tag/v0.1.20">Preview release notes</a><a class="release-link" href="https://github.com/osmankaankars/lemulip/blob/main/docs/INSTALL.md">Install &amp; first steps</a></div>
@@ -77,23 +77,21 @@
 <section class="shell shortcuts" id="features" aria-labelledby="shortcuts-title">
   <div class="shortcut-intro"><h2 id="shortcuts-title">While you drag.</h2><p>Tap a key to open the tools.<br> Drop onto the one you need.</p></div>
   <div class="shortcut-list">
-    <div class="shortcut-convert"><kbd aria-label="Shift">⇧</kbd><h3>Convert</h3><p>A new format, as a new copy.</p></div>
+    <div class="shortcut-convert"><kbd aria-label="Shift">⇧</kbd><h3>Convert</h3><p>Save a copy in another format.</p></div>
     <div class="shortcut-tools"><kbd aria-label="Command">⌘</kbd><h3>Tools</h3><p>Crop, trim, merge or reorder.</p></div>
     <div class="shortcut-actions"><kbd aria-label="Control">⌃</kbd><h3>Actions</h3><p>Move a file, share it or copy its path.</p></div>
   </div>
 </section>
-<section class="shell app-gallery" id="app-gallery" aria-labelledby="gallery-title">
+<section class="shell app-gallery" id="app-gallery" aria-labelledby="gallery-caption-title">
   <div class="gallery-intro">
-    <h2 id="gallery-title">Inside Lemulip.</h2>
-    <p class="gallery-lead">Open Workspace to choose a file and see the tools that work with it.</p>
     <div class="gallery-caption" id="gallery-caption" role="status" aria-live="polite" aria-atomic="true">
-      <h3 id="gallery-caption-title">Find a format or tool.</h3>
-      <p id="gallery-description">Search by name or pin the tools you use often.</p>
+      <h2 id="gallery-caption-title">Find a format or tool.</h2>
+      <p id="gallery-description">Choose a file in Workspace. Search for a format, or pin the tools you use often.</p>
     </div>
   </div>
   <div class="gallery-viewer">
     <div class="gallery-tabs" id="gallery-tabs" role="tablist" aria-label="App screenshots" hidden>
-      <button id="tab-workspace" type="button" role="tab" data-screen="workspace" data-title="Find a format or tool." data-description="Search by name or pin the tools you use often." aria-controls="screen-workspace" aria-selected="true" tabindex="0">Workspace</button>
+      <button id="tab-workspace" type="button" role="tab" data-screen="workspace" data-title="Find a format or tool." data-description="Choose a file in Workspace. Search for a format, or pin the tools you use often." aria-controls="screen-workspace" aria-selected="true" tabindex="0">Workspace</button>
       <button id="tab-pdf-organize" type="button" role="tab" data-screen="pdf-organize" data-title="Put PDF pages in order." data-description="Drag a page into place or type its position, then save the arranged PDF as a new copy." aria-controls="screen-pdf-organize" aria-selected="false" tabindex="-1">PDF pages</button>
       <button id="tab-crop-video" type="button" role="tab" data-screen="crop-video" data-title="Crop a video." data-description="Move the crop, choose an aspect ratio and check the output size before saving." aria-controls="screen-crop-video" aria-selected="false" tabindex="-1">Crop video</button>
       <button id="tab-trim-audio" type="button" role="tab" data-screen="trim-audio" data-title="Trim a recording." data-description="Select a range on the waveform and preview it before exporting." aria-controls="screen-trim-audio" aria-selected="false" tabindex="-1">Trim audio</button>
