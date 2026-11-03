@@ -197,9 +197,13 @@ struct AudioTrimView: View {
     }
 
     private func applyTimes() {
-        playback.pause()
-        guard validationError == nil, let preview, let times = parsedTimes else { return }
+        guard validationError == nil, let preview, let times = parsedTimes else {
+            playback.pause()
+            return
+        }
         let value = AudioTrimSelection(startSeconds: times.start, endSeconds: times.end, sourceDuration: preview.durationSeconds)
+        // Moving focus can commit the same valid text again.
+        guard value != selection else { return }
         selection = value
         playback.changeSelection(value)
     }

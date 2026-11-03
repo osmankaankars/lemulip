@@ -73,7 +73,7 @@ jobs:
           record['compiledTestSourceSHA256']=hashlib.sha256(suite.read_bytes()).hexdigest()
           receipt.write_text(json.dumps(record,indent=2)+'\n')
           PYCODE
-      - name: Require Real Media Engine and Decode the Audio Fixtures
+      - name: Require Real Media Engine and Decode the Media Fixtures
         env:
           HOMEBREW_NO_ANALYTICS: '1'
           HOMEBREW_NO_AUTO_UPDATE: '1'
@@ -88,6 +88,11 @@ jobs:
           ffmpeg -v error -f lavfi -i 'sine=frequency=440:duration=20' \
             -c:a pcm_s16le "$RUNNER_TEMP/lemulip-native-ui/Fixtures/AudioControls/Playback.wav"
           ffmpeg -v error -i "$RUNNER_TEMP/lemulip-native-ui/Fixtures/AudioControls/Playback.wav" -f null -
+          mkdir "$RUNNER_TEMP/lemulip-native-ui/Fixtures/VideoControls"
+          ffmpeg -v error -f lavfi -i 'testsrc2=size=320x180:rate=24:duration=20' \
+            -an -c:v libx264 -preset ultrafast -pix_fmt yuv420p -movflags +faststart \
+            "$RUNNER_TEMP/lemulip-native-ui/Fixtures/VideoControls/Playback.mp4"
+          ffmpeg -v error -i "$RUNNER_TEMP/lemulip-native-ui/Fixtures/VideoControls/Playback.mp4" -f null -
       - name: Build Read-Only Authorized Accessibility Helper
         run: xcrun swiftc -parse-as-library script/native_ui/ReadOnlyAXSnapshot.swift -o "$RUNNER_TEMP/lemulip-native-ui/ReadOnlyAXSnapshot"
       - name: Exercise Actual Options and PDF Dragging

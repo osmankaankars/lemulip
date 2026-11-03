@@ -10,6 +10,62 @@ extension QualityUITests {
         try audioResetSelectionAndPlaybackResume(language: "tr")
     }
 
+    func testEnglishVideoFieldFocusPreservesPausedPosition() throws {
+        let app = launch(language: "en")
+        let input = ReviewConfiguration.fixtures.appendingPathComponent("VideoControls/Playback.mp4")
+        let original = try Data(contentsOf: input)
+        let folder = input.deletingLastPathComponent()
+        let before = try contents(folder)
+        XCTAssertEqual(before, Set([input]), "Require an isolated, input-only video fixture folder")
+        app.open(input)
+        try openOperation("media.trim", in: app)
+        let start = app.textFields.matching(NSPredicate(format: "label == %@", "Start")).firstMatch
+        let end = app.textFields.matching(NSPredicate(format: "label == %@", "End")).firstMatch
+        let position = app.staticTexts.matching(NSPredicate(format: "label == %@", "Playback Position")).firstMatch
+        let play = app.buttons["Play Selection"]
+        let pause = app.buttons["Pause"]
+        let create = app.buttons["editor.create-copy"]
+        XCTAssertTrue(start.waitForExistence(timeout: 20))
+        XCTAssertTrue(end.exists && position.exists)
+        expectAudioState("The real video preview must be ready", timeout: 20) { play.exists && play.isEnabled }
+        replaceAudioTime(start, with: "00:02.000")
+        replaceAudioTime(end, with: "00:18.000")
+        XCTAssertTrue(create.isEnabled)
+        play.click()
+        expectAudioState("Video playback must advance to an intermediate position") {
+            guard let seconds = self.audioSeconds(position.value as? String) else { return false }
+            // Editing End intentionally previews that edge. Exclude its still
+            // frame and observe real playback inside the range before pausing.
+            return seconds >= 7 && seconds < 16 && pause.exists && pause.isEnabled
+        }
+        pause.click()
+        expectAudioState("The actual video Pause action must restore Play Selection") { play.exists && play.isEnabled }
+        let paused = try audioPositionSeconds(position)
+        XCTAssertGreaterThanOrEqual(paused, 7)
+        XCTAssertLessThan(paused, 18)
+        captureAudioState(app, name: "Video paused before field focus")
+
+        // End retains field-editor focus through the transport button clicks.
+        // Commit each unchanged field by moving focus; never click the timeline,
+        // whose production pointer action intentionally seeks to another frame.
+        XCTAssertTrue(start.isHittable && end.isHittable)
+        for field in [start, end] {
+            field.click()
+            XCTAssertEqual(try audioPositionSeconds(position), paused, accuracy: 0.02,
+                           "Committing an unchanged video time field must preserve the paused position")
+            XCTAssertEqual(start.value as? String, "00:02.000")
+            XCTAssertEqual(end.value as? String, "00:18.000")
+            XCTAssertTrue(play.isEnabled && create.isEnabled)
+        }
+        captureAudioState(app, name: "Video paused after field focus")
+        let cancel = app.buttons["Cancel"]
+        XCTAssertTrue(cancel.isEnabled && cancel.isHittable)
+        cancel.click()
+        try expectEditorClosed(in: app)
+        XCTAssertEqual(try Data(contentsOf: input), original)
+        XCTAssertEqual(try contents(folder), before, "Field focus and Cancel must create no files")
+    }
+
     private func audioResetSelectionAndPlaybackResume(language: String) throws {
         let app = launch(language: language)
         // FFmpeg stages this longer input before the sandboxed runner launches.

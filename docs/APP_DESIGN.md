@@ -55,11 +55,13 @@ Audio's range-only reset is **Reset Selection / Seçimi sıfırla**, matching vi
 
 Audio playback resumes from its paused position inside the current selection, matching video. Reaching the selection's end makes the next Play start at its beginning. Changing the range starts at the new beginning; a stale player clock or canceled seek must not replace that position. Preserve seek generation guards, end bounds, timeouts and cleanup on dismissal.
 
+In both media editors, committing an unchanged valid time field while moving focus preserves playback state and position. Invalid text still pauses; a genuine range change follows the existing audio-start or video-edge preview behavior. Explicit Reset remains a separate action.
+
 Verify audio pause/resume and invalid-range reset through real production controls in English and Turkish, with a separate long WAV fixture staged before XCTest. Check the actual playback position, retained output format, source bytes and absence of published output after cancellation. Real-player model tests cover end restart, range changes, canceled seeks and reuse; no production test hook is needed.
 
 ## Verification Before Release
 
-Run the current **37-case native suite** for this candidate. It retains the WAV source default, manual output-format choice and cancellation path. The PDF cancellation cases capture the organizer and English/Turkish merge editor with help collapsed and expanded; those must be genuine captures of the running candidate.
+Run the current **38-case native suite** for this candidate. It retains the WAV source default, manual output-format choice and cancellation path. The PDF cancellation cases capture the organizer and English/Turkish merge editor with help collapsed and expanded; those must be genuine captures of the running candidate. The additional video case verifies that transferring focus between unchanged time fields preserves a paused preview.
 
 The expanded-help capture requires the explanation to be visible and hittable before checking the page positions and footer. Keep accessibility snapshots from before and after the disclosure click. A screenshot's attachment name or reachable footer alone does not establish that help expanded.
 

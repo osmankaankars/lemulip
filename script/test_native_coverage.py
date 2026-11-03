@@ -20,13 +20,14 @@ class NativeCoverageTests(unittest.TestCase):
                      'testOrganizerDestinationCancelPreservesTheEditedOrder',
                      'testTurkishMergeFirstCancelClickDiscardsActivePositionDraft',
                      'testEnglishAudioResetSelectionAndPlaybackResume',
-                     'testTurkishAudioResetSelectionAndPlaybackResume'}
+                     'testTurkishAudioResetSelectionAndPlaybackResume',
+                     'testEnglishVideoFieldFocusPreservesPausedPosition'}
         present = set(re.findall(r'func (test\w+)\(', sources))
         self.assertFalse(required - present, f'Missing native coverage: {sorted(required - present)}')
         self.assertTrue({'testEnglishWheelPointerKeyboardAndVisualReview',
                          'testTurkishWheelPointerKeyboardAndVisualReview'} <= present)
-        self.assertEqual(len(present), 37,
-                         'Keep all 34 existing cases, Turkish merge controls and two audio control flows')
+        self.assertEqual(len(present), 38,
+                         'Keep all 34 existing cases, Turkish merge, two audio flows and video field focus')
 
     def test_workflow_assembles_and_records_the_new_cases(self):
         workflow = (ROOT / '.github/workflows/native-ui-review.yml').read_text()
@@ -55,6 +56,15 @@ class NativeCoverageTests(unittest.TestCase):
                         'The long fixture must be staged before the sandboxed XCTest runner starts')
         controls = (ROOT / 'script/native_ui/EditorControlsUITests.swift').read_text()
         self.assertIn('appendingPathComponent("AudioControls/Playback.wav")', controls)
+        video_fixture = '"$RUNNER_TEMP/lemulip-native-ui/Fixtures/VideoControls/Playback.mp4"'
+        self.assertIn('mkdir "$RUNNER_TEMP/lemulip-native-ui/Fixtures/VideoControls"', workflow)
+        self.assertIn('testsrc2=size=320x180:rate=24:duration=20', workflow)
+        self.assertIn('-c:v libx264', workflow)
+        self.assertIn('-pix_fmt yuv420p', workflow)
+        self.assertIn('ffmpeg -v error -i ' + video_fixture + ' -f null -', workflow)
+        self.assertLess(workflow.index(video_fixture), workflow.index('xcrun xcodebuild test'),
+                        'The video fixture must also be staged before XCTest starts')
+        self.assertIn('appendingPathComponent("VideoControls/Playback.mp4")', controls)
 
 
 if __name__ == '__main__':
