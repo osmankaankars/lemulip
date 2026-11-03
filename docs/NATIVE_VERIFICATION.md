@@ -13,6 +13,44 @@ are not a release blocker by the owner's explicit instruction. Final publication
 uses the exact v0.1.20 tagged archive verification; older candidates are not relabelled.
 Website delivery is tracked in [ROADMAP.md](ROADMAP.md). The promotional film is last.
 
+## State And Accessibility Review Coverage
+
+The external suite retains the existing 48 cases and adds ten bounded checks:
+
+- Orchard, Pistachio and Lemonade in English and Turkish. Each case confirms the
+  selected theme through the real Settings controls, measures the minimum
+  workspace, reads the full long-filename recovery message, and exercises
+  Command-F and Escape. The PDF, audio and video keyboard checks are distributed
+  across the six cases. Editor sheets retain their actual production sizes;
+  a small parent window is not evidence of a small editor.
+- Real Finder drops into an already populated workspace in all three themes:
+  a new file, the same file again, two selected files, and a rejected drop outside
+  the file area. These assert the resulting file rows and unchanged source bytes.
+  Their atomic XCTest gestures do not prove the outline's intermediate states.
+- Real System Settings changes for Reduce Motion and Reduce Transparency, with
+  NSWorkspace readback, wheel keyboard use, PDF output validation and usable
+  result cards. The original system values are restored in teardown. A still
+  screenshot does not establish the first animation frames or fade duration.
+
+The isolated application starts with explicit normal theme and saved-frame
+preferences to prevent one case from changing another case's starting state.
+The existing authenticated, read-only AX helper also reports the actual focused
+element in that same application; it does not set focus or grant authorization.
+Each added source fragment and the assembled suite have recorded SHA-256 values.
+
+A separate in-flight Finder observer captures one held drag entering, leaving
+and re-entering the expanded file target, Escape cancellation and an accepted
+drop. It checks existing Accessibility, event-posting and screen-capture
+authorization without requesting or changing permissions. A `blocked` report
+means that observation is unavailable. A `captured` report proves its recorded
+gesture outcomes; the outline still requires inspection of the actual frames.
+This diagnostic has no write endpoint and does not change the read-only helper.
+
+Compilation, executed XCTest results, screenshots and any separate live-drag
+report must be inspected together for the candidate under review. Source tests
+and successful staging alone do not establish runtime success. These checks do
+not certify VoiceOver speech or physical audio playback.
+
 ## Historical Evidence
 
 

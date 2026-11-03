@@ -28,12 +28,18 @@ class NativeCoverageTests(unittest.TestCase):
                                       'EmptyVideoExplainsRecovery',
                                       'WordCountReportsTheActualCounts',
                                       'MoveReportsTheActualFileTransfer')}
+        required |= {f'testState{theme}{language}MinimumWorkspaceAnd{editor}Keyboard'
+                     for theme, editor in (('Orchard', 'PDF'), ('Pistachio', 'Audio'), ('Lemonade', 'Video'))
+                     for language in ('English', 'Turkish')}
+        required |= {f'test{theme}FinderDropsPreserveInputsAndRejectDuplicates'
+                     for theme in ('Orchard', 'Pistachio', 'Lemonade')}
+        required.add('testRealDisplayPreferencesKeepWheelAndPDFResultsUsable')
         present = set(re.findall(r'func (test\w+)\(', sources))
         self.assertFalse(required - present, f'Missing native coverage: {sorted(required - present)}')
         self.assertTrue({'testEnglishWheelPointerKeyboardAndVisualReview',
                          'testTurkishWheelPointerKeyboardAndVisualReview'} <= present)
-        self.assertEqual(len(present), 48,
-                         'Keep all 38 existing cases and the ten bilingual language/result cases')
+        self.assertEqual(len(present), 58,
+                         'Keep all 48 existing cases plus the ten bounded state/accessibility cases')
 
     def test_workflow_assembles_and_records_the_new_cases(self):
         workflow = (ROOT / '.github/workflows/native-ui-review.yml').read_text()
@@ -46,9 +52,16 @@ class NativeCoverageTests(unittest.TestCase):
         self.assertIn("record['editorControlsSourceSHA256']", workflow)
         self.assertIn('script/native_ui/ProductLanguageUITests.swift', workflow)
         self.assertIn("record['productLanguageSourceSHA256']", workflow)
-        self.assertIn('+sound+wheel+result+controls+language)', workflow)
+        self.assertIn('+sound+wheel+result+controls+language+states+finder+display)', workflow)
+        for filename, receipt in [('StateAccessibilityUITests.swift', 'stateAccessibilitySourceSHA256'),
+                                  ('FinderDropUITests.swift', 'finderDropSourceSHA256'),
+                                  ('DisplayAccessibilityUITests.swift', 'displayAccessibilitySourceSHA256')]:
+            self.assertIn('script/native_ui/' + filename, workflow)
+            self.assertIn("record['" + receipt + "']", workflow)
         preparation = (ROOT / 'script/prepare_native_ui.py').read_text()
         self.assertLess(preparation.index('    prepare_product_language_fixtures(fixtures)'),
+                        preparation.index('    write_project(output / "Runner"'))
+        self.assertLess(preparation.index('    prepare_finder_drop_fixtures(fixtures)'),
                         preparation.index('    write_project(output / "Runner"'))
 
     def test_media_uses_real_ffmpeg_and_retains_its_version(self):

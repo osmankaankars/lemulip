@@ -39,6 +39,24 @@ private func snapshot(path: String) throws -> [String: Any] {
     guard AXUIElementSetMessagingTimeout(root, 0.5) == .success else {
         throw InspectionFailure("Could not bound AX messaging time")
     }
+    var focused: [String: Any]?
+    if let value = try attribute(root, kAXFocusedUIElementAttribute),
+       CFGetTypeID(value) == AXUIElementGetTypeID() {
+        let element = value as! AXUIElement
+        var pid: pid_t = 0
+        guard AXUIElementGetPid(element, &pid) == .success, pid == app.processIdentifier else {
+            throw InspectionFailure("Refusing focus outside the staged process")
+        }
+        var node: [String: Any] = [:]
+        for key in [kAXRoleAttribute, kAXTitleAttribute, kAXDescriptionAttribute, kAXIdentifierAttribute,
+                    kAXValueAttribute] {
+            if let text = try attribute(element, key) as? String {
+                guard text.count <= 2048 else { throw InspectionFailure("Focused AX attribute exceeds review limit") }
+                node[key == kAXRoleAttribute ? "role" : key] = text
+            }
+        }
+        focused = node
+    }
     var pending = [root]
     var visited: [AXUIElement] = []
     var nodes: [[String: Any]] = []
@@ -70,9 +88,11 @@ private func snapshot(path: String) throws -> [String: Any] {
             pending.append(contentsOf: children)
         }
     }
-    return ["schema": 1, "trusted": true, "bundleIdentifier": reviewIdentifier,
+    var record: [String: Any] = ["schema": 1, "trusted": true, "bundleIdentifier": reviewIdentifier,
             "applicationPath": expected.path, "pid": app.processIdentifier,
             "nodes": nodes, "truncated": false, "visitedNodes": visited.count]
+    if let focused { record["focusedElement"] = focused }
+    return record
 }
 
 @main

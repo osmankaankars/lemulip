@@ -18,7 +18,7 @@ jobs:
   review:
     name: External Production UI (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 35
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -62,7 +62,10 @@ jobs:
           result=pathlib.Path('script/native_ui/PDFResultUITests.swift').read_bytes()
           controls=pathlib.Path('script/native_ui/EditorControlsUITests.swift').read_bytes()
           language=pathlib.Path('script/native_ui/ProductLanguageUITests.swift').read_bytes()
-          suite.write_bytes(suite.read_bytes()+fragment+position+options+sound+wheel+result+controls+language)
+          states=pathlib.Path('script/native_ui/StateAccessibilityUITests.swift').read_bytes()
+          finder=pathlib.Path('script/native_ui/FinderDropUITests.swift').read_bytes()
+          display=pathlib.Path('script/native_ui/DisplayAccessibilityUITests.swift').read_bytes()
+          suite.write_bytes(suite.read_bytes()+fragment+position+options+sound+wheel+result+controls+language+states+finder+display)
           receipt=root/'provenance.json'; record=json.loads(receipt.read_text())
           record['workflowTestSourceSHA256']=hashlib.sha256(fragment).hexdigest()
           record['positionTestSourceSHA256']=hashlib.sha256(position).hexdigest()
@@ -72,6 +75,10 @@ jobs:
           record['pdfResultSourceSHA256']=hashlib.sha256(result).hexdigest()
           record['editorControlsSourceSHA256']=hashlib.sha256(controls).hexdigest()
           record['productLanguageSourceSHA256']=hashlib.sha256(language).hexdigest()
+          record['stateAccessibilitySourceSHA256']=hashlib.sha256(states).hexdigest()
+          record['finderDropSourceSHA256']=hashlib.sha256(finder).hexdigest()
+          record['displayAccessibilitySourceSHA256']=hashlib.sha256(display).hexdigest()
+          record['nativeDragReviewSourceSHA256']=hashlib.sha256(pathlib.Path('script/native_ui/NativeDragReview.swift').read_bytes()).hexdigest()
           record['compiledTestSourceSHA256']=hashlib.sha256(suite.read_bytes()).hexdigest()
           receipt.write_text(json.dumps(record,indent=2)+'\n')
           PYCODE
@@ -97,7 +104,9 @@ jobs:
           ffmpeg -v error -i "$RUNNER_TEMP/lemulip-native-ui/Fixtures/VideoControls/Playback.mp4" -f null -
       - name: Build Read-Only Authorized Accessibility Helper
         run: xcrun swiftc -parse-as-library script/native_ui/ReadOnlyAXSnapshot.swift -o "$RUNNER_TEMP/lemulip-native-ui/ReadOnlyAXSnapshot"
-      - name: Exercise Actual Options and PDF Dragging
+      - name: Build In-Flight Finder Drag Observer
+        run: xcrun swiftc -parse-as-library script/native_ui/NativeDragReview.swift -o "$RUNNER_TEMP/lemulip-native-ui/NativeDragReview"
+      - name: Exercise Actual Options, Editors, Themes, and Finder Drops
         run: |
           set -o pipefail
           python3 script/native_ax_bridge.py --directory "$RUNNER_TEMP/lemulip-native-ui" \
@@ -117,6 +126,12 @@ jobs:
             xcrun xcresulttool export attachments --path "$RUNNER_TEMP/lemulip-native-ui/Results.xcresult" \
               --output-path "$RUNNER_TEMP/lemulip-native-ui/ReviewAttachments"
           fi
+      - name: Record In-Flight Finder Drag States
+        if: success()
+        run: |
+          # The observer needs the review app stopped and closes only its own
+          # fixture window. The VoiceOver availability probe runs afterward.
+          "$RUNNER_TEMP/lemulip-native-ui/NativeDragReview" "$RUNNER_TEMP/lemulip-native-ui"
       - name: Attempt VoiceOver Runtime Review
         if: success()
         run: python3 script/probe_voiceover_review.py --directory "$RUNNER_TEMP/lemulip-native-ui"
@@ -135,5 +150,6 @@ jobs:
             ${{ runner.temp }}/lemulip-native-ui/ReviewAttachments
             ${{ runner.temp }}/lemulip-native-ui/voiceover-attempt.json
             ${{ runner.temp }}/lemulip-native-ui/VoiceOver-attempt.png
+            ${{ runner.temp }}/lemulip-native-ui/NativeDragEvidence
           if-no-files-found: ignore
           retention-days: 14
