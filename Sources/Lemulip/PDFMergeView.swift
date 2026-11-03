@@ -129,6 +129,9 @@ struct PDFMergeView: View {
                     Text(model.text("Keep at Least Two PDFs", "En az iki PDF kalmalı"))
                 }
             }.font(.system(size: 10)).foregroundStyle(Palette.muted)
+            EditorHelp(language: model.language, explanation: model.text(
+                "⌘-click a file to add or remove it from the selection. Shift-click to select a range. Drag the handle to move selected files together.",
+                "Bir dosyayı seçime eklemek veya seçimden çıkarmak için ⌘ ile tıkla. Aralık seçmek için Shift ile tıkla. Seçili dosyaları birlikte taşımak için tutamaktan sürükle."))
         }
     }
 
@@ -136,10 +139,10 @@ struct PDFMergeView: View {
         if let editingPosition {
             let range = editor.positionRange(for: editingPosition)
             return model.text("Position \(range.lowerBound)–\(range.upperBound) · Enter to Move · Esc to Cancel · Selected Files Move Together",
-                              "Konum \(range.lowerBound)–\(range.upperBound) · Enter ile taşı · Esc ile vazgeç · Seçili dosyalar birlikte taşınır")
+                              "Sıra \(range.lowerBound)–\(range.upperBound) · Enter ile taşı · Esc ile vazgeç · Seçili dosyalar birlikte taşınır")
         }
-        return model.text("⌘-Click to Add · Shift-Click for a Range · Drag the Handle or Edit a Position Number",
-                          "⌘ ile seçime ekle · Shift ile aralık seç · Tutamaktan sürükle veya sıra numarasını değiştir")
+        return model.text("Drag files or edit their position.",
+                          "Dosyaları sürükle veya sıra numaralarını değiştir.")
     }
 
     private var documentList: some View {
@@ -265,7 +268,7 @@ struct PDFMergeView: View {
             allowedPositions: range,
             label: model.text("Output Position for \(inputs[entry.id].lastPathComponent)", "\(inputs[entry.id].lastPathComponent) için çıktı sırası"),
             hint: model.text("Enter a Position and Press Return. Selected Files Move Together. Esc Cancels.",
-                             "Bir konum yazıp Enter'a bas. Seçili dosyalar birlikte taşınır. Esc ile vazgeç."),
+                             "Bir sıra numarası yazıp Enter'a bas. Seçili dosyalar birlikte taşınır. Esc ile vazgeç."),
             invalidHint: model.text("Enter a Whole Number from \(range.lowerBound) to \(range.upperBound). The Selected Files Keep Their Relative Order.",
                                     "\(range.lowerBound) ile \(range.upperBound) arasında tam sayı gir. Seçili dosyaların kendi aralarındaki sıra korunur."),
             focus: $focus, editingPosition: $editingPosition,
@@ -293,7 +296,7 @@ struct PDFMergeView: View {
     }
 
     @ViewBuilder private func documentMenu(_ inputIndex: Int) -> some View {
-        Button(model.text("Move to Position…", "Konuma taşı…")) { focus = .position(inputIndex) }
+        Button(model.text("Move to Position…", "Sıra numarasını değiştir…")) { focus = .position(inputIndex) }
         Button(model.text("Select This File", "Bu dosyayı seç")) { editor.select(inputIndex); focus = .content }
         Button(model.text("Add to Selection", "Seçime ekle")) {
             if !editor.selectedDocuments.contains(inputIndex) { editor.select(inputIndex, modifiers: .command) }

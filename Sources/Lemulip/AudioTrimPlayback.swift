@@ -79,7 +79,8 @@ final class AudioTrimPlayback: ObservableObject {
         seekTimeout = nil
         player?.pause()
         player?.currentItem?.cancelPendingSeeks()
-        if let selection, let current = player?.currentTime().seconds, current.isFinite {
+        // A paused player or pending seek may still report the previous range's time.
+        if isPlaying, let selection, let current = player?.currentTime().seconds, current.isFinite {
             positionSeconds = min(selection.endSeconds, max(selection.startSeconds, current))
         }
         isPlaying = false
@@ -125,19 +126,21 @@ final class AudioTrimPlayback: ObservableObject {
 
     private func playSelection() {
         guard isReady, let player, let selection, (try? selection.validate()) != nil else { return }
+        let position = min(selection.endSeconds, max(selection.startSeconds, positionSeconds))
+        let target = position >= selection.endSeconds ? selection.startSeconds : position
         pause()
         errorMessage = nil
         isSeeking = true
-        positionSeconds = selection.startSeconds
+        positionSeconds = target
         player.currentItem?.forwardPlaybackEndTime = time(selection.endSeconds)
         let currentPlaybackID = playbackID
-        player.seek(to: time(selection.startSeconds), toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] finished in
+        player.seek(to: time(target), toleranceBefore: .zero, toleranceAfter: .zero) { [weak self] finished in
             Task { @MainActor [weak self] in
                 guard let self, self.playbackID == currentPlaybackID, self.isSeeking else { return }
                 self.seekTimeout?.cancel()
                 self.seekTimeout = nil
                 guard finished, self.player?.currentItem?.status == .readyToPlay else {
-                    self.fail("The preview could not reach the selected start time. Try playing again.")
+                    self.fail("The preview could not reach the selected time. Try playing again.")
                     return
                 }
                 self.isSeeking = false
@@ -150,7 +153,7 @@ final class AudioTrimPlayback: ObservableObject {
             do { try await Task.sleep(nanoseconds: 15_000_000_000) }
             catch { return }
             guard let self, self.playbackID == currentPlaybackID, self.isSeeking else { return }
-            self.fail("The preview could not reach the selected start time. Try playing again.")
+            self.fail("The preview could not reach the selected time. Try playing again.")
         }
     }
 

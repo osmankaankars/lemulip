@@ -1,4 +1,4 @@
-"""Guard that the real-app suite retains the legacy options and Cancel coverage."""
+"""Guard that the real-app suite retains its baseline and bounded editor-control coverage."""
 from pathlib import Path
 import re
 import unittest
@@ -17,12 +17,17 @@ class NativeCoverageTests(unittest.TestCase):
                      'testEnglishInvalidPDFExplainsRecoveryAndCanCancel',
                      'testTurkishInvalidPDFExplainsRecoveryAndCanCancel',
                      'testTurkishOrganizerResultRevealsTheProducedCopyInFinder',
-                     'testOrganizerDestinationCancelPreservesTheEditedOrder'}
+                     'testOrganizerDestinationCancelPreservesTheEditedOrder',
+                     'testTurkishMergeFirstCancelClickDiscardsActivePositionDraft',
+                     'testEnglishAudioResetSelectionAndPlaybackResume',
+                     'testTurkishAudioResetSelectionAndPlaybackResume',
+                     'testEnglishVideoFieldFocusPreservesPausedPosition'}
         present = set(re.findall(r'func (test\w+)\(', sources))
         self.assertFalse(required - present, f'Missing native coverage: {sorted(required - present)}')
         self.assertTrue({'testEnglishWheelPointerKeyboardAndVisualReview',
                          'testTurkishWheelPointerKeyboardAndVisualReview'} <= present)
-        self.assertEqual(len(present), 34, 'Keep the 30 existing cases plus four PDF recovery/result flows')
+        self.assertEqual(len(present), 38,
+                         'Keep all 34 existing cases, Turkish merge, two audio flows and video field focus')
 
     def test_workflow_assembles_and_records_the_new_cases(self):
         workflow = (ROOT / '.github/workflows/native-ui-review.yml').read_text()
@@ -31,7 +36,9 @@ class NativeCoverageTests(unittest.TestCase):
         self.assertIn('suite.read_bytes()+fragment+position+options', workflow)
         self.assertIn('script/native_ui/PDFResultUITests.swift', workflow)
         self.assertIn("record['pdfResultSourceSHA256']", workflow)
-        self.assertIn('+sound+wheel+result)', workflow)
+        self.assertIn('script/native_ui/EditorControlsUITests.swift', workflow)
+        self.assertIn("record['editorControlsSourceSHA256']", workflow)
+        self.assertIn('+sound+wheel+result+controls)', workflow)
 
     def test_media_uses_real_ffmpeg_and_retains_its_version(self):
         workflow = (ROOT / '.github/workflows/native-ui-review.yml').read_text()
@@ -39,6 +46,25 @@ class NativeCoverageTests(unittest.TestCase):
         self.assertIn('ffmpeg -version', workflow)
         self.assertIn('Quality.wav', workflow)
         self.assertIn('ffmpeg-version.txt', workflow)
+        self.assertIn("sine=frequency=440:duration=0.25", workflow,
+                      'Keep the existing options fixture unchanged')
+        self.assertIn("sine=frequency=440:duration=20", workflow)
+        long_fixture = '"$RUNNER_TEMP/lemulip-native-ui/Fixtures/AudioControls/Playback.wav"'
+        self.assertIn('mkdir "$RUNNER_TEMP/lemulip-native-ui/Fixtures/AudioControls"', workflow)
+        self.assertIn('ffmpeg -v error -i ' + long_fixture + ' -f null -', workflow)
+        self.assertLess(workflow.index(long_fixture), workflow.index('xcrun xcodebuild test'),
+                        'The long fixture must be staged before the sandboxed XCTest runner starts')
+        controls = (ROOT / 'script/native_ui/EditorControlsUITests.swift').read_text()
+        self.assertIn('appendingPathComponent("AudioControls/Playback.wav")', controls)
+        video_fixture = '"$RUNNER_TEMP/lemulip-native-ui/Fixtures/VideoControls/Playback.mp4"'
+        self.assertIn('mkdir "$RUNNER_TEMP/lemulip-native-ui/Fixtures/VideoControls"', workflow)
+        self.assertIn('testsrc2=size=320x180:rate=24:duration=20', workflow)
+        self.assertIn('-c:v libx264', workflow)
+        self.assertIn('-pix_fmt yuv420p', workflow)
+        self.assertIn('ffmpeg -v error -i ' + video_fixture + ' -f null -', workflow)
+        self.assertLess(workflow.index(video_fixture), workflow.index('xcrun xcodebuild test'),
+                        'The video fixture must also be staged before XCTest starts')
+        self.assertIn('appendingPathComponent("VideoControls/Playback.mp4")', controls)
 
 
 if __name__ == '__main__':

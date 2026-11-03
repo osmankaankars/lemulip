@@ -232,8 +232,12 @@ struct VideoTrimView: View {
     }
 
     private func applyTimes() {
-        playback.pause()
-        guard validationError == nil, let value = parsedSelection else { return }
+        guard validationError == nil, let value = parsedSelection else {
+            playback.pause()
+            return
+        }
+        // Moving focus can commit the same valid text again.
+        guard value != selection else { return }
         let old = selection
         selection = value
         let edge = old?.startSeconds == value.startSeconds && old?.endSeconds != value.endSeconds ? value.endSeconds : value.startSeconds
