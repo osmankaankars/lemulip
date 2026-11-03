@@ -305,7 +305,7 @@ struct PDFOrganizeView: View {
     }
 
     @ViewBuilder private func pageMenu(_ page: PDFPageEdit) -> some View {
-        Button(model.text("Move to Position…", "Konuma taşı…")) { focus = .position(page.sourceIndex) }
+        Button(model.text("Move to Position…", "Sıra numarasını değiştir…")) { focus = .position(page.sourceIndex) }
         Button(model.text("Select This Page", "Bu sayfayı seç")) { editor.select(page.sourceIndex); focus = .content }
         Button(model.text("Add to Selection", "Seçime ekle")) {
             if !editor.selectedPages.contains(page.sourceIndex) { editor.select(page.sourceIndex, modifiers: .command) }
@@ -321,8 +321,10 @@ struct PDFOrganizeView: View {
                 Image(systemName: "doc.badge.ellipsis").font(.system(size: 32)).foregroundStyle(Palette.accent)
                 Text(model.text("Could Not Open the PDF Organizer", "PDF düzenleyicisi açılamadı"))
                     .font(.system(size: 19, weight: .semibold))
+                    .accessibilityIdentifier("pdf.organize.error-title")
                 Text(error).font(.system(size: 13)).foregroundStyle(Palette.muted)
                     .multilineTextAlignment(.center).frame(maxWidth: 550)
+                    .accessibilityIdentifier("pdf.organize.error-detail")
             }
         } else {
             VStack(spacing: 15) {
@@ -362,7 +364,7 @@ struct PDFOrganizeView: View {
                                         "PDF düzenleyicisi tek dosyayla çalışır. Vazgeç ve devam etmek için bir PDF seç."))
             return
         }
-        await editor.open(input)
+        await editor.open(input, language: model.language)
     }
 
     private func submit(selectedOnly: Bool) {

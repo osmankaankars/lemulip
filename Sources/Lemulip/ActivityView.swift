@@ -88,7 +88,9 @@ struct ActivityRow: View {
                             Label(url.lastPathComponent, systemImage: "doc")
                                 .font(.system(size: 12)).lineLimit(1).truncationMode(.middle)
                         }.buttonStyle(.plain).foregroundStyle(Palette.accent)
-                            .help(url.lastPathComponent)
+                            .accessibilityLabel(model.text("Show \(url.lastPathComponent) in Finder", "\(url.lastPathComponent) dosyasını Finder'da göster"))
+                            .help(model.text("Show \(url.lastPathComponent) in Finder", "\(url.lastPathComponent) dosyasını Finder'da göster"))
+                            .accessibilityIdentifier("activity.output.\(url.path)")
                             .onDrag { NSItemProvider(object: url as NSURL) }
                     }
                     if item.outputs.count > 4 {

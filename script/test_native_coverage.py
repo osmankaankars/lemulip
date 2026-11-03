@@ -13,18 +13,25 @@ class NativeCoverageTests(unittest.TestCase):
                     for control in ('Quality', 'Dimension', 'Speed', 'Volume', 'PageRange')}
         required |= {'testMergeFirstCancelClickDiscardsActivePositionDraft',
                      'testOrganizerFirstCancelClickDiscardsActivePositionDraft',
-                     'testWAVTrimDefaultsToSourceFormatAndKeepsManualChoice'}
+                     'testWAVTrimDefaultsToSourceFormatAndKeepsManualChoice',
+                     'testEnglishInvalidPDFExplainsRecoveryAndCanCancel',
+                     'testTurkishInvalidPDFExplainsRecoveryAndCanCancel',
+                     'testTurkishOrganizerResultRevealsTheProducedCopyInFinder',
+                     'testOrganizerDestinationCancelPreservesTheEditedOrder'}
         present = set(re.findall(r'func (test\w+)\(', sources))
         self.assertFalse(required - present, f'Missing native coverage: {sorted(required - present)}')
         self.assertTrue({'testEnglishWheelPointerKeyboardAndVisualReview',
                          'testTurkishWheelPointerKeyboardAndVisualReview'} <= present)
-        self.assertEqual(len(present), 30, 'Keep all 29 cases plus source-aware audio trim')
+        self.assertEqual(len(present), 34, 'Keep the 30 existing cases plus four PDF recovery/result flows')
 
     def test_workflow_assembles_and_records_the_new_cases(self):
         workflow = (ROOT / '.github/workflows/native-ui-review.yml').read_text()
         self.assertIn('script/native_ui/OptionsParityTests.swift', workflow)
         self.assertIn("record['optionsParitySourceSHA256']", workflow)
         self.assertIn('suite.read_bytes()+fragment+position+options', workflow)
+        self.assertIn('script/native_ui/PDFResultUITests.swift', workflow)
+        self.assertIn("record['pdfResultSourceSHA256']", workflow)
+        self.assertIn('+sound+wheel+result)', workflow)
 
     def test_media_uses_real_ffmpeg_and_retains_its_version(self):
         workflow = (ROOT / '.github/workflows/native-ui-review.yml').read_text()

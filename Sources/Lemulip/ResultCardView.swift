@@ -24,7 +24,10 @@ struct ResultCardView: View {
                             Button { model.reveal([url]) } label: {
                                 Text(url.lastPathComponent).font(.system(size: 12, weight: .medium))
                                     .lineLimit(2).truncationMode(.middle).multilineTextAlignment(.leading)
-                            }.buttonStyle(.plain).help(url.lastPathComponent)
+                            }.buttonStyle(.plain)
+                                .accessibilityLabel(model.text("Show \(url.lastPathComponent) in Finder", "\(url.lastPathComponent) dosyasını Finder'da göster"))
+                                .accessibilityIdentifier("completion.output.\(url.path)")
+                                .help(model.text("Show \(url.lastPathComponent) in Finder", "\(url.lastPathComponent) dosyasını Finder'da göster"))
                             Spacer(minLength: 0)
                         }.padding(.vertical, 4)
                             .onDrag { NSItemProvider(object: url as NSURL) }
