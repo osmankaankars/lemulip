@@ -1,8 +1,8 @@
 # Native App Refinement Brief
 
-Updated 3 November 2026.
+Updated 4 November 2026.
 
-**Status:** unreleased product-language refinement based on `926ec7f`, following [PR #41](https://github.com/osmankaankars/lemulip/pull/41). The public app reference is **0.1.20, build 23**. Fresh candidate checks and native captures are required; existing public screenshots do not establish this refinement's appearance or behavior.
+**Status:** unreleased interaction-feedback refinement based on `d3063cb`, following the product-language changes in [PR #42](https://github.com/osmankaankars/lemulip/pull/42). The public app reference is **0.1.20, build 23**. Fresh candidate checks and native captures are required; existing public screenshots do not establish this refinement's appearance or behavior.
 
 Read this with [DESIGN.md](DESIGN.md) for the shared identity and [WEBSITE.md](WEBSITE.md) for the separately scoped website. This brief records the current native refinement so later work can continue from the same decisions.
 
@@ -13,6 +13,14 @@ The app is **Operate**: help someone finish a file task with familiar Mac contro
 Use the pinned research snapshots in [Website Reference Roles](WEBSITE.md#reference-roles): **UI/UX Pro Max** informs task planning and hierarchy; **Taste** informs composition within Lemulip's established identity; **Impeccable** directs clarity and a bounded native quality review; **Jakub Krehel** informs labels, wrapping, focus and final interaction details. These roles guide the work without changing its native stack or introducing new runtime dependencies.
 
 ## Current Candidate
+
+### File acceptance and native motion
+
+Both empty and populated workspaces identify the file-drop target. While a file drag targets the populated selection, show the same accent dashed outline used by the empty drop zone. Keep the selected count, filenames, controls and layout stable. The outline is decorative and must not intercept input or appear as a separate accessibility element. It clears when the native targeting state ends; loading URLs, append order and duplicate handling retain the existing path.
+
+This feedback is immediate, with no added animation. Keep existing native progress controls and the shared panel appearance behavior: the wheel and result panel use short opacity-only entrances, with controls available immediately. Reduce Motion or Reduce Transparency makes those entrances immediate, including when a preference changes during a fade. Result presentation must preserve the current key window; repeated presentation and dismissal must not restart or revive an old fade.
+
+Use the existing appearance, panel reuse and native interaction checks. A normal-state screenshot can establish content and geometry, but cannot prove drag hover, exit or cancellation feedback. A continuous native drag observation is required before claiming those transitions were visually reviewed. Source review and injected-preference tests likewise do not establish the full System Settings or audible VoiceOver path.
 
 ### Workspace file order
 

@@ -168,7 +168,18 @@ struct DashboardView: View {
                     .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 5)
             }
         }
+        // Give the drop outline clearance without moving the existing file controls.
+        .padding(8)
+        .contentShape(RoundedRectangle(cornerRadius: 16))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16)
+                .strokeBorder(isTargeted ? Palette.accent : Color.clear,
+                              style: StrokeStyle(lineWidth: 2, dash: [5, 5]))
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
         .onDrop(of: [UTType.fileURL.identifier], isTargeted: $isTargeted, perform: loadDrop)
+        .padding(-8)
     }
 
     private var operationSection: some View {
