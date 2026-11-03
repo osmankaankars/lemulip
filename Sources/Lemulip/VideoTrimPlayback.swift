@@ -14,7 +14,9 @@ final class VideoTrimPlayback: ObservableObject {
     @Published private(set) var isPlaying = false
     @Published private(set) var isSeeking = false
     @Published private(set) var positionSeconds: Double = 0
-    @Published private(set) var errorMessage: String?
+    @Published private(set) var failure: MediaPlaybackFailure?
+
+    var errorMessage: String? { failure?.message(language: "en") }
 
     private var asset: AVURLAsset?
     private var selection: VideoTrimSelection?
@@ -46,7 +48,7 @@ final class VideoTrimPlayback: ObservableObject {
     func prepare(url: URL, selection: VideoTrimSelection) {
         shutdown()
         guard url.isFileURL, (try? selection.validate()) != nil else {
-            errorMessage = "Choose a local video with a valid time range to preview."
+            failure = .localVideoAndRangeRequired
             return
         }
         self.selection = selection
@@ -74,7 +76,7 @@ final class VideoTrimPlayback: ObservableObject {
             do { try await Task.sleep(nanoseconds: 15_000_000_000) }
             catch { return }
             guard let self, self.loadID == generation, !self.isReady else { return }
-            self.fail("Playback could not become ready. Try reopening the preview.")
+            self.fail(.preparationTimedOut)
         }
     }
 
@@ -114,7 +116,7 @@ final class VideoTrimPlayback: ObservableObject {
         asset = nil
         selection = nil
         isReady = false
-        errorMessage = nil
+        failure = nil
         positionSeconds = 0
     }
 
@@ -142,16 +144,16 @@ final class VideoTrimPlayback: ObservableObject {
             readinessTimeout?.cancel()
             readinessTimeout = nil
             isReady = true
-            errorMessage = nil
+            failure = nil
             if firstReadiness { seek(to: positionSeconds) }
         case .failed:
             isReady = false
-            fail(item.error?.localizedDescription ?? "This video cannot be played by the native preview.")
+            fail(item.error.map { MediaPlaybackFailure.system($0.localizedDescription) } ?? .videoUnavailable)
         case .unknown:
             isReady = false
         @unknown default:
             isReady = false
-            fail("This video cannot be played by the native preview.")
+            fail(.videoUnavailable)
         }
     }
 
@@ -166,7 +168,7 @@ final class VideoTrimPlayback: ObservableObject {
         stopActivity(readPosition: false)
         positionSeconds = seconds
         guard isReady, let player, let selection else { return }
-        errorMessage = nil
+        failure = nil
         playAfterSeek = thenPlay
         isSeeking = true
         player.currentItem?.forwardPlaybackEndTime = time(selection.endSeconds)
@@ -179,7 +181,7 @@ final class VideoTrimPlayback: ObservableObject {
                 self.seekTimeout?.cancel()
                 self.seekTimeout = nil
                 guard finished, self.player?.currentItem?.status == .readyToPlay else {
-                    self.fail("The preview could not reach this time. Try seeking or playing again.")
+                    self.fail(.videoSeekFailed)
                     return
                 }
                 self.isSeeking = false
@@ -196,7 +198,7 @@ final class VideoTrimPlayback: ObservableObject {
             catch { return }
             guard let self, self.loadID == sourceGeneration,
                   self.playbackID == generation, self.isSeeking else { return }
-            self.fail("The preview could not reach this time. Try seeking or playing again.")
+            self.fail(.videoSeekFailed)
         }
     }
 
@@ -234,8 +236,8 @@ final class VideoTrimPlayback: ObservableObject {
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self, self.playbackID == generation, self.isPlaying else { return }
-                self.fail(self.player?.currentItem?.error?.localizedDescription
-                    ?? "This video could not finish playing. Try reopening the preview.")
+                let error = self.player?.currentItem?.error
+                self.fail(error.map { MediaPlaybackFailure.system($0.localizedDescription) } ?? .videoPlaybackFailed)
             }
         })
         playbackNotifications.append(NotificationCenter.default.addObserver(
@@ -243,7 +245,7 @@ final class VideoTrimPlayback: ObservableObject {
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self, self.playbackID == generation, self.isPlaying else { return }
-                self.fail("Playback stopped while reading this video. Try reopening the preview.")
+                self.fail(.videoReadStalled)
             }
         })
     }
@@ -263,11 +265,11 @@ final class VideoTrimPlayback: ObservableObject {
         positionSeconds = end
     }
 
-    private func fail(_ message: String) {
+    private func fail(_ value: MediaPlaybackFailure) {
         stopActivity(readPosition: false)
         readinessTimeout?.cancel()
         readinessTimeout = nil
-        errorMessage = message
+        failure = value
     }
 
     private func time(_ seconds: Double) -> CMTime {

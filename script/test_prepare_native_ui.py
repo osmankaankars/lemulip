@@ -3,7 +3,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from prepare_native_ui import isolated_info, prepare_pdf_result_fixtures, write_project
+from prepare_native_ui import (isolated_info, prepare_pdf_result_fixtures,
+                               prepare_product_language_fixtures, write_project)
 
 
 class NativeUIPreparationTests(unittest.TestCase):
@@ -69,6 +70,47 @@ class NativeUIPreparationTests(unittest.TestCase):
                 prepare_pdf_result_fixtures(fixtures)
             self.assertEqual({path: path.read_bytes() for path in inputs}, before,
                              "Reusing staging must fail without replacing the inputs")
+
+    def test_product_language_stages_independent_inputs_and_an_empty_move_destination(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            fixtures = Path(temporary) / "Fixtures"
+            source = fixtures / "Organize/Page-Order.pdf"
+            source.parent.mkdir(parents=True)
+            original = b"%PDF-1.4\nsynthetic source marker\n%%EOF\n"
+            source.write_bytes(original)
+            prepare_product_language_fixtures(fixtures)
+            root = fixtures / "ProductLanguage"
+            self.assertEqual({p.name for p in root.iterdir()},
+                             {f"{scenario}-{language}" for language in ("en", "tr")
+                              for scenario in ("Merge", "Audio", "Video", "Count", "Move")})
+            for language in ("en", "tr"):
+                merge = root / f"Merge-{language}"
+                self.assertEqual((merge / "Companion.pdf").read_bytes(), original)
+                malformed = [p for p in merge.iterdir() if p.name != "Companion.pdf"]
+                self.assertEqual(len(malformed), 1)
+                self.assertIn("Örnek: uzun dosya adı", malformed[0].name)
+                self.assertLess(len(malformed[0].name.encode("utf-8")), 255)
+                self.assertEqual(malformed[0].read_bytes(), b"This is a deliberately invalid PDF fixture.\n")
+                for scenario, extension in (("Audio", ".wav"), ("Video", ".mp4")):
+                    inputs = list((root / f"{scenario}-{language}").iterdir())
+                    self.assertEqual(len(inputs), 1)
+                    self.assertEqual(inputs[0].suffix, extension)
+                    self.assertEqual(inputs[0].read_bytes(), b"")
+                count = list((root / f"Count-{language}").iterdir())
+                self.assertEqual(len(count), 1)
+                self.assertTrue(count[0].name.startswith("words: Örnek characters lines-"))
+                self.assertEqual(count[0].read_bytes(), b"one two\nthree")
+                move = root / f"Move-{language}"
+                self.assertEqual({p.name for p in move.iterdir()}, {"Source", "Destination"})
+                moving = list((move / "Source").iterdir())
+                self.assertEqual(len(moving), 1)
+                self.assertEqual(moving[0].read_bytes(), b"Keep these bytes when moving the file.\n")
+                self.assertEqual(list((move / "Destination").iterdir()), [])
+            before = {p: p.read_bytes() for p in root.rglob("*") if p.is_file()}
+            with self.assertRaises(FileExistsError):
+                prepare_product_language_fixtures(fixtures)
+            self.assertEqual({p: p.read_bytes() for p in root.rglob("*") if p.is_file()}, before)
+            self.assertEqual(source.read_bytes(), original)
 
 
 if __name__ == "__main__":

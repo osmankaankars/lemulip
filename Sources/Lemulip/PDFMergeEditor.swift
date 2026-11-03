@@ -49,6 +49,8 @@ final class PDFMergeEditor: ObservableObject {
 
     private var initialSources: [PDFMergeSource] = []
     private var inputNames: [String] = []
+    private var presentationInputs: [URL] = []
+    private var presentationLanguage = "en"
     private var sourceInputCount = 0
     private var session: PDFMergeSession?
     private var openingWorker: Task<[PDFMergeSource], Error>?
@@ -91,11 +93,16 @@ final class PDFMergeEditor: ObservableObject {
         }
     }
 
-    func open(_ inputs: [URL]) async {
+    func open(_ inputs: [URL], language: String = "en") async {
         close()
         let loadID = generation
         sourceInputCount = inputs.count
         inputNames = inputs.map(\.lastPathComponent)
+        // The session retains resolved URLs. Keep those names for later
+        // thumbnail diagnostics even if an input symlink changes meanwhile.
+        presentationInputs = inputs + inputs.filter { $0.isFileURL && !$0.path.contains("\0") }
+            .map { $0.standardizedFileURL.resolvingSymlinksInPath() }
+        presentationLanguage = language
         isLoading = true
         let openedSession = PDFMergeSession(inputs: inputs)
         session = openedSession
@@ -137,7 +144,8 @@ final class PDFMergeEditor: ObservableObject {
                 await openedSession.close()
                 return
             }
-            errorMessage = error.localizedDescription
+            errorMessage = PDFMergeErrorPresentation.message(for: error, inputs: presentationInputs,
+                                                            language: language)
             openingWorker = nil
             isLoading = false
             await openedSession.close()
@@ -160,6 +168,8 @@ final class PDFMergeEditor: ObservableObject {
         if let openedSession { Task { await openedSession.close() } }
         initialSources = []
         inputNames = []
+        presentationInputs = []
+        presentationLanguage = "en"
         sourceInputCount = 0
         documents = []
         selectedDocuments = []
@@ -225,7 +235,10 @@ final class PDFMergeEditor: ObservableObject {
                     break
                 } catch {
                     guard self.generation == loadID else { break }
-                    if self.visibleDocuments.contains(next) { self.thumbnailErrors[next] = error.localizedDescription }
+                    if self.visibleDocuments.contains(next) {
+                        self.thumbnailErrors[next] = PDFMergeErrorPresentation.message(for: error,
+                            inputs: self.presentationInputs, language: self.presentationLanguage)
+                    }
                 }
             }
             if let self, self.generation == loadID { self.thumbnailWorker = nil }

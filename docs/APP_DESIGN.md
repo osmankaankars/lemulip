@@ -2,7 +2,7 @@
 
 Updated 3 November 2026.
 
-**Status:** unreleased editor-control refinement based on `84f1833`, following [PR #40](https://github.com/osmankaankars/lemulip/pull/40). The public app reference is **0.1.20, build 23**. Candidate checks and native captures establish the new behavior; existing public screenshots do not establish this refinement's appearance or behavior.
+**Status:** unreleased product-language refinement based on `926ec7f`, following [PR #41](https://github.com/osmankaankars/lemulip/pull/41). The public app reference is **0.1.20, build 23**. Fresh candidate checks and native captures are required; existing public screenshots do not establish this refinement's appearance or behavior.
 
 Read this with [DESIGN.md](DESIGN.md) for the shared identity and [WEBSITE.md](WEBSITE.md) for the separately scoped website. This brief records the current native refinement so later work can continue from the same decisions.
 
@@ -59,9 +59,23 @@ In both media editors, committing an unchanged valid time field while moving foc
 
 Verify audio pause/resume and invalid-range reset through real production controls in English and Turkish, with a separate long WAV fixture staged before XCTest. Check the actual playback position, retained output format, source bytes and absence of published output after cancellation. Real-player model tests cover end restart, range changes, canceled seeks and reuse; no production test hook is needed.
 
+### Product language and result messages
+
+Keep ordinary explanations in sentence case and use the existing action vocabulary. Empty states explain the next available action. A sample image is shown in Finder; do not describe that action as opening the image itself. Routine guidance stays concise and keeps its actual limits and recovery steps.
+
+Known merge and trim failures are presented in the selected application language. Match a complete controlled diagnostic and its error category. A merge filename must belong to the actual request, including a resolved source name when applicable; names containing colons or Turkish characters remain intact. Preserve unknown, extended and system diagnostics, and keep core/CLI error contracts unchanged.
+
+Playback failures distinguish controlled app messages from actual AVFoundation diagnostics. Render the controlled failure in the current language without changing playback, timeouts, generation checks or seek cleanup. The shared video-crop playback consumer uses the same presentation.
+
+Activity describes the actual result: moved/copied **items** for transfers, **new files** for conversion outputs, and plain **Completed / Tamamlandı** for report-only work. Word-count reports retain their complete filenames and measured counts. Localize only a complete known report in input order; never replace unit words inside arbitrary report text or filenames. Use the selected locale for counts and preserve the English fallback for other language values.
+
+Known PDF and media completion notes retain password-removal, links/bookmarks/forms/signatures, PCM/AAC encoding and timing qualifications. Match these notes only within their corresponding editor options. Activity messages remain stored as rendered text; changing language later does not rewrite historical messages.
+
 ## Verification Before Release
 
-Run the current **38-case native suite** for this candidate. It retains the WAV source default, manual output-format choice and cancellation path. The PDF cancellation cases capture the organizer and English/Turkish merge editor with help collapsed and expanded; those must be genuine captures of the running candidate. The additional video case verifies that transferring focus between unchanged time fields preserves a paused preview.
+Run the current **48-case native suite** for this candidate. It retains the WAV source default, manual output-format choice and cancellation path. The PDF cancellation cases capture the organizer and English/Turkish merge editor with help collapsed and expanded; those must be genuine captures of the running candidate. The video field-focus case verifies that transferring focus between unchanged time fields preserves a paused preview.
+
+The ten language cases cover English/Turkish malformed merge recovery with a long filename, empty audio/video recovery, a real word-count report and a real file move. Require the observed localized text, usable cancellation, retained input bytes or the intended move, and the absence of unintended output. Inspect the corresponding screenshots and accessibility trees. Model checks exercise controlled error contracts, filename-safe fallback, source changes, real PDF completion warnings and report-only results.
 
 The expanded-help capture requires the explanation to be visible and hittable before checking the page positions and footer. Keep accessibility snapshots from before and after the disclosure click. A screenshot's attachment name or reachable footer alone does not establish that help expanded.
 
@@ -75,4 +89,4 @@ Known PDF organizer failures show their cause and recovery advice in the selecte
 
 Result-card and Activity filename buttons retain their Finder reveal behavior. Their localized help and accessibility labels include the full filename and the action, following the existing file shelf. Preserve the visible filename, drag support and layout. The organizer's Turkish context menu uses **Sıra numarasını değiştir…** alongside its **Sıra** field.
 
-The four added native cases cover English/Turkish malformed-PDF recovery, destination-picker cancellation with order and undo history retained, and a Turkish edit/export/result-card/Finder flow. The Finder case requires the exact UUID-named output image to be selected, its original sibling to remain unselected, and exactly one file image selected in the expected folder window. Only the production result action may reveal or select the file. Retain result/error/editor screenshots, a full-screen Finder capture, accessibility trees and a receipt separating the expected output path from the observed Finder selection identity. This verifies Finder selection, not clipboard transfer. Model tests also exercise real missing, oversized, locked and copying-restricted PDF failures and source-fingerprint validation.
+The PDF-result native cases cover English/Turkish malformed-PDF recovery, destination-picker cancellation with order and undo history retained, and a Turkish edit/export/result-card/Finder flow. The Finder case requires the exact UUID-named output image to be selected, its original sibling to remain unselected, and exactly one file image selected in the expected folder window. Only the production result action may reveal or select the file. Retain result/error/editor screenshots, a full-screen Finder capture, accessibility trees and a receipt separating the expected output path from the observed Finder selection identity. This verifies Finder selection, not clipboard transfer. Model tests also exercise real missing, oversized, locked and copying-restricted PDF failures and source-fingerprint validation.

@@ -11,7 +11,9 @@ final class AudioTrimPlayback: ObservableObject {
     @Published private(set) var isPlaying = false
     @Published private(set) var isSeeking = false
     @Published private(set) var positionSeconds: Double = 0
-    @Published private(set) var errorMessage: String?
+    @Published private(set) var failure: MediaPlaybackFailure?
+
+    var errorMessage: String? { failure?.message(language: "en") }
 
     private var player: AVPlayer?
     private var asset: AVURLAsset?
@@ -28,7 +30,7 @@ final class AudioTrimPlayback: ObservableObject {
     func prepare(url: URL, selection: AudioTrimSelection) {
         shutdown()
         guard url.isFileURL else {
-            errorMessage = "Choose a local audio file to preview."
+            failure = .localAudioRequired
             return
         }
         self.selection = selection
@@ -57,7 +59,7 @@ final class AudioTrimPlayback: ObservableObject {
             do { try await Task.sleep(nanoseconds: 15_000_000_000) }
             catch { return }
             guard let self, self.loadID == currentLoadID, !self.isReady else { return }
-            self.fail("Playback could not become ready. Try reopening the preview.")
+            self.fail(.preparationTimedOut)
         }
     }
 
@@ -101,7 +103,7 @@ final class AudioTrimPlayback: ObservableObject {
         asset = nil
         selection = nil
         isReady = false
-        errorMessage = nil
+        failure = nil
         positionSeconds = 0
     }
 
@@ -112,15 +114,15 @@ final class AudioTrimPlayback: ObservableObject {
             readinessTimeout?.cancel()
             readinessTimeout = nil
             isReady = true
-            errorMessage = nil
+            failure = nil
         case .failed:
             isReady = false
-            fail(item.error?.localizedDescription ?? "This file cannot be played by the native preview.")
+            fail(item.error.map { MediaPlaybackFailure.system($0.localizedDescription) } ?? .audioUnavailable)
         case .unknown:
             isReady = false
         @unknown default:
             isReady = false
-            fail("This file cannot be played by the native preview.")
+            fail(.audioUnavailable)
         }
     }
 
@@ -129,7 +131,7 @@ final class AudioTrimPlayback: ObservableObject {
         let position = min(selection.endSeconds, max(selection.startSeconds, positionSeconds))
         let target = position >= selection.endSeconds ? selection.startSeconds : position
         pause()
-        errorMessage = nil
+        failure = nil
         isSeeking = true
         positionSeconds = target
         player.currentItem?.forwardPlaybackEndTime = time(selection.endSeconds)
@@ -140,7 +142,7 @@ final class AudioTrimPlayback: ObservableObject {
                 self.seekTimeout?.cancel()
                 self.seekTimeout = nil
                 guard finished, self.player?.currentItem?.status == .readyToPlay else {
-                    self.fail("The preview could not reach the selected time. Try playing again.")
+                    self.fail(.audioSeekFailed)
                     return
                 }
                 self.isSeeking = false
@@ -153,7 +155,7 @@ final class AudioTrimPlayback: ObservableObject {
             do { try await Task.sleep(nanoseconds: 15_000_000_000) }
             catch { return }
             guard let self, self.playbackID == currentPlaybackID, self.isSeeking else { return }
-            self.fail("The preview could not reach the selected time. Try playing again.")
+            self.fail(.audioSeekFailed)
         }
     }
 
@@ -191,8 +193,8 @@ final class AudioTrimPlayback: ObservableObject {
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self, self.playbackID == generation, self.isPlaying else { return }
-                self.fail(self.player?.currentItem?.error?.localizedDescription
-                    ?? "This file could not finish playing. Try reopening the preview.")
+                let error = self.player?.currentItem?.error
+                self.fail(error.map { MediaPlaybackFailure.system($0.localizedDescription) } ?? .audioPlaybackFailed)
             }
         })
         playbackNotifications.append(NotificationCenter.default.addObserver(
@@ -200,7 +202,7 @@ final class AudioTrimPlayback: ObservableObject {
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
                 guard let self, self.playbackID == generation, self.isPlaying else { return }
-                self.fail("Playback stopped while reading this file. Try reopening the preview.")
+                self.fail(.audioReadStalled)
             }
         })
     }
@@ -220,11 +222,11 @@ final class AudioTrimPlayback: ObservableObject {
         positionSeconds = end
     }
 
-    private func fail(_ message: String) {
+    private func fail(_ value: MediaPlaybackFailure) {
         pause()
         readinessTimeout?.cancel()
         readinessTimeout = nil
-        errorMessage = message
+        failure = value
     }
 
     private func time(_ seconds: Double) -> CMTime {

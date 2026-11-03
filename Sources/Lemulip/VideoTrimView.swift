@@ -43,7 +43,7 @@ struct VideoTrimView: View {
                             onSeek: { seek(to: $0) }, onTogglePlayback: { togglePlayback() })
                             .frame(height: 118)
                         transport(selection: selection)
-                        if let error = validationError ?? playback.errorMessage {
+                        if let error = validationError ?? playback.failure?.message(language: model.language) {
                             Label(error, systemImage: "exclamationmark.circle")
                                 .font(.system(size: 11)).foregroundStyle(Palette.accent)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -174,15 +174,18 @@ struct VideoTrimView: View {
                 Image(systemName: "exclamationmark.circle").font(.system(size: 32)).foregroundStyle(Palette.accent)
                 Text(model.text("Could Not Open the Video Editor", "Video düzenleyicisi açılamadı"))
                     .font(.system(size: 19, weight: .semibold))
+                    .accessibilityIdentifier("video-trim.error-title")
                 Text(loadError).font(.system(size: 13)).foregroundStyle(Palette.muted)
                     .multilineTextAlignment(.center).frame(maxWidth: 530)
+                    .accessibilityIdentifier("video-trim.error-detail")
             }
         } else {
             VStack(spacing: 15) {
                 ProgressView().controlSize(.regular)
-                Text(model.text("Preparing Your Video…", "Videon hazırlanıyor…"))
+                Text(model.text("Preparing video preview…", "Video önizlemesi hazırlanıyor…"))
                     .font(.system(size: 13)).foregroundStyle(Palette.muted)
-                Text(model.text("Reading a small thumbnail overview. You can cancel at any time.", "Küçük bir kare özeti hazırlanıyor. İstediğin an vazgeçebilirsin."))
+                    .accessibilityIdentifier("video-trim.loading-status")
+                Text(model.text("You can cancel at any time.", "İstediğin an vazgeçebilirsin."))
                     .font(.system(size: 11)).foregroundStyle(Palette.muted)
             }
         }
@@ -295,7 +298,7 @@ struct VideoTrimView: View {
             return
         } catch {
             guard !Task.isCancelled, previewLoadID == generation else { return }
-            loadError = error.localizedDescription
+            loadError = MediaErrorPresentation.message(for: error, language: model.language)
         }
     }
 

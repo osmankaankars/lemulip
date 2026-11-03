@@ -114,6 +114,32 @@ def prepare_pdf_result_fixtures(fixtures: Path) -> None:
         (folder / f"{scenario}-{identity}.pdf").write_bytes(data)
 
 
+def prepare_product_language_fixtures(fixtures: Path) -> None:
+    # Stage only inputs before the sandboxed UI runner starts. Each language
+    # gets independent files; only the production app may create/move outputs.
+    source_bytes = (fixtures / "Organize/Page-Order.pdf").read_bytes()
+    root = fixtures / "ProductLanguage"
+    root.mkdir(exist_ok=False)
+    identity = uuid.uuid4().hex
+    for language in ("en", "tr"):
+        for scenario in ("Merge", "Audio", "Video", "Count", "Move"):
+            folder = root / f"{scenario}-{language}"
+            folder.mkdir(exist_ok=False)
+            if scenario == "Merge":
+                (folder / "Companion.pdf").write_bytes(source_bytes)
+                name = f"2026 Örnek: uzun dosya adı words characters lines - üç bölüm ve ekleri - {identity}.pdf"
+                (folder / name).write_bytes(b"This is a deliberately invalid PDF fixture.\n")
+            elif scenario in ("Audio", "Video"):
+                extension = "wav" if scenario == "Audio" else "mp4"
+                (folder / f"Empty-{identity}.{extension}").write_bytes(b"")
+            elif scenario == "Count":
+                (folder / f"words: Örnek characters lines-{identity}.txt").write_text("one two\nthree", encoding="utf-8")
+            else:
+                (folder / "Source").mkdir()
+                (folder / "Destination").mkdir()
+                (folder / "Source" / f"Move-{identity}.txt").write_bytes(b"Keep these bytes when moving the file.\n")
+
+
 def run(*args: str | Path, timeout: int = 90) -> str:
     return subprocess.check_output([str(arg) for arg in args], text=True, timeout=timeout).strip()
 
@@ -137,6 +163,7 @@ def prepare(app: Path, output: Path) -> None:
     fixtures = output / "Fixtures"
     run("/usr/bin/xcrun", "--sdk", "macosx", "swift", ROOT / "script/ui_review_fixtures.swift", "make", fixtures)
     prepare_pdf_result_fixtures(fixtures)
+    prepare_product_language_fixtures(fixtures)
     def chunk(kind: bytes, data: bytes) -> bytes:
         return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
     rows = b"".join(
