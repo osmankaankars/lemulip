@@ -1,6 +1,6 @@
 # Lemulip Product Story
 
-Updated 1 November 2026 for **0.1.20 / build 23**. PR #33 is merged. Download
+Updated 2 November 2026 for **0.1.20 / build 23**. PR #33 is merged. Download
 links switch only after the exact tagged release archives have been verified.
 This is the product-story reference, not a promotional-film storyboard.
 
@@ -67,10 +67,21 @@ installation, first launch and the built-in sample in that order. Workspace is t
 alternative when the source application does not provide a compatible local drag.
 Activity and the user guide explain completed outputs and errors.
 
-## Final Owner Review and Film
+## Owner Review and Film
 
-Kaan will assess sound on speakers/headphones, system mute and VoiceOver narration
-while using the app and report issues. That agreement is not an acoustic test pass,
-and does not stall publication. The 29-case native regression gates and bounded
-visual review are separate. After exact release and deployed website verification,
-discuss the promotional film together. Record only the experience people can download.
+Kaan accepted the 0.1.20 daily-use stage on 1 November and reported no issues.
+That is owner acceptance, not a certification of acoustic output or VoiceOver
+narration. The 29-case native regression gates and bounded visual review remain
+separate evidence.
+
+The owner also approved the separate 25-second illustrated promotional film and
+its final voice/music direction. It presents the released product through motion
+and narration. Keep it distinct from the real Finder recording and interactive
+website example; see [WEBSITE.md](WEBSITE.md). Creative approval does not establish
+that the final MP4 is archived in this repository. Use only capabilities present
+in the published download.
+
+The website's copy, hierarchy and user-started playback refinements shipped in
+[PR #36](https://github.com/osmankaankars/lemulip/pull/36) and
+[PR #37](https://github.com/osmankaankars/lemulip/pull/37), with
+[successful live browser checks](https://github.com/osmankaankars/lemulip/actions/runs/41465598855).

@@ -1,7 +1,6 @@
-name: Unreleased UI Review Build
+name: Historical 0.1.20 UI Review Build
 
 on:
-  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -9,19 +8,16 @@ permissions:
 
 env:
   DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
-  REVIEW_SOURCE_COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+  REVIEW_SOURCE_COMMIT: ${{ github.sha }}
 
 concurrency:
-  group: lemulip-ui-review-${{ github.event.pull_request.number || github.ref }}
+  group: lemulip-ui-review-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
     name: Build Isolated UI Review Copy
-    if: >-
-      (github.event_name == 'pull_request' && github.head_ref == 'review/quality-020' &&
-       github.event.pull_request.head.repo.full_name == github.repository) ||
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/review/quality-020')
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/review/quality-020'
     runs-on: macos-15
     timeout-minutes: 30
     steps:

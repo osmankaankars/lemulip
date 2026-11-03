@@ -8,6 +8,7 @@ import json
 import lzma
 import os
 from pathlib import Path
+import shutil
 import stat
 import tarfile
 import tempfile
@@ -133,9 +134,14 @@ class MediaBuildTests(unittest.TestCase):
             GIT_AUTHOR_NAME='Source fixture', GIT_AUTHOR_EMAIL='contributors@lemulip.invalid',
             GIT_COMMITTER_NAME='Source fixture', GIT_COMMITTER_EMAIL='contributors@lemulip.invalid',
             GIT_AUTHOR_DATE='2023-11-14T22:13:20Z', GIT_COMMITTER_DATE='2023-11-14T22:13:20Z')
+        git_executable = shutil.which('git', path=environment.get('PATH'))
+        if git_executable is None:
+            self.fail('Git is required to create the source archive fixture')
         def git(*args):
-            return subprocess.check_output(['/usr/bin/git', '-c', 'core.hooksPath=' + os.devnull,
-                *args], cwd=checkout, env=environment, stderr=subprocess.PIPE, timeout=10)
+            # Use the runner's selected Git and allow its first invocation to start.
+            timeout = 30 if args[0] == 'init' else 10
+            return subprocess.check_output([git_executable, '-c', 'core.hooksPath=' + os.devnull,
+                *args], cwd=checkout, env=environment, stderr=subprocess.PIPE, timeout=timeout)
         git('init', '--quiet')
         git('add', 'configure', 'LICENSE', 'src/main.c')
         git('commit', '--quiet', '-m', 'Source fixture')

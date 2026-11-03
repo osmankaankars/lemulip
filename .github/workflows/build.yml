@@ -77,6 +77,7 @@ jobs:
       - name: Validate Engine Pack Guardrails
         run: |
           python3 script/test_engine_packs.py
+          python3 script/test_build_media_engine.py
           python3 script/test_release_engines.py
           python3 script/test_publish_preview.py
           python3 script/test_interface.py
