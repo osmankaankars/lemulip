@@ -2,7 +2,7 @@
 
 Updated 3 November 2026.
 
-**Status:** unreleased PDF feedback refinement based on `17e1b7d`, following [PR #39](https://github.com/osmankaankars/lemulip/pull/39). The public app reference is **0.1.20, build 23**. Candidate checks and native captures establish the new behavior; existing public screenshots do not establish this refinement's appearance or behavior.
+**Status:** unreleased editor-control refinement based on `84f1833`, following [PR #40](https://github.com/osmankaankars/lemulip/pull/40). The public app reference is **0.1.20, build 23**. Candidate checks and native captures establish the new behavior; existing public screenshots do not establish this refinement's appearance or behavior.
 
 Read this with [DESIGN.md](DESIGN.md) for the shared identity and [WEBSITE.md](WEBSITE.md) for the separately scoped website. This brief records the current native refinement so later work can continue from the same decisions.
 
@@ -45,9 +45,21 @@ Prefer the source format when it is among the preview's supported outputs. Norma
 
 Matching the source extension does not preserve the original encoding or bit depth. Keep the existing limits explicit: **M4A is re-encoded as AAC; WAV and AIFF are uncompressed 16-bit PCM copies.** Preserve the preview's capability filtering and unsupported-format handling.
 
+### Common editor controls
+
+All four editors retain the shared **Original Kept / Cancel / Create Copy** footer. Keep validation and the PDF position field's own Enter/Escape behavior at their call sites. The different page grid, file list, waveform and video timeline still determine each editor's layout and directional controls.
+
+The PDF merge editor follows the organizer's concise idle instruction and existing **Keyboard & Tips** disclosure. Keep the valid position range and Enter/Escape guidance visible while a position draft is active. Use **Sıra / sıra numarası** consistently in Turkish field help, active guidance and the context menu. Expanded help must leave the file list and footer usable.
+
+Audio's range-only reset is **Reset Selection / Seçimi sıfırla**, matching video. It restores the full valid range while retaining the selected output format. Both media editors keep their existing time parsing, range validation and disabled playback/export states for invalid text.
+
+Audio playback resumes from its paused position inside the current selection, matching video. Reaching the selection's end makes the next Play start at its beginning. Changing the range starts at the new beginning; a stale player clock or canceled seek must not replace that position. Preserve seek generation guards, end bounds, timeouts and cleanup on dismissal.
+
+Verify audio pause/resume and invalid-range reset through real production controls in English and Turkish, with a separate long WAV fixture staged before XCTest. Check the actual playback position, retained output format, source bytes and absence of published output after cancellation. Real-player model tests cover end restart, range changes, canceled seeks and reuse; no production test hook is needed.
+
 ## Verification Before Release
 
-Run the current **34-case native suite** for this candidate. It retains the WAV source default, manual output-format choice and cancellation path. The existing PDF cancellation case captures the organizer with help collapsed and expanded; those must be genuine captures of the running candidate.
+Run the current **37-case native suite** for this candidate. It retains the WAV source default, manual output-format choice and cancellation path. The PDF cancellation cases capture the organizer and English/Turkish merge editor with help collapsed and expanded; those must be genuine captures of the running candidate.
 
 The expanded-help capture requires the explanation to be visible and hittable before checking the page positions and footer. Keep accessibility snapshots from before and after the disclosure click. A screenshot's attachment name or reachable footer alone does not establish that help expanded.
 

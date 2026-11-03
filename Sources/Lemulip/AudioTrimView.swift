@@ -101,7 +101,7 @@ struct AudioTrimView: View {
                     .font(.system(size: 11))
             }
             Spacer(minLength: 6)
-            Button(model.text("Reset", "Sıfırla")) { reset() }
+            Button(model.text("Reset Selection", "Seçimi sıfırla")) { reset() }
                 .font(.system(size: 12))
                 .disabled(selection.startSeconds == 0 && selection.endSeconds == selection.sourceDuration && validationError == nil)
         }
