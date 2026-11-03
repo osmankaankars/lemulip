@@ -133,7 +133,10 @@ final class ActivityPresentationTests: XCTestCase {
     }
 
     private func workspace() throws -> URL {
-        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("Lemulip-Activity-Language-\(UUID().uuidString)", isDirectory: true)
+        // Resolve macOS's /var parent alias before creating fixtures, while
+        // preserving the individual symlink identity exercised by the test.
+        let directory = FileManager.default.temporaryDirectory.resolvingSymlinksInPath()
+            .appendingPathComponent("Lemulip-Activity-Language-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
         return directory

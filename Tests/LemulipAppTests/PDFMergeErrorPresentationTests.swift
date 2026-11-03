@@ -319,7 +319,7 @@ final class PDFMergeErrorPresentationTests: XCTestCase {
                 for detail in ["bağlantıları", "yer imlerini", "formları", "imzaları"] {
                     XCTAssertTrue(translated.contains(detail), "Retain the PDF review detail: \(detail)")
                 }
-                XCTAssertEqual(translated.contains("parola koruması olmayan"), wasEncrypted)
+                XCTAssertEqual(translated.localizedCaseInsensitiveContains("parola koruması olmayan"), wasEncrypted)
                 if !wasEncrypted {
                     XCTAssertTrue(translated.localizedCaseInsensitiveContains("seçtiğin"))
                     if operationID == "pdf.organize" { XCTAssertTrue(translated.contains("dönüş")) }
