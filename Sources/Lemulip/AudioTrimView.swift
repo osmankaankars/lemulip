@@ -40,7 +40,7 @@ struct AudioTrimView: View {
                             .frame(height: 195)
                         transport(selection: selection)
                         selectionControls(preview: preview, selection: selection)
-                        if let error = validationError ?? playback.errorMessage {
+                        if let error = validationError ?? playback.failure?.message(language: model.language) {
                             Label(error, systemImage: "exclamationmark.circle")
                                 .font(.system(size: 11)).foregroundStyle(Palette.accent)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -147,14 +147,18 @@ struct AudioTrimView: View {
                 Image(systemName: "exclamationmark.circle").font(.system(size: 32)).foregroundStyle(Palette.accent)
                 Text(model.text("Could Not Open the Audio Editor", "Ses düzenleyicisi açılamadı"))
                     .font(.system(size: 19, weight: .semibold))
+                    .accessibilityIdentifier("audio-trim.error-title")
                 Text(loadError).font(.system(size: 13)).foregroundStyle(Palette.muted)
                     .multilineTextAlignment(.center).frame(maxWidth: 500)
+                    .accessibilityIdentifier("audio-trim.error-detail")
             }
         } else {
             VStack(spacing: 15) {
                 ProgressView().controlSize(.regular)
-                Text(model.text("Reading Your Waveform…", "Ses dalgan okunuyor…")).font(.system(size: 13)).foregroundStyle(Palette.muted)
-                Text(model.text("You can cancel while the audio is being read.", "Ses okunurken işlemi iptal edebilirsin."))
+                Text(model.text("Preparing audio preview…", "Ses önizlemesi hazırlanıyor…"))
+                    .font(.system(size: 13)).foregroundStyle(Palette.muted)
+                    .accessibilityIdentifier("audio-trim.loading-status")
+                Text(model.text("You can cancel at any time.", "İstediğin an vazgeçebilirsin."))
                     .font(.system(size: 11)).foregroundStyle(Palette.muted)
             }
         }
@@ -249,7 +253,7 @@ struct AudioTrimView: View {
             return
         } catch {
             guard !Task.isCancelled else { return }
-            loadError = error.localizedDescription
+            loadError = MediaErrorPresentation.message(for: error, language: model.language)
         }
     }
 

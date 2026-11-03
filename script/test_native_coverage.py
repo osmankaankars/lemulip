@@ -1,4 +1,4 @@
-"""Guard that the real-app suite retains its baseline and bounded editor-control coverage."""
+"""Guard the real-app baseline and bounded editor/control/language coverage."""
 from pathlib import Path
 import re
 import unittest
@@ -22,12 +22,18 @@ class NativeCoverageTests(unittest.TestCase):
                      'testEnglishAudioResetSelectionAndPlaybackResume',
                      'testTurkishAudioResetSelectionAndPlaybackResume',
                      'testEnglishVideoFieldFocusPreservesPausedPosition'}
+        required |= {f'test{language}{scenario}' for language in ('English', 'Turkish')
+                     for scenario in ('MergeErrorPreservesTheLongFilename',
+                                      'EmptyAudioExplainsRecovery',
+                                      'EmptyVideoExplainsRecovery',
+                                      'WordCountReportsTheActualCounts',
+                                      'MoveReportsTheActualFileTransfer')}
         present = set(re.findall(r'func (test\w+)\(', sources))
         self.assertFalse(required - present, f'Missing native coverage: {sorted(required - present)}')
         self.assertTrue({'testEnglishWheelPointerKeyboardAndVisualReview',
                          'testTurkishWheelPointerKeyboardAndVisualReview'} <= present)
-        self.assertEqual(len(present), 38,
-                         'Keep all 34 existing cases, Turkish merge, two audio flows and video field focus')
+        self.assertEqual(len(present), 48,
+                         'Keep all 38 existing cases and the ten bilingual language/result cases')
 
     def test_workflow_assembles_and_records_the_new_cases(self):
         workflow = (ROOT / '.github/workflows/native-ui-review.yml').read_text()
@@ -38,7 +44,12 @@ class NativeCoverageTests(unittest.TestCase):
         self.assertIn("record['pdfResultSourceSHA256']", workflow)
         self.assertIn('script/native_ui/EditorControlsUITests.swift', workflow)
         self.assertIn("record['editorControlsSourceSHA256']", workflow)
-        self.assertIn('+sound+wheel+result+controls)', workflow)
+        self.assertIn('script/native_ui/ProductLanguageUITests.swift', workflow)
+        self.assertIn("record['productLanguageSourceSHA256']", workflow)
+        self.assertIn('+sound+wheel+result+controls+language)', workflow)
+        preparation = (ROOT / 'script/prepare_native_ui.py').read_text()
+        self.assertLess(preparation.index('    prepare_product_language_fixtures(fixtures)'),
+                        preparation.index('    write_project(output / "Runner"'))
 
     def test_media_uses_real_ffmpeg_and_retains_its_version(self):
         workflow = (ROOT / '.github/workflows/native-ui-review.yml').read_text()

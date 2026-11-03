@@ -199,7 +199,7 @@ struct VideoCropView: View {
             Button(model.text("Reset Crop", "Kadrajı sıfırla")) { reset(preview) }
                 .font(.system(size: 12))
                 .disabled(selection == fullRegion(preview) && ratio == .free && validationError == nil)
-            if let error = playback.errorMessage {
+            if let error = playback.failure?.message(language: model.language) {
                 VStack(alignment: .leading, spacing: 8) {
                     Label(error, systemImage: "exclamationmark.circle")
                         .font(.system(size: 11)).foregroundStyle(Palette.accent)

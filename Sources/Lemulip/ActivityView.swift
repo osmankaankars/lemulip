@@ -9,9 +9,16 @@ struct ActivityContent: View {
     private var failedCount: Int { model.activity.filter { $0.state == .failed }.count }
 
     private var summary: String {
-        var parts = [model.text("\(model.completedCount) Completed", "\(model.completedCount) Tamamlandı")]
-        if activeCount > 0 { parts.append(model.text("\(activeCount) Processing", "\(activeCount) İşleniyor")) }
-        if failedCount > 0 { parts.append(model.text("\(failedCount) Needs Attention", "\(failedCount) Kontrol Bekliyor")) }
+        let completed = ActivityPresentation.number(model.completedCount, language: model.language)
+        var parts = [model.text("\(completed) completed", "\(completed) tamamlandı")]
+        if activeCount > 0 {
+            let count = ActivityPresentation.number(activeCount, language: model.language)
+            parts.append(model.text("\(count) processing", "\(count) işleniyor"))
+        }
+        if failedCount > 0 {
+            let count = ActivityPresentation.number(failedCount, language: model.language)
+            parts.append(model.text("\(count) failed", "\(count) tamamlanamadı"))
+        }
         return parts.joined(separator: " · ")
     }
 
@@ -22,7 +29,7 @@ struct ActivityContent: View {
                     Image(systemName: "checkmark.circle").font(.system(size: 30, weight: .light)).foregroundStyle(Palette.muted)
                     Text(model.text("Your Results Appear Here", "Sonuçların Burada Görünür"))
                         .font(.system(size: 18, weight: .semibold))
-                    Text(model.text("Choose A File To Get Started.", "Başlamak İçin Bir Dosya Seç."))
+                    Text(model.text("Choose a file to get started.", "Başlamak için bir dosya seç."))
                         .font(.system(size: 13)).foregroundStyle(Palette.muted)
                     Button(model.text("Choose Files", "Dosya Seç")) { model.chooseFiles() }
                         .buttonStyle(.borderedProminent).tint(Palette.primaryAction).foregroundStyle(Palette.onPrimary)
@@ -54,6 +61,7 @@ struct ActivityRow: View {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(item.inputs.count == 1 ? item.inputs[0].lastPathComponent : model.text("\(item.inputs.count) Files", "\(item.inputs.count) Dosya"))
                         .font(.system(size: 13, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+                        .accessibilityIdentifier("activity.input-name")
                     Spacer(minLength: 8)
                     Text(OperationNames.title(item.operation, language: model.language))
                         .font(.system(size: 11, weight: .medium)).foregroundStyle(Palette.muted)
@@ -61,6 +69,7 @@ struct ActivityRow: View {
                 HStack(spacing: 7) {
                     if item.state == .succeeded { Image(systemName: "checkmark.circle.fill").foregroundStyle(Palette.accent) }
                     Text(statusText).textSelection(.enabled)
+                        .accessibilityIdentifier("activity.status")
                 }.font(.system(size: 12)).foregroundStyle(item.state == .failed ? .orange : Palette.muted)
                 if item.state == .running, let progress = item.progress {
                     if let fraction = progress.fractionCompleted, progress.phase == .converting {
@@ -80,7 +89,9 @@ struct ActivityRow: View {
                     DisclosureGroup(model.text("Details", "Ayrıntılar")) {
                         Text(item.message).font(.system(size: 12)).foregroundStyle(Palette.muted)
                             .textSelection(.enabled).frame(maxWidth: .infinity, alignment: .leading).padding(.top, 4)
+                            .accessibilityIdentifier("activity.detail-text")
                     }.font(.system(size: 12)).foregroundStyle(Palette.muted)
+                        .accessibilityIdentifier("activity.details")
                 }
                 if !item.outputs.isEmpty {
                     ForEach(item.outputs.prefix(4), id: \.self) { url in
@@ -128,16 +139,7 @@ struct ActivityRow: View {
     }
 
     private var statusText: String {
-        switch item.state {
-        case .waiting: return model.text("Queued", "Sırada")
-        case .running:
-            if item.progress?.phase == .preparing { return model.text("Preparing…", "Hazırlanıyor…") }
-            if item.progress?.phase == .publishing || item.progress?.phase == .finished { return model.text("Saving New Files…", "Yeni Dosyalar Kaydediliyor…") }
-            return model.text("Processing…", "İşleniyor…")
-        case .succeeded: return model.text("Completed · \(item.outputs.count) \(item.outputs.count == 1 ? "New File" : "New Files")", "Tamamlandı · \(item.outputs.count) Yeni Dosya")
-        case .failed: return model.text("Could Not Complete", "Tamamlanamadı")
-        case .cancelled: return model.text("Cancelled", "İptal Edildi")
-        }
+        ActivityPresentation.status(for: item, language: model.language)
     }
 }
 #endif

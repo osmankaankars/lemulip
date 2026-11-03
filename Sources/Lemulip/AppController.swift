@@ -78,8 +78,8 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
         if pinnedOperationIDs.contains(operation.id) { pinnedOperationIDs.removeAll { $0 == operation.id } }
         else {
             guard pinnedOperationIDs.count < 12 else {
-                alertMessage = text("Unpin An Action Before Adding Another. You Can Keep 12 Pinned Actions.",
-                                    "Yeni Bir İşlem Eklemek İçin Bir Sabitlemeyi Kaldır. 12 İşlem Sabitleyebilirsin.")
+                alertMessage = text("You can pin up to 12 actions. Unpin one to add another.",
+                                    "En fazla 12 işlem sabitleyebilirsin. Yeni bir işlem için önce birinin sabitlemesini kaldır.")
                 return
             }
             pinnedOperationIDs = OperationDiscovery.normalizedPins(pinnedOperationIDs + [operation.id])
@@ -433,7 +433,9 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
                     }
                 }
                 guard let self else { return }
-                self.update(id) { $0.state = .succeeded; $0.retryRequest = nil; $0.outputs = result.outputs; $0.message = result.note ?? "" }
+                let message = ActivityPresentation.completionMessage(note: result.note, operationID: operation.id,
+                    inputs: inputs, options: options, language: self.language)
+                self.update(id) { $0.state = .succeeded; $0.retryRequest = nil; $0.outputs = result.outputs; $0.message = message }
                 if !result.outputs.isEmpty {
                     switch self.completionPresentation {
                     case .quiet: break
@@ -444,9 +446,16 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
             } catch {
                 guard let self else { return }
                 let cancelled = Task.isCancelled || error is CancellationError || (error as? LemulipError).map { if case .cancelled = $0 { return true }; return false } == true
-                let failureMessage = options.pdfOrganization != nil
-                    ? PDFErrorPresentation.message(for: error, language: self.language)
-                    : error.localizedDescription
+                let failureMessage: String
+                if options.pdfOrganization != nil {
+                    failureMessage = PDFErrorPresentation.message(for: error, language: self.language)
+                } else if options.pdfMerge != nil {
+                    failureMessage = PDFMergeErrorPresentation.message(for: error, inputs: inputs, language: self.language)
+                } else if options.audioTrim != nil || options.videoTrim != nil {
+                    failureMessage = MediaErrorPresentation.message(for: error, language: self.language)
+                } else {
+                    failureMessage = error.localizedDescription
+                }
                 self.update(id) { $0.state = cancelled ? .cancelled : .failed; $0.message = cancelled ? self.text("Cancelled", "İptal edildi") : failureMessage }
             }
             guard let self else { return }

@@ -58,8 +58,8 @@ struct OperationBrowser: View {
                     Text(model.text(searching ? "No Matching Tools" : "No Tools For This Selection",
                                     searching ? "Eşleşen Araç Yok" : "Bu Seçim İçin Araç Yok"))
                         .font(.system(size: 14, weight: .medium))
-                    Text(model.text(searching ? "Try A Format Like WebP Or A Tool Like Crop." : "File Actions Work With Any Selection.",
-                                    searching ? "WebP Gibi Bir Biçim Veya Kırp Gibi Bir Araç Dene." : "Dosya İşlemleri Her Seçimle Çalışır."))
+                    Text(model.text(searching ? "Try another format or tool." : "Choose the Actions group to copy, move or share files.",
+                                    searching ? "Başka bir biçim veya araç ara." : "Dosyaları kopyalamak, taşımak veya paylaşmak için İşlemler grubunu seç."))
                         .font(.system(size: 12)).foregroundStyle(Palette.muted)
                 }.padding(.vertical, 18)
             } else {

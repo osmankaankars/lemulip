@@ -61,7 +61,8 @@ jobs:
           wheel=pathlib.Path('script/native_ui/WheelNavigationUITests.swift').read_bytes()
           result=pathlib.Path('script/native_ui/PDFResultUITests.swift').read_bytes()
           controls=pathlib.Path('script/native_ui/EditorControlsUITests.swift').read_bytes()
-          suite.write_bytes(suite.read_bytes()+fragment+position+options+sound+wheel+result+controls)
+          language=pathlib.Path('script/native_ui/ProductLanguageUITests.swift').read_bytes()
+          suite.write_bytes(suite.read_bytes()+fragment+position+options+sound+wheel+result+controls+language)
           receipt=root/'provenance.json'; record=json.loads(receipt.read_text())
           record['workflowTestSourceSHA256']=hashlib.sha256(fragment).hexdigest()
           record['positionTestSourceSHA256']=hashlib.sha256(position).hexdigest()
@@ -70,6 +71,7 @@ jobs:
           record['wheelNavigationSourceSHA256']=hashlib.sha256(wheel).hexdigest()
           record['pdfResultSourceSHA256']=hashlib.sha256(result).hexdigest()
           record['editorControlsSourceSHA256']=hashlib.sha256(controls).hexdigest()
+          record['productLanguageSourceSHA256']=hashlib.sha256(language).hexdigest()
           record['compiledTestSourceSHA256']=hashlib.sha256(suite.read_bytes()).hexdigest()
           receipt.write_text(json.dumps(record,indent=2)+'\n')
           PYCODE

@@ -312,8 +312,10 @@ struct PDFMergeView: View {
                 Image(systemName: "doc.badge.ellipsis").font(.system(size: 32)).foregroundStyle(Palette.accent)
                 Text(model.text("Could Not Prepare the Merge", "Birleştirme hazırlanamadı"))
                     .font(.system(size: 19, weight: .semibold))
+                    .accessibilityIdentifier("pdf.merge.error-title")
                 Text(error).font(.system(size: 13)).foregroundStyle(Palette.muted)
                     .multilineTextAlignment(.center).frame(maxWidth: 560)
+                    .accessibilityIdentifier("pdf.merge.error-detail")
             }
         } else {
             VStack(spacing: 14) {
@@ -366,7 +368,7 @@ struct PDFMergeView: View {
                                         "Birleştirmek için en az iki PDF gerekiyor. Vazgeç ve devam etmek için PDF dosyalarını seç."))
             return
         }
-        await editor.open(inputs)
+        await editor.open(inputs, language: model.language)
     }
 
     private func submit() {
