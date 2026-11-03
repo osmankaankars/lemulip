@@ -130,7 +130,9 @@ extension QualityUITests {
         app.buttons["navigation.activity"].click()
         let status = languageElement("activity.status", in: app)
         try expectLanguageValue(language == "tr" ? "Tamamlandı" : "Completed", of: status)
-        let details = languageElement("activity.detail-text", in: app)
+        // Native AX exposes the expanded text with its enclosing disclosure's
+        // identifier. Restrict by type so the triangle itself cannot match.
+        let details = app.staticTexts["activity.details"]
         XCTAssertFalse(details.exists && details.isHittable)
         let disclosure = app.disclosureTriangles[language == "tr" ? "Ayrıntılar" : "Details"]
         XCTAssertTrue(disclosure.waitForExistence(timeout: 5))
@@ -171,7 +173,7 @@ extension QualityUITests {
         XCTAssertTrue(panel.waitForExistence(timeout: 10))
         let choose = panel.buttons["OKButton"]
         XCTAssertTrue(choose.waitForExistence(timeout: 10), "Require the real native destination picker")
-        XCTAssertEqual(choose.label, language == "tr" ? "Buraya taşı" : "Move Here")
+        XCTAssertEqual(choose.title, language == "tr" ? "Buraya taşı" : "Move Here")
         app.typeKey("g", modifierFlags: [.command, .shift])
         let goToFolder = app.sheets.textFields.firstMatch
         XCTAssertTrue(goToFolder.waitForExistence(timeout: 5))
