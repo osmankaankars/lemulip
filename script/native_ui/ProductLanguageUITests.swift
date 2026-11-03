@@ -136,7 +136,14 @@ extension QualityUITests {
         XCTAssertTrue(disclosure.waitForExistence(timeout: 5))
         XCTAssertTrue(disclosure.isEnabled)
         captureLanguageState(app, name: "Word count before expanding details - " + language)
-        disclosure.click()
+        // The observed native AX frame begins left of the visible chevron;
+        // its center hits the label. Anchor to the filename's actual column,
+        // as the editor-help tests do, and retain the visible-result oracle.
+        let filename = languageElement("activity.input-name", in: app)
+        XCTAssertTrue(filename.waitForExistence(timeout: 5))
+        XCTAssertTrue(filename.isHittable)
+        filename.coordinate(withNormalizedOffset: .zero)
+            .withOffset(CGVector(dx: 5, dy: disclosure.frame.midY - filename.frame.minY)).click()
         let expected = input.lastPathComponent + (language == "tr"
             ? ": 3 kelime · 13 karakter · 2 satır" : ": 3 words · 13 characters · 2 lines")
         try expectLanguageValue(expected, of: details)
@@ -158,8 +165,13 @@ extension QualityUITests {
         let app = launch(language: language)
         app.open(input)
         try openOperation("action.move", in: app)
-        let choose = app.buttons[language == "tr" ? "Buraya taşı" : "Move Here"]
+        // The Touch Bar exposes another button with this localized title.
+        // Use the actual open-panel confirmation button observed in native AX.
+        let panel = app.dialogs["open-panel"]
+        XCTAssertTrue(panel.waitForExistence(timeout: 10))
+        let choose = panel.buttons["OKButton"]
         XCTAssertTrue(choose.waitForExistence(timeout: 10), "Require the real native destination picker")
+        XCTAssertEqual(choose.label, language == "tr" ? "Buraya taşı" : "Move Here")
         app.typeKey("g", modifierFlags: [.command, .shift])
         let goToFolder = app.sheets.textFields.firstMatch
         XCTAssertTrue(goToFolder.waitForExistence(timeout: 5))
@@ -224,9 +236,21 @@ extension QualityUITests {
 
     private func expectLanguageValue(_ expected: String, of element: XCUIElement) throws {
         XCTAssertTrue(element.waitForExistence(timeout: 10))
-        let matches = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", expected), object: element)
-        XCTAssertEqual(XCTWaiter.wait(for: [matches], timeout: 10), .completed)
-        XCTAssertEqual(try XCTUnwrap(element.value as? String), expected)
+        // APFS/AX can expose decomposed Turkish characters while the fixture
+        // URL uses composed characters. Swift String equality preserves exact
+        // text under canonical Unicode equivalence, without ignoring accents,
+        // case, punctuation, the filename or any part of the recovery advice.
+        let matches = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            (element.value as? String) == expected
+        }, object: element)
+        let result = XCTWaiter.wait(for: [matches], timeout: 10)
+        let observed = element.value as? String
+        let receipt = XCTAttachment(string: "Expected: " + expected + "\nObserved: " + (observed ?? "<missing>"))
+        receipt.name = "Exact language value - " + element.identifier
+        receipt.lifetime = .keepAlways
+        add(receipt)
+        XCTAssertEqual(result, .completed)
+        XCTAssertEqual(try XCTUnwrap(observed), expected)
     }
 
     private func captureLanguageState(_ app: XCUIApplication, name: String) {

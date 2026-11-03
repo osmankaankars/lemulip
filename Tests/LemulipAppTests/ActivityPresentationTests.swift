@@ -34,7 +34,10 @@ final class ActivityPresentationTests: XCTestCase {
         item.outputs = result.outputs
         XCTAssertEqual(ActivityPresentation.status(for: item, language: "en"), "Completed")
         XCTAssertEqual(ActivityPresentation.status(for: item, language: "tr"), "Tamamlandı")
-        XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)), Set(inputs))
+        // Enumerate the exact fixture directory by entry name: macOS may spell
+        // its temporary parent /var or /private/var in otherwise identical URLs.
+        XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: directory.path)),
+                       Set(inputs.map(\.lastPathComponent)))
         for (input, body) in zip(inputs, bodies) { XCTAssertEqual(try Data(contentsOf: input), Data(body.utf8)) }
     }
 
@@ -84,8 +87,8 @@ final class ActivityPresentationTests: XCTestCase {
             "\(target.lastPathComponent): 1 word · 5 characters · 1 line")
         XCTAssertEqual(try Data(contentsOf: target), original)
         XCTAssertEqual(try FileManager.default.destinationOfSymbolicLink(atPath: alias.path), target.path)
-        XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)),
-                       Set([target, alias]))
+        XCTAssertEqual(Set(try FileManager.default.contentsOfDirectory(atPath: directory.path)),
+                       Set([target.lastPathComponent, alias.lastPathComponent]))
     }
 
     func testTransfersDescribeItemsAndConversionsDescribeNewFiles() {
@@ -133,10 +136,7 @@ final class ActivityPresentationTests: XCTestCase {
     }
 
     private func workspace() throws -> URL {
-        // Resolve macOS's /var parent alias before creating fixtures, while
-        // preserving the individual symlink identity exercised by the test.
-        let directory = FileManager.default.temporaryDirectory.resolvingSymlinksInPath()
-            .appendingPathComponent("Lemulip-Activity-Language-\(UUID().uuidString)", isDirectory: true)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("Lemulip-Activity-Language-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false)
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
         return directory

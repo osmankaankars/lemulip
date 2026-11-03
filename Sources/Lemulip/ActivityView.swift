@@ -61,6 +61,7 @@ struct ActivityRow: View {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(item.inputs.count == 1 ? item.inputs[0].lastPathComponent : model.text("\(item.inputs.count) Files", "\(item.inputs.count) Dosya"))
                         .font(.system(size: 13, weight: .semibold)).lineLimit(1).truncationMode(.middle)
+                        .accessibilityIdentifier("activity.input-name")
                     Spacer(minLength: 8)
                     Text(OperationNames.title(item.operation, language: model.language))
                         .font(.system(size: 11, weight: .medium)).foregroundStyle(Palette.muted)
