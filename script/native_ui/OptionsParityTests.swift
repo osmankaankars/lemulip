@@ -122,10 +122,13 @@ extension QualityUITests {
             beforeHelp.name = "PDF help before disclosure click"
             beforeHelp.lifetime = .keepAlways
             add(beforeHelp)
-            // The native disclosure's AX frame includes its label. Target the
-            // visible leading chevron rather than the centre of that frame.
-            help.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0.5))
-                .withOffset(CGVector(dx: 5, dy: 0)).click()
+            // The native disclosure's AX frame starts left of its visible chevron.
+            // The help and page grid share an inset, so anchor x to the first card
+            // and y to the disclosure itself to hit the actual arrow.
+            let firstCard = app.descendants(matching: .any)["pdf.organize.card.0"].firstMatch
+            XCTAssertTrue(firstCard.waitForExistence(timeout: 5))
+            firstCard.coordinate(withNormalizedOffset: .zero)
+                .withOffset(CGVector(dx: 5, dy: help.frame.midY - firstCard.frame.minY)).click()
             let visibleHelp = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
                 details.exists && details.isHittable
             }, object: details)
