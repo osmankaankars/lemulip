@@ -40,6 +40,10 @@ public enum Catalog {
             if family == .pdf && ["jpg", "png"].contains(ext) { detail = "Every page · 300 DPI" }
             else if family == .pdf { detail = "Extract selectable text" }
             else if family == .image && ext == "pdf" && inputs.count > 1 { detail = "Combine in the order shown" }
+            else if family == .image && ext == "png" { detail = "Supports transparency" }
+            else if family == .image && ["jpg", "bmp"].contains(ext) { detail = "Transparent areas become white" }
+            else if family == .audio && ext == "m4a" { detail = "AAC audio" }
+            else if family == .audio && ["wav", "aiff"].contains(ext) { detail = "16-bit PCM audio" }
             else if ext == "epub" { detail = "Reflowable ebook" }
             else if ext == "docx", dependency == nil {
                 if inputs.allSatisfy({ normalizedExtension($0.pathExtension) == "md" }) {

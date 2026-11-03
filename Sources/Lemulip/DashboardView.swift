@@ -163,7 +163,7 @@ struct DashboardView: View {
                 .padding(.bottom, 6)
             }
             if model.files.count > 1 {
-                Text(model.text("Files Merge In This Order.", "Dosyalar Bu Sırayla Birleştirilir."))
+                Text(model.text("Use the arrows to reorder files.", "Dosyaları oklarla sırala."))
                     .font(.system(size: 11)).foregroundStyle(Palette.muted)
                     .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 5)
             }
@@ -252,6 +252,7 @@ struct OperationCard: View {
     @State private var hover = false
     private var missing: Bool { operation.dependency.map { !EngineLocator.isAvailable($0) } ?? false }
     private var pinned: Bool { model.pinnedOperationIDs.contains(operation.id) }
+    private var helpText: String { OperationNames.help(operation, language: model.language, requiresSupport: missing) }
     var body: some View {
         ZStack(alignment: .topTrailing) {
             Button { model.begin(operation) } label: {
@@ -267,8 +268,9 @@ struct OperationCard: View {
                     }
                 }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
                     .contentShape(RoundedRectangle(cornerRadius: 11))
-            }.buttonStyle(.plain).help(OperationNames.detail(operation, language: model.language))
+            }.buttonStyle(.plain).help(helpText)
                 .accessibilityLabel(OperationNames.title(operation, language: model.language))
+                .accessibilityHint(helpText)
                 .accessibilityIdentifier("operation." + operation.id)
             Button { model.togglePin(operation) } label: {
                 Image(systemName: pinned ? "pin.fill" : "pin")
@@ -298,13 +300,30 @@ enum OperationNames {
     }
     static func detail(_ operation: FileOperation, language: String) -> String {
         guard language == "tr" else { return operation.detail }
-        if let dependency = operation.dependency { return "Yerel \(dependency) motoru" }
-        if operation.id == "convert.xlsx" { return "Microsoft Excel · Metin hücreleri" }
-        if operation.id == "convert.docx" {
-            return operation.detail == "Microsoft Word Document · Basic Formatting"
-                ? "Microsoft Word · Temel biçimlendirme" : "Microsoft Word · Düz metin"
+        if operation.id.hasPrefix("convert.") {
+            if let dependency = operation.dependency, operation.detail == "Local \(dependency) engine" {
+                return "Yerel \(dependency) motoru"
+            }
+            return [
+                "Every page · 300 DPI": "Her sayfa · 300 DPI",
+                "Extract selectable text": "Seçilebilir metni çıkar",
+                "Combine in the order shown": "Gösterilen sırayla birleştir",
+                "Supports transparency": "Saydamlığı destekler",
+                "Transparent areas become white": "Saydam alanlar beyaz olur",
+                "AAC audio": "AAC ses",
+                "16-bit PCM audio": "16 bit PCM ses",
+                "Reflowable ebook": "Akışkan metinli e-kitap",
+                "Microsoft Word Document · Basic Markdown": "Microsoft Word · Temel Markdown",
+                "Microsoft Word Document · Basic Formatting": "Microsoft Word · Temel biçimlendirme",
+                "Microsoft Word Document · Plain Text": "Microsoft Word · Düz metin",
+                "Microsoft Word Document": "Microsoft Word belgesi",
+                "Microsoft Excel Workbook · Text Cells": "Microsoft Excel · Metin hücreleri",
+                "Microsoft Excel Workbook": "Microsoft Excel çalışma kitabı",
+                "Microsoft PowerPoint Presentation": "Microsoft PowerPoint sunusu",
+                "Built into macOS": "macOS'te yerleşik"
+            ][operation.detail] ?? operation.detail
         }
-        if operation.id.hasPrefix("convert.") { return operation.detail == "Every page · 300 DPI" ? "Her sayfa · 300 DPI" : "Bu Mac'te işlenir" }
+        if let dependency = operation.dependency { return "Yerel \(dependency) motoru" }
         return [
             "image.compress": "Görsel kalitesini ayarla", "image.resize": "En boy oranını koru", "image.crop": "Koruyacağın alanı seç", "image.rotate": "90° adımlarla döndür", "image.flip": "Yatay olarak yansıt", "image.stripMetadata": "Temiz bir kopya oluştur",
             "media.trim": "Aralığı görerek ve oynatarak seç",
@@ -313,6 +332,15 @@ enum OperationNames {
             "archive.extract": "Yeni bir klasöre çıkar", "archive.createZip": "Seçili dosyaları sıkıştır", "archive.createTar": "Seçili dosyaları paketle", "archive.createGzip": "Her dosyayı ayrı sıkıştır", "document.wordCount": "Kelimeleri yerel olarak say",
             "action.airdrop": "Yakındaki cihazlarla paylaş", "action.float": "Dosyaları yüzen rafta tut", "action.copy": "Hedef klasörü seç", "action.move": "Hedef klasörü seç", "action.copyPath": "Tam dosya yolunu kopyala", "action.terminal": "Bulunduğu klasörde aç"
         ][operation.id] ?? operation.detail
+    }
+    static func help(_ operation: FileOperation, language: String, requiresSupport: Bool = false) -> String {
+        let summary = detail(operation, language: language)
+        guard let dependency = operation.dependency else { return summary }
+        let engine = language == "tr" ? "Yerel \(dependency) motoru" : "Local \(dependency) engine"
+        let support = requiresSupport
+            ? (language == "tr" ? "\(dependency) desteği gerekiyor" : "Requires \(dependency) support")
+            : engine
+        return summary == engine ? support : "\(summary) · \(support)"
     }
 }
 

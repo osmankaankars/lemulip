@@ -32,6 +32,36 @@ extension QualityUITests {
                             value: "1", numericValue: nil)
     }
 
+    func testWAVTrimDefaultsToSourceFormatAndKeepsManualChoice() throws {
+        let app = launch(language: "en")
+        let input = ReviewConfiguration.fixtures.appendingPathComponent("Quality.wav")
+        let original = try Data(contentsOf: input)
+        let directory = input.deletingLastPathComponent()
+        let before = try contents(directory)
+        app.open(input)
+        try openOperation("media.trim", in: app)
+        let format = app.popUpButtons["audio-trim.output-format"]
+        XCTAssertTrue(format.waitForExistence(timeout: 15))
+        XCTAssertEqual(format.value as? String, "WAV · 16-Bit PCM",
+                       "A supported WAV source must not begin with a lossy AAC output selected")
+        XCTAssertTrue(format.isEnabled)
+        XCTAssertTrue(format.isHittable)
+        let screenshot = XCTAttachment(screenshot: app.screenshot())
+        screenshot.name = "Audio trim with source WAV selected"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+        format.click()
+        let aiff = app.menuItems["AIFF · 16-Bit PCM"]
+        XCTAssertTrue(aiff.waitForExistence(timeout: 5))
+        aiff.click()
+        XCTAssertEqual(format.value as? String, "AIFF · 16-Bit PCM",
+                       "Source-aware defaults must keep the output format editable")
+        app.buttons["Cancel"].click()
+        try expectEditorClosed(in: app)
+        XCTAssertEqual(try contents(directory), before)
+        XCTAssertEqual(try Data(contentsOf: input), original)
+    }
+
     func testMergeFirstCancelClickDiscardsActivePositionDraft() throws {
         try firstCancelClick(organize: false)
     }
@@ -79,6 +109,44 @@ extension QualityUITests {
         try openOperation(operation, in: app)
         let field = app.textFields["pdf.position.0"]
         XCTAssertTrue(field.waitForExistence(timeout: 10))
+        if organize {
+            let collapsed = XCTAttachment(screenshot: app.screenshot())
+            collapsed.name = "PDF organizer with concise ordering guidance"
+            collapsed.lifetime = .keepAlways
+            add(collapsed)
+            let help = app.disclosureTriangles["Keyboard & Tips"]
+            XCTAssertTrue(help.waitForExistence(timeout: 5))
+            let details = app.staticTexts["editor.help.details"]
+            XCTAssertFalse(details.exists && details.isHittable)
+            let beforeHelp = XCTAttachment(string: app.debugDescription)
+            beforeHelp.name = "PDF help before disclosure click"
+            beforeHelp.lifetime = .keepAlways
+            add(beforeHelp)
+            // The native disclosure's AX frame starts left of its visible chevron.
+            // The help and page grid share an inset, so anchor x to the first card
+            // and y to the disclosure itself to hit the actual arrow.
+            let firstCard = app.descendants(matching: .any)["pdf.organize.card.0"].firstMatch
+            XCTAssertTrue(firstCard.waitForExistence(timeout: 5))
+            firstCard.coordinate(withNormalizedOffset: .zero)
+                .withOffset(CGVector(dx: 5, dy: help.frame.midY - firstCard.frame.minY)).click()
+            let visibleHelp = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                details.exists && details.isHittable
+            }, object: details)
+            let helpResult = XCTWaiter.wait(for: [visibleHelp], timeout: 5)
+            let afterHelp = XCTAttachment(string: app.debugDescription)
+            afterHelp.name = "PDF help after disclosure click"
+            afterHelp.lifetime = .keepAlways
+            add(afterHelp)
+            XCTAssertEqual(helpResult, .completed,
+                           "Require the explanation to be visibly expanded before checking layout or capturing it")
+            XCTAssertTrue(field.isHittable, "Expanded help must leave page positions reachable")
+            XCTAssertTrue(app.buttons["editor.create-copy"].isHittable)
+            XCTAssertTrue(app.buttons["Cancel"].isHittable)
+            let expanded = XCTAttachment(screenshot: app.screenshot())
+            expanded.name = "PDF organizer with keyboard help expanded"
+            expanded.lifetime = .keepAlways
+            add(expanded)
+        }
         field.click()
         field.typeKey("a", modifierFlags: .command)
         field.typeText("3")

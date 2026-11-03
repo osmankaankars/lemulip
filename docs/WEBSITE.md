@@ -51,15 +51,8 @@ These are research snapshots, not dependencies or separate authorities over the 
 
 [iart’s motion collection](https://github.com/iart-ai/motion-skills/tree/238dfc55aac123d4649be39adfe58c43193ca349) and its [web pack](https://github.com/iart-ai/web-animation-skills/tree/b6dba3eb759726845a44163ff0bad70dd9e7fbb6) inform feedback, continuity and reduced motion. [MotionClone](https://motionclone.lol/agents) and [HyperFrames](https://github.com/heygen-com/hyperframes/tree/f6536e9f5deab41ffe30132543ed1586e2b16088) concern reference-led video production; they do not require website dependencies or migration of the approved film.
 
-## Review And Later App Ideas
+## Review And Native Follow-up
 
 Inspect the actual desktop and mobile output, all themes and the changed interaction paths. Fix observed problems in one batch, then confirm. Technical checks and screenshots do not justify a fabricated quality score.
 
-The current native captures and Swift source suggest three separate app follow-ups:
-
-- **Workspace:** consider replacing repeated engine descriptions with useful output distinctions. Keep engine status visible when support needs installation. See `DashboardView.swift` and `LemulipCore/Catalog.swift`; search and pinning already exist.
-- **PDF pages:** label the editable ordering field **Position**, with the original page number as secondary information. Consider moving the long shortcut explanation into contextual help. See `PDFOrganizeView.swift`; direct position entry, multiple selection and undo already exist.
-- **Audio trim:** consider defaulting to the source format when it is supported. `AudioTrimView.swift` currently chooses the first available format, with M4A first, including for the pictured WAV source. Keep the existing 16-bit WAV/AIFF output limit explicit; matching the extension does not promise bit-for-bit preservation.
-
-These are proposals for a later app review, not app changes or findings from running the macOS build.
-
+The native app refinement follows the same identity with task-specific copy, source-aware audio defaults and familiar Mac controls. Its candidate scope, protected behavior and verification requirements are recorded in [APP_DESIGN.md](APP_DESIGN.md). Keep that candidate separate from the released app shown in the public gallery and download links until release and capture checks are complete.

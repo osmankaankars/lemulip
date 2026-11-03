@@ -12,12 +12,13 @@ class NativeCoverageTests(unittest.TestCase):
         required = {f'test{language}{control}Control' for language in ('English', 'Turkish')
                     for control in ('Quality', 'Dimension', 'Speed', 'Volume', 'PageRange')}
         required |= {'testMergeFirstCancelClickDiscardsActivePositionDraft',
-                     'testOrganizerFirstCancelClickDiscardsActivePositionDraft'}
+                     'testOrganizerFirstCancelClickDiscardsActivePositionDraft',
+                     'testWAVTrimDefaultsToSourceFormatAndKeepsManualChoice'}
         present = set(re.findall(r'func (test\w+)\(', sources))
         self.assertFalse(required - present, f'Missing native coverage: {sorted(required - present)}')
         self.assertTrue({'testEnglishWheelPointerKeyboardAndVisualReview',
                          'testTurkishWheelPointerKeyboardAndVisualReview'} <= present)
-        self.assertEqual(len(present), 29, 'Keep all 27 cases plus both native wheel reviews')
+        self.assertEqual(len(present), 30, 'Keep all 29 cases plus source-aware audio trim')
 
     def test_workflow_assembles_and_records_the_new_cases(self):
         workflow = (ROOT / '.github/workflows/native-ui-review.yml').read_text()
