@@ -120,12 +120,11 @@ final class QualityUITests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: input), original)
     }
 
-    private func launch(language: String, completion: String = "quiet",
-                        outputAlongsideOriginal: Bool = true) -> XCUIApplication {
+    private func launch(language: String, completion: String = "quiet") -> XCUIApplication {
         let app = XCUIApplication(url: ReviewConfiguration.application)
         application = app
         app.launchArguments = ["-language", language, "-wheelEnabled", "NO", "-completionPresentation", completion,
-                               "-outputAlongsideOriginal", outputAlongsideOriginal ? "YES" : "NO",
+                               "-outputAlongsideOriginal", "YES",
                                "-NSQuitAlwaysKeepsWindows", "NO"]
         app.launch()
         XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: 15))

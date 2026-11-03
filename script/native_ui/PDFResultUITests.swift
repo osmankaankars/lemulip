@@ -30,7 +30,10 @@ extension QualityUITests {
         XCTAssertEqual(try pageLabels(output), ["PAGE 2", "PAGE 1", "PAGE 3", "PAGE 4"])
         XCTAssertEqual(try Data(contentsOf: input), original)
         XCTAssertEqual(try contents(folder).subtracting(before), [output])
-        let result = app.buttons["completion.output." + output.path]
+        // XCTest's string subscript rejects identifiers longer than 128
+        // characters. Match the complete path explicitly without truncating it.
+        let result = app.buttons.matching(NSPredicate(format: "identifier == %@",
+                                                      "completion.output." + output.path)).firstMatch
         XCTAssertTrue(result.waitForExistence(timeout: 10))
         XCTAssertTrue(result.isHittable)
         XCTAssertEqual(result.label, output.lastPathComponent + " dosyasını Finder'da göster")
@@ -75,7 +78,8 @@ extension QualityUITests {
     }
 
     func testOrganizerDestinationCancelPreservesTheEditedOrder() throws {
-        let app = launch(language: "en", outputAlongsideOriginal: false)
+        let app = launch(language: "en")
+        try setSaveBesideOriginal(false, in: app)
         let input = try preparedPDFFixture("DestinationCancel")
         let original = try Data(contentsOf: input)
         let folder = input.deletingLastPathComponent()
@@ -111,6 +115,7 @@ extension QualityUITests {
         app.buttons["Cancel"].click()
         try expectEditorClosed(in: app)
         XCTAssertEqual(try contents(folder), before)
+        try setSaveBesideOriginal(true, in: app)
     }
 
     private func invalidPDFRecovery(language: String) throws {
@@ -125,8 +130,10 @@ extension QualityUITests {
         let detail = app.staticTexts["pdf.organize.error-detail"]
         XCTAssertTrue(title.waitForExistence(timeout: 10))
         XCTAssertTrue(detail.isHittable)
-        XCTAssertEqual(title.label, language == "tr" ? "PDF düzenleyicisi açılamadı" : "Could Not Open the PDF Organizer")
-        XCTAssertEqual(detail.label, language == "tr"
+        // Native SwiftUI Text exposes its content as AXValue, not AXLabel.
+        XCTAssertEqual(try XCTUnwrap(title.value as? String),
+                       language == "tr" ? "PDF düzenleyicisi açılamadı" : "Could Not Open the PDF Organizer")
+        XCTAssertEqual(try XCTUnwrap(detail.value as? String), language == "tr"
             ? "Bu dosya PDF olarak okunamadı. Başka bir PDF seçip yeniden dene."
             : "This file could not be read as a PDF. Choose another PDF and try again.")
         XCTAssertFalse(app.buttons["editor.create-copy"].isEnabled)
@@ -137,6 +144,34 @@ extension QualityUITests {
         try expectEditorClosed(in: app)
         XCTAssertEqual(try contents(folder), before)
         XCTAssertEqual(try Data(contentsOf: input), original)
+    }
+
+    private func setSaveBesideOriginal(_ enabled: Bool, in app: XCUIApplication) throws {
+        // Change the real preference: a string launch argument is not a Boolean
+        // UserDefaults object and cannot establish the destination-picker path.
+        let settings = app.buttons["navigation.settings"]
+        XCTAssertTrue(settings.waitForExistence(timeout: 10))
+        settings.click()
+        let toggle = app.checkBoxes["Save Beside The Original"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 10))
+        for _ in 0..<8 {
+            if toggle.isHittable { break }
+            app.scrollViews.firstMatch.scroll(byDeltaX: 0, deltaY: -160)
+        }
+        XCTAssertTrue(toggle.isHittable)
+        XCTAssertTrue(toggle.isEnabled)
+        let expected = enabled ? 1 : 0
+        let current = try XCTUnwrap((toggle.value as? NSNumber)?.intValue ?? Int(toggle.value as? String ?? ""))
+        XCTAssertTrue([0, 1].contains(current))
+        if current != expected { toggle.click() }
+        let changed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            let value = (toggle.value as? NSNumber)?.intValue ?? Int(toggle.value as? String ?? "")
+            return value == expected
+        }, object: toggle)
+        XCTAssertEqual(XCTWaiter.wait(for: [changed], timeout: 5), .completed,
+                       "The actual output preference must be \(enabled ? "on" : "off")")
+        if !enabled { capturePDFState(app, name: "Output folder selection enabled in Settings") }
+        app.buttons["navigation.workspace"].click()
     }
 
     private func preparedPDFFixture(_ scenario: String) throws -> URL {
