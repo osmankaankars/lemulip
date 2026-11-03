@@ -2,7 +2,7 @@
 
 Updated 3 November 2026.
 
-**Status:** unreleased refinement based on `6198eb4`. The public app reference is **0.1.20, build 23**. Current verification evidence is recorded in [PR #39](https://github.com/osmankaankars/lemulip/pull/39); existing public screenshots do not establish this refinement's appearance or behavior.
+**Status:** unreleased PDF feedback refinement based on `17e1b7d`, following [PR #39](https://github.com/osmankaankars/lemulip/pull/39). The public app reference is **0.1.20, build 23**. Candidate checks and native captures establish the new behavior; existing public screenshots do not establish this refinement's appearance or behavior.
 
 Read this with [DESIGN.md](DESIGN.md) for the shared identity and [WEBSITE.md](WEBSITE.md) for the separately scoped website. This brief records the current native refinement so later work can continue from the same decisions.
 
@@ -47,10 +47,18 @@ Matching the source extension does not preserve the original encoding or bit dep
 
 ## Verification Before Release
 
-Run the current **30-case native suite** for this candidate. It includes the WAV source default, manual output-format choice and cancellation path. The existing PDF cancellation case now captures the organizer with help collapsed and expanded; those must be genuine captures of the running candidate.
+Run the current **34-case native suite** for this candidate. It retains the WAV source default, manual output-format choice and cancellation path. The existing PDF cancellation case captures the organizer with help collapsed and expanded; those must be genuine captures of the running candidate.
 
 The expanded-help capture requires the explanation to be visible and hittable before checking the page positions and footer. Keep accessibility snapshots from before and after the disclosure click. A screenshot's attachment name or reachable footer alone does not establish that help expanded.
 
 Review the changed flows in English and Turkish, including long conversion descriptions, engine-required help and format/engine search. Confirm PDF position edits, invalid values, Enter/Esc, selection and cancellation retain their established behavior. Inspect the native captures at their intended size, with attention to the expanded disclosure and two-line operation descriptions.
 
 Record actual CI results and candidate capture provenance when available. Public screenshots and download references continue to describe the verified public app until their replacements have been checked.
+
+## PDF Failure Messages And Output Actions
+
+Known PDF organizer failures show their cause and recovery advice in the selected application language. Match the controlled diagnostics exactly in the app presentation layer; preserve core/CLI error cases, unknown diagnostics and cancellation behavior. A malformed PDF should not expose the private preview filename as the user's document. Keep unreadable, oversized, password-protected, permission-restricted and changed-source failures distinct.
+
+Result-card and Activity filename buttons retain their Finder reveal behavior. Their localized help and accessibility labels include the full filename and the action, following the existing file shelf. Preserve the visible filename, drag support and layout. The organizer's Turkish context menu uses **Sıra numarasını değiştir…** alongside its **Sıra** field.
+
+The four added native cases cover English/Turkish malformed-PDF recovery, destination-picker cancellation with order and undo history retained, and a Turkish edit/export/result-card/Finder flow. The Finder case requires the exact UUID-named output image to be selected, its original sibling to remain unselected, and exactly one file image selected in the expected folder window. Only the production result action may reveal or select the file. Retain result/error/editor screenshots, a full-screen Finder capture, accessibility trees and a receipt separating the expected output path from the observed Finder selection identity. This verifies Finder selection, not clipboard transfer. Model tests also exercise real missing, oversized, locked and copying-restricted PDF failures and source-fingerprint validation.

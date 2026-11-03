@@ -444,7 +444,10 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
             } catch {
                 guard let self else { return }
                 let cancelled = Task.isCancelled || error is CancellationError || (error as? LemulipError).map { if case .cancelled = $0 { return true }; return false } == true
-                self.update(id) { $0.state = cancelled ? .cancelled : .failed; $0.message = cancelled ? self.text("Cancelled", "İptal edildi") : error.localizedDescription }
+                let failureMessage = options.pdfOrganization != nil
+                    ? PDFErrorPresentation.message(for: error, language: self.language)
+                    : error.localizedDescription
+                self.update(id) { $0.state = cancelled ? .cancelled : .failed; $0.message = cancelled ? self.text("Cancelled", "İptal edildi") : failureMessage }
             }
             guard let self else { return }
             self.tasks[id] = nil; self.activeJob = nil; self.startNextJob()

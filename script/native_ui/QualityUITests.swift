@@ -120,11 +120,12 @@ final class QualityUITests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: input), original)
     }
 
-    private func launch(language: String) -> XCUIApplication {
+    private func launch(language: String, completion: String = "quiet") -> XCUIApplication {
         let app = XCUIApplication(url: ReviewConfiguration.application)
         application = app
-        app.launchArguments = ["-language", language, "-wheelEnabled", "NO", "-completionPresentation", "quiet",
-                               "-outputAlongsideOriginal", "YES", "-NSQuitAlwaysKeepsWindows", "NO"]
+        app.launchArguments = ["-language", language, "-wheelEnabled", "NO", "-completionPresentation", completion,
+                               "-outputAlongsideOriginal", "YES",
+                               "-NSQuitAlwaysKeepsWindows", "NO"]
         app.launch()
         XCTAssertTrue(app.windows.firstMatch.waitForExistence(timeout: 15))
         return app
@@ -220,11 +221,11 @@ final class QualityUITests: XCTestCase {
         }
     }
 
-    private func openOperation(_ id: String, in app: XCUIApplication) throws {
+    private func openOperation(_ id: String, in app: XCUIApplication, searchText: String? = nil) throws {
         let search = app.textFields["workspace.operation-search"]
         XCTAssertTrue(search.waitForExistence(timeout: 10))
         search.click()
-        search.typeText(id)
+        search.typeText(searchText ?? id)
         let operation = app.buttons["operation." + id]
         XCTAssertTrue(operation.waitForExistence(timeout: 10))
         operation.click()

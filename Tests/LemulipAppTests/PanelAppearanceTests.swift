@@ -44,7 +44,15 @@ final class PanelAppearanceTests: XCTestCase {
             XCTAssertEqual(panel.alphaValue, 1)
         }
         appearance.present(panel, kind: .result) { panel.orderFrontRegardless() }
-        try await Task.sleep(nanoseconds: 250_000_000)
+        // AppKit animation completion can lag its nominal duration on a busy
+        // host. Yield the main actor until the visible state settles, while
+        // continuing to catch an old animation hiding or moving the panel.
+        let deadline = ProcessInfo.processInfo.systemUptime + 3
+        while abs(panel.alphaValue - 1) > 0.001, ProcessInfo.processInfo.systemUptime < deadline {
+            XCTAssertTrue(panel.isVisible, "An old entry must not hide the new presentation")
+            XCTAssertEqual(panel.frame, frame)
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
         XCTAssertTrue(panel.isVisible, "An old entry must not hide the new presentation")
         XCTAssertEqual(panel.alphaValue, 1, accuracy: 0.001)
         XCTAssertEqual(panel.frame, frame)

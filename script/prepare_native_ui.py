@@ -12,6 +12,7 @@ import plistlib
 import shutil
 import struct
 import subprocess
+import uuid
 import zlib
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -96,6 +97,23 @@ def hash_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def prepare_pdf_result_fixtures(fixtures: Path) -> None:
+    # XCTest can read these paths but cannot create fixtures outside its sandbox.
+    # Prepare input-only, per-case directories in the existing staging process;
+    # the production application remains responsible for all test outputs.
+    source = fixtures / "Organize/Page-Order.pdf"
+    source_bytes = source.read_bytes()
+    root = fixtures / "PDFResults"
+    root.mkdir(exist_ok=False)
+    identity = uuid.uuid4().hex
+    for scenario in ("EnglishInvalid", "TurkishInvalid", "FinderHandoff", "DestinationCancel"):
+        folder = root / scenario
+        folder.mkdir(exist_ok=False)
+        data = (b"This is a deliberately invalid PDF fixture.\n"
+                if scenario.endswith("Invalid") else source_bytes)
+        (folder / f"{scenario}-{identity}.pdf").write_bytes(data)
+
+
 def run(*args: str | Path, timeout: int = 90) -> str:
     return subprocess.check_output([str(arg) for arg in args], text=True, timeout=timeout).strip()
 
@@ -118,6 +136,7 @@ def prepare(app: Path, output: Path) -> None:
     run("/usr/bin/codesign", "--verify", "--strict", staged)
     fixtures = output / "Fixtures"
     run("/usr/bin/xcrun", "--sdk", "macosx", "swift", ROOT / "script/ui_review_fixtures.swift", "make", fixtures)
+    prepare_pdf_result_fixtures(fixtures)
     def chunk(kind: bytes, data: bytes) -> bytes:
         return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
     rows = b"".join(

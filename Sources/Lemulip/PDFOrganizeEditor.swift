@@ -63,7 +63,7 @@ final class PDFOrganizeEditor: ObservableObject {
         }
     }
 
-    func open(_ input: URL) async {
+    func open(_ input: URL, language: String = "en") async {
         close()
         let loadID = generation
         isLoading = true
@@ -87,7 +87,7 @@ final class PDFOrganizeEditor: ObservableObject {
                 await openedSession.close()
                 return
             }
-            errorMessage = error.localizedDescription
+            errorMessage = PDFErrorPresentation.message(for: error, language: language)
             isLoading = false
             await openedSession.close()
         }
