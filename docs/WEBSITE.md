@@ -1,6 +1,6 @@
 # Website Brief
 
-Updated 2 November 2026. Read this before changing `site/`, alongside [DESIGN.md](DESIGN.md) for shared direction and [MARKETING.md](MARKETING.md) for product facts. This brief preserves decisions across sessions; a new reference does not silently replace them.
+Updated 4 November 2026. Read this before changing `site/`, alongside [DESIGN.md](DESIGN.md) for shared direction and [MARKETING.md](MARKETING.md) for product facts. This brief preserves decisions across sessions; a new reference does not silently replace them.
 
 ## Purpose And Scope
 
@@ -20,9 +20,9 @@ The website is **Persuade**: help someone understand Lemulip’s drag interactio
 
 The order is intentional:
 
-1. **Hero and example:** explain dragging, tapping a key and choosing an operation. Show one primary **“Download for Mac”** action with requirements and installation help nearby.
+1. **Hero and example:** name familiar file tasks in the supporting sentence. Let the example and compact key guide explain the drag interaction. Show one primary **“Download for Mac”** action with requirements and installation help nearby.
 2. **Compact key guide:** explain Shift/Convert, Command/Tools and Control/Actions once. This is an operating guide, not another set of slogans.
-3. **Real gallery:** Workspace, PDF pages, Crop video and Trim audio show specific tasks. Captions explain the visible operation and useful result.
+3. **Real gallery:** Workspace, PDF pages, Crop video and Trim audio show specific tasks. The selected task is the section heading, with one explanation beside its genuine capture. Workspace-specific instructions belong to the Workspace caption and change with the selected tab. Keep the caption area stable when switching tasks.
 4. **Compact catalog:** show catalog-derived counts in the disclosure summary. Keep the detailed searchable directory behind its accessible disclosure, with clear empty-result recovery.
 5. **Local processing and download:** state that processing happens on the Mac and repeat the same download label. Close with the real maker credit, source, guide and license links.
 

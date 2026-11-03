@@ -441,7 +441,7 @@ def check_catalog_search(page):
     assert page.locator('.format-row').count()==2
     assert page.locator('.format-row').all_text_contents()[0].startswith('Images')
     assert page.locator('#tool-directory li').count()==2
-    assert page.locator('#format-search-status').inner_text()=='2 file families · 2 matching tools'
+    assert page.locator('#format-search-status').inner_text()=='2 file families · 2 matching operations'
     summary.click()
     assert search.is_hidden()
     page.locator('.header a[href="#formats"]').click()
@@ -540,7 +540,7 @@ def check_entry_and_sharing(page, canonical):
 
 
 def exercise(page,output,width,height):
-    assert page.locator('html').get_attribute('data-site-version')=='20261102.2'
+    assert page.locator('html').get_attribute('data-site-version')=='20261104.1'
     assert 'Lemulip' in page.title()
     assert page.locator('#format-count').inner_text()=='35'
     assert page.locator('#tool-count').inner_text()=='26'

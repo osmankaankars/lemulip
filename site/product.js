@@ -88,7 +88,7 @@
     document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed',String(b.dataset.mode === mode)));
   }
   const shortcutKeys = {convert:'Shift', tools:'Command', actions:'Control'};
-  const captions = ['Drag a file, or click it to begin.',null,'Drop onto a segment, or click an operation.','Your sample result.'];
+  const captions = ['Drag a sample file, or click it to begin.',null,'Drop onto a segment, or click an operation.','Your sample result.'];
   const hints = ['Pick up a file', null, 'Choose an operation', 'Sample result'];
   function positionTourCursor() {
     const cursor = $('tour-cursor'), desktopRect = desktop.getBoundingClientRect();
@@ -149,12 +149,12 @@
   function showResult(op) {
     if (!op) return;
     let name,detail,hint;
-    if (op.extension) {name=stem(sample().name)+'.'+op.extension;detail='Sample copy · original kept'+(op.engine?' · '+op.engine:'');hint='Sample copy';}
+    if (op.extension) {name=stem(sample().name)+'.'+op.extension;detail='Sample copy'+(op.engine?' · '+op.engine:'');hint='Sample copy';}
     else if(op.id==='archive.extract'){name=stem(sample().name)+'/';detail='Sample extracted folder · archive kept';hint='Sample extracted folder';}
     else {name=op.title;detail=op.detail+'. In the Mac app.';hint='Sample result';}
     $('output-name').textContent=name;$('output-detail').textContent=detail;
     $('demo-hint').textContent=hint;
-    $('demo-instruction').textContent=op.extension?'Example: '+name+' · original kept.':'Example: '+op.title+'.';
+    $('demo-instruction').textContent=op.extension?'Example: '+name+' is a new copy. The original is kept.':'Example: '+op.title+'.';
   }
   function choose(index) {
     const focusWasInWheel=svg.contains(document.activeElement);
@@ -269,7 +269,7 @@
     const count=result.families.length;
     const total=result.tools.length+result.actions.length;
     $('format-search-clear').hidden=!active;
-    $('format-search-status').textContent=active ? count||total ? count+' file '+(count===1?'family':'families')+' · '+total+' matching '+(total===1?'tool':'tools') : 'No matches. Try a format like WebP or a tool like Trim.' : '';
+    $('format-search-status').textContent=active ? count||total ? count+' file '+(count===1?'family':'families')+' · '+total+' matching '+(total===1?'operation':'operations') : 'No matches. Try a format like WebP or a tool like Trim.' : '';
   }
   renderCatalog();
   // Links to the directory reveal it, including a directly opened #formats URL.
