@@ -116,7 +116,26 @@ extension QualityUITests {
             add(collapsed)
             let help = app.disclosureTriangles["Keyboard & Tips"]
             XCTAssertTrue(help.waitForExistence(timeout: 5))
-            help.click()
+            let details = app.staticTexts["editor.help.details"]
+            XCTAssertFalse(details.exists && details.isHittable)
+            let beforeHelp = XCTAttachment(string: app.debugDescription)
+            beforeHelp.name = "PDF help before disclosure click"
+            beforeHelp.lifetime = .keepAlways
+            add(beforeHelp)
+            // The native disclosure's AX frame includes its label. Target the
+            // visible leading chevron rather than the centre of that frame.
+            help.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0.5))
+                .withOffset(CGVector(dx: 5, dy: 0)).click()
+            let visibleHelp = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                details.exists && details.isHittable
+            }, object: details)
+            let helpResult = XCTWaiter.wait(for: [visibleHelp], timeout: 5)
+            let afterHelp = XCTAttachment(string: app.debugDescription)
+            afterHelp.name = "PDF help after disclosure click"
+            afterHelp.lifetime = .keepAlways
+            add(afterHelp)
+            XCTAssertEqual(helpResult, .completed,
+                           "Require the explanation to be visibly expanded before checking layout or capturing it")
             XCTAssertTrue(field.isHittable, "Expanded help must leave page positions reachable")
             XCTAssertTrue(app.buttons["editor.create-copy"].isHittable)
             XCTAssertTrue(app.buttons["Cancel"].isHittable)

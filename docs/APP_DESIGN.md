@@ -1,8 +1,8 @@
 # Native App Refinement Brief
 
-Updated 2 November 2026.
+Updated 3 November 2026.
 
-**Status:** unreleased candidate based on `6198eb4`. The public app reference is **0.1.20, build 23**. Candidate CI and native capture verification are pending; existing public screenshots do not establish this candidate's appearance or behavior.
+**Status:** unreleased refinement based on `6198eb4`. The public app reference is **0.1.20, build 23**. Current verification evidence is recorded in [PR #39](https://github.com/osmankaankars/lemulip/pull/39); existing public screenshots do not establish this refinement's appearance or behavior.
 
 Read this with [DESIGN.md](DESIGN.md) for the shared identity and [WEBSITE.md](WEBSITE.md) for the separately scoped website. This brief records the current native refinement so later work can continue from the same decisions.
 
@@ -48,6 +48,8 @@ Matching the source extension does not preserve the original encoding or bit dep
 ## Verification Before Release
 
 Run the current **30-case native suite** for this candidate. It includes the WAV source default, manual output-format choice and cancellation path. The existing PDF cancellation case now captures the organizer with help collapsed and expanded; those must be genuine captures of the running candidate.
+
+The expanded-help capture requires the explanation to be visible and hittable before checking the page positions and footer. Keep accessibility snapshots from before and after the disclosure click. A screenshot's attachment name or reachable footer alone does not establish that help expanded.
 
 Review the changed flows in English and Turkish, including long conversion descriptions, engine-required help and format/engine search. Confirm PDF position edits, invalid values, Enter/Esc, selection and cancellation retain their established behavior. Inspect the native captures at their intended size, with attention to the expanded disclosure and two-line operation descriptions.
 

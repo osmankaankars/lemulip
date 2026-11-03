@@ -116,6 +116,7 @@ struct EditorHelp: View {
         DisclosureGroup(language == "tr" ? "Klavye Ve İpuçları" : "Keyboard & Tips") {
             Text(explanation).font(.system(size: 12)).foregroundStyle(Palette.muted)
                 .fixedSize(horizontal: false, vertical: true).padding(.top, 6)
+                .accessibilityIdentifier("editor.help.details")
         }.font(.system(size: 12)).foregroundStyle(Palette.muted)
     }
 }
