@@ -13,7 +13,7 @@ extension QualityUITests {
 
     func testTurkishOrganizerResultRevealsTheProducedCopyInFinder() throws {
         let app = launch(language: "tr", completion: "card")
-        let input = try isolatedPDFFixture(valid: true)
+        let input = try preparedPDFFixture("FinderHandoff")
         let original = try Data(contentsOf: input)
         let folder = input.deletingLastPathComponent()
         let before = try contents(folder)
@@ -76,7 +76,7 @@ extension QualityUITests {
 
     func testOrganizerDestinationCancelPreservesTheEditedOrder() throws {
         let app = launch(language: "en", outputAlongsideOriginal: false)
-        let input = try isolatedPDFFixture(valid: true)
+        let input = try preparedPDFFixture("DestinationCancel")
         let original = try Data(contentsOf: input)
         let folder = input.deletingLastPathComponent()
         let before = try contents(folder)
@@ -115,7 +115,7 @@ extension QualityUITests {
 
     private func invalidPDFRecovery(language: String) throws {
         let app = launch(language: language)
-        let input = try isolatedPDFFixture(valid: false)
+        let input = try preparedPDFFixture(language == "tr" ? "TurkishInvalid" : "EnglishInvalid")
         let original = try Data(contentsOf: input)
         let folder = input.deletingLastPathComponent()
         let before = try contents(folder)
@@ -139,20 +139,17 @@ extension QualityUITests {
         XCTAssertEqual(try Data(contentsOf: input), original)
     }
 
-    private func isolatedPDFFixture(valid: Bool) throws -> URL {
-        // Each case owns a new synthetic fixture directory. A unique filename
-        // also prevents an unrelated Finder window from satisfying the handoff.
-        let identity = UUID().uuidString
-        let folder = ReviewConfiguration.fixtures.appendingPathComponent("PDF-Result-" + identity,
+    private func preparedPDFFixture(_ scenario: String) throws -> URL {
+        // The staging process prepares one uniquely named input per case.
+        // The sandboxed XCTest runner only reads it; it never prepares files or
+        // widens filesystem access. A reused directory with output must fail.
+        let folder = ReviewConfiguration.fixtures.appendingPathComponent("PDFResults/" + scenario,
                                                                          isDirectory: true)
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: false)
-        let input = folder.appendingPathComponent((valid ? "Pages-" : "Invalid-") + identity + ".pdf")
-        if valid {
-            try FileManager.default.copyItem(at: ReviewConfiguration.fixtures.appendingPathComponent("Organize/Page-Order.pdf"),
-                                             to: input)
-        } else {
-            try Data("This is a deliberately invalid PDF fixture.\n".utf8).write(to: input)
-        }
+        let inputs = try contents(folder)
+        XCTAssertEqual(inputs.count, 1, "Require a fresh, input-only scenario directory")
+        let input = try XCTUnwrap(inputs.first)
+        XCTAssertEqual(input.pathExtension, "pdf")
+        XCTAssertTrue(input.lastPathComponent.hasPrefix(scenario + "-"))
         return input
     }
 
