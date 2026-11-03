@@ -1,6 +1,6 @@
 
 // Exercise recovery and the user's final handoff through the production app.
-// Finder selection is checked with its public Copy as Pathname command, never
+// Finder selection is checked through its actual selected file image, never
 // by asking a test helper to reveal or select the expected output.
 extension QualityUITests {
     func testEnglishInvalidPDFExplainsRecoveryAndCanCancel() throws {
@@ -39,7 +39,6 @@ extension QualityUITests {
         XCTAssertEqual(result.label, output.lastPathComponent + " dosyasını Finder'da göster")
         capturePDFState(app, name: "Turkish result card before the Finder action")
 
-        NSPasteboard.general.clearContents()
         result.click() // Only the production action may choose the Finder file.
         let finder = XCUIApplication(bundleIdentifier: "com.apple.finder")
         let foreground = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
@@ -47,34 +46,47 @@ extension QualityUITests {
         }, object: finder)
         XCTAssertEqual(XCTWaiter.wait(for: [foreground], timeout: 10), .completed,
                        "The production result action must bring Finder forward")
-        let expectedPath = output.resolvingSymlinksInPath().standardizedFileURL.path
-        let selectionDeadline = Date().addingTimeInterval(10)
-        var selectedCorrectOutput = false
-        var copyAttempts = 0
-        // Finder can become foreground before its selection finishes updating.
-        // Re-copy that real selection within the same deadline; polling a stale
-        // clipboard alone would never observe the later Finder selection.
-        while !selectedCorrectOutput, Date() < selectionDeadline {
-            guard finder.state == .runningForeground else { break }
-            finder.typeKey("c", modifierFlags: [.command, .option])
-            copyAttempts += 1
-            let copiedSelection = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-                guard let path = NSPasteboard.general.string(forType: .string),
-                      !path.isEmpty, !path.contains("\n") else { return false }
-                return URL(fileURLWithPath: path).resolvingSymlinksInPath().standardizedFileURL.path == expectedPath
-            }, object: finder)
-            let remaining = max(0, selectionDeadline.timeIntervalSinceNow)
-            selectedCorrectOutput = XCTWaiter.wait(for: [copiedSelection], timeout: min(1, remaining)) == .completed
-        }
-        capturePDFState(finder, name: "Finder with the actual produced PDF selected")
-        let copiedPath = NSPasteboard.general.string(forType: .string) ?? "<no pathname copied>"
-        let receipt = XCTAttachment(string: "Expected output: \(output.path)\nFinder selection: \(copiedPath)\nCopy attempts: \(copyAttempts)")
-        receipt.name = "Finder selected output pathname"
+        let window = finder.windows.matching(NSPredicate(format: "identifier == %@ AND title == %@",
+                                                          "FinderWindow", folder.lastPathComponent)).firstMatch
+        let icons = window.collectionViews["IconView"]
+        let outputImages = icons.images.matching(NSPredicate(format: "identifier == %@", output.lastPathComponent))
+        let sourceImages = icons.images.matching(NSPredicate(format: "identifier == %@", input.lastPathComponent))
+        let selectedImages = icons.images.matching(NSPredicate(format: "selected == true"))
+        // Staging gives this input and produced copy a unique UUID basename.
+        // Require the exact output to be Finder's only selected file, beside
+        // the unselected original in its actual destination folder.
+        let selectedOutput = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            window.exists && icons.exists && outputImages.count == 1 && sourceImages.count == 1 &&
+                outputImages.firstMatch.isSelected && !sourceImages.firstMatch.isSelected && selectedImages.count == 1
+        }, object: finder)
+        let selectionResult = XCTWaiter.wait(for: [selectedOutput], timeout: 10)
+        let graph = XCTAttachment(string: finder.debugDescription)
+        graph.name = "Finder after the output action accessibility tree"
+        graph.lifetime = .keepAlways
+        add(graph)
+        let observedFolder = window.exists ? window.title : "<missing>"
+        let observedOutput = outputImages.firstMatch.exists ? outputImages.firstMatch.identifier : "<missing>"
+        let sourceUnselected = sourceImages.firstMatch.exists && !sourceImages.firstMatch.isSelected
+        let selectedIdentifiers = selectedImages.allElementsBoundByIndex.map(\.identifier)
+        let receipt = XCTAttachment(string: [
+            "Expected output path (fixture): \(output.path)",
+            "Observed Finder folder: \(observedFolder)",
+            "Observed output identifier: \(observedOutput)",
+            "Original present and unselected: \(sourceUnselected)",
+            "Selected file identifiers: \(selectedIdentifiers.joined(separator: ", "))"
+        ].joined(separator: "\n"))
+        receipt.name = "Finder selected file identity"
         receipt.lifetime = .keepAlways
         add(receipt)
-        XCTAssertTrue(selectedCorrectOutput,
-                       "Finder's actual selected pathname must be the newly produced copy")
+        XCTAssertEqual(selectionResult, .completed,
+                       "Finder must select only the produced copy and leave the original unselected")
         XCTAssertEqual(try Data(contentsOf: input), original)
+        // Finder's application AX element can have an empty frame even when
+        // its window is visible. Capture the actual screen after the assertions.
+        let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        screenshot.name = "Finder with the actual produced PDF selected"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
     }
 
     func testOrganizerDestinationCancelPreservesTheEditedOrder() throws {
