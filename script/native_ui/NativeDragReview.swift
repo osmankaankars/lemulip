@@ -42,6 +42,7 @@ private final class DragReview {
     private var escapeKeyDown = false
     private var pointer = CGPoint.zero
     private var events: [[String: Any]] = []
+    private var diagnosticSnapshots: [[String: Any]] = []
     private let expiresAt = ProcessInfo.processInfo.systemUptime + 110
     var record: [String: Any] = [
         "schema": 1, "status": "not-run",
@@ -146,6 +147,7 @@ private final class DragReview {
 
     private func wait(_ message: String, seconds: Double = 8, retryWindowReadiness: Bool = false,
                       retryInitialWorkspaceReadiness: Bool = false,
+                      retryFinderIconReadiness: Bool = false,
                       until condition: () throws -> Bool) async throws {
         let deadline = ProcessInfo.processInfo.systemUptime + seconds
         var lastReadinessFailure: String?
@@ -153,6 +155,11 @@ private final class DragReview {
         if retryInitialWorkspaceReadiness {
             record["initialWorkspaceReadiness"] = ["phase": "initial-workspace", "retryCount": 0,
                                                     "lastError": NSNull(), "timeoutSeconds": seconds]
+        }
+        var finderIconRetryCount = 0
+        if retryFinderIconReadiness {
+            record["finderIconReadiness"] = ["phase": "finder-icons", "retryCount": 0,
+                                            "lastError": NSNull(), "timeoutSeconds": seconds]
         }
         repeat {
             do { if try condition() { return } }
@@ -170,6 +177,15 @@ private final class DragReview {
                 lastReadinessFailure = error.description
                 record["initialWorkspaceReadiness"] = [
                     "phase": "initial-workspace", "retryCount": initialWorkspaceRetryCount, "timeoutSeconds": seconds,
+                    "lastError": ["attribute": error.attribute, "status": error.status, "description": error.description]
+                ]
+            } catch let error as AXReadFailure where retryFinderIconReadiness
+                && error.status == AXError.invalidUIElement.rawValue && error.attribute == kAXValueAttribute {
+                // Re-read only the initial Finder icon tree within the same deadline.
+                finderIconRetryCount += 1
+                lastReadinessFailure = error.description
+                record["finderIconReadiness"] = [
+                    "phase": "finder-icons", "retryCount": finderIconRetryCount, "timeoutSeconds": seconds,
                     "lastError": ["attribute": error.attribute, "status": error.status, "description": error.description]
                 ]
             }
@@ -305,10 +321,75 @@ private final class DragReview {
         ])
     }
 
+    private func focusedReviewElementObservation() throws -> [String: Any] {
+        try assertTargets()
+        guard let app = reviewApp else { throw DragReviewIssue.failed("No verified review application") }
+        let owner = app.processIdentifier
+        let root = AXUIElementCreateApplication(owner)
+        try require(AXUIElementSetMessagingTimeout(root, 0.4) == .success, "Could not bound the review focus lookup")
+        try require(try pid(root) == owner, "The review focus root belongs to another process")
+        var observation: [String: Any] = [
+            "status": "unavailable", "applicationPID": Int(owner),
+            "scope": "verified-staged-application-only", "focusedPID": NSNull(),
+            "role": NSNull(), "identifier": NSNull(), "description": NSNull()
+        ]
+        do {
+            guard let value = try read(root, kAXFocusedUIElementAttribute) else {
+                observation["reason"] = "The staged application exposed no focused UI element"
+                return observation
+            }
+            guard CFGetTypeID(value) == AXUIElementGetTypeID() else {
+                observation["reason"] = "The staged application's focused UI attribute was not an AX element"
+                return observation
+            }
+            let focused = value as! AXUIElement
+            let focusedPID = try pid(focused)
+            try require(focusedPID == owner, "The focused AX element belongs to another process")
+            observation["focusedPID"] = Int(focusedPID)
+            try require(AXUIElementSetMessagingTimeout(focused, 0.4) == .success, "Could not bound focused element reads")
+            var unavailable: [String] = []
+            for (attribute, field) in [(kAXRoleAttribute, "role"), (kAXIdentifierAttribute, "identifier"),
+                                       (kAXDescriptionAttribute, "description")] {
+                if let value = try text(focused, attribute) { observation[field] = value }
+                else { unavailable.append(attribute) }
+            }
+            observation["status"] = unavailable.isEmpty ? "observed" : "partial"
+            observation["unavailableAttributes"] = unavailable
+        } catch let error as AXReadFailure where error.status == AXError.cannotComplete.rawValue
+            || error.status == AXError.invalidUIElement.rawValue {
+            // Supplemental focus data can be unavailable. Identity, PID and
+            // timeout guards throw different errors and remain fatal.
+            observation["lastError"] = ["attribute": error.attribute, "status": error.status,
+                                        "description": error.description]
+        }
+        return observation
+    }
+
+    private func recordEscapeObservation(_ phase: String, expected: Set<String>) throws {
+        var observation: [String: Any] = ["phase": phase, "startedSystemUptime": ProcessInfo.processInfo.systemUptime]
+        defer {
+            observation["completedSystemUptime"] = ProcessInfo.processInfo.systemUptime
+            var observations = record["escapeObservations"] as? [[String: Any]] ?? []
+            observations.append(observation)
+            record["escapeObservations"] = observations
+        }
+        do {
+            try assertTargets()
+            observation["workspace"] = try workspaceObservation(expected).evidence
+            observation["focusedUIElement"] = try focusedReviewElementObservation()
+            observation["status"] = "observed"
+        } catch {
+            observation["status"] = "failed"
+            observation["reason"] = String(describing: error)
+            throw error
+        }
+    }
+
     private func recordEscapeInputState(_ phase: String) {
         let foreground = NSWorkspace.shared.frontmostApplication
         var state: [String: Any] = [
             "phase": phase, "time": ISO8601DateFormatter().string(from: Date()),
+            "systemUptime": ProcessInfo.processInfo.systemUptime,
             "mouseDownSent": mouseDown,
             "leftButtonReportedDown": CGEventSource.buttonState(.combinedSessionState, button: .left),
             "escapeKeyDownSent": escapeKeyDown,
@@ -401,6 +482,8 @@ private final class DragReview {
             "upSourceStateID": up.getIntegerValueField(.eventSourceStateID),
             "keyboardType": down.getIntegerValueField(.keyboardEventKeyboardType),
             "keyEventLocation": ["x": down.location.x, "y": down.location.y],
+            "downTimestampNanoseconds": down.timestamp, "upTimestampNanoseconds": up.timestamp,
+            "downFlags": down.flags.rawValue, "upFlags": up.flags.rawValue,
             "scope": "Observer protocol experiment; not a product fix or an Apple requirement."
         ]
         down.post(tap: .cgSessionEventTap)
@@ -478,7 +561,8 @@ private final class DragReview {
         }
     }
 
-    private func capture(_ name: String, setup: Bool = false) async throws {
+    private func capture(_ name: String, setup: Bool = false, diagnostic: Bool = false) async throws {
+        let started = ProcessInfo.processInfo.systemUptime
         guard let output else { throw DragReviewIssue.failed("Evidence destination is not ready") }
         try assertTargets()
         let image = output.appendingPathComponent(name + ".png")
@@ -508,9 +592,12 @@ private final class DragReview {
             "pointer": ["x": pointer.x, "y": pointer.y], "mouseDownSent": mouseDown,
             "leftButtonReportedDown": CGEventSource.buttonState(.combinedSessionState, button: .left),
             "displayPreferences": observedDisplayPreferences,
+            "captureStartedSystemUptime": started,
+            "captureCompletedSystemUptime": ProcessInfo.processInfo.systemUptime,
             "time": ISO8601DateFormatter().string(from: Date()), "workspaceAXLabels": labels
         ]
         if setup { record["setupSnapshot"] = event }
+        else if diagnostic { diagnosticSnapshots.append(event) }
         else { events.append(event) }
         try JSONSerialization.data(withJSONObject: event, options: [.prettyPrinted, .sortedKeys])
             .write(to: output.appendingPathComponent(name + ".json"), options: .atomic)
@@ -574,7 +661,7 @@ private final class DragReview {
         }
         try key(18, flags: .maskCommand) // Native Command-1: Icon view.
         record["startupPhase"] = "finder-icons"
-        try await wait("Finder did not expose all four exact fixture icons") {
+        try await wait("Finder did not expose all four exact fixture icons", retryFinderIconReadiness: true) {
             let icons = try self.finderNodes().filter { try self.text($0, kAXRoleAttribute) == kAXImageRole }
             return try self.inputNames.allSatisfy { name in try icons.filter { try self.names($0).contains(name) }.count == 1 }
         }
@@ -613,10 +700,32 @@ private final class DragReview {
         try await capture("02-leave-file-area")
         try await moveHeld(to: enter)
         try await capture("03-reenter-top-padding")
+        try recordEscapeObservation("before-key", expected: [existing.lastPathComponent])
         recordEscapeInputState("before-key-post")
         try await escapeWithDwell() // Escape while the same drag is still held.
         recordEscapeInputState("after-key-post")
         try await pause(0.15)
+        let diagnosticStarted = ProcessInfo.processInfo.systemUptime
+        recordEscapeInputState("before-held-observation")
+        do {
+            try recordEscapeObservation("after-key-held", expected: [existing.lastPathComponent])
+            try await capture("diagnostic-after-escape-held", diagnostic: true)
+            let completed = ProcessInfo.processInfo.systemUptime
+            record["escapeHeldDiagnostic"] = [
+                "stage": "diagnostic-after-escape-held", "status": "captured",
+                "startedSystemUptime": diagnosticStarted, "completedSystemUptime": completed,
+                "addedObservationSeconds": completed - diagnosticStarted, "addsKeyUpToReleaseDelay": true
+            ]
+        } catch {
+            let completed = ProcessInfo.processInfo.systemUptime
+            record["escapeHeldDiagnostic"] = [
+                "stage": "diagnostic-after-escape-held", "status": "failed", "reason": String(describing: error),
+                "startedSystemUptime": diagnosticStarted, "completedSystemUptime": completed,
+                "addedObservationSeconds": completed - diagnosticStarted, "addsKeyUpToReleaseDelay": true
+            ]
+            throw error
+        }
+        recordEscapeInputState("before-release")
         try mouse(.leftMouseUp, at: enter)
         recordEscapeInputState("after-release")
         try await pause(0.7)
@@ -757,6 +866,7 @@ private final class DragReview {
         if !registryEmpty { errors.append("The fixed review bundle remains registered as running") }
         if !finderClosed { errors.append("The exact fixture Finder window was not confirmed closed") }
         record["stages"] = events
+        record["diagnosticSnapshots"] = diagnosticSnapshots
         record["cleanup"] = ["completed": errors.isEmpty, "leftButtonReportedDown": leftButtonDown,
                              "applicationStopped": applicationStopped, "fixtureFinderWindowClosed": finderClosed,
                              "fixedBundleRegistryEmpty": registryEmpty, "timeoutSeconds": 8, "errors": errors]

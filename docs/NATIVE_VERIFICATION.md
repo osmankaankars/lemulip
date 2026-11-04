@@ -63,6 +63,9 @@ Bounded startup waits retry transient AX window/title reads. Only the initial
 workspace readiness wait also retries `cannotComplete` on `AXChildren`, retaining
 the retry count and last error within its original deadline. The exact application
 and fixture windows must still be found before proceeding.
+Finder icon readiness separately retries an invalidated `AXValue` element after
+switching views, with the same bounded deadline and retained error count. These
+startup retries do not apply to later gesture observations.
 The startup phase is retained to locate failures in initial workspace content,
 Finder icon readiness or target geometry reads without suppressing those failures.
 Only those two verified windows are raised, with the fixture window above the
@@ -78,6 +81,12 @@ The observer's Escape press uses the global user-session event path with a bound
 150 ms key-down interval. It records the actual Escape-key state during that
 interval and guarantees the paired key-up when the interval exits, including
 an error. The recorded 150 ms parameter describes the observer's input timing.
+Additional diagnostics record workspace contents and the verified application's
+focused element before Escape and again while the mouse is still held afterward.
+That held image is stored separately from the seven gesture stages. These AX reads
+and the extra image extend the key-to-mouse-release interval; monotonic timestamps
+and the measured observation delay retain that distinction. The existing
+post-release cancellation requirement still applies.
 It checks existing Accessibility, event-posting and screen-capture
 authorization without requesting or changing permissions. A `blocked` report
 means that observation is unavailable. A `captured` report proves its recorded
