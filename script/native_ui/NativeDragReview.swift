@@ -335,6 +335,9 @@ private final class DragReview {
     private var identifier: String { target.identifier }
     private let directory: URL
     private let theme: DragReviewTheme
+    // Keep related pointer and keyboard events on one source through cleanup.
+    // Posting at the HID tap alone does not select the event's source state.
+    private let inputSource = CGEventSource(stateID: .hidSystemState)
     private var bundle: URL!
     private var folder: URL!
     private var output: URL?
@@ -719,8 +722,10 @@ private final class DragReview {
             "pointerSent": ["x": pointer.x, "y": pointer.y],
             "mouseDownSent": mouseDown,
             "leftButtonReportedDown": CGEventSource.buttonState(.combinedSessionState, button: .left),
+            "hidLeftButtonReportedDown": CGEventSource.buttonState(.hidSystemState, button: .left),
             "escapeKeyDownSent": escapeKeyDown,
             "escapeKeyReportedDown": CGEventSource.keyState(.combinedSessionState, key: 53),
+            "hidEscapeKeyReportedDown": CGEventSource.keyState(.hidSystemState, key: 53),
             "modifiers": modifierObservation(),
             "foregroundPID": NSNull(), "foregroundBundleIdentifier": NSNull()
         ]
@@ -741,7 +746,7 @@ private final class DragReview {
     }
 
     private func recordFinderViewShortcutState(_ phase: String) {
-        let probe = CGEvent(mouseEventSource: nil, mouseType: .mouseMoved,
+        let probe = CGEvent(mouseEventSource: inputSource, mouseType: .mouseMoved,
                             mouseCursorPosition: pointer, mouseButton: .left)
         var states = record["finderViewShortcutStates"] as? [[String: Any]] ?? []
         states.append(["phase": phase, "systemUptime": ProcessInfo.processInfo.systemUptime,
@@ -784,7 +789,7 @@ private final class DragReview {
         try require(CGDisplayBounds(CGMainDisplayID()).contains(point), "Refusing a pointer event outside the observed display")
         // Reserve the final record for releasing our own button during cleanup.
         try require(mouseEventRecords.count < 255, "The bounded pointer event record limit was reached")
-        guard let event = CGEvent(mouseEventSource: nil, mouseType: type, mouseCursorPosition: point, mouseButton: .left) else {
+        guard let event = CGEvent(mouseEventSource: inputSource, mouseType: type, mouseCursorPosition: point, mouseButton: .left) else {
             throw DragReviewIssue.failed("Could not create the native pointer event")
         }
         let constructorFlags = event.flags
@@ -806,6 +811,9 @@ private final class DragReview {
         event.post(tap: .cghidEventTap)
         mouseEventRecords.append([
             "scope": scope, "eventType": event.type.rawValue, "eventTap": "cghidEventTap",
+            "sourceStateID": event.getIntegerValueField(.eventSourceStateID),
+            "mouseEventNumber": event.getIntegerValueField(.mouseEventNumber),
+            "timestampNanoseconds": event.timestamp,
             "location": ["x": event.location.x, "y": event.location.y],
             "constructorFlags": constructorFlags.rawValue, "postedFlags": postedFlags,
             "sessionFlagsBeforePost": sessionFlags.rawValue,
@@ -824,8 +832,8 @@ private final class DragReview {
                     "Refusing to take ownership of an already-held shortcut key")
         try require(CGEventSource.flagsState(.combinedSessionState).intersection(relevantModifiers).isEmpty,
                     "Refusing a shortcut while another modifier is held")
-        guard let down = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: true),
-              let up = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: false) else {
+        guard let down = CGEvent(keyboardEventSource: inputSource, virtualKey: code, keyDown: true),
+              let up = CGEvent(keyboardEventSource: inputSource, virtualKey: code, keyDown: false) else {
             throw DragReviewIssue.failed("Could not create the native key event pair")
         }
         down.flags = flags
@@ -848,8 +856,8 @@ private final class DragReview {
                     "Escape motion requires this probe's actual held mouse button")
         try require(motionPoint.x == pointer.x + 1 && motionPoint.y == pointer.y,
                     "Escape motion must advance exactly one point within the same target padding")
-        guard let down = CGEvent(keyboardEventSource: nil, virtualKey: 53, keyDown: true),
-              let up = CGEvent(keyboardEventSource: nil, virtualKey: 53, keyDown: false) else {
+        guard let down = CGEvent(keyboardEventSource: inputSource, virtualKey: 53, keyDown: true),
+              let up = CGEvent(keyboardEventSource: inputSource, virtualKey: 53, keyDown: false) else {
             throw DragReviewIssue.failed("Could not create the native Escape event pair")
         }
         down.flags = []
@@ -1032,6 +1040,16 @@ private final class DragReview {
         guard permissions.values.allSatisfy({ $0 }) else {
             throw DragReviewIssue.blocked("Existing authorization is insufficient; no permission was requested or changed")
         }
+        guard let inputSource else {
+            throw DragReviewIssue.blocked("Could not create the shared HID event source")
+        }
+        record["inputSource"] = [
+            "kind": "shared-hid-source-comparison", "sourceStateID": inputSource.sourceStateID.rawValue,
+            "localEventsSuppressionInterval": inputSource.localEventsSuppressionInterval,
+            "suppressionIntervalFilter": inputSource.getLocalEventsFilterDuringSuppressionState(.eventSuppressionStateSuppressionInterval).rawValue,
+            "remoteMouseDragFilter": inputSource.getLocalEventsFilterDuringSuppressionState(.eventSuppressionStateRemoteMouseDrag).rawValue,
+            "scope": "One retained source for all observer events; default suppression settings are unchanged."
+        ]
         try require(NSRunningApplication.runningApplications(withBundleIdentifier: identifier).isEmpty,
                     "The isolated review application must be stopped before the standalone probe")
         if target == .keyboardControl {
@@ -1236,7 +1254,7 @@ private final class DragReview {
             // Always release this probe's own held button, even if a target
             // has exited. Preserve any live modifiers instead of clearing them.
             if CGPreflightPostEventAccess(),
-               let event = CGEvent(mouseEventSource: nil, mouseType: .leftMouseUp,
+               let event = CGEvent(mouseEventSource: inputSource, mouseType: .leftMouseUp,
                                    mouseCursorPosition: pointer, mouseButton: .left) {
                 let constructorFlags = event.flags
                 let sessionFlags = CGEventSource.flagsState(.combinedSessionState)
