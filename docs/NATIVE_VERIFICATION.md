@@ -85,8 +85,13 @@ one AX traversal records the expected and observed fixture rows, duplicate Remov
 matches and selection-count labels. Its result is fixed before the post-Escape
 image is captured, then checked with the same cancellation requirement, so a
 failed assertion retains the state that caused it without extending its wait.
-The observer's Escape press uses the global user-session event path for a controlled
-continued-motion experiment. Two nominal 75 ms waits surround one `leftMouseDragged`
+The observer's Escape press uses the HID event entry point for a controlled
+continued-motion comparison after the shortcut modifier fix. Earlier HID trials
+predated that fix and do not establish this combination's outcome. This comparison
+changes only the Escape posting location from the prior Quartz protocol; it does
+not claim physical input. The public [event-tap locations](https://developer.apple.com/documentation/coregraphics/cgeventtaplocation)
+identify different insertion points in the event stream, not cancellation guarantees.
+Two nominal 75 ms waits surround one `leftMouseDragged`
 update of +1 point horizontally, only while the probe owns the held mouse button and
 both the mouse button and Escape are reported down. Before the gesture, that point
 is checked inside the same top padding and review window, outside the fixture Finder

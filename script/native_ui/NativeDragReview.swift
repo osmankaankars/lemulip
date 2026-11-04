@@ -855,7 +855,7 @@ private final class DragReview {
         down.flags = []
         up.flags = []
         record["escapeKeyProtocol"] = [
-            "kind": "observer-protocol-experiment", "keyCode": 53, "eventTap": "cgSessionEventTap",
+            "kind": "observer-protocol-experiment", "keyCode": 53, "eventTap": "cghidEventTap",
             "keyDownDwellSeconds": dwell,
             "downSourceStateID": down.getIntegerValueField(.eventSourceStateID),
             "upSourceStateID": up.getIntegerValueField(.eventSourceStateID),
@@ -867,12 +867,12 @@ private final class DragReview {
             "continuedMotionDelta": ["x": motionPoint.x - pointer.x, "y": motionPoint.y - pointer.y],
             "scope": "Controlled continued-motion observer experiment; not a product fix or an Apple requirement."
         ]
-        down.post(tap: .cgSessionEventTap)
+        down.post(tap: .cghidEventTap)
         escapeKeyDown = true
         defer {
             // Release only the exact key paired with our guarded down, even if
             // the bounded pause fails. This paired release sends no new key-down.
-            up.post(tap: .cgSessionEventTap)
+            up.post(tap: .cghidEventTap)
             escapeKeyDown = false
             recordEscapeInputState("after-key-up")
         }
