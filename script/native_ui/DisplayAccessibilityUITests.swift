@@ -3,6 +3,8 @@
 // preferences through System Settings, then restores the observed originals.
 // It never writes defaults/TCC, injects app preferences, or claims that a still
 // screenshot establishes animation timing or heard VoiceOver narration.
+import CoreFoundation
+
 extension QualityUITests {
     func testRealDisplayPreferencesKeepWheelAndPDFResultsUsable() throws {
         let settings = XCUIApplication(bundleIdentifier: "com.apple.systempreferences")
@@ -32,8 +34,8 @@ extension QualityUITests {
             self.captureDisplayReview(settings, name: "Display preferences restored", expected: initial)
         }
 
-        // Keep the production app alive while the system values change. Both
-        // NSWorkspace reads and ordinary UI interactions use the real values.
+        // Keep the production app alive while the system values change. A
+        // separate read-only process reports the real NSWorkspace values.
         let app = launch(language: "en", completion: "card", theme: "orchard")
         let cases: [(String, DisplayReviewPreferences)] = [
             ("AccessibilityMotion", .init(reduceMotion: true, reduceTransparency: false)),
@@ -52,12 +54,61 @@ extension QualityUITests {
         let reduceMotion: Bool
         let reduceTransparency: Bool
 
-        @MainActor static var workspace: Self {
+        @MainActor static var testRunnerWorkspace: Self {
             Self(reduceMotion: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion,
                  reduceTransparency: NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency)
         }
 
         var text: String { "Reduce Motion=\(reduceMotion), Reduce Transparency=\(reduceTransparency)" }
+    }
+
+    private func readDisplayReviewWorkspace() throws -> DisplayReviewPreferences {
+        // The real Settings switch changed while the long-lived XCTest host's
+        // getter stayed unchanged. Read the public API in a fresh process owned
+        // by the normal CI launcher; keep the host's value only as a diagnostic.
+        // This fixed resource also works after the review app stops in teardown.
+        let endpointURL = ReviewConfiguration.fixtures.deletingLastPathComponent()
+            .appendingPathComponent("accessibility-endpoint.json")
+        guard let endpoint = try JSONSerialization.jsonObject(with: Data(contentsOf: endpointURL)) as? [String: String],
+              let address = endpoint["displayPreferencesURL"], let url = URL(string: address),
+              let token = endpoint["token"], !token.isEmpty,
+              url.scheme == "http", url.host == "127.0.0.1", (url.port ?? 0) > 0,
+              url.path == "/display-preferences", url.query == nil, url.fragment == nil,
+              url.user == nil, url.password == nil else {
+            throw displayReviewError("Only the authenticated local display-preference reader is allowed")
+        }
+        var request = URLRequest(url: url, timeoutInterval: 10)
+        request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
+        let reply = AXReply()
+        let session = URLSession(configuration: .ephemeral)
+        defer { session.invalidateAndCancel() }
+        session.dataTask(with: request) { data, response, error in
+            reply.finish(data: data, response: response, error: error)
+        }.resume()
+        let data = try reply.wait()
+        guard data.count <= 4096,
+              let record = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              record["schema"] as? Int == 1,
+              record["kind"] as? String == "system-display-preferences",
+              record["reader"] as? String == "NSWorkspace",
+              try displayReviewJSONBoolean("readOnly", in: record) else {
+            throw displayReviewError("The display-preference reader returned an invalid record")
+        }
+        let preferences = DisplayReviewPreferences(
+            reduceMotion: try displayReviewJSONBoolean("reduceMotion", in: record),
+            reduceTransparency: try displayReviewJSONBoolean("reduceTransparency", in: record))
+        let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+        attachment.name = "Fresh system NSWorkspace preferences"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        return preferences
+    }
+
+    private func displayReviewJSONBoolean(_ key: String, in record: [String: Any]) throws -> Bool {
+        guard let value = record[key] as? NSNumber, CFGetTypeID(value) == CFBooleanGetTypeID() else {
+            throw displayReviewError("The display-preference reader did not return a JSON boolean for \(key)")
+        }
+        return value.boolValue
     }
 
     private func openDisplayReviewSettings(_ settings: XCUIApplication) throws {
@@ -171,11 +222,23 @@ extension QualityUITests {
     }
 
     private func expectDisplayReviewWorkspace(_ expected: DisplayReviewPreferences) throws {
+        var lastObserved: DisplayReviewPreferences?
+        var lastReadError: String?
         let observed = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            DisplayReviewPreferences.workspace == expected
+            do {
+                let value = try self.readDisplayReviewWorkspace()
+                lastObserved = value
+                lastReadError = nil
+                return value == expected
+            } catch {
+                lastReadError = String(describing: error)
+                return false
+            }
         }, object: nil)
         guard XCTWaiter.wait(for: [observed], timeout: 10) == .completed else {
-            throw displayReviewError("NSWorkspace did not observe \(expected.text); observed \(DisplayReviewPreferences.workspace.text)")
+            let detail = lastReadError.map { "; latest read error: " + $0 } ?? ""
+            throw displayReviewError("Fresh NSWorkspace readback did not observe \(expected.text); "
+                + "last observed \(lastObserved?.text ?? "unavailable")\(detail)")
         }
     }
 
@@ -262,9 +325,13 @@ extension QualityUITests {
 
     private func captureDisplayReview(_ app: XCUIApplication, name: String,
                                       expected: DisplayReviewPreferences? = nil) {
+        let fresh: String
+        do { fresh = try readDisplayReviewWorkspace().text }
+        catch { fresh = "Unavailable: " + String(describing: error) }
         let values = XCTAttachment(string: [
             "Expected system preferences: \(expected?.text ?? "record only")",
-            "Observed NSWorkspace preferences: \(DisplayReviewPreferences.workspace.text)",
+            "Observed fresh NSWorkspace preferences: \(fresh)",
+            "XCTest-process NSWorkspace (diagnostic only): \(DisplayReviewPreferences.testRunnerWorkspace.text)",
             "Observation: real UI and completed interactions; no animation-timing or VoiceOver-speech claim."
         ].joined(separator: "\n"))
         values.name = name + " NSWorkspace values"

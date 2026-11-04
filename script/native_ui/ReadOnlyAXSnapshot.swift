@@ -100,8 +100,19 @@ private struct ReadOnlyAXSnapshot {
     @MainActor
     static func main() {
         do {
-            guard CommandLine.arguments.count == 2 else { throw InspectionFailure("Expected only the fixed review bundle path") }
-            let record = try snapshot(path: CommandLine.arguments[1])
+            guard CommandLine.arguments.count == 2 else { throw InspectionFailure("Expected the fixed review bundle path or display-preference reader") }
+            let record: [String: Any]
+            if CommandLine.arguments[1] == "--display-preferences" {
+                // A fresh, non-XCTest process reads only these two public
+                // system values, including after the review app has stopped.
+                // This mode performs no AX inspection or preference writes.
+                record = ["schema": 1, "kind": "system-display-preferences", "reader": "NSWorkspace",
+                          "readOnly": true,
+                          "reduceMotion": NSWorkspace.shared.accessibilityDisplayShouldReduceMotion,
+                          "reduceTransparency": NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency]
+            } else {
+                record = try snapshot(path: CommandLine.arguments[1])
+            }
             let data = try JSONSerialization.data(withJSONObject: record, options: [.sortedKeys])
             FileHandle.standardOutput.write(data)
             FileHandle.standardOutput.write(Data([10]))

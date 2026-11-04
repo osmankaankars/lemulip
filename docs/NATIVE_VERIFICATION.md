@@ -29,7 +29,7 @@ The external suite retains the existing 48 cases and adds ten bounded checks:
   the file area. These assert the resulting file rows and unchanged source bytes.
   Their atomic XCTest gestures do not prove the outline's intermediate states.
 - Real System Settings changes for Reduce Motion and Reduce Transparency, with
-  NSWorkspace readback, wheel keyboard use, PDF output validation and usable
+  independent NSWorkspace readback, wheel keyboard use, PDF output validation and usable
   result cards. The original system values are restored in teardown. A still
   screenshot does not establish the first animation frames or fade duration.
 
@@ -38,6 +38,12 @@ preferences to prevent one case from changing another case's starting state.
 The existing authenticated, read-only AX helper also reports the actual focused
 element in that same application; it does not set focus or grant authorization.
 Each added source fragment and the assembled suite have recorded SHA-256 values.
+The same authenticated local reviewer also exposes a separate read-only resource
+for two public system display-preference booleans. Each request runs a fresh
+NSWorkspace reader outside the XCTest host and works after the review app has
+stopped. Both the actual Settings switches and this reader must agree; unchanged
+test-host observations are retained only as diagnostics. No defaults or permission
+settings are written by either reader.
 
 A separate in-flight Finder observer runs the same held drag in Orchard,
 Pistachio and Lemonade: entering, leaving and re-entering the expanded file
@@ -49,7 +55,9 @@ authorization without requesting or changing permissions. A `blocked` report
 means that observation is unavailable. A `captured` report proves its recorded
 gesture outcomes; the combined report requires all three themes to be captured.
 The outline still requires inspection of the actual frames.
-This diagnostic has no write endpoint and does not change the read-only helper.
+This diagnostic has no write endpoint. Both data readers remain read-only.
+It can retain evidence after a completed, failed XCTest run; that separate result
+does not make a failed native gate pass. Cancelled or unbuilt runs do not start it.
 
 Compilation, executed XCTest results, screenshots and any separate live-drag
 report must be inspected together for the candidate under review. Source tests
