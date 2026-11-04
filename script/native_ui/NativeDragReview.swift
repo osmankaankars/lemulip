@@ -39,6 +39,7 @@ private final class DragReview {
     private var originals: [String: Data] = [:]
     private var inputNames: Set<String> = []
     private var mouseDown = false
+    private var escapeKeyDown = false
     private var pointer = CGPoint.zero
     private var events: [[String: Any]] = []
     private let expiresAt = ProcessInfo.processInfo.systemUptime + 110
@@ -294,6 +295,8 @@ private final class DragReview {
             "phase": phase, "time": ISO8601DateFormatter().string(from: Date()),
             "mouseDownSent": mouseDown,
             "leftButtonReportedDown": CGEventSource.buttonState(.combinedSessionState, button: .left),
+            "escapeKeyDownSent": escapeKeyDown,
+            "escapeKeyReportedDown": CGEventSource.keyState(.combinedSessionState, key: 53),
             "foregroundPID": NSNull(), "foregroundBundleIdentifier": NSNull()
         ]
         if let foreground {
@@ -358,6 +361,40 @@ private final class DragReview {
             event.flags = flags
             event.post(tap: .cghidEventTap)
         }
+    }
+
+    private func escapeWithDwell() async throws {
+        let dwell = 0.15
+        try assertTargets()
+        let front = NSWorkspace.shared.frontmostApplication?.processIdentifier
+        try require(front == finderApp?.processIdentifier || front == reviewApp?.processIdentifier,
+                    "Refusing a key event while another application is foreground")
+        try require(CGPreflightPostEventAccess(), "Existing event-post authorization is unavailable")
+        try require(!CGEventSource.keyState(.combinedSessionState, key: 53),
+                    "Refusing to take ownership of an already-held Escape key")
+        guard let down = CGEvent(keyboardEventSource: nil, virtualKey: 53, keyDown: true),
+              let up = CGEvent(keyboardEventSource: nil, virtualKey: 53, keyDown: false) else {
+            throw DragReviewIssue.failed("Could not create the native Escape event pair")
+        }
+        down.flags = []
+        up.flags = []
+        record["escapeKeyProtocol"] = [
+            "kind": "observer-protocol-experiment", "keyCode": 53, "eventTap": "cghidEventTap",
+            "keyDownDwellSeconds": dwell,
+            "scope": "Observer timing experiment; not a product fix or an Apple timing requirement."
+        ]
+        down.post(tap: .cghidEventTap)
+        escapeKeyDown = true
+        defer {
+            // Release only the exact key paired with our guarded down, even if
+            // the bounded pause fails. This paired release sends no new key-down.
+            up.post(tap: .cghidEventTap)
+            escapeKeyDown = false
+            recordEscapeInputState("after-key-up")
+        }
+        try await pause(dwell)
+        // System input state is an observation, not an application delivery ACK.
+        recordEscapeInputState("before-key-up")
     }
 
     private func moveHeld(to target: CGPoint) async throws {
@@ -496,9 +533,11 @@ private final class DragReview {
         let existing = try fixture("Existing")
         let single = try fixture("Single")
         _ = try await NSWorkspace.shared.open([existing], withApplicationAt: bundle, configuration: configuration)
+        record["startupPhase"] = "initial-workspace"
         try await wait("The production app did not accept the sole initial fixture") {
             try self.workspaceContains([existing.lastPathComponent])
         }
+        record["startupPhase"] = "fixture-finder-window"
         try require(NSWorkspace.shared.open(folder), "Finder could not open the isolated fixture folder")
         try await wait("Finder is unavailable") {
             NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder").count == 1
@@ -514,13 +553,16 @@ private final class DragReview {
             NSWorkspace.shared.frontmostApplication?.processIdentifier == self.finderApp?.processIdentifier
         }
         try key(18, flags: .maskCommand) // Native Command-1: Icon view.
+        record["startupPhase"] = "finder-icons"
         try await wait("Finder did not expose all four exact fixture icons") {
             let icons = try self.finderNodes().filter { try self.text($0, kAXRoleAttribute) == kAXImageRole }
             return try self.inputNames.allSatisfy { name in try icons.filter { try self.names($0).contains(name) }.count == 1 }
         }
+        record["startupPhase"] = "target-geometry"
         let appElements = try appNodes()
         let header = try frame(unique(appElements, role: kAXStaticTextRole, name: "1 Selected"))
         let clear = try frame(unique(appElements, role: kAXButtonRole, name: "Clear"))
+        record["startupPhase"] = "complete"
         let enter = CGPoint(x: (header.minX + clear.maxX) / 2, y: header.minY - 4)
         let outside = CGPoint(x: enter.x, y: header.minY - 24)
         let finderTop = header.maxY + 100
@@ -552,7 +594,7 @@ private final class DragReview {
         try await moveHeld(to: enter)
         try await capture("03-reenter-top-padding")
         recordEscapeInputState("before-key-post")
-        try key(53) // Escape while the same drag is still held.
+        try await escapeWithDwell() // Escape while the same drag is still held.
         recordEscapeInputState("after-key-post")
         try await pause(0.15)
         try mouse(.leftMouseUp, at: enter)
@@ -612,7 +654,7 @@ private final class DragReview {
         let deadline = ProcessInfo.processInfo.systemUptime + 8
         var errors: [String] = []
         if mouseDown {
-            try? key(53)
+            if !CGEventSource.keyState(.combinedSessionState, key: 53) { try? key(53) }
             // Always release this probe's own held button, even if a target
             // has exited and its normal identity guard now fails.
             if CGPreflightPostEventAccess(),

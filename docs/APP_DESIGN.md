@@ -81,7 +81,7 @@ Known PDF and media completion notes retain password-removal, links/bookmarks/fo
 
 ## Verification Before Release
 
-Run the current **48-case native suite** for this candidate. It retains the WAV source default, manual output-format choice and cancellation path. The PDF cancellation cases capture the organizer and English/Turkish merge editor with help collapsed and expanded; those must be genuine captures of the running candidate. The video field-focus case verifies that transferring focus between unchanged time fields preserves a paused preview.
+Run the current **58-case native suite** for this candidate. It retains the WAV source default, manual output-format choice and cancellation path. The PDF cancellation cases capture the organizer and English/Turkish merge editor with help collapsed and expanded; those must be genuine captures of the running candidate. The video field-focus case verifies that transferring focus between unchanged time fields preserves a paused preview.
 
 The ten language cases cover English/Turkish malformed merge recovery with a long filename, empty audio/video recovery, a real word-count report and a real file move. Require the observed localized text, usable cancellation, retained input bytes or the intended move, and the absence of unintended output. Inspect the corresponding screenshots and accessibility trees. Model checks exercise controlled error contracts, filename-safe fallback, source changes, real PDF completion warnings and report-only results.
 

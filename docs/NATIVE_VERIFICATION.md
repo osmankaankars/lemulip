@@ -61,6 +61,8 @@ bounded run and evidence folder. The observer confirms that its application
 has stopped and its mouse button has been released before the next theme.
 Its existing bounded startup waits retry only transient AX window/title reads;
 the exact application and fixture windows must still be found before proceeding.
+The startup phase is retained to locate failures in initial workspace content,
+Finder icon readiness or target geometry reads without suppressing those failures.
 Only those two verified windows are raised, with the fixture window above the
 drop target. A setup image, geometry and per-point PID/status records are retained
 before hit checks; every pointer target must still belong to its expected process.
@@ -70,6 +72,10 @@ one AX traversal records the expected and observed fixture rows, duplicate Remov
 matches and selection-count labels. Its result is fixed before the post-Escape
 image is captured, then checked with the same cancellation requirement, so a
 failed assertion retains the state that caused it without extending its wait.
+The observer's Escape press uses the same HID posting path with a bounded
+150 ms key-down interval. It records the actual Escape-key state during that
+interval and guarantees the paired key-up when the interval exits, including
+an error. The recorded 150 ms parameter describes the observer's input timing.
 It checks existing Accessibility, event-posting and screen-capture
 authorization without requesting or changing permissions. A `blocked` report
 means that observation is unavailable. A `captured` report proves its recorded
