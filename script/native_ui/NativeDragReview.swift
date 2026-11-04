@@ -14,10 +14,15 @@ private enum DragReviewIssue: Error, CustomStringConvertible {
     }
 }
 
+private enum DragReviewTheme: String, CaseIterable {
+    case orchard, pistachio, lemonade
+}
+
 @MainActor
 private final class DragReview {
     private let identifier = "app.lemulip.NativeUIReview"
     private let directory: URL
+    private let theme: DragReviewTheme
     private var bundle: URL!
     private var folder: URL!
     private var output: URL?
@@ -32,13 +37,22 @@ private final class DragReview {
     private var events: [[String: Any]] = []
     private let expiresAt = ProcessInfo.processInfo.systemUptime + 110
     var record: [String: Any] = [
-        "schema": 1, "status": "not-run", "theme": "orchard",
+        "schema": 1, "status": "not-run",
         "gestureOutcomesVerified": false, "outlineVisualReviewRequired": true,
         "outlineBehaviorVerified": false, "permissionRequested": false,
         "scope": "Real Finder drag; held entry, exit, re-entry, Escape and drop frames. Visual review is separate."
     ]
 
-    init(directory: URL) { self.directory = directory.standardizedFileURL.resolvingSymlinksInPath() }
+    init(directory: URL, theme: DragReviewTheme) {
+        self.directory = directory.standardizedFileURL.resolvingSymlinksInPath()
+        self.theme = theme
+        record["theme"] = theme.rawValue
+    }
+
+    private var observedDisplayPreferences: [String: Bool] {
+        ["reduceMotion": NSWorkspace.shared.accessibilityDisplayShouldReduceMotion,
+         "reduceTransparency": NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency]
+    }
 
     private func require(_ condition: Bool, _ message: String) throws {
         if !condition { throw DragReviewIssue.failed(message) }
@@ -146,10 +160,13 @@ private final class DragReview {
     private func validate() throws {
         try require(directory.lastPathComponent == "lemulip-native-ui", "Use the isolated native UI staging directory")
         bundle = directory.appendingPathComponent("Lemulip Native UI Review.app", isDirectory: true)
-        folder = directory.appendingPathComponent("Fixtures/FinderDrop/orchard", isDirectory: true)
-        for url in [bundle!, folder!] {
+        folder = directory.appendingPathComponent("Fixtures/FinderDrop/" + theme.rawValue, isDirectory: true)
+        let evidenceRoot = directory.appendingPathComponent("NativeDragEvidence", isDirectory: true)
+        for url in [bundle!, folder!, evidenceRoot] {
             try require(url.standardizedFileURL == url.resolvingSymlinksInPath(), "Symlinked review targets are not allowed")
         }
+        try require(try evidenceRoot.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true,
+                    "The fixed evidence root is unavailable")
         let infoData = try Data(contentsOf: bundle.appendingPathComponent("Contents/Info.plist"))
         let info = try PropertyListSerialization.propertyList(from: infoData, options: [], format: nil) as? [String: Any]
         try require(info?["CFBundleIdentifier"] as? String == identifier && info?["CFBundleExecutable"] as? String == "Lemulip",
@@ -163,7 +180,7 @@ private final class DragReview {
                         (values.fileSize ?? 0) > 0 && (values.fileSize ?? 0) < 65_536, "Require small, nonempty regular fixture files")
             originals[input.lastPathComponent] = try Data(contentsOf: input)
         }
-        let destination = directory.appendingPathComponent("NativeDragEvidence", isDirectory: true)
+        let destination = evidenceRoot.appendingPathComponent(theme.rawValue, isDirectory: true)
         try require(!FileManager.default.fileExists(atPath: destination.path), "Refusing to replace existing drag evidence")
         try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: false)
         output = destination
@@ -350,6 +367,7 @@ private final class DragReview {
             "pixelWidth": bitmap.pixelsWide, "pixelHeight": bitmap.pixelsHigh,
             "pointer": ["x": pointer.x, "y": pointer.y], "mouseDownSent": mouseDown,
             "leftButtonReportedDown": CGEventSource.buttonState(.combinedSessionState, button: .left),
+            "displayPreferences": observedDisplayPreferences,
             "time": ISO8601DateFormatter().string(from: Date()), "workspaceAXLabels": labels
         ]
         events.append(event)
@@ -369,13 +387,14 @@ private final class DragReview {
         let permissions = ["accessibility": AXIsProcessTrusted(), "postEvents": CGPreflightPostEventAccess(),
                            "screenCapture": CGPreflightScreenCaptureAccess()]
         record["preflight"] = permissions
+        record["displayPreferencesAtStart"] = observedDisplayPreferences
         guard permissions.values.allSatisfy({ $0 }) else {
             throw DragReviewIssue.blocked("Existing authorization is insufficient; no permission was requested or changed")
         }
         try require(NSRunningApplication.runningApplications(withBundleIdentifier: identifier).isEmpty,
                     "The isolated review application must be stopped before the standalone probe")
         let configuration = NSWorkspace.OpenConfiguration()
-        configuration.arguments = ["-language", "en", "-theme", "orchard", "-wheelEnabled", "NO",
+        configuration.arguments = ["-language", "en", "-theme", theme.rawValue, "-wheelEnabled", "NO",
                                    "-completionPresentation", "quiet", "-NSQuitAlwaysKeepsWindows", "NO"]
         configuration.addsToRecentItems = false
         reviewApp = try await NSWorkspace.shared.openApplication(at: bundle, configuration: configuration)
@@ -471,7 +490,24 @@ private final class DragReview {
         record["metadataExclusion"] = "Only Finder's .DS_Store view metadata"
     }
 
-    func cleanUp() async {
+    private func cleanupRead(_ node: AXUIElement, _ key: String, deadline: Double) throws -> CFTypeRef? {
+        let remaining = deadline - ProcessInfo.processInfo.systemUptime
+        try require(remaining > 0, "The bounded native drag cleanup timed out")
+        try require(AXUIElementSetMessagingTimeout(node, Float(min(0.4, remaining))) == .success,
+                    "Could not bound cleanup AX messaging")
+        var value: CFTypeRef?
+        let error = AXUIElementCopyAttributeValue(node, key as CFString, &value)
+        switch error {
+        case .success: return value
+        case .attributeUnsupported, .noValue: return nil
+        default: throw DragReviewIssue.failed("Cleanup AX read failed for \(key): \(error.rawValue)")
+        }
+    }
+
+    func cleanUp() async -> Bool {
+        // Cleanup must still run after the per-theme 110-second clock expires.
+        let deadline = ProcessInfo.processInfo.systemUptime + 8
+        var errors: [String] = []
         if mouseDown {
             try? key(53)
             // Always release this probe's own held button, even if a target
@@ -481,26 +517,91 @@ private final class DragReview {
                                    mouseCursorPosition: pointer, mouseButton: .left) {
                 event.post(tap: .cghidEventTap)
                 mouseDown = false
+            } else {
+                errors.append("Could not release this probe's held mouse button")
             }
         }
-        if let window = finderWindow, let finder = finderApp,
-           (try? pid(window)) == finder.processIdentifier,
-           let button = try? read(window, kAXCloseButtonAttribute) {
-            if CFGetTypeID(button) == AXUIElementGetTypeID() {
-                _ = AXUIElementPerformAction(button as! AXUIElement, kAXPressAction as CFString)
+        var finderClosed = finderWindow == nil
+        var finderRoot: AXUIElement?
+        if let window = finderWindow, let finder = finderApp {
+            if finder.isTerminated { finderClosed = true }
+            else {
+                do {
+                    let windowPID = try pid(window)
+                    try require(finder.bundleIdentifier == "com.apple.finder" &&
+                                finder.bundleURL?.resolvingSymlinksInPath().path == "/System/Library/CoreServices/Finder.app" &&
+                                windowPID == finder.processIdentifier,
+                                "The cleanup Finder identity changed")
+                    let root = AXUIElementCreateApplication(finder.processIdentifier)
+                    guard let windows = try cleanupRead(root, kAXWindowsAttribute, deadline: deadline) as? [AXUIElement] else {
+                        throw DragReviewIssue.failed("Could not confirm the fixture Finder window during cleanup")
+                    }
+                    finderClosed = !windows.contains { CFEqual($0, window) }
+                    if !finderClosed {
+                        let title = try cleanupRead(window, kAXTitleAttribute, deadline: deadline) as? String
+                        try require(title == folder.lastPathComponent,
+                                    "Refusing to close a different Finder folder")
+                        guard let value = try cleanupRead(window, kAXCloseButtonAttribute, deadline: deadline),
+                              CFGetTypeID(value) == AXUIElementGetTypeID() else {
+                            throw DragReviewIssue.failed("The exact fixture Finder window has no close button")
+                        }
+                        let button = value as! AXUIElement
+                        try require(try pid(button) == finder.processIdentifier,
+                                    "The fixture close button belongs to another process")
+                        let remaining = deadline - ProcessInfo.processInfo.systemUptime
+                        try require(remaining > 0, "The bounded native drag cleanup timed out")
+                        try require(AXUIElementSetMessagingTimeout(button, Float(min(0.4, remaining))) == .success &&
+                                    AXUIElementPerformAction(button, kAXPressAction as CFString) == .success,
+                                    "Could not close the exact fixture Finder window")
+                        finderRoot = root
+                    }
+                } catch { errors.append(String(describing: error)) }
             }
+        } else if finderWindow != nil {
+            errors.append("The fixture Finder owner is unavailable during cleanup")
         }
         // Terminate only the exact staged app launched by this probe.
-        if let app = reviewApp, app.bundleIdentifier == identifier,
-           app.bundleURL?.resolvingSymlinksInPath().path == bundle.path { _ = app.terminate() }
+        if let app = reviewApp, !app.isTerminated {
+            if app.bundleIdentifier == identifier && app.bundleURL?.resolvingSymlinksInPath().path == bundle.path {
+                if !app.terminate() && !app.isTerminated { errors.append("The staged app refused normal termination") }
+            } else { errors.append("Refusing to terminate an application whose staged identity changed") }
+        }
+        while ProcessInfo.processInfo.systemUptime < deadline {
+            if let root = finderRoot, let window = finderWindow, !finderClosed {
+                do {
+                    guard let windows = try cleanupRead(root, kAXWindowsAttribute, deadline: deadline) as? [AXUIElement] else {
+                        throw DragReviewIssue.failed("Could not confirm that the fixture Finder window closed")
+                    }
+                    finderClosed = !windows.contains { CFEqual($0, window) }
+                } catch {
+                    errors.append(String(describing: error))
+                    finderRoot = nil
+                }
+            }
+            if !CGEventSource.buttonState(.combinedSessionState, button: .left),
+               reviewApp?.isTerminated ?? true,
+               NSRunningApplication.runningApplications(withBundleIdentifier: identifier).isEmpty,
+               finderClosed || finderRoot == nil { break }
+            try? await Task.sleep(nanoseconds: 100_000_000)
+        }
+        let leftButtonDown = CGEventSource.buttonState(.combinedSessionState, button: .left)
+        let applicationStopped = reviewApp?.isTerminated ?? true
+        let registryEmpty = NSRunningApplication.runningApplications(withBundleIdentifier: identifier).isEmpty
+        if leftButtonDown { errors.append("The left mouse button remains down; no further theme may run") }
+        if !applicationStopped { errors.append("The staged app did not terminate before the cleanup deadline") }
+        if !registryEmpty { errors.append("The fixed review bundle remains registered as running") }
+        if !finderClosed { errors.append("The exact fixture Finder window was not confirmed closed") }
         record["stages"] = events
+        record["cleanup"] = ["completed": errors.isEmpty, "leftButtonReportedDown": leftButtonDown,
+                             "applicationStopped": applicationStopped, "fixtureFinderWindowClosed": finderClosed,
+                             "fixedBundleRegistryEmpty": registryEmpty, "timeoutSeconds": 8, "errors": errors]
+        return errors.isEmpty
     }
 
     func finish() throws {
+        guard let output else { throw DragReviewIssue.failed("The per-theme evidence destination was not created") }
         let data = try JSONSerialization.data(withJSONObject: record, options: [.prettyPrinted, .sortedKeys])
-        if let output { try data.write(to: output.appendingPathComponent("report.json"), options: .atomic) }
-        FileHandle.standardOutput.write(data)
-        FileHandle.standardOutput.write(Data([10]))
+        try data.write(to: output.appendingPathComponent("report.json"), options: .atomic)
     }
 }
 
@@ -512,23 +613,91 @@ private struct NativeDragReview {
             FileHandle.standardError.write(Data("Usage: NativeDragReview <isolated review directory>\n".utf8))
             exit(2)
         }
-        let review = DragReview(directory: URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true))
-        var exitCode: Int32 = 0
-        do { try await review.run() }
-        catch let error as DragReviewIssue {
-            switch error {
-            case .blocked: review.record["status"] = "blocked"
-            case .failed: review.record["status"] = "failed"; exitCode = 1
+        let directory = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
+            .standardizedFileURL.resolvingSymlinksInPath()
+        var aggregate: [String: Any] = [
+            "schema": 2, "status": "not-run", "expectedThemes": DragReviewTheme.allCases.map(\.rawValue),
+            "allThemesCaptured": false, "gestureOutcomesVerified": false,
+            "outlineVisualReviewRequired": true, "outlineBehaviorVerified": false,
+            "permissionRequested": false,
+            "scope": "The same real Finder drag sequence in three fixed themes; visual outline review is separate."
+        ]
+        do {
+            guard directory.lastPathComponent == "lemulip-native-ui" else {
+                throw DragReviewIssue.failed("Use the isolated native UI staging directory")
             }
-            review.record["reason"] = error.description
+            let destination = directory.appendingPathComponent("NativeDragEvidence", isDirectory: true)
+            guard destination.standardizedFileURL == destination.resolvingSymlinksInPath(),
+                  !FileManager.default.fileExists(atPath: destination.path) else {
+                throw DragReviewIssue.failed("Refusing to replace or follow an existing drag evidence root")
+            }
+            try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: false)
+            var reports: [[String: Any]] = []
+            var stopReason: String?
+            for theme in DragReviewTheme.allCases {
+                if let stopReason {
+                    reports.append(["theme": theme.rawValue, "status": "not-run", "reason": stopReason])
+                    continue
+                }
+                // A new object gives each theme its own fixtures, AX handles,
+                // original-byte receipt and bounded 110-second run clock.
+                let review = DragReview(directory: directory, theme: theme)
+                do { try await review.run() }
+                catch let error as DragReviewIssue {
+                    switch error {
+                    case .blocked: review.record["status"] = "blocked"
+                    case .failed: review.record["status"] = "failed"
+                    }
+                    review.record["reason"] = error.description
+                } catch {
+                    review.record["status"] = "failed"
+                    review.record["reason"] = String(describing: error)
+                }
+                let clean = await review.cleanUp()
+                if !clean {
+                    review.record["status"] = "failed"
+                    let reason = "Cleanup did not verify a safe transition after " + theme.rawValue
+                    review.record["reason"] = [review.record["reason"] as? String, reason]
+                        .compactMap { $0 }.joined(separator: "; ")
+                    stopReason = reason
+                }
+                var reportRetained = false
+                do { try review.finish(); reportRetained = true }
+                catch {
+                    review.record["status"] = "failed"
+                    review.record["reportError"] = String(describing: error)
+                }
+                var summary: [String: Any] = ["theme": theme.rawValue,
+                    "status": review.record["status"] as? String ?? "failed", "reportRetained": reportRetained]
+                if reportRetained { summary["report"] = theme.rawValue + "/report.json" }
+                for key in ["reason", "reportError", "gestureOutcomesVerified", "cleanup", "displayPreferencesAtStart"] {
+                    if let value = review.record[key] { summary[key] = value }
+                }
+                reports.append(summary)
+                for key in ["sourceCommit", "sourceTree", "architecture", "stagedGUI_SHA256",
+                            "compiledTestSourceSHA256", "nativeDragReviewSourceSHA256"] {
+                    if aggregate[key] == nil, let value = review.record[key] { aggregate[key] = value }
+                }
+            }
+            let statuses = reports.compactMap { $0["status"] as? String }
+            let captured = statuses.count == DragReviewTheme.allCases.count && statuses.allSatisfy { $0 == "captured" }
+            aggregate["themes"] = reports
+            aggregate["allThemesCaptured"] = captured
+            aggregate["gestureOutcomesVerified"] = captured
+            aggregate["status"] = statuses.contains("failed") ? "failed" : (captured ? "captured" : "blocked")
+            let data = try JSONSerialization.data(withJSONObject: aggregate, options: [.prettyPrinted, .sortedKeys])
+            try data.write(to: destination.appendingPathComponent("report.json"), options: .atomic)
         } catch {
-            review.record["status"] = "failed"
-            review.record["reason"] = String(describing: error)
-            exitCode = 1
+            aggregate["status"] = "failed"
+            aggregate["reason"] = String(describing: error)
         }
-        await review.cleanUp()
-        do { try review.finish() }
-        catch { FileHandle.standardError.write(Data("Could not retain the native drag report: \(error)\n".utf8)); exitCode = 1 }
-        exit(exitCode)
+        if let data = try? JSONSerialization.data(withJSONObject: aggregate, options: [.prettyPrinted, .sortedKeys]) {
+            FileHandle.standardOutput.write(data)
+            FileHandle.standardOutput.write(Data([10]))
+        } else {
+            aggregate["status"] = "failed"
+            FileHandle.standardError.write(Data("Could not encode the native drag report\n".utf8))
+        }
+        exit(aggregate["status"] as? String == "failed" ? 1 : 0)
     }
 }

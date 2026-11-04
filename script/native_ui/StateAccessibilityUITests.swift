@@ -58,8 +58,7 @@ extension QualityUITests {
         let remove = try XCTUnwrap(removeMatches.first)
         XCTAssertTrue(remove.exists && remove.isHittable,
                       "The long filename must retain its full accessible removal label")
-        XCTAssertEqual(app.windows.firstMatch.frame.width, 720, accuracy: 2)
-        XCTAssertEqual(app.windows.firstMatch.frame.height, 560, accuracy: 2)
+        stateExpectMinimumWorkspaceFrame(app)
         try captureStateReview(app, theme: theme, language: language, state: "minimum workspace with long filename")
 
         // Use app-level keystrokes, so typing cannot silently focus the field.
@@ -113,25 +112,47 @@ extension QualityUITests {
         for (input, bytes) in originals { XCTAssertEqual(try Data(contentsOf: input), bytes) }
     }
 
+    private var stateMinimumContentLayoutSize: NSSize { NSSize(width: 720, height: 560) }
+
+    private var stateContentLayoutWindowStyle: NSWindow.StyleMask {
+        // DashboardView's minimum applies below the title bar. The production
+        // window also has fullSizeContentView, which extends its background
+        // beneath that bar; omit that flag only when converting the usable
+        // content-layout size to the outer window size reported by XCTest.
+        [.titled, .closable, .miniaturizable, .resizable]
+    }
+
+    private var stateMinimumWindowSize: NSSize {
+        NSWindow.frameRect(forContentRect: NSRect(origin: .zero, size: stateMinimumContentLayoutSize),
+                           styleMask: stateContentLayoutWindowStyle).size
+    }
+
+    private func stateExpectMinimumWorkspaceFrame(_ app: XCUIApplication) {
+        let observed = app.windows.firstMatch.frame
+        let expected = stateMinimumWindowSize
+        XCTAssertEqual(observed.width, expected.width, accuracy: 2,
+                       "Measure the actual outer window for the minimum content layout")
+        XCTAssertEqual(observed.height, expected.height, accuracy: 2)
+    }
+
     private func stateMinimumWindowFrame() throws -> String {
         let screen = try XCTUnwrap(NSScreen.main, "The native review requires an actual display")
         let visible = screen.visibleFrame
-        XCTAssertGreaterThanOrEqual(visible.width, 720)
-        XCTAssertGreaterThanOrEqual(visible.height, 560)
+        let minimum = stateMinimumWindowSize
+        XCTAssertGreaterThanOrEqual(visible.width, minimum.width)
+        XCTAssertGreaterThanOrEqual(visible.height, minimum.height)
         // Exercise the application's existing saved-window restoration path.
         // Keep its top near the display top so a larger native sheet can fit.
-        let x = visible.midX - 360
-        let y = max(visible.minY, visible.maxY - 568)
-        return [x, y, 720, 560, screen.frame.minX, screen.frame.minY,
+        let x = visible.midX - minimum.width / 2
+        let y = max(visible.minY, visible.maxY - minimum.height - 8)
+        return [x, y, minimum.width, minimum.height, screen.frame.minX, screen.frame.minY,
                 screen.frame.width, screen.frame.height]
             .map { String(Int($0.rounded())) }.joined(separator: " ")
     }
 
     private func stateCheckMinimumWorkspace(_ app: XCUIApplication, theme: String,
                                             language: String) throws {
-        let window = app.windows.firstMatch
-        XCTAssertEqual(window.frame.width, 720, accuracy: 2, "Measure the actual restored workspace")
-        XCTAssertEqual(window.frame.height, 560, accuracy: 2)
+        stateExpectMinimumWorkspaceFrame(app)
         for (id, english, turkish) in [("workspace", "Workspace", "Çalışma Alanı"),
                                        ("activity", "Activity", "İşlemler"),
                                        ("settings", "Settings", "Ayarlar")] {
@@ -311,13 +332,18 @@ extension QualityUITests {
         }
         let record: [String: Any] = [
             "themeConfirmedInSettings": theme, "language": language, "state": state,
-            "requestedWorkspaceMinimum": [720, 560],
+            "requestedWorkspaceContentLayoutMinimum": [stateMinimumContentLayoutSize.width,
+                                                        stateMinimumContentLayoutSize.height],
+            "expectedWorkspaceOuterMinimum": [stateMinimumWindowSize.width, stateMinimumWindowSize.height],
+            "contentLayoutFrameStyleMask": stateContentLayoutWindowStyle.rawValue,
             "observedWindows": app.windows.allElementsBoundByIndex.map(frameRecord),
             "observedSheets": app.sheets.allElementsBoundByIndex.map(frameRecord),
             "screenFramesInAppKitCoordinates": NSScreen.screens.map {
                 [$0.frame.minX, $0.frame.minY, $0.frame.width, $0.frame.height]
             },
-            "scope": "Workspace minimum is measured before sheets; editors retain their actual production sizes."
+            "scope": "The 720-by-560 minimum is the Dashboard content layout below the title bar. "
+                + "AppKit computes its expected outer window size; observed window and sheet frames are recorded separately. "
+                + "Editors retain their actual production sizes."
         ]
         let metadata = XCTAttachment(data: try JSONSerialization.data(withJSONObject: record, options: [.sortedKeys]),
                                      uniformTypeIdentifier: "public.json")

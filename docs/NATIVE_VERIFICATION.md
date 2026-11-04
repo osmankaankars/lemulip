@@ -1,6 +1,6 @@
 # Native Verification Gate
 
-## Current Status — 1 November 2026
+## Published Version Evidence — 1 November 2026
 
 PR #33 is merged, including real wheel-selection sound routing. Its 29 real-app
 cases passed on Apple Silicon and Intel; old synthetic diagnostic failures below
@@ -21,7 +21,8 @@ The external suite retains the existing 48 cases and adds ten bounded checks:
   selected theme through the real Settings controls, measures the minimum
   workspace, reads the full long-filename recovery message, and exercises
   Command-F and Escape. The PDF, audio and video keyboard checks are distributed
-  across the six cases. Editor sheets retain their actual production sizes;
+  across the six cases. The 720-by-560 content layout and the outer window with
+  its native title bar are recorded separately. Editor sheets retain their actual production sizes;
   a small parent window is not evidence of a small editor.
 - Real Finder drops into an already populated workspace in all three themes:
   a new file, the same file again, two selected files, and a rejected drop outside
@@ -38,12 +39,16 @@ The existing authenticated, read-only AX helper also reports the actual focused
 element in that same application; it does not set focus or grant authorization.
 Each added source fragment and the assembled suite have recorded SHA-256 values.
 
-A separate in-flight Finder observer captures one held drag entering, leaving
-and re-entering the expanded file target, Escape cancellation and an accepted
-drop. It checks existing Accessibility, event-posting and screen-capture
+A separate in-flight Finder observer runs the same held drag in Orchard,
+Pistachio and Lemonade: entering, leaving and re-entering the expanded file
+target, Escape cancellation and an accepted drop. Each theme has its own
+bounded run and evidence folder. The observer confirms that its application
+has stopped and its mouse button has been released before the next theme.
+It checks existing Accessibility, event-posting and screen-capture
 authorization without requesting or changing permissions. A `blocked` report
 means that observation is unavailable. A `captured` report proves its recorded
-gesture outcomes; the outline still requires inspection of the actual frames.
+gesture outcomes; the combined report requires all three themes to be captured.
+The outline still requires inspection of the actual frames.
 This diagnostic has no write endpoint and does not change the read-only helper.
 
 Compilation, executed XCTest results, screenshots and any separate live-drag

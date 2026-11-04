@@ -89,19 +89,30 @@ extension QualityUITests {
     }
 
     private func displayReviewToggle(_ title: String, in settings: XCUIApplication) throws -> XCUIElement {
-        // macOS may expose a native switch as a check box or switch. In either
-        // case require the exact localized name and an actual binary control.
-        let predicate = NSPredicate(format: "label ==[c] %@", title)
-        let checkBox = settings.checkBoxes.matching(predicate).firstMatch
-        let control = settings.switches.matching(predicate).firstMatch
+        // The real Display pane exposes these captions as sibling StaticText
+        // elements. Its binary controls carry these exact AX identifiers on
+        // both native runners, rather than the captions as their own labels.
+        let identifiers = ["Reduce motion": "AX_REDUCE_MOTION",
+                           "Reduce transparency": "AX_REDUCE_TRANSPARENCY"]
+        guard let identifier = identifiers[title] else {
+            throw displayReviewError("Unsupported display preference: \(title)")
+        }
+        let predicate = NSPredicate(format: "identifier == %@", identifier)
+        let checkBoxes = settings.checkBoxes.matching(predicate)
+        let switches = settings.switches.matching(predicate)
         let available = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            checkBox.exists || control.exists
+            checkBoxes.count > 0 || switches.count > 0
         }, object: settings)
         guard XCTWaiter.wait(for: [available], timeout: 8) == .completed else {
             captureDisplayReview(settings, name: title + " control unavailable")
             throw displayReviewError("System Settings did not expose the actual \(title) control")
         }
-        let result = checkBox.exists ? checkBox : control
+        let matches = checkBoxes.allElementsBoundByIndex + switches.allElementsBoundByIndex
+        guard matches.count == 1 else {
+            captureDisplayReview(settings, name: title + " control ambiguous")
+            throw displayReviewError("System Settings must expose exactly one \(identifier) binary control")
+        }
+        let result = matches[0]
         if !result.isHittable {
             // Use only a real scroll container that contains this named
             // control; never scroll the unrelated settings sidebar by guess.
