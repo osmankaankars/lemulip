@@ -145,9 +145,15 @@ private final class DragReview {
     }
 
     private func wait(_ message: String, seconds: Double = 8, retryWindowReadiness: Bool = false,
+                      retryInitialWorkspaceReadiness: Bool = false,
                       until condition: () throws -> Bool) async throws {
         let deadline = ProcessInfo.processInfo.systemUptime + seconds
         var lastReadinessFailure: String?
+        var initialWorkspaceRetryCount = 0
+        if retryInitialWorkspaceReadiness {
+            record["initialWorkspaceReadiness"] = ["phase": "initial-workspace", "retryCount": 0,
+                                                    "lastError": NSNull(), "timeoutSeconds": seconds]
+        }
         repeat {
             do { if try condition() { return } }
             catch let error as AXReadFailure where retryWindowReadiness
@@ -156,6 +162,16 @@ private final class DragReview {
                 // A newly launched app may not answer its window lookup yet.
                 // Keep this retry inside the existing bounded readiness wait.
                 lastReadinessFailure = error.description
+            } catch let error as AXReadFailure where retryInitialWorkspaceReadiness
+                && error.status == AXError.cannotComplete.rawValue && error.attribute == kAXChildrenAttribute {
+                // Only the initial workspace may retry this transient tree read.
+                // The original deadline is never extended or restarted.
+                initialWorkspaceRetryCount += 1
+                lastReadinessFailure = error.description
+                record["initialWorkspaceReadiness"] = [
+                    "phase": "initial-workspace", "retryCount": initialWorkspaceRetryCount, "timeoutSeconds": seconds,
+                    "lastError": ["attribute": error.attribute, "status": error.status, "description": error.description]
+                ]
             }
             try await pause(0.1)
         } while ProcessInfo.processInfo.systemUptime < deadline
@@ -379,16 +395,20 @@ private final class DragReview {
         down.flags = []
         up.flags = []
         record["escapeKeyProtocol"] = [
-            "kind": "observer-protocol-experiment", "keyCode": 53, "eventTap": "cghidEventTap",
+            "kind": "observer-protocol-experiment", "keyCode": 53, "eventTap": "cgSessionEventTap",
             "keyDownDwellSeconds": dwell,
-            "scope": "Observer timing experiment; not a product fix or an Apple timing requirement."
+            "downSourceStateID": down.getIntegerValueField(.eventSourceStateID),
+            "upSourceStateID": up.getIntegerValueField(.eventSourceStateID),
+            "keyboardType": down.getIntegerValueField(.keyboardEventKeyboardType),
+            "keyEventLocation": ["x": down.location.x, "y": down.location.y],
+            "scope": "Observer protocol experiment; not a product fix or an Apple requirement."
         ]
-        down.post(tap: .cghidEventTap)
+        down.post(tap: .cgSessionEventTap)
         escapeKeyDown = true
         defer {
             // Release only the exact key paired with our guarded down, even if
             // the bounded pause fails. This paired release sends no new key-down.
-            up.post(tap: .cghidEventTap)
+            up.post(tap: .cgSessionEventTap)
             escapeKeyDown = false
             recordEscapeInputState("after-key-up")
         }
@@ -534,7 +554,7 @@ private final class DragReview {
         let single = try fixture("Single")
         _ = try await NSWorkspace.shared.open([existing], withApplicationAt: bundle, configuration: configuration)
         record["startupPhase"] = "initial-workspace"
-        try await wait("The production app did not accept the sole initial fixture") {
+        try await wait("The production app did not accept the sole initial fixture", retryInitialWorkspaceReadiness: true) {
             try self.workspaceContains([existing.lastPathComponent])
         }
         record["startupPhase"] = "fixture-finder-window"
