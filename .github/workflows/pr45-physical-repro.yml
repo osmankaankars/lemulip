@@ -1,0 +1,98 @@
+name: PR45 Physical Drag Reproduction
+
+on:
+  push:
+    branches: ['codex/pr45-physical-repro']
+    paths:
+      - '.github/workflows/pr45-physical-repro.yml'
+      - 'script/package_drag_repro.py'
+      - 'script/test_package_drag_repro.py'
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+  CANDIDATE_COMMIT: d821d7343675e2850705d141ef9b3b93a6aee945
+  CANDIDATE_TREE: 425baa28f00ec24551dd70c0cc874a75fa3be0c1
+
+concurrency:
+  group: pr45-physical-repro-${{ github.ref }}
+  cancel-in-progress: true
+
+# This is an isolated diagnostic target for physical mouse/keyboard input.
+# It does not run or replace native acceptance, alter the failed Escape check,
+# approve PR45, or produce a release or UNRELEASED-CURRENT-UI-REVIEW artifact.
+jobs:
+  prepare:
+    name: Build And Verify Diagnostic Target (arm64)
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - name: Check Out Diagnostic Packaging Sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Check Packaging Sources And Preserve Acceptance Gates
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(uname -m)" = arm64
+          python3 script/privacy_check.py --staged
+          python3 script/test_package_drag_repro.py
+          python3 script/test_native_release_gate.py
+          python3 script/test_sound_review_gate.py
+
+      - name: Check Out The Exact C12 Application Source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ env.CANDIDATE_COMMIT }}
+          path: candidate-source
+          persist-credentials: false
+
+      - name: Require The Pinned Commit And Source Tree
+        working-directory: candidate-source
+        run: |
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_COMMIT"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$CANDIDATE_TREE"
+          git diff --exit-code HEAD --
+          python3 script/privacy_check.py --staged
+
+      - name: Build The C12 Application
+        working-directory: candidate-source
+        env:
+          CONFIGURATION: debug
+          LEMULIP_ENGINE_PACKS: ''
+        run: ./script/build_app.sh
+
+      - name: Stage The Separate Native Review Identity
+        working-directory: candidate-source
+        run: >-
+          python3 script/prepare_native_ui.py --app dist/Lemulip.app
+          --output "$RUNNER_TEMP/lemulip-native-ui"
+
+      - name: Package The Physical Reproduction Target
+        run: >-
+          python3 script/package_drag_repro.py stage
+          --source "$GITHUB_WORKSPACE/candidate-source"
+          --staged "$RUNNER_TEMP/lemulip-native-ui"
+          --output "$RUNNER_TEMP/pr45-delivery"
+          --workflow-commit "$GITHUB_SHA"
+
+      - name: Verify The Same ZIP And Its Native App Launch
+        run: >-
+          python3 script/package_drag_repro.py verify
+          --source "$GITHUB_WORKSPACE/candidate-source"
+          --output "$RUNNER_TEMP/pr45-delivery"
+
+      - name: Retain Verified Diagnostic Files For Physical Input
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: DIAGNOSTIC-PR45-C12-arm64-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/pr45-delivery/*.zip
+            ${{ runner.temp }}/pr45-delivery/*.json
+            ${{ runner.temp }}/pr45-delivery/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
