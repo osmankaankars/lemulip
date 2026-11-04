@@ -163,7 +163,8 @@ private final class DragReview {
         folder = directory.appendingPathComponent("Fixtures/FinderDrop/" + theme.rawValue, isDirectory: true)
         let evidenceRoot = directory.appendingPathComponent("NativeDragEvidence", isDirectory: true)
         for url in [bundle!, folder!, evidenceRoot] {
-            try require(url.standardizedFileURL == url.resolvingSymlinksInPath(), "Symlinked review targets are not allowed")
+            try require(url.standardizedFileURL.path == url.resolvingSymlinksInPath().path,
+                        "Symlinked review targets are not allowed")
         }
         try require(try evidenceRoot.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true,
                     "The fixed evidence root is unavailable")
@@ -627,9 +628,20 @@ private struct NativeDragReview {
                 throw DragReviewIssue.failed("Use the isolated native UI staging directory")
             }
             let destination = directory.appendingPathComponent("NativeDragEvidence", isDirectory: true)
-            guard destination.standardizedFileURL == destination.resolvingSymlinksInPath(),
-                  !FileManager.default.fileExists(atPath: destination.path) else {
-                throw DragReviewIssue.failed("Refusing to replace or follow an existing drag evidence root")
+            let standardized = destination.standardizedFileURL
+            let resolved = destination.resolvingSymlinksInPath()
+            let samePath = standardized.path == resolved.path
+            let existed = FileManager.default.fileExists(atPath: destination.path)
+            // A new directory's URL hint can change during symlink resolution.
+            // Compare filesystem paths and retain the former URL comparison for diagnosis.
+            aggregate["evidenceRootValidation"] = ["urlIdentityMatches": standardized == resolved,
+                                                 "canonicalPathsMatch": samePath,
+                                                 "existedBeforeCreation": existed]
+            guard samePath else {
+                throw DragReviewIssue.failed("Refusing a symlinked drag evidence root")
+            }
+            guard !existed else {
+                throw DragReviewIssue.failed("Refusing to replace an existing drag evidence root")
             }
             try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: false)
             var reports: [[String: Any]] = []

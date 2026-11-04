@@ -18,7 +18,7 @@ struct ActivityItem: Identifiable {
 }
 
 @MainActor
-final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NSMenuItemValidation {
+final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NSMenuItemValidation, NSWindowDelegate {
     @Published var files: [URL] = []
     @Published var mode: WheelMode = .convert
     @Published var section = "workspace"
@@ -620,6 +620,7 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
             panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
             panel.contentView = NSHostingView(rootView: ResultCardView(model: self))
             resultPanel = panel
+            panel.delegate = self
         }
         panel.backgroundColor = Palette.canvasColor
         if !panel.isVisible { placeResultPanel(panel) }
@@ -627,11 +628,24 @@ final class AppController: NSObject, ObservableObject, NSApplicationDelegate, NS
         resultAppearance.present(panel, kind: .result) { panel.orderFrontRegardless() }
     }
 
+    func windowDidResize(_ notification: Notification) {
+        guard let panel = resultPanel, notification.object as? NSWindow === panel,
+              panel.isVisible, let screen = panel.screen else { return }
+        // Hosting content can resize after presentation or reuse. Keep the
+        // whole card above the Dock on its current screen without taking focus.
+        placeResultPanel(panel, on: screen)
+    }
+
     private func placeResultPanel(_ panel: NSPanel) {
-        let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main
-        guard let frame = screen?.visibleFrame else { return }
-        panel.setFrameOrigin(NSPoint(x: max(frame.minX, frame.maxX - panel.frame.width - 18),
-                                     y: max(frame.minY, frame.minY + 18)))
+        guard let screen = NSScreen.screens.first(where: { $0.frame.contains(NSEvent.mouseLocation) }) ?? NSScreen.main else { return }
+        placeResultPanel(panel, on: screen)
+    }
+
+    private func placeResultPanel(_ panel: NSPanel, on screen: NSScreen) {
+        let frame = screen.visibleFrame
+        let origin = NSPoint(x: max(frame.minX, frame.maxX - panel.frame.width - 18),
+                             y: max(frame.minY, min(frame.minY + 18, frame.maxY - panel.frame.height)))
+        if panel.frame.origin != origin { panel.setFrameOrigin(origin) }
     }
 
     func dismissResultCard() {

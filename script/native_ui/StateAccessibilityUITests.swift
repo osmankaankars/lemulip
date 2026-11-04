@@ -228,6 +228,7 @@ extension QualityUITests {
         XCTAssertTrue(canvas.exists && canvas.isHittable)
         canvas.click()
         try stateExpectCanvasFocus(canvasName, name: "Media canvas receives focus")
+        XCTAssertTrue(canvas.isEnabled, "The interactive media canvas must be exposed as enabled")
         app.typeKey("s", modifierFlags: [])
         app.typeKey(.rightArrow, modifierFlags: .shift)
         try expectValue("00:03.000", of: start)
@@ -320,6 +321,8 @@ extension QualityUITests {
         let focused = try XCTUnwrap(stateFocusedElement(name: name))
         XCTAssertEqual(focused["role"] as? String, "AXGroup")
         XCTAssertEqual(focused["AXDescription"] as? String, label)
+        XCTAssertEqual(focused["enabledReadStatus"] as? Int, 0, "AXEnabled must be directly readable")
+        XCTAssertEqual(focused["enabled"] as? Bool, true, "The focused media canvas must be enabled")
     }
 
     private func captureStateReview(_ app: XCUIApplication, theme: String, language: String,

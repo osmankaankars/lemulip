@@ -55,6 +55,21 @@ private func snapshot(path: String) throws -> [String: Any] {
                 node[key == kAXRoleAttribute ? "role" : key] = text
             }
         }
+        // Distinguish an actual disabled control from an unsupported or absent
+        // attribute. XCTest's debug description alone cannot make that distinction.
+        var enabledValue: CFTypeRef?
+        let enabledStatus = AXUIElementCopyAttributeValue(element, kAXEnabledAttribute as CFString, &enabledValue)
+        node["enabledReadStatus"] = enabledStatus.rawValue
+        switch enabledStatus {
+        case .success:
+            guard let enabledValue, CFGetTypeID(enabledValue) == CFBooleanGetTypeID(),
+                  let enabled = enabledValue as? NSNumber else {
+                throw InspectionFailure("Focused AXEnabled is not a Boolean")
+            }
+            node["enabled"] = enabled.boolValue
+        case .attributeUnsupported, .noValue: break
+        default: throw InspectionFailure("Focused AXEnabled read failed: \(enabledStatus.rawValue)")
+        }
         focused = node
     }
     var pending = [root]

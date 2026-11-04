@@ -70,6 +70,7 @@ final class VideoTrimTimelineCanvas: NSView {
         super.init(frame: .zero)
         setAccessibilityElement(true)
         setAccessibilityRole(.group)
+        setAccessibilityEnabled(true)
         updateAccessibleActions()
         updateAccessibility()
     }

@@ -32,11 +32,17 @@ The external suite retains the existing 48 cases and adds ten bounded checks:
   independent NSWorkspace readback, wheel keyboard use, PDF output validation and usable
   result cards. The original system values are restored in teardown. A still
   screenshot does not establish the first animation frames or fade duration.
+  Both the first and reused result card must fit completely inside the display's
+  visible area, with every action enabled and reachable above the Dock. Their
+  window, action and visible-screen rectangles are retained with the real images.
 
 The isolated application starts with explicit normal theme and saved-frame
 preferences to prevent one case from changing another case's starting state.
 The existing authenticated, read-only AX helper also reports the actual focused
 element in that same application; it does not set focus or grant authorization.
+The focused element's AXEnabled read status and Boolean are recorded separately,
+so unsupported or absent values cannot be reported as disabled. Interactive audio
+and video canvases must be enabled in both the direct AX reading and XCTest.
 Each added source fragment and the assembled suite have recorded SHA-256 values.
 The same authenticated local reviewer also exposes a separate read-only resource
 for two public system display-preference booleans. Each request runs a fresh

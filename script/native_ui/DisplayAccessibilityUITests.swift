@@ -314,13 +314,60 @@ extension QualityUITests {
         XCTAssertTrue(result.waitForExistence(timeout: 10) && result.isEnabled && result.isHittable)
         XCTAssertEqual(result.label, "Show \(output.lastPathComponent) in Finder")
         XCTAssertTrue(dismiss.isEnabled && dismiss.isHittable)
-        captureDisplayReview(app, name: scenario + " usable result card", expected: preferences)
+        try expectDisplayReviewResultVisibility(app, scenario: scenario, preferences: preferences)
         dismiss.click()
         let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: result)
         XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed,
                        "The real result panel must dismiss with \(preferences.text)")
         XCTAssertEqual(try Data(contentsOf: input), original)
         try expectDisplayReviewWorkspace(preferences)
+    }
+
+    private func expectDisplayReviewResultVisibility(_ app: XCUIApplication, scenario: String,
+                                                    preferences: DisplayReviewPreferences) throws {
+        let screens = NSScreen.screens
+        let primaryTop = try XCTUnwrap(screens.first).frame.maxY
+        // AX rectangles use the primary display's top-left origin. AppKit's
+        // visibleFrame excludes the Dock and menu bar in bottom-left coordinates.
+        let visibleFrames = screens.map { screen in
+            let frame = screen.visibleFrame
+            return CGRect(x: frame.minX, y: primaryTop - frame.maxY,
+                          width: frame.width, height: frame.height)
+        }
+        let actions = ["Show In Finder", "Copy", "Float", "Dismiss Results"]
+        func resultPanels() -> [XCUIElement] {
+            app.windows.allElementsBoundByIndex.filter { $0.buttons["Dismiss Results"].exists }
+        }
+        let visible = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            let panels = resultPanels()
+            guard panels.count == 1, let panel = panels.first,
+                  visibleFrames.contains(where: { $0.insetBy(dx: -1, dy: -1).contains(panel.frame) }) else { return false }
+            return actions.allSatisfy { label in
+                let action = panel.buttons[label]
+                return action.exists && action.isEnabled && action.isHittable && panel.frame.contains(action.frame)
+            }
+        }, object: nil)
+        let outcome = XCTWaiter.wait(for: [visible], timeout: 5)
+        func rect(_ frame: CGRect) -> [Double] { [frame.minX, frame.minY, frame.width, frame.height].map { Double($0) } }
+        let panels = resultPanels()
+        var record: [String: Any] = ["visibleScreenFramesInAXCoordinates": visibleFrames.map(rect),
+                                     "resultPanelCount": panels.count,
+                                     "fullyVisibleAndActionsUsable": outcome == .completed]
+        if let panel = panels.first {
+            record["panelFrameInAXCoordinates"] = rect(panel.frame)
+            record["actionFramesInAXCoordinates"] = Dictionary(uniqueKeysWithValues: actions.compactMap { label in
+                let action = panel.buttons[label]
+                return action.exists ? (label, rect(action.frame)) : nil
+            })
+        }
+        let data = try JSONSerialization.data(withJSONObject: record, options: [.sortedKeys])
+        let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
+        attachment.name = scenario + " result card visibility"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+        captureDisplayReview(app, name: scenario + " result card", expected: preferences)
+        XCTAssertEqual(outcome, .completed,
+                       "The complete result card and every action must remain above the Dock and inside the visible display")
     }
 
     private func captureDisplayReview(_ app: XCUIApplication, name: String,
