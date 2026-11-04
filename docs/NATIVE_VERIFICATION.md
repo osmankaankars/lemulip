@@ -44,6 +44,9 @@ The focused element's AXEnabled read status and Boolean are recorded separately,
 so unsupported or absent values cannot be reported as disabled. Interactive audio
 and video canvases must be enabled in both the direct AX reading and XCTest.
 Each added source fragment and the assembled suite have recorded SHA-256 values.
+Audio resume checks retain live AX position samples, then pause before recording
+the full AX tree and screenshot so evidence capture leaves time for the next
+keyboard resume check. The existing playback and focus assertions are retained.
 The same authenticated local reviewer also exposes a separate read-only resource
 for two public system display-preference booleans. Each request runs a fresh
 NSWorkspace reader outside the XCTest host and works after the review app has
@@ -56,6 +59,8 @@ Pistachio and Lemonade: entering, leaving and re-entering the expanded file
 target, Escape cancellation and an accepted drop. Each theme has its own
 bounded run and evidence folder. The observer confirms that its application
 has stopped and its mouse button has been released before the next theme.
+Its existing bounded startup waits retry only transient AX window/title reads;
+the exact application and fixture windows must still be found before proceeding.
 It checks existing Accessibility, event-posting and screen-capture
 authorization without requesting or changing permissions. A `blocked` report
 means that observation is unavailable. A `captured` report proves its recorded

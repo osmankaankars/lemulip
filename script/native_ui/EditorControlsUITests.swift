@@ -171,10 +171,12 @@ extension QualityUITests {
             play.click()
         }
         XCTAssertTrue(pause.exists && pause.isEnabled)
-        captureAudioState(app, name: "Audio " + language + " resumed")
         pause.click()
         expectAudioState("Pause must still work after resuming") { play.exists && play.isEnabled }
         let beforeFocus = try audioPositionSeconds(position)
+        // Retain the full AX tree and screenshot after pausing so evidence
+        // capture cannot consume the selection's remaining playback time.
+        captureAudioState(app, name: "Audio " + language + " after button resume and pause")
 
         // Click the actual labeled canvas to focus it. Its center lies inside
         // the 2–18 second selection; no guessed pixels or test-only hooks.

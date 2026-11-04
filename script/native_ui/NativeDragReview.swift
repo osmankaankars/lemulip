@@ -14,6 +14,12 @@ private enum DragReviewIssue: Error, CustomStringConvertible {
     }
 }
 
+private struct AXReadFailure: Error, CustomStringConvertible {
+    let attribute: String
+    let status: Int32
+    var description: String { "AX read failed for \(attribute): \(status)" }
+}
+
 private enum DragReviewTheme: String, CaseIterable {
     case orchard, pistachio, lemonade
 }
@@ -65,7 +71,7 @@ private final class DragReview {
         switch error {
         case .success: return value
         case .attributeUnsupported, .noValue: return nil
-        default: throw DragReviewIssue.failed("AX read failed for \(key): \(error.rawValue)")
+        default: throw AXReadFailure(attribute: key, status: error.rawValue)
         }
     }
 
@@ -137,13 +143,22 @@ private final class DragReview {
         try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
     }
 
-    private func wait(_ message: String, seconds: Double = 8, until condition: () throws -> Bool) async throws {
+    private func wait(_ message: String, seconds: Double = 8, retryWindowReadiness: Bool = false,
+                      until condition: () throws -> Bool) async throws {
         let deadline = ProcessInfo.processInfo.systemUptime + seconds
+        var lastReadinessFailure: String?
         repeat {
-            if try condition() { return }
+            do { if try condition() { return } }
+            catch let error as AXReadFailure where retryWindowReadiness
+                && error.status == AXError.cannotComplete.rawValue
+                && (error.attribute == kAXWindowsAttribute || error.attribute == kAXTitleAttribute) {
+                // A newly launched app may not answer its window lookup yet.
+                // Keep this retry inside the existing bounded readiness wait.
+                lastReadinessFailure = error.description
+            }
             try await pause(0.1)
         } while ProcessInfo.processInfo.systemUptime < deadline
-        throw DragReviewIssue.failed(message)
+        throw DragReviewIssue.failed(lastReadinessFailure.map { message + "; last readiness error: " + $0 } ?? message)
     }
 
     private func fixtureSet() throws -> Set<String> {
@@ -402,8 +417,10 @@ private final class DragReview {
         guard let app = reviewApp else { throw DragReviewIssue.failed("The staged app did not launch") }
         try require(app.bundleIdentifier == identifier && app.bundleURL?.resolvingSymlinksInPath().path == bundle.path,
                     "The launch did not produce the exact staged app")
-        try await wait("The production review window did not appear") { try self.window(in: app, title: "Lemulip") != nil }
-        reviewWindow = try window(in: app, title: "Lemulip")
+        try await wait("The production review window did not appear", retryWindowReadiness: true) {
+            self.reviewWindow = try self.window(in: app, title: "Lemulip")
+            return self.reviewWindow != nil
+        }
         let screen = CGDisplayBounds(CGMainDisplayID())
         try require(screen.width >= 900 && screen.height >= 700, "The display is too small for this bounded two-window observation")
         try arrange(reviewWindow!, owner: app.processIdentifier,
@@ -420,10 +437,10 @@ private final class DragReview {
         }
         finderApp = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.finder").first
         try assertTargets()
-        try await wait("The exact fixture Finder window did not appear") {
-            try self.window(in: self.finderApp!, title: self.folder.lastPathComponent) != nil
+        try await wait("The exact fixture Finder window did not appear", retryWindowReadiness: true) {
+            self.finderWindow = try self.window(in: self.finderApp!, title: self.folder.lastPathComponent)
+            return self.finderWindow != nil
         }
-        finderWindow = try window(in: finderApp!, title: folder.lastPathComponent)
         try await focusFinderWindow()
         try await wait("Finder is not foreground for choosing its view") {
             NSWorkspace.shared.frontmostApplication?.processIdentifier == self.finderApp?.processIdentifier
