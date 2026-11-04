@@ -307,9 +307,11 @@ private final class ControlDropView: NSView {
         fields["selectedFilenames"] = selection.urls.map(\.lastPathComponent)
         fields["targeted"] = targeted
         fields["applicationActive"] = NSApp.isActive
+        fields["currentModifierFlags"] = NSEvent.modifierFlags.rawValue
         if let event = NSApp.currentEvent {
             fields["applicationCurrentEventType"] = event.type.rawValue
             fields["applicationCurrentEventTimestamp"] = event.timestamp
+            fields["applicationCurrentEventModifierFlags"] = event.modifierFlags.rawValue
         }
         if let sender {
             fields["sequenceNumber"] = sender.draggingSequenceNumber
