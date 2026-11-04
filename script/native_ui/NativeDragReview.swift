@@ -5,7 +5,7 @@ import Foundation
 
 // A separate, explicitly interactive evidence probe. ReadOnlyAXSnapshot stays
 // read-only. This executable never requests or changes any macOS permission.
-// Usage: NativeDragReview <the prepare_native_ui.py review directory>
+// Usage: NativeDragReview <the prepare_native_ui.py review directory> [--control]
 private enum DragReviewIssue: Error, CustomStringConvertible {
     case blocked(String)
     case failed(String)
@@ -24,9 +24,24 @@ private enum DragReviewTheme: String, CaseIterable {
     case orchard, pistachio, lemonade
 }
 
+private enum DragReviewTarget {
+    case production, control
+
+    var identifier: String {
+        self == .production ? "app.lemulip.NativeUIReview" : "app.lemulip.NativeDragControl"
+    }
+    var bundleName: String {
+        self == .production ? "Lemulip Native UI Review.app" : "Native Drag Control.app"
+    }
+    var executable: String { self == .production ? "Lemulip" : "NativeDragControl" }
+    var windowTitle: String { self == .production ? "Lemulip" : "Native Drag Control" }
+    var evidenceName: String { self == .production ? "NativeDragEvidence" : "NativeDragControlEvidence" }
+}
+
 @MainActor
 private final class DragReview {
-    private let identifier = "app.lemulip.NativeUIReview"
+    private let target: DragReviewTarget
+    private var identifier: String { target.identifier }
     private let directory: URL
     private let theme: DragReviewTheme
     private var bundle: URL!
@@ -51,10 +66,15 @@ private final class DragReview {
         "scope": "Real Finder drag; held entry, exit, re-entry, Escape and drop frames. Visual review is separate."
     ]
 
-    init(directory: URL, theme: DragReviewTheme) {
+    init(directory: URL, theme: DragReviewTheme, target: DragReviewTarget) {
         self.directory = directory.standardizedFileURL.resolvingSymlinksInPath()
         self.theme = theme
+        self.target = target
         record["theme"] = theme.rawValue
+        record["targetKind"] = target == .production ? "production" : "standard-appkit-control"
+        if target == .control {
+            record["scope"] = "Reference AppKit destination with passive event/callback tracing. Theme names identify fixture sets, not product appearances. No product verification claim."
+        }
     }
 
     private var observedDisplayPreferences: [String: Bool] {
@@ -211,9 +231,9 @@ private final class DragReview {
 
     private func validate() throws {
         try require(directory.lastPathComponent == "lemulip-native-ui", "Use the isolated native UI staging directory")
-        bundle = directory.appendingPathComponent("Lemulip Native UI Review.app", isDirectory: true)
+        bundle = directory.appendingPathComponent(target.bundleName, isDirectory: true)
         folder = directory.appendingPathComponent("Fixtures/FinderDrop/" + theme.rawValue, isDirectory: true)
-        let evidenceRoot = directory.appendingPathComponent("NativeDragEvidence", isDirectory: true)
+        let evidenceRoot = directory.appendingPathComponent(target.evidenceName, isDirectory: true)
         for url in [bundle!, folder!, evidenceRoot] {
             try require(url.standardizedFileURL.path == url.resolvingSymlinksInPath().path,
                         "Symlinked review targets are not allowed")
@@ -222,8 +242,8 @@ private final class DragReview {
                     "The fixed evidence root is unavailable")
         let infoData = try Data(contentsOf: bundle.appendingPathComponent("Contents/Info.plist"))
         let info = try PropertyListSerialization.propertyList(from: infoData, options: [], format: nil) as? [String: Any]
-        try require(info?["CFBundleIdentifier"] as? String == identifier && info?["CFBundleExecutable"] as? String == "Lemulip",
-                    "The target is not the separately staged production application")
+        try require(info?["CFBundleIdentifier"] as? String == identifier && info?["CFBundleExecutable"] as? String == target.executable,
+                    "The target does not match its fixed staged identity")
         inputNames = try fixtureSet()
         try require(inputNames.count == 4, "Require exactly four staged Finder inputs")
         for prefix in ["Existing", "Single", "Multi-A", "Multi-B"] {
@@ -242,8 +262,10 @@ private final class DragReview {
         record["originalSHA256"] = originals.mapValues { SHA256.hash(data: $0).map { String(format: "%02x", $0) }.joined() }
         if let data = try? Data(contentsOf: directory.appendingPathComponent("provenance.json")),
            let provenance = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-            for key in ["sourceCommit", "sourceTree", "architecture", "stagedGUI_SHA256", "compiledTestSourceSHA256",
-                        "nativeDragReviewSourceSHA256"] {
+            let keys = ["sourceCommit", "sourceTree", "architecture", "nativeDragReviewSourceSHA256"]
+                + (target == .production ? ["stagedGUI_SHA256", "compiledTestSourceSHA256"]
+                   : ["controlGUI_SHA256", "nativeDragControlSourceSHA256"])
+            for key in keys {
                 if let value = provenance[key] as? String { record[key] = value }
             }
         }
@@ -564,7 +586,7 @@ private final class DragReview {
               try pid(window) == finder.processIdentifier, try pid(review) == app.processIdentifier,
               try text(window, kAXRoleAttribute) == kAXWindowRole, try text(review, kAXRoleAttribute) == kAXWindowRole,
               try text(window, kAXTitleAttribute) == folder.lastPathComponent,
-              try text(review, kAXTitleAttribute) == "Lemulip" else {
+              try text(review, kAXTitleAttribute) == target.windowTitle else {
             throw DragReviewIssue.failed("The fixed review/Finder windows are unavailable")
         }
         finder.activate(options: [])
@@ -645,13 +667,14 @@ private final class DragReview {
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.arguments = ["-language", "en", "-theme", theme.rawValue, "-wheelEnabled", "NO",
                                    "-completionPresentation", "quiet", "-NSQuitAlwaysKeepsWindows", "NO"]
+        if target == .control { configuration.arguments += ["-controlTheme", theme.rawValue] }
         configuration.addsToRecentItems = false
         reviewApp = try await NSWorkspace.shared.openApplication(at: bundle, configuration: configuration)
         guard let app = reviewApp else { throw DragReviewIssue.failed("The staged app did not launch") }
         try require(app.bundleIdentifier == identifier && app.bundleURL?.resolvingSymlinksInPath().path == bundle.path,
                     "The launch did not produce the exact staged app")
         try await wait("The production review window did not appear", retryWindowReadiness: true) {
-            self.reviewWindow = try self.window(in: app, title: "Lemulip")
+            self.reviewWindow = try self.window(in: app, title: self.target.windowTitle)
             return self.reviewWindow != nil
         }
         let screen = CGDisplayBounds(CGMainDisplayID())
@@ -914,10 +937,12 @@ private final class DragReview {
 private struct NativeDragReview {
     @MainActor
     static func main() async {
-        guard CommandLine.arguments.count == 2 else {
-            FileHandle.standardError.write(Data("Usage: NativeDragReview <isolated review directory>\n".utf8))
+        guard CommandLine.arguments.count == 2
+            || (CommandLine.arguments.count == 3 && CommandLine.arguments[2] == "--control") else {
+            FileHandle.standardError.write(Data("Usage: NativeDragReview <isolated review directory> [--control]\n".utf8))
             exit(2)
         }
+        let target: DragReviewTarget = CommandLine.arguments.count == 3 ? .control : .production
         let directory = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
             .standardizedFileURL.resolvingSymlinksInPath()
         var aggregate: [String: Any] = [
@@ -927,11 +952,15 @@ private struct NativeDragReview {
             "permissionRequested": false,
             "scope": "The same real Finder drag sequence in three fixed themes; visual outline review is separate."
         ]
+        aggregate["targetKind"] = target == .production ? "production" : "standard-appkit-control"
+        if target == .control {
+            aggregate["scope"] = "The same Finder input into a standard AppKit reference destination. Fixture labels are not themes. This is a diagnostic control, not production verification."
+        }
         do {
             guard directory.lastPathComponent == "lemulip-native-ui" else {
                 throw DragReviewIssue.failed("Use the isolated native UI staging directory")
             }
-            let destination = directory.appendingPathComponent("NativeDragEvidence", isDirectory: true)
+            let destination = directory.appendingPathComponent(target.evidenceName, isDirectory: true)
             let standardized = destination.standardizedFileURL
             let resolved = destination.resolvingSymlinksInPath()
             let samePath = standardized.path == resolved.path
@@ -957,7 +986,7 @@ private struct NativeDragReview {
                 }
                 // A new object gives each theme its own fixtures, AX handles,
                 // original-byte receipt and bounded 110-second run clock.
-                let review = DragReview(directory: directory, theme: theme)
+                let review = DragReview(directory: directory, theme: theme, target: target)
                 do { try await review.run() }
                 catch let error as DragReviewIssue {
                     switch error {
@@ -991,7 +1020,8 @@ private struct NativeDragReview {
                 }
                 reports.append(summary)
                 for key in ["sourceCommit", "sourceTree", "architecture", "stagedGUI_SHA256",
-                            "compiledTestSourceSHA256", "nativeDragReviewSourceSHA256"] {
+                            "compiledTestSourceSHA256", "nativeDragReviewSourceSHA256", "controlGUI_SHA256",
+                            "nativeDragControlSourceSHA256"] {
                     if aggregate[key] == nil, let value = review.record[key] { aggregate[key] = value }
                 }
             }

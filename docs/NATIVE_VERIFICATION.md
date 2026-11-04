@@ -111,6 +111,20 @@ evidence on a fresh host; the required complete native suite and its post-suite
 observer still run on both architectures. Existing authorization can differ
 between the two environments and remains part of each report.
 
+The isolated `--control` diagnostic repeats that exact input sequence against
+`app.lemulip.NativeDragControl`, a separate standard AppKit file destination.
+It does not alter the production app or its acceptance checks. The control logs
+drag-destination callbacks and passively records Escape events passing through
+`NSApplication.sendEvent`; it always calls the normal implementation. An absent
+`sendEvent` record does not prove that AppKit's tracking loop never received the
+key. The three fixture labels are not appearance tests in this control. Its
+separate `NativeDragControlEvidence` retains its own executable/source hashes,
+screenshots and callback receipts. A failed cancellation remains failed, and the
+production observation starts only after every control cleanup is confirmed.
+The diagnostic branch runs this comparison without replacing the required native
+gate. Comparing these targets can distinguish a product-specific result from a
+shared automation result; it does not certify physical keyboard behavior.
+
 Compilation, executed XCTest results, screenshots and any separate live-drag
 report must be inspected together for the candidate under review. Source tests
 and successful staging alone do not establish runtime success. These checks do

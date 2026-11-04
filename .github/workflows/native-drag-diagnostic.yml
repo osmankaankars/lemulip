@@ -1,10 +1,13 @@
 name: Native Finder Drag Diagnostic
 
 on:
+  push:
+    branches: ['codex/drag-cancellation-control']
   pull_request:
     paths:
       - '.github/workflows/native-drag-diagnostic.yml'
       - 'script/native_ui/NativeDragReview.swift'
+      - 'script/native_ui/NativeDragControl.swift'
       - 'script/prepare_native_ui.py'
   workflow_dispatch:
 
@@ -25,7 +28,7 @@ jobs:
   observe:
     name: Standalone Finder Observation (${{ matrix.arch }})
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -63,10 +66,61 @@ jobs:
           receipt.write_text(json.dumps(record,indent=2)+'\n')
           PYCODE
       - name: Build the Finder Observer
+        id: observer
         run: xcrun swiftc -parse-as-library script/native_ui/NativeDragReview.swift -o "$RUNNER_TEMP/lemulip-native-ui/NativeDragReview"
-      - name: Record Actual Finder Drag States
+      - name: Build a Separate Standard AppKit Control
+        id: control
+        run: |
+          python3 - <<'PYCODE'
+          import os,pathlib,plistlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'lemulip-native-ui'
+          contents=root/'Native Drag Control.app'/'Contents'
+          (contents/'MacOS').mkdir(parents=True,exist_ok=False)
+          info={
+              'CFBundleIdentifier':'app.lemulip.NativeDragControl',
+              'CFBundleExecutable':'NativeDragControl',
+              'CFBundleName':'Native Drag Control',
+              'CFBundleDisplayName':'Native Drag Control',
+              'CFBundlePackageType':'APPL',
+              'CFBundleShortVersionString':'0.0.0',
+              'CFBundleVersion':'1',
+              'NSPrincipalClass':'NativeDragControlApplication',
+              'NSHighResolutionCapable':True,
+              'LSMinimumSystemVersion':'13.0',
+          }
+          (contents/'Info.plist').write_bytes(plistlib.dumps(info))
+          PYCODE
+          xcrun swiftc -parse-as-library -module-name NativeDragControl \
+            script/native_ui/NativeDragControl.swift \
+            -o "$RUNNER_TEMP/lemulip-native-ui/Native Drag Control.app/Contents/MacOS/NativeDragControl"
+          codesign --force --sign - "$RUNNER_TEMP/lemulip-native-ui/Native Drag Control.app"
+          codesign --verify --strict "$RUNNER_TEMP/lemulip-native-ui/Native Drag Control.app"
+          python3 - <<'PYCODE'
+          import hashlib,json,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'lemulip-native-ui'
+          receipt=root/'provenance.json'; record=json.loads(receipt.read_text())
+          record['nativeDragControlSourceSHA256']=hashlib.sha256(pathlib.Path('script/native_ui/NativeDragControl.swift').read_bytes()).hexdigest()
+          record['controlGUI_SHA256']=hashlib.sha256((root/'Native Drag Control.app/Contents/MacOS/NativeDragControl').read_bytes()).hexdigest()
+          record['controlScope']='Independent standard AppKit destination; no production behavior or physical-keyboard claim.'
+          receipt.write_text(json.dumps(record,indent=2)+'\n')
+          PYCODE
+      - name: Observe the Same Finder Input in the Standard AppKit Control
         run: |
           set -o pipefail
+          "$RUNNER_TEMP/lemulip-native-ui/NativeDragReview" "$RUNNER_TEMP/lemulip-native-ui" --control \
+            2>&1 | tee "$RUNNER_TEMP/lemulip-native-ui/drag-control.log"
+      - name: Record Actual Finder Drag States
+        if: ${{ !cancelled() && steps.observer.outcome == 'success' && steps.control.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          python3 - <<'PYCODE'
+          import json,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'lemulip-native-ui'
+          record=json.loads((root/'NativeDragControlEvidence/report.json').read_text())
+          themes=record.get('themes',[])
+          if len(themes)!=3 or not all(t.get('cleanup',{}).get('completed') is True for t in themes):
+              raise SystemExit('Control cleanup is incomplete; refusing further native input.')
+          PYCODE
           "$RUNNER_TEMP/lemulip-native-ui/NativeDragReview" "$RUNNER_TEMP/lemulip-native-ui" \
             2>&1 | tee "$RUNNER_TEMP/lemulip-native-ui/drag-observer.log"
       - name: Retain Diagnostic Evidence
@@ -77,6 +131,8 @@ jobs:
           path: |
             ${{ runner.temp }}/lemulip-native-ui/provenance.json
             ${{ runner.temp }}/lemulip-native-ui/drag-observer.log
+            ${{ runner.temp }}/lemulip-native-ui/drag-control.log
             ${{ runner.temp }}/lemulip-native-ui/NativeDragEvidence
+            ${{ runner.temp }}/lemulip-native-ui/NativeDragControlEvidence
           if-no-files-found: error
           retention-days: 14
