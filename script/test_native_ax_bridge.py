@@ -53,6 +53,67 @@ class NativeAXBridgeTests(unittest.TestCase):
             run.return_value.stdout = '{"trusted":false}'
             with self.assertRaises(ValueError): reader.read()
 
+    def test_display_reader_needs_no_running_app_and_rejects_nonboolean_values(self):
+        reader = SnapshotReader(Path('/probe'), Path('/absent/Lemulip Native UI Review.app'))
+        record = {'schema': 1, 'kind': 'system-display-preferences', 'reader': 'NSWorkspace',
+                  'readOnly': True, 'reduceMotion': True, 'reduceTransparency': False}
+        with patch('native_ax_bridge.subprocess.run') as run:
+            run.return_value.returncode = 0
+            run.return_value.stdout = json.dumps(record)
+            self.assertEqual(reader.read_display_preferences(), record)
+            self.assertEqual(run.call_args.args[0], ['/probe', '--display-preferences'])
+            self.assertFalse(run.call_args.kwargs.get('shell', False))
+            for key, value in [('reduceMotion', 1), ('reduceTransparency', 'false'),
+                               ('reduceTransparency', None), ('readOnly', 1),
+                               ('reader', 'defaults'), ('kind', 'other')]:
+                bad = dict(record); bad[key] = value
+                run.return_value.stdout = json.dumps(bad)
+                with self.subTest(key=key, value=value), self.assertRaises(ValueError):
+                    reader.read_display_preferences()
+            run.return_value.stdout = json.dumps(record)
+            run.return_value.returncode = 1
+            with self.assertRaises(ValueError): reader.read_display_preferences()
+
+    def test_display_resource_is_authenticated_read_only_and_has_no_query_parameters(self):
+        calls = []
+        def display_preferences():
+            calls.append(1)
+            return {'reduceMotion': True, 'reduceTransparency': False}
+        server = make_server(lambda: {'trusted': True}, 'd' * 64, display_preferences)
+        thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+        base = f'http://127.0.0.1:{server.server_port}'
+        authorization = {'Authorization': 'Bearer ' + 'd' * 64}
+        try:
+            cases = [('/display-preferences', {}, 'GET', 403),
+                     ('/display-preferences?reduceMotion=false', authorization, 'GET', 404),
+                     ('/display-preferences', authorization, 'POST', 405),
+                     ('/display-preferences', dict(authorization, Origin='https://example.invalid'), 'GET', 403),
+                     ('/display-preferences', dict(authorization, Host='example.invalid'), 'GET', 403)]
+            for path, headers, method, status in cases:
+                request = Request(base + path, headers=headers, method=method)
+                with self.subTest(path=path, method=method, headers=headers), self.assertRaises(HTTPError) as error:
+                    urlopen(request, timeout=3)
+                self.assertEqual(error.exception.code, status)
+            self.assertEqual(calls, [])
+            with urlopen(Request(base + '/display-preferences', headers=authorization), timeout=3) as response:
+                self.assertEqual(json.load(response), {'reduceMotion': True, 'reduceTransparency': False})
+            self.assertEqual(calls, [1])
+        finally:
+            server.shutdown(); server.server_close(); thread.join(timeout=3)
+
+    def test_failed_display_reader_is_not_replaced_with_cached_values(self):
+        def failed(): raise ValueError('Independent NSWorkspace observation failed')
+        server = make_server(lambda: {'trusted': True}, 'e' * 64, failed)
+        thread = threading.Thread(target=server.serve_forever, daemon=True); thread.start()
+        try:
+            request = Request(f'http://127.0.0.1:{server.server_port}/display-preferences',
+                              headers={'Authorization': 'Bearer ' + 'e' * 64})
+            with self.assertRaises(HTTPError) as error: urlopen(request, timeout=3)
+            self.assertEqual(error.exception.code, 503)
+            self.assertFalse(json.load(error.exception)['ok'])
+        finally:
+            server.shutdown(); server.server_close(); thread.join(timeout=3)
+
     def test_loopback_is_authenticated_read_only_and_target_fixed(self):
         calls = []
         def snapshot():

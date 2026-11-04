@@ -79,6 +79,9 @@ final class NativePanelReviewTests: XCTestCase {
             !existing.contains(ObjectIdentifier($0)) && $0.contentView is NSHostingView<ResultCardView>
         } as? NSPanel)
         let visible = try XCTUnwrap(panel)
+        let selectedScreen = try XCTUnwrap(visible.screen)
+        try await waitForPanelLayout(visible)
+        let firstGeometry = try resultPanelGeometry(visible, on: selectedScreen)
         XCTAssertTrue(visible.styleMask.contains(.nonactivatingPanel))
         XCTAssertTrue(NSApp.keyWindow === originalKeyWindow, "Automatic completion must not take keyboard focus")
         XCTAssertFalse(visible.ignoresMouseEvents)
@@ -87,10 +90,48 @@ final class NativePanelReviewTests: XCTestCase {
         XCTAssertFalse(visible.isVisible)
         model.begin(operation, inputs: [input])
         try await waitFor("A later result must reuse the same panel") { model.completedCount == 2 && visible.isVisible }
+        try await waitForPanelLayout(visible)
         XCTAssertEqual(model.completionResults.urls.count, 1)
         XCTAssertTrue(NSApp.keyWindow === originalKeyWindow)
-        try await Task.sleep(nanoseconds: 180_000_000)
-        try capture(visible, name: "native-result-card", state: ["panelReused": true, "inputEventsSent": false])
+        let reusedGeometry = try resultPanelGeometry(visible, on: selectedScreen)
+        try capture(visible, name: "native-result-card", state: ["panelReused": true, "inputEventsSent": false,
+                    "firstPresentation": firstGeometry, "reusedPresentation": reusedGeometry])
+    }
+
+    @MainActor
+    private func waitForPanelLayout(_ panel: NSPanel) async throws {
+        let view = try XCTUnwrap(panel.contentView)
+        var previousFrame: NSRect?
+        var previousContentSize: NSSize?
+        try await waitFor("The real result panel and content must finish resizing") {
+            view.layoutSubtreeIfNeeded()
+            let frame = panel.frame
+            let size = view.bounds.size
+            let fitting = view.fittingSize
+            let settled = previousFrame == frame && previousContentSize == size
+            previousFrame = frame
+            previousContentSize = size
+            // A larger usable panel is valid. Wait for the actual layout,
+            // rather than fixing a card height or assuming a fade duration.
+            return settled && panel.isVisible && !view.needsLayout && !view.needsUpdateConstraints
+                && size.width > 0 && size.height > 0
+                && size.width + 1 >= fitting.width && size.height + 1 >= fitting.height
+        }
+    }
+
+    @MainActor
+    private func resultPanelGeometry(_ panel: NSPanel, on screen: NSScreen) throws -> [String: Any] {
+        let view = try XCTUnwrap(panel.contentView)
+        let content = panel.convertToScreen(view.convert(view.bounds, to: nil))
+        let visible = screen.visibleFrame.insetBy(dx: -1, dy: -1)
+        XCTAssertEqual(panel.screen?.frame, screen.frame, "Content resizing must keep the selected screen")
+        XCTAssertTrue(visible.contains(panel.frame), "The entire result panel must avoid the Dock and menu bar: \(panel.frame)")
+        XCTAssertTrue(visible.contains(content), "The entire result content must remain in the usable screen: \(content)")
+        XCTAssertTrue(panel.frame.insetBy(dx: -1, dy: -1).contains(content))
+        func values(_ rect: NSRect) -> [Double] { [rect.minX, rect.minY, rect.width, rect.height].map(Double.init) }
+        return ["windowFrame": values(panel.frame), "contentScreenFrame": values(content),
+                "visibleScreenFrame": values(screen.visibleFrame),
+                "fullyVisible": visible.contains(panel.frame) && visible.contains(content)]
     }
 
     private func fixtureDirectory() throws -> URL {

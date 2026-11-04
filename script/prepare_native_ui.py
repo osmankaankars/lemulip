@@ -106,12 +106,27 @@ def prepare_pdf_result_fixtures(fixtures: Path) -> None:
     root = fixtures / "PDFResults"
     root.mkdir(exist_ok=False)
     identity = uuid.uuid4().hex
-    for scenario in ("EnglishInvalid", "TurkishInvalid", "FinderHandoff", "DestinationCancel"):
+    for scenario in ("EnglishInvalid", "TurkishInvalid", "FinderHandoff", "DestinationCancel",
+                     "AccessibilityMotion", "AccessibilityTransparency"):
         folder = root / scenario
         folder.mkdir(exist_ok=False)
         data = (b"This is a deliberately invalid PDF fixture.\n"
                 if scenario.endswith("Invalid") else source_bytes)
         (folder / f"{scenario}-{identity}.pdf").write_bytes(data)
+
+
+def prepare_finder_drop_fixtures(fixtures: Path) -> None:
+    # These inputs are selected in Finder and physically dragged into the app.
+    # Their unique names prevent a stale selection from satisfying a new case.
+    root = fixtures / "FinderDrop"
+    root.mkdir(exist_ok=False)
+    identity = uuid.uuid4().hex
+    for theme in ("orchard", "pistachio", "lemonade"):
+        folder = root / theme
+        folder.mkdir(exist_ok=False)
+        for role in ("Existing", "Single", "Multi-A", "Multi-B"):
+            (folder / f"{role}-{identity}.txt").write_text(
+                f"Synthetic Finder input: {theme}, {role}. Preserve these bytes.\n", encoding="utf-8")
 
 
 def prepare_product_language_fixtures(fixtures: Path) -> None:
@@ -164,6 +179,7 @@ def prepare(app: Path, output: Path) -> None:
     run("/usr/bin/xcrun", "--sdk", "macosx", "swift", ROOT / "script/ui_review_fixtures.swift", "make", fixtures)
     prepare_pdf_result_fixtures(fixtures)
     prepare_product_language_fixtures(fixtures)
+    prepare_finder_drop_fixtures(fixtures)
     def chunk(kind: bytes, data: bytes) -> bytes:
         return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
     rows = b"".join(

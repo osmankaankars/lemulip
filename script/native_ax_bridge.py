@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""Run native UI tests with an authenticated, fixed-target, read-only AX reader.
+"""Run native UI tests with authenticated, fixed, read-only native readers.
 
 The helper uses the launcher's existing macOS Accessibility authorization. No
 TCC database, permission setting, sandbox, or app behavior is changed. Missing
 permission remains a failed test. This does not verify VoiceOver narration.
+The separate display-preference resource reads two public NSWorkspace booleans
+in a fresh process; it neither inspects another application nor changes settings.
 """
 from __future__ import annotations
 
@@ -45,6 +47,28 @@ class SnapshotReader:
             raise ValueError('AX snapshot is untrusted, incomplete or from a different application')
         return record
 
+    def read_display_preferences(self) -> dict:
+        # The UI test host can retain a different NSWorkspace observation after
+        # the real switch changes. Read independently without changing the app
+        # or substituting defaults values for the public AppKit properties.
+        result = subprocess.run([str(self.executable), '--display-preferences'], capture_output=True,
+                                text=True, timeout=8, check=False)
+        if len(result.stdout) > 4096:
+            raise ValueError('Display-preference output exceeds the review limit')
+        try:
+            record = json.loads(result.stdout)
+        except (ValueError, TypeError) as error:
+            raise ValueError('Display-preference reader did not return complete JSON') from error
+        if not isinstance(record, dict) or result.returncode != 0:
+            raise ValueError('The independent display-preference reader failed')
+        if (type(record.get('schema')) is not int or record['schema'] != 1
+                or record.get('kind') != 'system-display-preferences'
+                or record.get('reader') != 'NSWorkspace' or record.get('readOnly') is not True
+                or type(record.get('reduceMotion')) is not bool
+                or type(record.get('reduceTransparency')) is not bool):
+            raise ValueError('Display preferences require the two actual boolean NSWorkspace values')
+        return record
+
 
 class _LoopbackHTTPServer(HTTPServer):
     def server_bind(self) -> None:
@@ -55,7 +79,8 @@ class _LoopbackHTTPServer(HTTPServer):
         self.server_name, self.server_port = self.server_address[:2]
 
 
-def make_server(snapshot: Callable[[], dict], token: str) -> HTTPServer:
+def make_server(snapshot: Callable[[], dict], token: str,
+                display_preferences: Callable[[], dict] | None = None) -> HTTPServer:
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
             pass  # Never record authentication headers or request data.
@@ -75,10 +100,14 @@ def make_server(snapshot: Callable[[], dict], token: str) -> HTTPServer:
                     or not hmac.compare_digest(self.headers.get('Authorization', '').encode('utf-8'),
                                                ('Bearer ' + token).encode('ascii'))):
                 self.respond(403, {'ok': False, 'error': 'Unauthorized review client'}); return
-            if self.path != '/snapshot':
-                self.respond(404, {'ok': False, 'error': 'Only the fixed snapshot resource is available'}); return
+            if self.path == '/snapshot':
+                read = snapshot
+            elif self.path == '/display-preferences' and display_preferences is not None:
+                read = display_preferences
+            else:
+                self.respond(404, {'ok': False, 'error': 'Only the fixed read-only resources are available'}); return
             try:
-                self.respond(200, snapshot())
+                self.respond(200, read())
             except (ValueError, OSError, subprocess.SubprocessError) as error:
                 self.respond(503, {'ok': False, 'error': str(error)[:2048]})
 
@@ -104,7 +133,10 @@ def main() -> int:
     token = secrets.token_hex(32)
     evidence = directory / 'AccessibilitySnapshots'
     evidence.mkdir(exist_ok=False)
+    display_evidence = directory / 'DisplayPreferenceSnapshots'
+    display_evidence.mkdir(exist_ok=False)
     counter = 0
+    display_counter = 0
     def snapshot() -> dict:
         nonlocal counter
         record = reader.read()
@@ -112,11 +144,20 @@ def main() -> int:
         with (evidence / f'snapshot-{counter:03d}.json').open('x') as output:
             json.dump(record, output, ensure_ascii=False, indent=2)
         return record
-    server = make_server(snapshot, token)
+    def display_preferences() -> dict:
+        nonlocal display_counter
+        record = reader.read_display_preferences()
+        display_counter += 1
+        with (display_evidence / f'preferences-{display_counter:03d}.json').open('x') as output:
+            json.dump(record, output, ensure_ascii=False, indent=2)
+        return record
+    server = make_server(snapshot, token, display_preferences)
     endpoint = directory / 'accessibility-endpoint.json'
     fd = os.open(endpoint, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
     with os.fdopen(fd, 'w') as output:
-        json.dump({'url': f'http://127.0.0.1:{server.server_port}/snapshot', 'token': token}, output)
+        json.dump({'url': f'http://127.0.0.1:{server.server_port}/snapshot',
+                   'displayPreferencesURL': f'http://127.0.0.1:{server.server_port}/display-preferences',
+                   'token': token}, output)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:

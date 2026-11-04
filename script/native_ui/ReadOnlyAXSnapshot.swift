@@ -39,6 +39,39 @@ private func snapshot(path: String) throws -> [String: Any] {
     guard AXUIElementSetMessagingTimeout(root, 0.5) == .success else {
         throw InspectionFailure("Could not bound AX messaging time")
     }
+    var focused: [String: Any]?
+    if let value = try attribute(root, kAXFocusedUIElementAttribute),
+       CFGetTypeID(value) == AXUIElementGetTypeID() {
+        let element = value as! AXUIElement
+        var pid: pid_t = 0
+        guard AXUIElementGetPid(element, &pid) == .success, pid == app.processIdentifier else {
+            throw InspectionFailure("Refusing focus outside the staged process")
+        }
+        var node: [String: Any] = [:]
+        for key in [kAXRoleAttribute, kAXTitleAttribute, kAXDescriptionAttribute, kAXIdentifierAttribute,
+                    kAXValueAttribute] {
+            if let text = try attribute(element, key) as? String {
+                guard text.count <= 2048 else { throw InspectionFailure("Focused AX attribute exceeds review limit") }
+                node[key == kAXRoleAttribute ? "role" : key] = text
+            }
+        }
+        // Distinguish an actual disabled control from an unsupported or absent
+        // attribute. XCTest's debug description alone cannot make that distinction.
+        var enabledValue: CFTypeRef?
+        let enabledStatus = AXUIElementCopyAttributeValue(element, kAXEnabledAttribute as CFString, &enabledValue)
+        node["enabledReadStatus"] = enabledStatus.rawValue
+        switch enabledStatus {
+        case .success:
+            guard let enabledValue, CFGetTypeID(enabledValue) == CFBooleanGetTypeID(),
+                  let enabled = enabledValue as? NSNumber else {
+                throw InspectionFailure("Focused AXEnabled is not a Boolean")
+            }
+            node["enabled"] = enabled.boolValue
+        case .attributeUnsupported, .noValue: break
+        default: throw InspectionFailure("Focused AXEnabled read failed: \(enabledStatus.rawValue)")
+        }
+        focused = node
+    }
     var pending = [root]
     var visited: [AXUIElement] = []
     var nodes: [[String: Any]] = []
@@ -70,9 +103,11 @@ private func snapshot(path: String) throws -> [String: Any] {
             pending.append(contentsOf: children)
         }
     }
-    return ["schema": 1, "trusted": true, "bundleIdentifier": reviewIdentifier,
+    var record: [String: Any] = ["schema": 1, "trusted": true, "bundleIdentifier": reviewIdentifier,
             "applicationPath": expected.path, "pid": app.processIdentifier,
             "nodes": nodes, "truncated": false, "visitedNodes": visited.count]
+    if let focused { record["focusedElement"] = focused }
+    return record
 }
 
 @main
@@ -80,8 +115,19 @@ private struct ReadOnlyAXSnapshot {
     @MainActor
     static func main() {
         do {
-            guard CommandLine.arguments.count == 2 else { throw InspectionFailure("Expected only the fixed review bundle path") }
-            let record = try snapshot(path: CommandLine.arguments[1])
+            guard CommandLine.arguments.count == 2 else { throw InspectionFailure("Expected the fixed review bundle path or display-preference reader") }
+            let record: [String: Any]
+            if CommandLine.arguments[1] == "--display-preferences" {
+                // A fresh, non-XCTest process reads only these two public
+                // system values, including after the review app has stopped.
+                // This mode performs no AX inspection or preference writes.
+                record = ["schema": 1, "kind": "system-display-preferences", "reader": "NSWorkspace",
+                          "readOnly": true,
+                          "reduceMotion": NSWorkspace.shared.accessibilityDisplayShouldReduceMotion,
+                          "reduceTransparency": NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency]
+            } else {
+                record = try snapshot(path: CommandLine.arguments[1])
+            }
             let data = try JSONSerialization.data(withJSONObject: record, options: [.sortedKeys])
             FileHandle.standardOutput.write(data)
             FileHandle.standardOutput.write(Data([10]))

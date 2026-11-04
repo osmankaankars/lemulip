@@ -70,6 +70,7 @@ final class VideoTrimTimelineCanvas: NSView {
         super.init(frame: .zero)
         setAccessibilityElement(true)
         setAccessibilityRole(.group)
+        setAccessibilityEnabled(true)
         updateAccessibleActions()
         updateAccessibility()
     }
@@ -261,9 +262,9 @@ final class VideoTrimTimelineCanvas: NSView {
         // Letters follow the active keyboard layout, including Turkish F and
         // Dvorak. Navigation keys keep their layout-independent key codes.
         switch event.charactersIgnoringModifiers?.lowercased() {
-        case "s": selectTarget(.start); return
-        case "e": selectTarget(.end); return
-        case "p": selectTarget(.playhead); return
+        case "s": if !event.isARepeat { selectTarget(.start) }; return
+        case "e": if !event.isARepeat { selectTarget(.end) }; return
+        case "p": if !event.isARepeat { selectTarget(.playhead) }; return
         default: break
         }
         let step = modifiers.contains(.shift) ? 1.0 : 0.01

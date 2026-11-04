@@ -120,10 +120,21 @@ final class QualityUITests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: input), original)
     }
 
-    private func launch(language: String, completion: String = "quiet") -> XCUIApplication {
+    private func launch(language: String, completion: String = "quiet", theme: String = "orchard",
+                        windowFrame: String? = nil) -> XCUIApplication {
         let app = XCUIApplication(url: ReviewConfiguration.application)
         application = app
-        app.launchArguments = ["-language", language, "-wheelEnabled", "NO", "-completionPresentation", completion,
+        // Use the app's normal saved-theme/frame preferences. An earlier small
+        // window or light-theme case must not change a later case's starting UI.
+        let screen = NSScreen.main?.frame ?? CGRect(x: 0, y: 0, width: 1024, height: 768)
+        let visible = NSScreen.main?.visibleFrame ?? screen
+        let width = min(1020.0, visible.width), height = min(722.0, visible.height)
+        let frame = [visible.midX - width / 2, visible.midY - height / 2, width, height,
+                     screen.minX, screen.minY, screen.width, screen.height]
+            .map { String(Int($0)) }.joined(separator: " ")
+        app.launchArguments = ["-language", language, "-theme", theme,
+                               "-NSWindow Frame FreewheelMainWindow", windowFrame ?? frame,
+                               "-wheelEnabled", "NO", "-completionPresentation", completion,
                                "-outputAlongsideOriginal", "YES",
                                "-NSQuitAlwaysKeepsWindows", "NO"]
         app.launch()
@@ -152,6 +163,20 @@ final class QualityUITests: XCTestCase {
     }
 
     private func sliderValueDescription(label: String) throws -> String {
+        let record = try nativeAXSnapshot()
+        let nodes = try XCTUnwrap(record["nodes"] as? [[String: Any]])
+        let matches = nodes.filter {
+            $0["role"] as? String == "AXSlider" &&
+                ($0["AXTitle"] as? String == label || $0["AXDescription"] as? String == label)
+        }
+        XCTAssertEqual(matches.count, 1, "Require one actual slider, not a nearby label")
+        let node = try XCTUnwrap(matches.first)
+        XCTAssertEqual(node["enabled"] as? Bool, true)
+        return try XCTUnwrap(node["AXValueDescription"] as? String,
+                            "A numeric slider value does not replace its localized description")
+    }
+
+    private func nativeAXSnapshot() throws -> [String: Any] {
         // The sandboxed XCTest app does not inherit the launcher's AX grant.
         // Read through a separate, already-authorized fixed-target helper; do
         // not change permissions, use private APIs or substitute numeric units.
@@ -173,7 +198,7 @@ final class QualityUITests: XCTestCase {
         }.resume()
         let data = try reply.wait()
         let attachment = XCTAttachment(data: data, uniformTypeIdentifier: "public.json")
-        attachment.name = "Exact authorized slider semantics"
+        attachment.name = "Authorized production accessibility snapshot"
         attachment.lifetime = .keepAlways
         add(attachment)
         let record = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
@@ -181,16 +206,7 @@ final class QualityUITests: XCTestCase {
         XCTAssertEqual(record["bundleIdentifier"] as? String, "app.lemulip.NativeUIReview")
         XCTAssertEqual(record["applicationPath"] as? String,
                        ReviewConfiguration.application.resolvingSymlinksInPath().standardizedFileURL.path)
-        let nodes = try XCTUnwrap(record["nodes"] as? [[String: Any]])
-        let matches = nodes.filter {
-            $0["role"] as? String == "AXSlider" &&
-                ($0["AXTitle"] as? String == label || $0["AXDescription"] as? String == label)
-        }
-        XCTAssertEqual(matches.count, 1, "Require one actual slider, not a nearby label")
-        let node = try XCTUnwrap(matches.first)
-        XCTAssertEqual(node["enabled"] as? Bool, true)
-        return try XCTUnwrap(node["AXValueDescription"] as? String,
-                            "A numeric slider value does not replace its localized description")
+        return record
     }
 
     private final class AXReply: @unchecked Sendable {
