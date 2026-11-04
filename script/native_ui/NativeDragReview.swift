@@ -42,6 +42,8 @@ private final class DragReview {
     private var escapeKeyDown = false
     private var pointer = CGPoint.zero
     private var events: [[String: Any]] = []
+    private var mouseEventRecords: [[String: Any]] = []
+    private let relevantModifiers: CGEventFlags = [.maskCommand, .maskShift, .maskAlternate, .maskControl]
     private var diagnosticSnapshots: [[String: Any]] = []
     private let expiresAt = ProcessInfo.processInfo.systemUptime + 110
     var record: [String: Any] = [
@@ -399,6 +401,7 @@ private final class DragReview {
             "leftButtonReportedDown": CGEventSource.buttonState(.combinedSessionState, button: .left),
             "escapeKeyDownSent": escapeKeyDown,
             "escapeKeyReportedDown": CGEventSource.keyState(.combinedSessionState, key: 53),
+            "modifiers": modifierObservation(),
             "foregroundPID": NSNull(), "foregroundBundleIdentifier": NSNull()
         ]
         if let foreground {
@@ -408,6 +411,24 @@ private final class DragReview {
         var states = record["escapeInputStates"] as? [[String: Any]] ?? []
         states.append(state)
         record["escapeInputStates"] = states
+    }
+
+    private func modifierObservation() -> [String: Any] {
+        let flags = CGEventSource.flagsState(.combinedSessionState)
+        return ["sessionFlags": flags.rawValue, "relevantFlags": flags.intersection(relevantModifiers).rawValue,
+                "command": flags.contains(.maskCommand), "shift": flags.contains(.maskShift),
+                "option": flags.contains(.maskAlternate), "control": flags.contains(.maskControl)]
+    }
+
+    private func recordFinderViewShortcutState(_ phase: String) {
+        let probe = CGEvent(mouseEventSource: nil, mouseType: .mouseMoved,
+                            mouseCursorPosition: pointer, mouseButton: .left)
+        var states = record["finderViewShortcutStates"] as? [[String: Any]] ?? []
+        states.append(["phase": phase, "systemUptime": ProcessInfo.processInfo.systemUptime,
+                       "modifiers": modifierObservation(),
+                       "unpostedMouseConstructorFlags": probe.map { $0.flags.rawValue as Any } ?? NSNull(),
+                       "scope": "Input state and an unposted constructor probe; not application delivery acknowledgement."])
+        record["finderViewShortcutStates"] = states
     }
 
     private func requireHit(_ point: CGPoint, owner: pid_t, stage: String) throws {
@@ -441,14 +462,37 @@ private final class DragReview {
         try require(ProcessInfo.processInfo.systemUptime < expiresAt, "The bounded native drag review timed out")
         try assertTargets()
         try require(CGDisplayBounds(CGMainDisplayID()).contains(point), "Refusing a pointer event outside the observed display")
+        // Reserve the final record for releasing our own button during cleanup.
+        try require(mouseEventRecords.count < 255, "The bounded pointer event record limit was reached")
         guard let event = CGEvent(mouseEventSource: nil, mouseType: type, mouseCursorPosition: point, mouseButton: .left) else {
             throw DragReviewIssue.failed("Could not create the native pointer event")
         }
+        let constructorFlags = event.flags
+        let sessionFlags = CGEventSource.flagsState(.combinedSessionState)
+        try require(sessionFlags.intersection(relevantModifiers).isEmpty,
+                    "Refusing plain pointer input while a Command, Shift, Option or Control modifier is held")
+        event.flags = []
         event.setIntegerValueField(.mouseEventClickState, value: 1)
-        event.post(tap: .cghidEventTap)
+        postMouseEvent(event, constructorFlags: constructorFlags, sessionFlags: sessionFlags, scope: "plain-gesture")
         pointer = point
         if type == .leftMouseDown { mouseDown = true }
         if type == .leftMouseUp { mouseDown = false }
+    }
+
+    private func postMouseEvent(_ event: CGEvent, constructorFlags: CGEventFlags,
+                                sessionFlags: CGEventFlags, scope: String) {
+        let started = ProcessInfo.processInfo.systemUptime
+        let postedFlags = event.flags.rawValue
+        event.post(tap: .cghidEventTap)
+        mouseEventRecords.append([
+            "scope": scope, "eventType": event.type.rawValue, "eventTap": "cghidEventTap",
+            "location": ["x": event.location.x, "y": event.location.y],
+            "constructorFlags": constructorFlags.rawValue, "postedFlags": postedFlags,
+            "sessionFlagsBeforePost": sessionFlags.rawValue,
+            "systemUptimeBeforePost": started, "systemUptimeAfterPost": ProcessInfo.processInfo.systemUptime,
+            "postCalled": true
+        ])
+        record["mouseEvents"] = mouseEventRecords
     }
 
     private func key(_ code: CGKeyCode, flags: CGEventFlags = []) throws {
@@ -456,13 +500,19 @@ private final class DragReview {
         let front = NSWorkspace.shared.frontmostApplication?.processIdentifier
         try require(front == finderApp?.processIdentifier || front == reviewApp?.processIdentifier,
                     "Refusing a key event while another application is foreground")
-        for down in [true, false] {
-            guard let event = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: down) else {
-                throw DragReviewIssue.failed("Could not create the native key event")
-            }
-            event.flags = flags
-            event.post(tap: .cghidEventTap)
+        try require(!CGEventSource.keyState(.combinedSessionState, key: code),
+                    "Refusing to take ownership of an already-held shortcut key")
+        try require(CGEventSource.flagsState(.combinedSessionState).intersection(relevantModifiers).isEmpty,
+                    "Refusing a shortcut while another modifier is held")
+        guard let down = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: true),
+              let up = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: false) else {
+            throw DragReviewIssue.failed("Could not create the native key event pair")
         }
+        down.flags = flags
+        up.flags = []
+        down.post(tap: .cghidEventTap)
+        defer { up.post(tap: .cghidEventTap) }
+        if code == 18 { recordFinderViewShortcutState("after-key-down-before-paired-up") }
     }
 
     private func escapeWithDwell(movingTo motionPoint: CGPoint) async throws {
@@ -680,7 +730,13 @@ private final class DragReview {
         try await wait("Finder is not foreground for choosing its view") {
             NSWorkspace.shared.frontmostApplication?.processIdentifier == self.finderApp?.processIdentifier
         }
-        try key(18, flags: .maskCommand) // Native Command-1: Icon view.
+        recordFinderViewShortcutState("before-command-1")
+        try key(18, flags: .maskCommand) // Native Command-1, with a paired unmodified key-up.
+        recordFinderViewShortcutState("after-command-1")
+        try await wait("The Finder view shortcut did not release its modifier flags") {
+            CGEventSource.flagsState(.combinedSessionState).intersection(self.relevantModifiers).isEmpty
+        }
+        recordFinderViewShortcutState("after-modifier-clear-wait")
         record["startupPhase"] = "finder-icons"
         try await wait("Finder did not expose all four exact fixture icons", retryFinderIconReadiness: true) {
             let icons = try self.finderNodes().filter { try self.text($0, kAXRoleAttribute) == kAXImageRole }
@@ -813,13 +869,17 @@ private final class DragReview {
         let deadline = ProcessInfo.processInfo.systemUptime + 8
         var errors: [String] = []
         if mouseDown {
-            if !CGEventSource.keyState(.combinedSessionState, key: 53) { try? key(53) }
+            if !CGEventSource.keyState(.combinedSessionState, key: 53),
+               CGEventSource.flagsState(.combinedSessionState).intersection(relevantModifiers).isEmpty { try? key(53) }
             // Always release this probe's own held button, even if a target
-            // has exited and its normal identity guard now fails.
+            // has exited. Preserve any live modifiers instead of clearing them.
             if CGPreflightPostEventAccess(),
                let event = CGEvent(mouseEventSource: nil, mouseType: .leftMouseUp,
                                    mouseCursorPosition: pointer, mouseButton: .left) {
-                event.post(tap: .cghidEventTap)
+                let constructorFlags = event.flags
+                let sessionFlags = CGEventSource.flagsState(.combinedSessionState)
+                event.flags = sessionFlags
+                postMouseEvent(event, constructorFlags: constructorFlags, sessionFlags: sessionFlags, scope: "owned-button-cleanup")
                 mouseDown = false
             } else {
                 errors.append("Could not release this probe's held mouse button")

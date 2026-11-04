@@ -73,6 +73,12 @@ Finder icon readiness or target geometry reads without suppressing those failure
 Only those two verified windows are raised, with the fixture window above the
 drop target. A setup image, geometry and per-point PID/status records are retained
 before hit checks; every pointer target must still belong to its expected process.
+The Finder view shortcut carries Command only on key-down and releases it in the
+paired key-up. The observer refuses pre-existing Command, Shift, Option or Control
+state and uses the existing bounded readiness wait for the shortcut modifiers
+to clear. Ordinary pointer events require that clear state and explicitly carry
+no modifiers. Input receipts retain constructor, posted and observed modifier
+flags, so a modified drag cannot silently stand in for the intended plain drag.
 Escape evidence retains the foreground application and actual mouse-button state
 before and after key posting and release. At the existing cancellation deadline,
 one AX traversal records the expected and observed fixture rows, duplicate Remove
