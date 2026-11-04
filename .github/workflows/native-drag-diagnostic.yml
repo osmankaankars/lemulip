@@ -1,0 +1,82 @@
+name: Native Finder Drag Diagnostic
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/native-drag-diagnostic.yml'
+      - 'script/native_ui/NativeDragReview.swift'
+      - 'script/prepare_native_ui.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+
+concurrency:
+  group: native-drag-diagnostic-${{ github.ref }}
+  cancel-in-progress: true
+
+# This separate diagnostic gives early evidence for the observer itself.
+# Build and Verify still runs the complete required native UI suite and its
+# post-suite observer on both architectures. These results cannot replace it.
+jobs:
+  observe:
+    name: Standalone Finder Observation (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Check Exact Source and Isolated Fixtures
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(uname -m)" = '${{ matrix.arch }}'
+          python3 script/privacy_check.py --staged
+          python3 script/test_prepare_native_ui.py
+      - name: Build the Production Application
+        env:
+          CONFIGURATION: debug
+        run: ./script/build_app.sh
+      - name: Stage Isolated App and Record Diagnostic Scope
+        run: |
+          python3 script/prepare_native_ui.py --app dist/Lemulip.app --output "$RUNNER_TEMP/lemulip-native-ui"
+          python3 - <<'PYCODE'
+          import hashlib,json,os,pathlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'lemulip-native-ui'
+          receipt=root/'provenance.json'; record=json.loads(receipt.read_text())
+          source=pathlib.Path('script/native_ui/NativeDragReview.swift').read_bytes()
+          record['nativeDragReviewSourceSHA256']=hashlib.sha256(source).hexdigest()
+          record['diagnosticOnly']=True
+          record['xctestExecuted']=False
+          record['scope']='Standalone Finder observation; the complete native UI gate runs separately.'
+          receipt.write_text(json.dumps(record,indent=2)+'\n')
+          PYCODE
+      - name: Build the Finder Observer
+        run: xcrun swiftc -parse-as-library script/native_ui/NativeDragReview.swift -o "$RUNNER_TEMP/lemulip-native-ui/NativeDragReview"
+      - name: Record Actual Finder Drag States
+        run: |
+          set -o pipefail
+          "$RUNNER_TEMP/lemulip-native-ui/NativeDragReview" "$RUNNER_TEMP/lemulip-native-ui" \
+            2>&1 | tee "$RUNNER_TEMP/lemulip-native-ui/drag-observer.log"
+      - name: Retain Diagnostic Evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Drag-Diagnostic-${{ matrix.arch }}
+          path: |
+            ${{ runner.temp }}/lemulip-native-ui/provenance.json
+            ${{ runner.temp }}/lemulip-native-ui/drag-observer.log
+            ${{ runner.temp }}/lemulip-native-ui/NativeDragEvidence
+          if-no-files-found: error
+          retention-days: 14

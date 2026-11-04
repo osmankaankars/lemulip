@@ -267,11 +267,31 @@ private final class DragReview {
         return observed == expected && count.count == 1
     }
 
-    private func requireHit(_ point: CGPoint, owner: pid_t) throws {
+    private func requireHit(_ point: CGPoint, owner: pid_t, stage: String) throws {
         var element: AXUIElement?
         let result = AXUIElementCopyElementAtPosition(AXUIElementCreateSystemWide(), Float(point.x), Float(point.y), &element)
-        guard result == .success, let element else { throw DragReviewIssue.failed("Could not identify the native pointer target") }
-        try require(try pid(element) == owner, "Another process covers the intended native pointer target")
+        var check: [String: Any] = ["stage": stage, "point": ["x": point.x, "y": point.y],
+                                    "expectedPID": Int(owner), "axStatus": result.rawValue]
+        var observedPID: pid_t = 0
+        var pidStatus: AXError?
+        if result == .success, let element {
+            let status = AXUIElementGetPid(element, &observedPID)
+            pidStatus = status
+            check["pidStatus"] = status.rawValue
+            if pidStatus == .success {
+                check["observedPID"] = Int(observedPID)
+                if let identifier = NSRunningApplication(processIdentifier: observedPID)?.bundleIdentifier {
+                    check["observedBundleIdentifier"] = identifier
+                }
+            }
+        }
+        if let foreground = NSWorkspace.shared.frontmostApplication { check["foregroundPID"] = Int(foreground.processIdentifier) }
+        var checks = record["hitChecks"] as? [[String: Any]] ?? []
+        checks.append(check)
+        record["hitChecks"] = checks
+        guard result == .success, element != nil else { throw DragReviewIssue.failed("Could not identify the native pointer target") }
+        try require(pidStatus == .success, "Could not identify the AX element's process")
+        try require(observedPID == owner, "Another process covers the intended native pointer target (\(stage))")
     }
 
     private func mouse(_ type: CGEventType, at point: CGPoint) throws {
@@ -314,7 +334,7 @@ private final class DragReview {
         try await pause(0.25)
     }
 
-    private func sourcePoint(_ input: URL) async throws -> CGPoint {
+    private func sourcePoint(_ input: URL, stage: String) async throws -> CGPoint {
         try assertTargets()
         try await focusFinderWindow()
         try await wait("Finder did not become foreground") {
@@ -324,7 +344,7 @@ private final class DragReview {
         let rect = try frame(source)
         let point = CGPoint(x: rect.midX, y: rect.midY)
         try require(CGDisplayBounds(CGMainDisplayID()).contains(rect), "The source Finder icon is not fully onscreen")
-        try requireHit(point, owner: finderApp!.processIdentifier)
+        try requireHit(point, owner: finderApp!.processIdentifier, stage: stage)
         try mouse(.mouseMoved, at: point)
         try mouse(.leftMouseDown, at: point)
         try await pause(0.08)
@@ -341,12 +361,21 @@ private final class DragReview {
     private func focusFinderWindow() async throws {
         try assertTargets()
         guard let window = finderWindow, let finder = finderApp,
-              try pid(window) == finder.processIdentifier else {
-            throw DragReviewIssue.failed("The fixed Finder window is unavailable")
+              let review = reviewWindow, let app = reviewApp,
+              try pid(window) == finder.processIdentifier, try pid(review) == app.processIdentifier,
+              try text(window, kAXRoleAttribute) == kAXWindowRole, try text(review, kAXRoleAttribute) == kAXWindowRole,
+              try text(window, kAXTitleAttribute) == folder.lastPathComponent,
+              try text(review, kAXTitleAttribute) == "Lemulip" else {
+            throw DragReviewIssue.failed("The fixed review/Finder windows are unavailable")
         }
-        // Earlier result-handoff tests may leave another Finder window open.
-        // Raise this fixture window only, preserving the exposed drop target.
         finder.activate(options: [])
+        try await wait("Finder did not become foreground before arranging the fixed window stack") {
+            NSWorkspace.shared.frontmostApplication?.processIdentifier == finder.processIdentifier
+        }
+        // Other windows can remain after XCTest. Raise only our two verified
+        // windows, putting the drop target immediately behind its Finder source.
+        try require(AXUIElementPerformAction(review, kAXRaiseAction as CFString) == .success,
+                    "Could not raise the exact staged review window")
         try require(AXUIElementPerformAction(window, kAXRaiseAction as CFString) == .success,
                     "Could not raise the exact fixture Finder window")
         try await wait("The fixture Finder window did not become foreground") {
@@ -354,7 +383,7 @@ private final class DragReview {
         }
     }
 
-    private func capture(_ name: String) async throws {
+    private func capture(_ name: String, setup: Bool = false) async throws {
         guard let output else { throw DragReviewIssue.failed("Evidence destination is not ready") }
         try assertTargets()
         let image = output.appendingPathComponent(name + ".png")
@@ -386,7 +415,8 @@ private final class DragReview {
             "displayPreferences": observedDisplayPreferences,
             "time": ISO8601DateFormatter().string(from: Date()), "workspaceAXLabels": labels
         ]
-        events.append(event)
+        if setup { record["setupSnapshot"] = event }
+        else { events.append(event) }
         try JSONSerialization.data(withJSONObject: event, options: [.prettyPrinted, .sortedKeys])
             .write(to: output.appendingPathComponent(name + ".json"), options: .atomic)
     }
@@ -459,19 +489,21 @@ private final class DragReview {
         try arrange(finderWindow!, owner: finderApp!.processIdentifier,
                     rect: CGRect(x: screen.minX + 8, y: finderTop, width: min(920, screen.width - 16),
                                  height: min(360, screen.maxY - finderTop - 12)))
+        try await focusFinderWindow()
         try await pause(0.3)
         let actualFinderFrame = try frame(finderWindow!)
-        try require(!actualFinderFrame.contains(enter) && !actualFinderFrame.contains(outside),
-                    "The fixture Finder window covers the observed target")
-        try requireHit(enter, owner: app.processIdentifier)
-        try requireHit(outside, owner: app.processIdentifier)
         record["targetGeometry"] = ["header": NSStringFromRect(header), "entryInTopPadding": NSStringFromPoint(enter),
                                     "outside": NSStringFromPoint(outside), "reviewWindow": NSStringFromRect(try frame(reviewWindow!)),
-                                    "finderWindow": NSStringFromRect(try frame(finderWindow!))]
+                                    "finderWindow": NSStringFromRect(actualFinderFrame)]
+        try await capture("setup-before-hit-checks", setup: true)
+        try require(!actualFinderFrame.contains(enter) && !actualFinderFrame.contains(outside),
+                    "The fixture Finder window covers the observed target")
+        try requireHit(enter, owner: app.processIdentifier, stage: "initial-entry")
+        try requireHit(outside, owner: app.processIdentifier, stage: "initial-outside")
 
-        let source = try await sourcePoint(single)
-        try requireHit(enter, owner: app.processIdentifier)
-        try requireHit(outside, owner: app.processIdentifier)
+        let source = try await sourcePoint(single, stage: "cancel-source")
+        try requireHit(enter, owner: app.processIdentifier, stage: "cancel-entry")
+        try requireHit(outside, owner: app.processIdentifier, stage: "cancel-outside")
         try await capture("00-before-drag")
         try mouse(.leftMouseDown, at: source)
         try await pause(0.3)
@@ -489,8 +521,9 @@ private final class DragReview {
         try verifyOriginals()
         try await capture("04-after-escape")
 
-        let secondSource = try await sourcePoint(single)
-        try requireHit(enter, owner: app.processIdentifier)
+        let secondSource = try await sourcePoint(single, stage: "drop-source")
+        try requireHit(enter, owner: app.processIdentifier, stage: "drop-entry")
+        try requireHit(outside, owner: app.processIdentifier, stage: "drop-outside")
         try mouse(.leftMouseDown, at: secondSource)
         try await pause(0.3)
         try await moveHeld(to: enter)

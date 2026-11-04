@@ -61,6 +61,9 @@ bounded run and evidence folder. The observer confirms that its application
 has stopped and its mouse button has been released before the next theme.
 Its existing bounded startup waits retry only transient AX window/title reads;
 the exact application and fixture windows must still be found before proceeding.
+Only those two verified windows are raised, with the fixture window above the
+drop target. A setup image, geometry and per-point PID/status records are retained
+before hit checks; every pointer target must still belong to its expected process.
 It checks existing Accessibility, event-posting and screen-capture
 authorization without requesting or changing permissions. A `blocked` report
 means that observation is unavailable. A `captured` report proves its recorded
@@ -69,6 +72,13 @@ The outline still requires inspection of the actual frames.
 This diagnostic has no write endpoint. Both data readers remain read-only.
 It can retain evidence after a completed, failed XCTest run; that separate result
 does not make a failed native gate pass. Cancelled or unbuilt runs do not start it.
+
+A separate macOS diagnostic also runs the fixed Finder observer when its source
+or fixture staging changes. It records `diagnosticOnly: true` and
+`xctestExecuted: false`, with separate artifacts. This provides earlier observer
+evidence on a fresh host; the required complete native suite and its post-suite
+observer still run on both architectures. Existing authorization can differ
+between the two environments and remains part of each report.
 
 Compilation, executed XCTest results, screenshots and any separate live-drag
 report must be inspected together for the candidate under review. Source tests
