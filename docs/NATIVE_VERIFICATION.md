@@ -63,8 +63,10 @@ Bounded startup waits retry transient AX window/title reads. Only the initial
 workspace readiness wait also retries `cannotComplete` on `AXChildren`, retaining
 the retry count and last error within its original deadline. The exact application
 and fixture windows must still be found before proceeding.
-Finder icon readiness separately retries an invalidated `AXValue` element after
-switching views, with the same bounded deadline and retained error count. These
+Only the initial Finder icon readiness wait retries `invalidUIElement` across
+attributes, including the observed `AXValue` and `AXRole` reads, within the same
+bounded deadline. It retains every error's attribute, status and observation time,
+the retry count and the last error. PID and identity failures remain fatal. These
 startup retries do not apply to later gesture observations.
 The startup phase is retained to locate failures in initial workspace content,
 Finder icon readiness or target geometry reads without suppressing those failures.
@@ -77,10 +79,16 @@ one AX traversal records the expected and observed fixture rows, duplicate Remov
 matches and selection-count labels. Its result is fixed before the post-Escape
 image is captured, then checked with the same cancellation requirement, so a
 failed assertion retains the state that caused it without extending its wait.
-The observer's Escape press uses the global user-session event path with a bounded
-150 ms key-down interval. It records the actual Escape-key state during that
-interval and guarantees the paired key-up when the interval exits, including
-an error. The recorded 150 ms parameter describes the observer's input timing.
+The observer's Escape press uses the global user-session event path for a controlled
+continued-motion experiment. Two nominal 75 ms waits surround one `leftMouseDragged`
+update of +1 point horizontally, only while the probe owns the held mouse button and
+both the mouse button and Escape are reported down. Before the gesture, that point
+is checked inside the same top padding and review window, outside the fixture Finder
+window, and against the target PID. Release uses that verified point. The paired
+key-up still runs on an error. The nominal waits total 150 ms; guards, event posting,
+sampling and scheduling add to the actual interval. Input records retain the sent
+locations, actual key/button states and monotonic observation times. This is an
+observer protocol experiment, not a product fix or an Apple timing requirement.
 Additional diagnostics record workspace contents and the verified application's
 focused element before Escape and again while the mouse is still held afterward.
 That held image is stored separately from the seven gesture stages. These AX reads

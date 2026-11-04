@@ -157,9 +157,10 @@ private final class DragReview {
                                                     "lastError": NSNull(), "timeoutSeconds": seconds]
         }
         var finderIconRetryCount = 0
+        var finderIconErrors: [[String: Any]] = []
         if retryFinderIconReadiness {
             record["finderIconReadiness"] = ["phase": "finder-icons", "retryCount": 0,
-                                            "lastError": NSNull(), "timeoutSeconds": seconds]
+                                            "lastError": NSNull(), "errors": finderIconErrors, "timeoutSeconds": seconds]
         }
         repeat {
             do { if try condition() { return } }
@@ -180,13 +181,16 @@ private final class DragReview {
                     "lastError": ["attribute": error.attribute, "status": error.status, "description": error.description]
                 ]
             } catch let error as AXReadFailure where retryFinderIconReadiness
-                && error.status == AXError.invalidUIElement.rawValue && error.attribute == kAXValueAttribute {
+                && error.status == AXError.invalidUIElement.rawValue {
                 // Re-read only the initial Finder icon tree within the same deadline.
                 finderIconRetryCount += 1
                 lastReadinessFailure = error.description
+                let failure: [String: Any] = ["attribute": error.attribute, "status": error.status,
+                                             "description": error.description, "systemUptime": ProcessInfo.processInfo.systemUptime]
+                finderIconErrors.append(failure)
                 record["finderIconReadiness"] = [
                     "phase": "finder-icons", "retryCount": finderIconRetryCount, "timeoutSeconds": seconds,
-                    "lastError": ["attribute": error.attribute, "status": error.status, "description": error.description]
+                    "lastError": failure, "errors": finderIconErrors
                 ]
             }
             try await pause(0.1)
@@ -390,6 +394,7 @@ private final class DragReview {
         var state: [String: Any] = [
             "phase": phase, "time": ISO8601DateFormatter().string(from: Date()),
             "systemUptime": ProcessInfo.processInfo.systemUptime,
+            "pointerSent": ["x": pointer.x, "y": pointer.y],
             "mouseDownSent": mouseDown,
             "leftButtonReportedDown": CGEventSource.buttonState(.combinedSessionState, button: .left),
             "escapeKeyDownSent": escapeKeyDown,
@@ -460,7 +465,7 @@ private final class DragReview {
         }
     }
 
-    private func escapeWithDwell() async throws {
+    private func escapeWithDwell(movingTo motionPoint: CGPoint) async throws {
         let dwell = 0.15
         try assertTargets()
         let front = NSWorkspace.shared.frontmostApplication?.processIdentifier
@@ -469,6 +474,10 @@ private final class DragReview {
         try require(CGPreflightPostEventAccess(), "Existing event-post authorization is unavailable")
         try require(!CGEventSource.keyState(.combinedSessionState, key: 53),
                     "Refusing to take ownership of an already-held Escape key")
+        try require(mouseDown && CGEventSource.buttonState(.combinedSessionState, button: .left),
+                    "Escape motion requires this probe's actual held mouse button")
+        try require(motionPoint.x == pointer.x + 1 && motionPoint.y == pointer.y,
+                    "Escape motion must advance exactly one point within the same target padding")
         guard let down = CGEvent(keyboardEventSource: nil, virtualKey: 53, keyDown: true),
               let up = CGEvent(keyboardEventSource: nil, virtualKey: 53, keyDown: false) else {
             throw DragReviewIssue.failed("Could not create the native Escape event pair")
@@ -484,7 +493,9 @@ private final class DragReview {
             "keyEventLocation": ["x": down.location.x, "y": down.location.y],
             "downTimestampNanoseconds": down.timestamp, "upTimestampNanoseconds": up.timestamp,
             "downFlags": down.flags.rawValue, "upFlags": up.flags.rawValue,
-            "scope": "Observer protocol experiment; not a product fix or an Apple requirement."
+            "continuedMotionPoint": ["x": motionPoint.x, "y": motionPoint.y],
+            "continuedMotionDelta": ["x": motionPoint.x - pointer.x, "y": motionPoint.y - pointer.y],
+            "scope": "Controlled continued-motion observer experiment; not a product fix or an Apple requirement."
         ]
         down.post(tap: .cgSessionEventTap)
         escapeKeyDown = true
@@ -495,7 +506,17 @@ private final class DragReview {
             escapeKeyDown = false
             recordEscapeInputState("after-key-up")
         }
-        try await pause(dwell)
+        try await pause(dwell / 2)
+        recordEscapeInputState("before-held-motion")
+        let motionFront = NSWorkspace.shared.frontmostApplication?.processIdentifier
+        try require(motionFront == finderApp?.processIdentifier || motionFront == reviewApp?.processIdentifier,
+                    "Refusing drag motion while another application is foreground")
+        try require(mouseDown && CGEventSource.buttonState(.combinedSessionState, button: .left)
+                    && escapeKeyDown && CGEventSource.keyState(.combinedSessionState, key: 53),
+                    "The continued drag requires both this probe's mouse button and Escape to remain down")
+        try mouse(.leftMouseDragged, at: motionPoint)
+        recordEscapeInputState("after-held-motion")
+        try await pause(dwell / 2)
         // System input state is an observation, not an application delivery ACK.
         recordEscapeInputState("before-key-up")
     }
@@ -671,6 +692,8 @@ private final class DragReview {
         let clear = try frame(unique(appElements, role: kAXButtonRole, name: "Clear"))
         record["startupPhase"] = "complete"
         let enter = CGPoint(x: (header.minX + clear.maxX) / 2, y: header.minY - 4)
+        let escapeMotionPoint = CGPoint(x: enter.x + 1, y: enter.y)
+        let topPadding = CGRect(x: header.minX, y: header.minY - 8, width: clear.maxX - header.minX, height: 8)
         let outside = CGPoint(x: enter.x, y: header.minY - 24)
         let finderTop = header.maxY + 100
         try arrange(finderWindow!, owner: finderApp!.processIdentifier,
@@ -679,11 +702,17 @@ private final class DragReview {
         try await focusFinderWindow()
         try await pause(0.3)
         let actualFinderFrame = try frame(finderWindow!)
+        let actualReviewFrame = try frame(reviewWindow!)
         record["targetGeometry"] = ["header": NSStringFromRect(header), "entryInTopPadding": NSStringFromPoint(enter),
-                                    "outside": NSStringFromPoint(outside), "reviewWindow": NSStringFromRect(try frame(reviewWindow!)),
+                                    "escapeMotionPoint": NSStringFromPoint(escapeMotionPoint), "topPadding": NSStringFromRect(topPadding),
+                                    "outside": NSStringFromPoint(outside), "reviewWindow": NSStringFromRect(actualReviewFrame),
                                     "finderWindow": NSStringFromRect(actualFinderFrame)]
         try await capture("setup-before-hit-checks", setup: true)
-        try require(!actualFinderFrame.contains(enter) && !actualFinderFrame.contains(outside),
+        try require(actualReviewFrame.contains(enter) && actualReviewFrame.contains(escapeMotionPoint)
+                    && topPadding.contains(enter) && topPadding.contains(escapeMotionPoint),
+                    "The one-point Escape motion must remain inside the review window's same top padding")
+        try require(!actualFinderFrame.contains(enter) && !actualFinderFrame.contains(outside)
+                    && !actualFinderFrame.contains(escapeMotionPoint),
                     "The fixture Finder window covers the observed target")
         try requireHit(enter, owner: app.processIdentifier, stage: "initial-entry")
         try requireHit(outside, owner: app.processIdentifier, stage: "initial-outside")
@@ -691,6 +720,7 @@ private final class DragReview {
         let source = try await sourcePoint(single, stage: "cancel-source")
         try requireHit(enter, owner: app.processIdentifier, stage: "cancel-entry")
         try requireHit(outside, owner: app.processIdentifier, stage: "cancel-outside")
+        try requireHit(escapeMotionPoint, owner: app.processIdentifier, stage: "cancel-held-motion")
         try await capture("00-before-drag")
         try mouse(.leftMouseDown, at: source)
         try await pause(0.3)
@@ -702,7 +732,7 @@ private final class DragReview {
         try await capture("03-reenter-top-padding")
         try recordEscapeObservation("before-key", expected: [existing.lastPathComponent])
         recordEscapeInputState("before-key-post")
-        try await escapeWithDwell() // Escape while the same drag is still held.
+        try await escapeWithDwell(movingTo: escapeMotionPoint) // Escape while the same drag is still held.
         recordEscapeInputState("after-key-post")
         try await pause(0.15)
         let diagnosticStarted = ProcessInfo.processInfo.systemUptime
@@ -726,7 +756,7 @@ private final class DragReview {
             throw error
         }
         recordEscapeInputState("before-release")
-        try mouse(.leftMouseUp, at: enter)
+        try mouse(.leftMouseUp, at: escapeMotionPoint)
         recordEscapeInputState("after-release")
         try await pause(0.7)
         recordEscapeInputState("after-settle")
