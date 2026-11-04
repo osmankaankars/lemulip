@@ -19,6 +19,7 @@ private func require(_ condition: Bool, _ message: String) throws {
 
 private struct ControlConfiguration {
     let theme: String
+    let evidenceKind: String
     let root: URL
     let folder: URL
     let traceURL: URL
@@ -32,6 +33,16 @@ private struct ControlConfiguration {
         try require(arguments.indices.contains(index), "The control theme is missing")
         theme = arguments[index]
         try require(["orchard", "pistachio", "lemonade"].contains(theme), "Unknown control theme")
+        let evidenceIndices = arguments.indices.filter { arguments[$0] == "-controlEvidenceKind" }
+        if evidenceIndices.isEmpty {
+            evidenceKind = "quartz"
+        } else {
+            try require(evidenceIndices.count == 1 && arguments.indices.contains(evidenceIndices[0] + 1),
+                        "Require one fixed control evidence kind")
+            evidenceKind = arguments[evidenceIndices[0] + 1]
+            try require(evidenceKind == "keyboard" && theme == "orchard",
+                        "The keyboard comparison is restricted to the Orchard control")
+        }
 
         let bundle = Bundle.main.bundleURL.standardizedFileURL
         root = bundle.deletingLastPathComponent()
@@ -41,7 +52,8 @@ private struct ControlConfiguration {
                     && Bundle.main.object(forInfoDictionaryKey: "CFBundleExecutable") as? String == "NativeDragControl",
                     "Require the exact isolated AppKit control bundle")
         folder = root.appendingPathComponent("Fixtures/FinderDrop/" + theme, isDirectory: true)
-        let evidence = root.appendingPathComponent("NativeDragControlEvidence/" + theme, isDirectory: true)
+        let evidenceName = evidenceKind == "keyboard" ? "NativeDragKeyboardEvidence" : "NativeDragControlEvidence"
+        let evidence = root.appendingPathComponent(evidenceName + "/" + theme, isDirectory: true)
         for url in [root, bundle, folder, evidence] {
             try require(url.standardizedFileURL.path == url.resolvingSymlinksInPath().path,
                         "Symlinked control paths are not allowed")
@@ -447,6 +459,14 @@ private final class ControlDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 
+    func applicationDidBecomeActive(_ notification: Notification) {
+        selection.trace.record("application-became-active")
+    }
+
+    func applicationDidResignActive(_ notification: Notification) {
+        selection.trace.record("application-resigned-active")
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         watchdog?.cancel()
         selection.trace.record("application-terminated", selection.configuration.originalState())
@@ -469,6 +489,7 @@ private enum NativeDragControl {
             application.delegate = delegate
             trace.record("application-start", [
                 "bundleIdentifier": "app.lemulip.NativeDragControl", "theme": configuration.theme,
+                "evidenceKind": configuration.evidenceKind,
                 "fixtureFilenames": configuration.originals.keys.sorted(),
                 "originalSHA256": configuration.originals.mapValues { SHA256.hash(data: $0).map { String(format: "%02x", $0) }.joined() },
                 "sendEventSubclassInstalled": true, "maximumLifetimeSeconds": 150,

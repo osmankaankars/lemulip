@@ -8,6 +8,7 @@ on:
       - '.github/workflows/native-drag-diagnostic.yml'
       - 'script/native_ui/NativeDragReview.swift'
       - 'script/native_ui/NativeDragControl.swift'
+      - 'script/native_ui/NativeDragKeyboardTests.swift'
       - 'script/prepare_native_ui.py'
   workflow_dispatch:
 
@@ -61,7 +62,7 @@ jobs:
           source=pathlib.Path('script/native_ui/NativeDragReview.swift').read_bytes()
           record['nativeDragReviewSourceSHA256']=hashlib.sha256(source).hexdigest()
           record['diagnosticOnly']=True
-          record['xctestExecuted']=False
+          record['nativeAcceptanceXCTestExecuted']=False
           record['scope']='Standalone Finder observation; the complete native UI gate runs separately.'
           receipt.write_text(json.dumps(record,indent=2)+'\n')
           PYCODE
@@ -123,6 +124,63 @@ jobs:
           PYCODE
           "$RUNNER_TEMP/lemulip-native-ui/NativeDragReview" "$RUNNER_TEMP/lemulip-native-ui" \
             2>&1 | tee "$RUNNER_TEMP/lemulip-native-ui/drag-observer.log"
+      - name: Build the Separate Public XCTest Keyboard Comparison
+        id: keyboard
+        if: ${{ !cancelled() && steps.observer.outcome == 'success' && steps.control.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          python3 - <<'PYCODE'
+          import hashlib,json,os,pathlib,sys,uuid
+          sys.path.insert(0,'script')
+          import prepare_native_ui as staging
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'lemulip-native-ui'
+          for name in ('NativeDragControlEvidence','NativeDragEvidence'):
+              record=json.loads((root/name/'report.json').read_text())
+              themes=record.get('themes',[])
+              if len(themes)!=3 or {t.get('theme') for t in themes}!={'orchard','pistachio','lemonade'} or not all(t.get('cleanup',{}).get('completed') is True for t in themes):
+                  raise SystemExit('Earlier native input cleanup is incomplete; refusing the keyboard comparison.')
+          source=pathlib.Path('script/native_ui/NativeDragKeyboardTests.swift')
+          project=staging.write_project(root/'KeyboardRunner',source,root/'Native Drag Control.app',root/'Fixtures')
+          project_file=project/'project.pbxproj'
+          original=project_file.read_text()
+          if original.count('app.lemulip.NativeQualityUITests')!=1:
+              raise SystemExit('Unexpected generated XCTest bundle identity.')
+          project_file.write_text(original.replace('app.lemulip.NativeQualityUITests','app.lemulip.NativeDragKeyboardTests'))
+          protocol=root/'KeyboardControl'; protocol.mkdir(mode=0o700,exist_ok=False)
+          with (protocol/'configuration.json').open('x') as stream:
+              json.dump({'schema':1,'nonce':uuid.uuid4().hex},stream)
+              stream.write('\n')
+          receipt=root/'provenance.json'; record=json.loads(receipt.read_text())
+          record['nativeDragKeyboardTestsSourceSHA256']=hashlib.sha256(source.read_bytes()).hexdigest()
+          record['keyboardComparisonScope']='One Orchard standard-AppKit comparison using public XCTest Escape; separate from the 58 production acceptance tests and physical input.'
+          receipt.write_text(json.dumps(record,indent=2)+'\n')
+          PYCODE
+          xcrun xcodebuild build-for-testing \
+            -project "$RUNNER_TEMP/lemulip-native-ui/KeyboardRunner/QualityReview.xcodeproj" \
+            -scheme QualityReview \
+            -derivedDataPath "$RUNNER_TEMP/lemulip-native-ui/KeyboardDerivedData" \
+            -destination 'platform=macOS' -parallel-testing-enabled NO \
+            2>&1 | tee "$RUNNER_TEMP/lemulip-native-ui/keyboard-build.log"
+          python3 - <<'PYCODE'
+          import hashlib,json,os,pathlib,plistlib
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'lemulip-native-ui'
+          runner=root/'KeyboardDerivedData/Build/Products/Debug/QualityReview-Runner.app'
+          info_path=runner/'Contents/Info.plist'; info=plistlib.loads(info_path.read_bytes())
+          if info.get('CFBundleIdentifier')!='app.lemulip.NativeDragKeyboardTests.xctrunner' or info.get('CFBundleExecutable')!='QualityReview-Runner':
+              raise SystemExit('Unexpected generated keyboard runner identity.')
+          executable=runner/'Contents/MacOS/QualityReview-Runner'
+          receipt=root/'provenance.json'; record=json.loads(receipt.read_text())
+          record['keyboardRunnerInfoSHA256']=hashlib.sha256(info_path.read_bytes()).hexdigest()
+          record['keyboardRunnerExecutableSHA256']=hashlib.sha256(executable.read_bytes()).hexdigest()
+          record['keyboardRunnerBuilt']=True
+          receipt.write_text(json.dumps(record,indent=2)+'\n')
+          PYCODE
+      - name: Compare Public XCTest Escape in the Standard AppKit Control
+        if: ${{ !cancelled() && steps.keyboard.outcome == 'success' }}
+        run: |
+          set -o pipefail
+          "$RUNNER_TEMP/lemulip-native-ui/NativeDragReview" "$RUNNER_TEMP/lemulip-native-ui" --keyboard-control \
+            2>&1 | tee "$RUNNER_TEMP/lemulip-native-ui/drag-keyboard.log"
       - name: Retain Diagnostic Evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -132,7 +190,11 @@ jobs:
             ${{ runner.temp }}/lemulip-native-ui/provenance.json
             ${{ runner.temp }}/lemulip-native-ui/drag-observer.log
             ${{ runner.temp }}/lemulip-native-ui/drag-control.log
+            ${{ runner.temp }}/lemulip-native-ui/drag-keyboard.log
+            ${{ runner.temp }}/lemulip-native-ui/keyboard-build.log
+            ${{ runner.temp }}/lemulip-native-ui/KeyboardControl
             ${{ runner.temp }}/lemulip-native-ui/NativeDragEvidence
             ${{ runner.temp }}/lemulip-native-ui/NativeDragControlEvidence
+            ${{ runner.temp }}/lemulip-native-ui/NativeDragKeyboardEvidence
           if-no-files-found: error
           retention-days: 14

@@ -1,11 +1,12 @@
 import AppKit
 import ApplicationServices
 import CryptoKit
+import Darwin
 import Foundation
 
 // A separate, explicitly interactive evidence probe. ReadOnlyAXSnapshot stays
 // read-only. This executable never requests or changes any macOS permission.
-// Usage: NativeDragReview <the prepare_native_ui.py review directory> [--control]
+// Usage: NativeDragReview <the prepare_native_ui.py review directory> [--control | --keyboard-control]
 private enum DragReviewIssue: Error, CustomStringConvertible {
     case blocked(String)
     case failed(String)
@@ -25,7 +26,7 @@ private enum DragReviewTheme: String, CaseIterable {
 }
 
 private enum DragReviewTarget {
-    case production, control
+    case production, control, keyboardControl
 
     var identifier: String {
         self == .production ? "app.lemulip.NativeUIReview" : "app.lemulip.NativeDragControl"
@@ -35,7 +36,297 @@ private enum DragReviewTarget {
     }
     var executable: String { self == .production ? "Lemulip" : "NativeDragControl" }
     var windowTitle: String { self == .production ? "Lemulip" : "Native Drag Control" }
-    var evidenceName: String { self == .production ? "NativeDragEvidence" : "NativeDragControlEvidence" }
+    var evidenceName: String {
+        switch self {
+        case .production: return "NativeDragEvidence"
+        case .control: return "NativeDragControlEvidence"
+        case .keyboardControl: return "NativeDragKeyboardEvidence"
+        }
+    }
+    var themes: [DragReviewTheme] { self == .keyboardControl ? [.orchard] : DragReviewTheme.allCases }
+    var inputDriver: String { self == .keyboardControl ? "XCTest" : "CGEvent" }
+}
+
+// Owns only the prebuilt, fixed one-test keyboard runner. This helper never
+// posts input, activates an app or builds a new target during the held drag.
+@MainActor
+private final class KeyboardControlDriver {
+    private let directory: URL
+    private let control: URL
+    private let project: URL
+    private let derivedData: URL
+    private let runnerBundle: URL
+    private let runnerExecutable: URL
+    private let runnerIdentifier = "app.lemulip.NativeDragKeyboardTests.xctrunner"
+    private let process = Process()
+    private var logHandle: FileHandle?
+    private var started = false
+    private var runner: NSRunningApplication?
+    private var nonce = ""
+    private var requested = false
+    private var requestCreated: Double?
+    private var requestExpires: Double?
+    private var markers: [String] = []
+    private(set) var ended = false
+    private(set) var completedNormally = false
+    private(set) var evidence: [String: Any] = ["inputDriver": "XCTest", "status": "not-started"]
+
+    init(directory: URL) throws {
+        self.directory = directory
+        control = directory.appendingPathComponent("KeyboardControl", isDirectory: true)
+        project = directory.appendingPathComponent("KeyboardRunner/QualityReview.xcodeproj", isDirectory: true)
+        derivedData = directory.appendingPathComponent("KeyboardDerivedData", isDirectory: true)
+        runnerBundle = derivedData.appendingPathComponent("Build/Products/Debug/QualityReview-Runner.app", isDirectory: true)
+        runnerExecutable = runnerBundle.appendingPathComponent("Contents/MacOS/QualityReview-Runner")
+        try require(directory.lastPathComponent == "lemulip-native-ui", "Require the fixed keyboard staging root")
+        for url in [directory, control, project, derivedData, runnerBundle] { try checkPath(url, directory: true) }
+        let configurationData = try readBounded(control.appendingPathComponent("configuration.json"), maximum: 4_096)
+        guard let configuration = try JSONSerialization.jsonObject(with: configurationData) as? [String: Any],
+              let schema = configuration["schema"] as? NSNumber,
+              CFGetTypeID(schema) != CFBooleanGetTypeID(), schema.doubleValue == 1,
+              let value = configuration["nonce"] as? String,
+              value.count == 32, value.allSatisfy({ "0123456789abcdef".contains($0) }) else {
+            throw DragReviewIssue.failed("The keyboard configuration has an invalid schema or nonce")
+        }
+        nonce = value
+        let infoData = try readBounded(runnerBundle.appendingPathComponent("Contents/Info.plist"), maximum: 262_144)
+        let info = try PropertyListSerialization.propertyList(from: infoData, options: [], format: nil) as? [String: Any]
+        try require(info?["CFBundleIdentifier"] as? String == runnerIdentifier
+                    && info?["CFBundleExecutable"] as? String == "QualityReview-Runner",
+                    "The keyboard runner does not match its fixed prebuilt identity")
+        let executableData = try readBounded(runnerExecutable, maximum: 268_435_456)
+        try require(!executableData.isEmpty, "The prebuilt keyboard runner executable is empty")
+        try require(NSRunningApplication.runningApplications(withBundleIdentifier: runnerIdentifier).isEmpty,
+                    "The fixed keyboard runner must be stopped before this comparison")
+        for name in ["xcodebuild.log", "request.json", "request.json.pending", "finished.json", "finished.json.pending"] {
+            var attributes = stat()
+            try require(lstat(control.appendingPathComponent(name).path, &attributes) != 0 && errno == ENOENT,
+                        "Refusing an existing keyboard protocol output")
+        }
+        evidence = ["inputDriver": "XCTest", "status": "validated", "nonce": nonce,
+                    "runnerBundleIdentifier": runnerIdentifier, "runnerApplicationPath": runnerBundle.path,
+                    "runnerExecutablePath": runnerExecutable.path, "projectPath": project.path,
+                    "keyboardRunnerInfoSHA256": SHA256.hash(data: infoData).map { String(format: "%02x", $0) }.joined(),
+                    "keyboardRunnerExecutableSHA256": SHA256.hash(data: executableData).map { String(format: "%02x", $0) }.joined(),
+                    "readyTimeoutSeconds": 60, "escapeTimeoutSeconds": 20, "stopTimeoutSeconds": 8]
+    }
+
+    private func require(_ condition: Bool, _ message: String) throws {
+        if !condition { throw DragReviewIssue.failed(message) }
+    }
+
+    private func checkPath(_ url: URL, directory: Bool) throws {
+        try require(url.standardizedFileURL.path == url.resolvingSymlinksInPath().path,
+                    "Symlinked keyboard driver paths are not allowed")
+        let values = try url.resourceValues(forKeys: [.isDirectoryKey, .isRegularFileKey, .isSymbolicLinkKey])
+        try require(values.isSymbolicLink == false && (directory ? values.isDirectory == true : values.isRegularFile == true),
+                    "A fixed keyboard driver path has the wrong file type")
+    }
+
+    private func readBounded(_ url: URL, maximum: Int) throws -> Data {
+        try checkPath(url, directory: false)
+        let descriptor = Darwin.open(url.path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
+        try require(descriptor >= 0, "Could not open the fixed keyboard driver file")
+        let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
+        defer { try? handle.close() }
+        let data = try handle.read(upToCount: maximum + 1) ?? Data()
+        try require(data.count <= maximum, "A keyboard driver file exceeded its size bound")
+        return data
+    }
+
+    private func publish(_ name: String, object: [String: Any]) throws {
+        try require(["request.json", "finished.json"].contains(name), "Only fixed keyboard protocol outputs may be written")
+        try checkPath(control, directory: true)
+        let temporary = control.appendingPathComponent(name + ".pending")
+        let destination = control.appendingPathComponent(name)
+        let descriptor = Darwin.open(temporary.path, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC,
+                                     S_IRUSR | S_IWUSR)
+        try require(descriptor >= 0, "Could not exclusively create a keyboard protocol file")
+        let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
+        defer { try? handle.close(); Darwin.unlink(temporary.path) }
+        let data = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
+        try require(data.count <= 4_096, "The keyboard request exceeds its size bound")
+        try handle.write(contentsOf: data)
+        try handle.synchronize()
+        // Linking a completed file publishes it atomically without replacement.
+        try require(Darwin.link(temporary.path, destination.path) == 0,
+                    "Could not publish the exclusive keyboard protocol file")
+    }
+
+    private func currentRunner() throws -> NSRunningApplication? {
+        let matches = NSRunningApplication.runningApplications(withBundleIdentifier: runnerIdentifier)
+        try require(matches.count <= 1, "The fixed keyboard runner is ambiguous")
+        guard let current = matches.first else { return nil }
+        try require(started && !current.isTerminated
+                    && current.bundleURL?.resolvingSymlinksInPath().path == runnerBundle.path
+                    && current.executableURL?.resolvingSymlinksInPath().path == runnerExecutable.path,
+                    "The keyboard runner process has an unexpected identity")
+        if let runner {
+            try require(current.processIdentifier == runner.processIdentifier, "The owned keyboard runner PID changed")
+        } else {
+            runner = current
+            evidence["runnerPID"] = Int(current.processIdentifier)
+        }
+        return current
+    }
+
+    private func refreshMarkers() throws {
+        let data = try readBounded(control.appendingPathComponent("xcodebuild.log"), maximum: 8 * 1_024 * 1_024)
+        let end = data.lastIndex(of: 0x0a).map { data.index(after: $0) } ?? data.startIndex
+        guard let log = String(data: data[..<end], encoding: .utf8) else {
+            throw DragReviewIssue.failed("The keyboard driver log is not UTF-8")
+        }
+        var observed: [String] = []
+        for line in log.split(separator: "\n", omittingEmptySubsequences: false).dropLast() {
+            let fields = line.split(whereSeparator: { $0 == " " || $0 == "\t" || $0 == "\r" }).map(String.init)
+            guard let prefix = fields.first, prefix.hasPrefix("LEMULIP_KEYBOARD_") else { continue }
+            let phase = String(prefix.dropFirst("LEMULIP_KEYBOARD_".count))
+            try require(["READY", "BEGIN", "END", "FAILED"].contains(phase) && fields.count >= 2 && fields[1] == nonce,
+                        "The keyboard driver marker has an unexpected action or nonce")
+            if phase == "READY" { try require(fields.count == 2, "The keyboard READY marker is malformed") }
+            else {
+                guard fields.count == 3, let time = Double(fields[2]), time.isFinite else {
+                    throw DragReviewIssue.failed("The keyboard marker has an invalid monotonic timestamp")
+                }
+                if phase == "BEGIN" || phase == "END" {
+                    try require(requested && time >= (requestCreated ?? .infinity) && time <= (requestExpires ?? -Double.infinity),
+                                "The keyboard input marker is outside its one requested action")
+                }
+            }
+            try require(!observed.contains(phase), "The one-shot keyboard driver repeated a marker")
+            if phase == "BEGIN" { try require(observed == ["READY"], "The keyboard BEGIN marker is out of order") }
+            if phase == "END" { try require(observed == ["READY", "BEGIN"], "The keyboard END marker is out of order") }
+            observed.append(phase)
+            if !markers.contains(phase) {
+                var receipts = evidence["markerReceipts"] as? [[String: Any]] ?? []
+                receipts.append(["marker": phase, "line": String(line), "observedSystemUptime": ProcessInfo.processInfo.systemUptime])
+                evidence["markerReceipts"] = receipts
+            }
+        }
+        markers = observed
+        try require(!markers.contains("FAILED"), "The public XCTest keyboard driver reported failure")
+    }
+
+    private func waitFor(_ marker: String, seconds: Double, expiresAt: Double) async throws {
+        let deadline = min(expiresAt, ProcessInfo.processInfo.systemUptime + seconds)
+        while ProcessInfo.processInfo.systemUptime < deadline {
+            try refreshMarkers()
+            try require(process.isRunning, "The keyboard driver exited before completing the bounded handshake")
+            let activeRunner = try currentRunner()
+            if markers.contains(marker) {
+                try require(activeRunner != nil, "The keyboard marker has no matching live runner")
+                return
+            }
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
+        throw DragReviewIssue.failed("The keyboard driver did not report \(marker) within its bounded wait")
+    }
+
+    func start(expiresAt: Double) async throws {
+        try require(!started && ProcessInfo.processInfo.systemUptime < expiresAt,
+                    "The keyboard driver must start within this run's bounded lifetime")
+        try require(NSRunningApplication.runningApplications(withBundleIdentifier: runnerIdentifier).isEmpty,
+                    "The fixed keyboard runner appeared before this probe started it")
+        let log = control.appendingPathComponent("xcodebuild.log")
+        let descriptor = Darwin.open(log.path, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC, S_IRUSR | S_IWUSR)
+        try require(descriptor >= 0, "Could not exclusively create the keyboard driver log")
+        let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
+        logHandle = handle
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
+        process.currentDirectoryURL = directory
+        process.arguments = ["xcodebuild", "test-without-building", "-project", project.path, "-scheme", "QualityReview",
+                             "-derivedDataPath", derivedData.path, "-destination", "platform=macOS",
+                             "-parallel-testing-enabled", "NO", "-test-timeouts-enabled", "YES",
+                             "-default-test-execution-time-allowance", "110", "-maximum-test-execution-time-allowance", "110"]
+        process.standardOutput = handle
+        process.standardError = handle
+        try process.run()
+        started = true
+        evidence["processPID"] = Int(process.processIdentifier)
+        evidence["startedSystemUptime"] = ProcessInfo.processInfo.systemUptime
+        evidence["status"] = "waiting-for-ready"
+        try await waitFor("READY", seconds: 60, expiresAt: expiresAt)
+        evidence["status"] = "ready"
+    }
+
+    func requestEscape(target: NSRunningApplication, application: URL, expiresAt: Double) async throws {
+        try require(!requested && process.isRunning && (try currentRunner()) != nil,
+                    "Require this run's live, unused keyboard driver")
+        let created = ProcessInfo.processInfo.systemUptime
+        let expires = min(created + 20, expiresAt)
+        try require(expires > created, "No bounded lifetime remains for the keyboard request")
+        let request: [String: Any] = ["schema": 1, "nonce": nonce, "action": "escape", "flags": 0, "keyCode": 53,
+                                      "theme": "orchard", "targetBundleIdentifier": "app.lemulip.NativeDragControl",
+                                      "targetApplicationPath": application.path, "targetPID": Int(target.processIdentifier),
+                                      "createdSystemUptime": created, "expiresSystemUptime": expires]
+        requestCreated = created
+        requestExpires = expires
+        requested = true
+        evidence["request"] = request
+        evidence["status"] = "waiting-for-escape-end"
+        defer {
+            evidence["escapeRequestFinishedSystemUptime"] = ProcessInfo.processInfo.systemUptime
+            evidence["escapeRequestElapsedSeconds"] = ProcessInfo.processInfo.systemUptime - created
+        }
+        do {
+            try publish("request.json", object: request)
+            try await waitFor("END", seconds: 20, expiresAt: expires)
+            ended = true
+            evidence["status"] = "escape-ended"
+        } catch {
+            evidence["status"] = "escape-failed"
+            evidence["reason"] = String(describing: error)
+            throw error
+        }
+    }
+
+    func stop(gracefully: Bool) async -> Bool {
+        let began = ProcessInfo.processInfo.systemUptime
+        let deadline = began + 8
+        var errors: [String] = []
+        var finishPublished = false
+        if gracefully && ended {
+            do {
+                try publish("finished.json", object: ["schema": 1, "nonce": nonce, "action": "finished",
+                                                      "createdSystemUptime": began])
+                finishPublished = true
+            } catch { errors.append(String(describing: error)) }
+        }
+        var terminated = false
+        var forced = false
+        var stopped = false
+        repeat {
+            let now = ProcessInfo.processInfo.systemUptime
+            var verifiedRunner: NSRunningApplication?
+            do { verifiedRunner = try currentRunner() }
+            catch { if errors.isEmpty { errors.append(String(describing: error)) } }
+            let registryEmpty = NSRunningApplication.runningApplications(withBundleIdentifier: runnerIdentifier).isEmpty
+            if !process.isRunning && registryEmpty { stopped = true; break }
+            if !terminated && (!finishPublished || now >= began + 6) {
+                if process.isRunning { process.terminate() }
+                if let verifiedRunner { _ = verifiedRunner.terminate() }
+                terminated = true
+            }
+            if !forced && now >= deadline - 1 {
+                if started && process.isRunning { Darwin.kill(process.processIdentifier, SIGKILL) }
+                if let verifiedRunner { _ = verifiedRunner.forceTerminate() }
+                forced = true
+            }
+            try? await Task.sleep(nanoseconds: 50_000_000)
+        } while ProcessInfo.processInfo.systemUptime < deadline
+        let processStopped = !process.isRunning
+        let registryEmpty = NSRunningApplication.runningApplications(withBundleIdentifier: runnerIdentifier).isEmpty
+        stopped = stopped || (processStopped && registryEmpty)
+        if started && processStopped { evidence["processExitStatus"] = process.terminationStatus }
+        completedNormally = finishPublished && stopped && started && process.terminationStatus == 0 && errors.isEmpty
+        evidence["cleanup"] = ["stopConfirmed": stopped, "processStopped": processStopped,
+                                "runnerRegistryEmpty": registryEmpty, "finishedPublished": finishPublished,
+                                "normalCompletion": completedNormally, "terminationRequested": terminated,
+                                "forceTerminationRequested": forced, "timeoutSeconds": 8,
+                                "elapsedSeconds": ProcessInfo.processInfo.systemUptime - began, "errors": errors]
+        if stopped { try? logHandle?.close(); logHandle = nil }
+        return stopped
+    }
 }
 
 @MainActor
@@ -51,6 +342,7 @@ private final class DragReview {
     private var finderApp: NSRunningApplication?
     private var reviewWindow: AXUIElement?
     private var finderWindow: AXUIElement?
+    private var keyboardDriver: KeyboardControlDriver?
     private var originals: [String: Data] = [:]
     private var inputNames: Set<String> = []
     private var mouseDown = false
@@ -74,8 +366,12 @@ private final class DragReview {
         self.target = target
         record["theme"] = theme.rawValue
         record["targetKind"] = target == .production ? "production" : "standard-appkit-control"
-        if target == .control {
+        record["inputDriver"] = target.inputDriver
+        if target != .production {
             record["scope"] = "Reference AppKit destination with passive event/callback tracing. Theme names identify fixture sets, not product appearances. No product verification claim."
+        }
+        if target == .keyboardControl {
+            record["scope"] = "One Orchard reference destination using the public XCTest keyboard API for Escape; observer-owned Finder mouse input. No production or physical-keyboard verification claim."
         }
     }
 
@@ -267,6 +563,8 @@ private final class DragReview {
             let keys = ["sourceCommit", "sourceTree", "architecture", "nativeDragReviewSourceSHA256"]
                 + (target == .production ? ["stagedGUI_SHA256", "compiledTestSourceSHA256"]
                    : ["controlGUI_SHA256", "nativeDragControlSourceSHA256"])
+                + (target == .keyboardControl ? ["nativeDragKeyboardTestsSourceSHA256", "keyboardRunnerInfoSHA256",
+                                                "keyboardRunnerExecutableSHA256"] : [])
             for key in keys {
                 if let value = provenance[key] as? String { record[key] = value }
             }
@@ -593,6 +891,28 @@ private final class DragReview {
         recordEscapeInputState("before-key-up")
     }
 
+    private func escapeWithKeyboardDriver() async throws {
+        try assertTargets()
+        guard target == .keyboardControl, theme == .orchard,
+              let driver = keyboardDriver, let app = reviewApp else {
+            throw DragReviewIssue.failed("The fixed Orchard keyboard comparison is not ready")
+        }
+        defer {
+            recordEscapeInputState("after-xctest-request")
+            record["keyboardDriver"] = driver.evidence
+        }
+        try require(NSWorkspace.shared.frontmostApplication?.processIdentifier == app.processIdentifier,
+                    "The exact AppKit control must be foreground for the keyboard request")
+        try require(mouseDown && CGEventSource.buttonState(.combinedSessionState, button: .left)
+                    && CGEventSource.flagsState(.combinedSessionState).intersection(relevantModifiers).isEmpty
+                    && !CGEventSource.keyState(.combinedSessionState, key: 53),
+                    "The keyboard request requires our held mouse with clear modifiers and Escape up")
+        record["escapeKeyProtocol"] = ["kind": "input-driver-comparison", "inputDriver": "XCTest", "keyCode": 53,
+                                       "modifierFlags": 0, "continuedMotion": false,
+                                       "scope": "One public typeKey call; no observer CG Escape, dwell or held-motion update."]
+        try await driver.requestEscape(target: app, application: bundle, expiresAt: expiresAt)
+    }
+
     private func moveHeld(to target: CGPoint) async throws {
         try require(mouseDown, "A continuous drag requires the existing mouse-down")
         let start = pointer
@@ -714,10 +1034,18 @@ private final class DragReview {
         }
         try require(NSRunningApplication.runningApplications(withBundleIdentifier: identifier).isEmpty,
                     "The isolated review application must be stopped before the standalone probe")
+        if target == .keyboardControl {
+            record["startupPhase"] = "keyboard-driver"
+            let driver = try KeyboardControlDriver(directory: directory)
+            keyboardDriver = driver
+            defer { record["keyboardDriver"] = driver.evidence }
+            try await driver.start(expiresAt: expiresAt)
+        }
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.arguments = ["-language", "en", "-theme", theme.rawValue, "-wheelEnabled", "NO",
                                    "-completionPresentation", "quiet", "-NSQuitAlwaysKeepsWindows", "NO"]
-        if target == .control { configuration.arguments += ["-controlTheme", theme.rawValue] }
+        if target != .production { configuration.arguments += ["-controlTheme", theme.rawValue] }
+        if target == .keyboardControl { configuration.arguments += ["-controlEvidenceKind", "keyboard"] }
         configuration.addsToRecentItems = false
         reviewApp = try await NSWorkspace.shared.openApplication(at: bundle, configuration: configuration)
         guard let app = reviewApp else { throw DragReviewIssue.failed("The staged app did not launch") }
@@ -772,6 +1100,7 @@ private final class DragReview {
         record["startupPhase"] = "complete"
         let enter = CGPoint(x: (header.minX + clear.maxX) / 2, y: header.minY - 4)
         let escapeMotionPoint = CGPoint(x: enter.x + 1, y: enter.y)
+        let releasePoint = target == .keyboardControl ? enter : escapeMotionPoint
         let topPadding = CGRect(x: header.minX, y: header.minY - 8, width: clear.maxX - header.minX, height: 8)
         let outside = CGPoint(x: enter.x, y: header.minY - 24)
         let finderTop = header.maxY + 100
@@ -784,6 +1113,7 @@ private final class DragReview {
         let actualReviewFrame = try frame(reviewWindow!)
         record["targetGeometry"] = ["header": NSStringFromRect(header), "entryInTopPadding": NSStringFromPoint(enter),
                                     "escapeMotionPoint": NSStringFromPoint(escapeMotionPoint), "topPadding": NSStringFromRect(topPadding),
+                                    "releasePoint": NSStringFromPoint(releasePoint),
                                     "outside": NSStringFromPoint(outside), "reviewWindow": NSStringFromRect(actualReviewFrame),
                                     "finderWindow": NSStringFromRect(actualFinderFrame)]
         try await capture("setup-before-hit-checks", setup: true)
@@ -810,9 +1140,10 @@ private final class DragReview {
         try await moveHeld(to: enter)
         try await capture("03-reenter-top-padding")
         try recordEscapeObservation("before-key", expected: [existing.lastPathComponent])
-        recordEscapeInputState("before-key-post")
-        try await escapeWithDwell(movingTo: escapeMotionPoint) // Escape while the same drag is still held.
-        recordEscapeInputState("after-key-post")
+        recordEscapeInputState(target == .keyboardControl ? "before-xctest-request" : "before-key-post")
+        if target == .keyboardControl { try await escapeWithKeyboardDriver() }
+        else { try await escapeWithDwell(movingTo: escapeMotionPoint) } // Escape while the same drag is still held.
+        recordEscapeInputState(target == .keyboardControl ? "after-xctest-end" : "after-key-post")
         try await pause(0.15)
         let diagnosticStarted = ProcessInfo.processInfo.systemUptime
         recordEscapeInputState("before-held-observation")
@@ -835,7 +1166,7 @@ private final class DragReview {
             throw error
         }
         recordEscapeInputState("before-release")
-        try mouse(.leftMouseUp, at: escapeMotionPoint)
+        try mouse(.leftMouseUp, at: releasePoint)
         recordEscapeInputState("after-release")
         try await pause(0.7)
         recordEscapeInputState("after-settle")
@@ -889,10 +1220,18 @@ private final class DragReview {
 
     func cleanUp() async -> Bool {
         // Cleanup must still run after the per-theme 110-second clock expires.
-        let deadline = ProcessInfo.processInfo.systemUptime + 8
+        var deadline = ProcessInfo.processInfo.systemUptime + 8
         var errors: [String] = []
+        var keyboardStopped = true
+        if let driver = keyboardDriver, !driver.ended {
+            // A synchronous XCTest input may still be running after its request
+            // expires. Stop its owned processes before any further native input.
+            keyboardStopped = await driver.stop(gracefully: false)
+            record["keyboardDriver"] = driver.evidence
+            if !keyboardStopped { errors.append("The keyboard driver did not stop; only our paired mouse release is allowed") }
+        }
         if mouseDown {
-            if !CGEventSource.keyState(.combinedSessionState, key: 53),
+            if target != .keyboardControl, !CGEventSource.keyState(.combinedSessionState, key: 53),
                CGEventSource.flagsState(.combinedSessionState).intersection(relevantModifiers).isEmpty { try? key(53) }
             // Always release this probe's own held button, even if a target
             // has exited. Preserve any live modifiers instead of clearing them.
@@ -908,9 +1247,22 @@ private final class DragReview {
                 errors.append("Could not release this probe's held mouse button")
             }
         }
+        if let driver = keyboardDriver, driver.ended {
+            // END means the only key call returned. Keep the runner alive until
+            // the observed gesture (including an error-path release) is over.
+            keyboardStopped = await driver.stop(gracefully: true)
+            record["keyboardDriver"] = driver.evidence
+            if !keyboardStopped { errors.append("The completed keyboard driver did not stop") }
+            if !driver.completedNormally { errors.append("The keyboard XCTest did not complete its final handshake successfully") }
+        }
+        if target == .keyboardControl {
+            // The separate driver stop has its own eight-second bound; retain
+            // the original eight seconds for verified native target cleanup.
+            deadline = ProcessInfo.processInfo.systemUptime + 8
+        }
         var finderClosed = finderWindow == nil
         var finderRoot: AXUIElement?
-        if let window = finderWindow, let finder = finderApp {
+        if keyboardStopped, let window = finderWindow, let finder = finderApp {
             if finder.isTerminated { finderClosed = true }
             else {
                 do {
@@ -944,11 +1296,11 @@ private final class DragReview {
                     }
                 } catch { errors.append(String(describing: error)) }
             }
-        } else if finderWindow != nil {
+        } else if keyboardStopped && finderWindow != nil {
             errors.append("The fixture Finder owner is unavailable during cleanup")
         }
         // Terminate only the exact staged app launched by this probe.
-        if let app = reviewApp, !app.isTerminated {
+        if keyboardStopped, let app = reviewApp, !app.isTerminated {
             if app.bundleIdentifier == identifier && app.bundleURL?.resolvingSymlinksInPath().path == bundle.path {
                 if !app.terminate() && !app.isTerminated { errors.append("The staged app refused normal termination") }
             } else { errors.append("Refusing to terminate an application whose staged identity changed") }
@@ -978,16 +1330,28 @@ private final class DragReview {
         if !applicationStopped { errors.append("The staged app did not terminate before the cleanup deadline") }
         if !registryEmpty { errors.append("The fixed review bundle remains registered as running") }
         if !finderClosed { errors.append("The exact fixture Finder window was not confirmed closed") }
+        if target == .keyboardControl {
+            let escapeDown = CGEventSource.keyState(.combinedSessionState, key: 53)
+            let flags = CGEventSource.flagsState(.combinedSessionState)
+            record["keyboardCleanupInputState"] = ["systemUptime": ProcessInfo.processInfo.systemUptime,
+                                                   "escapeKeyReportedDown": escapeDown,
+                                                   "sessionFlags": flags.rawValue,
+                                                   "relevantFlags": flags.intersection(relevantModifiers).rawValue]
+            if escapeDown { errors.append("Escape remains down after the keyboard driver stopped; no synthetic key-up was sent") }
+            if !flags.intersection(relevantModifiers).isEmpty { errors.append("A modifier remains held after keyboard driver cleanup") }
+        }
         record["stages"] = events
         record["diagnosticSnapshots"] = diagnosticSnapshots
         record["cleanup"] = ["completed": errors.isEmpty, "leftButtonReportedDown": leftButtonDown,
                              "applicationStopped": applicationStopped, "fixtureFinderWindowClosed": finderClosed,
                              "fixedBundleRegistryEmpty": registryEmpty, "timeoutSeconds": 8, "errors": errors]
+        if target == .keyboardControl { record["keyboardDriverStopConfirmed"] = keyboardStopped }
         return errors.isEmpty
     }
 
     func finish() throws {
         guard let output else { throw DragReviewIssue.failed("The per-theme evidence destination was not created") }
+        if let driver = keyboardDriver { record["keyboardDriver"] = driver.evidence }
         let data = try JSONSerialization.data(withJSONObject: record, options: [.prettyPrinted, .sortedKeys])
         try data.write(to: output.appendingPathComponent("report.json"), options: .atomic)
     }
@@ -998,23 +1362,28 @@ private struct NativeDragReview {
     @MainActor
     static func main() async {
         guard CommandLine.arguments.count == 2
-            || (CommandLine.arguments.count == 3 && CommandLine.arguments[2] == "--control") else {
-            FileHandle.standardError.write(Data("Usage: NativeDragReview <isolated review directory> [--control]\n".utf8))
+            || (CommandLine.arguments.count == 3 && ["--control", "--keyboard-control"].contains(CommandLine.arguments[2])) else {
+            FileHandle.standardError.write(Data("Usage: NativeDragReview <isolated review directory> [--control | --keyboard-control]\n".utf8))
             exit(2)
         }
-        let target: DragReviewTarget = CommandLine.arguments.count == 3 ? .control : .production
+        let target: DragReviewTarget = CommandLine.arguments.count == 2 ? .production
+            : (CommandLine.arguments[2] == "--keyboard-control" ? .keyboardControl : .control)
         let directory = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
             .standardizedFileURL.resolvingSymlinksInPath()
         var aggregate: [String: Any] = [
-            "schema": 2, "status": "not-run", "expectedThemes": DragReviewTheme.allCases.map(\.rawValue),
+            "schema": 2, "status": "not-run", "expectedThemes": target.themes.map(\.rawValue),
             "allThemesCaptured": false, "gestureOutcomesVerified": false,
             "outlineVisualReviewRequired": true, "outlineBehaviorVerified": false,
             "permissionRequested": false,
             "scope": "The same real Finder drag sequence in three fixed themes; visual outline review is separate."
         ]
         aggregate["targetKind"] = target == .production ? "production" : "standard-appkit-control"
-        if target == .control {
+        aggregate["inputDriver"] = target.inputDriver
+        if target != .production {
             aggregate["scope"] = "The same Finder input into a standard AppKit reference destination. Fixture labels are not themes. This is a diagnostic control, not production verification."
+        }
+        if target == .keyboardControl {
+            aggregate["scope"] = "One Orchard standard AppKit reference destination; public XCTest Escape and observer-owned Finder mouse. No production or physical-keyboard verification claim."
         }
         do {
             guard directory.lastPathComponent == "lemulip-native-ui" else {
@@ -1039,7 +1408,7 @@ private struct NativeDragReview {
             try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: false)
             var reports: [[String: Any]] = []
             var stopReason: String?
-            for theme in DragReviewTheme.allCases {
+            for theme in target.themes {
                 if let stopReason {
                     reports.append(["theme": theme.rawValue, "status": "not-run", "reason": stopReason])
                     continue
@@ -1075,18 +1444,19 @@ private struct NativeDragReview {
                 var summary: [String: Any] = ["theme": theme.rawValue,
                     "status": review.record["status"] as? String ?? "failed", "reportRetained": reportRetained]
                 if reportRetained { summary["report"] = theme.rawValue + "/report.json" }
-                for key in ["reason", "reportError", "gestureOutcomesVerified", "cleanup", "displayPreferencesAtStart"] {
+                for key in ["reason", "reportError", "gestureOutcomesVerified", "cleanup", "displayPreferencesAtStart", "keyboardDriverStopConfirmed"] {
                     if let value = review.record[key] { summary[key] = value }
                 }
                 reports.append(summary)
                 for key in ["sourceCommit", "sourceTree", "architecture", "stagedGUI_SHA256",
                             "compiledTestSourceSHA256", "nativeDragReviewSourceSHA256", "controlGUI_SHA256",
-                            "nativeDragControlSourceSHA256"] {
+                            "nativeDragControlSourceSHA256", "nativeDragKeyboardTestsSourceSHA256", "keyboardRunnerInfoSHA256",
+                            "keyboardRunnerExecutableSHA256"] {
                     if aggregate[key] == nil, let value = review.record[key] { aggregate[key] = value }
                 }
             }
             let statuses = reports.compactMap { $0["status"] as? String }
-            let captured = statuses.count == DragReviewTheme.allCases.count && statuses.allSatisfy { $0 == "captured" }
+            let captured = statuses.count == target.themes.count && statuses.allSatisfy { $0 == "captured" }
             aggregate["themes"] = reports
             aggregate["allThemesCaptured"] = captured
             aggregate["gestureOutcomesVerified"] = captured

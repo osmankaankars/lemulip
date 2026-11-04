@@ -112,7 +112,7 @@ does not make a failed native gate pass. Cancelled or unbuilt runs do not start 
 
 A separate macOS diagnostic also runs the fixed Finder observer when its source
 or fixture staging changes. It records `diagnosticOnly: true` and
-`xctestExecuted: false`, with separate artifacts. This provides earlier observer
+`nativeAcceptanceXCTestExecuted: false`, with separate artifacts. This provides earlier observer
 evidence on a fresh host; the required complete native suite and its post-suite
 observer still run on both architectures. Existing authorization can differ
 between the two environments and remains part of each report.
@@ -130,6 +130,25 @@ production observation starts only after every control cleanup is confirmed.
 The diagnostic branch runs this comparison without replacing the required native
 gate. Comparing these targets can distinguish a product-specific result from a
 shared automation result; it does not certify physical keyboard behavior.
+
+After both three-theme observations have confirmed cleanup, a separate
+`--keyboard-control` comparison may run against the same standard AppKit target
+for Orchard only. It uses a separately built XCTest runner and one public
+`XCUIApplication.typeKey(.escape, modifierFlags: [])` call. This runner is not
+part of the 58 production acceptance tests. Its nonce-bound, expiring request
+requires the exact control app path and PID, that app in the foreground, the
+observer's held mouse button, clear modifiers and Escape released. The driver
+does not explicitly launch or activate the target. Public XCTest may still
+perform its own activation or idle waits; passive application-activity receipts
+and actual key events must be inspected before interpreting the outcome.
+The comparison omits the CG Escape dwell and one-point motion, retains the
+existing cancellation assertion and fresh accepted drop, and records separate
+`NativeDragKeyboardEvidence`, runner/source hashes and protocol logs. Successful
+keyboard injection alone does not satisfy cancellation. READY, request and
+completion waits are bounded within the observer's theme deadline. Cleanup
+stops only its own driver process and exact identified runner before proceeding;
+an unconfirmed stop prevents further optional input. A blocked or failed driver
+does not establish a product defect or physical-keyboard behavior.
 
 Compilation, executed XCTest results, screenshots and any separate live-drag
 report must be inspected together for the candidate under review. Source tests
