@@ -1043,13 +1043,27 @@ private final class DragReview {
         guard let inputSource else {
             throw DragReviewIssue.blocked("Could not create the shared HID event source")
         }
+        let previousIntervalFilter = inputSource.getLocalEventsFilterDuringSuppressionState(.eventSuppressionStateSuppressionInterval)
+        let previousDragFilter = inputSource.getLocalEventsFilterDuringSuppressionState(.eventSuppressionStateRemoteMouseDrag)
+        // Keep keyboard input enabled during both kinds of synthetic-input
+        // suppression. This source-specific comparison does not retarget keys.
+        inputSource.setLocalEventsFilterDuringSuppressionState(previousIntervalFilter.union(.permitLocalKeyboardEvents),
+                                                               state: .eventSuppressionStateSuppressionInterval)
+        inputSource.setLocalEventsFilterDuringSuppressionState(previousDragFilter.union(.permitLocalKeyboardEvents),
+                                                               state: .eventSuppressionStateRemoteMouseDrag)
+        let intervalFilter = inputSource.getLocalEventsFilterDuringSuppressionState(.eventSuppressionStateSuppressionInterval)
+        let dragFilter = inputSource.getLocalEventsFilterDuringSuppressionState(.eventSuppressionStateRemoteMouseDrag)
         record["inputSource"] = [
-            "kind": "shared-hid-source-comparison", "sourceStateID": inputSource.sourceStateID.rawValue,
+            "kind": "shared-hid-keyboard-filter-comparison", "sourceStateID": inputSource.sourceStateID.rawValue,
             "localEventsSuppressionInterval": inputSource.localEventsSuppressionInterval,
-            "suppressionIntervalFilter": inputSource.getLocalEventsFilterDuringSuppressionState(.eventSuppressionStateSuppressionInterval).rawValue,
-            "remoteMouseDragFilter": inputSource.getLocalEventsFilterDuringSuppressionState(.eventSuppressionStateRemoteMouseDrag).rawValue,
-            "scope": "One retained source for all observer events; default suppression settings are unchanged."
+            "previousSuppressionIntervalFilter": previousIntervalFilter.rawValue,
+            "previousRemoteMouseDragFilter": previousDragFilter.rawValue,
+            "suppressionIntervalFilter": intervalFilter.rawValue,
+            "remoteMouseDragFilter": dragFilter.rawValue,
+            "scope": "Shared HID source with keyboard pass-through; global key routing, suppression interval and other filter bits are unchanged."
         ]
+        try require(intervalFilter.contains(.permitLocalKeyboardEvents) && dragFilter.contains(.permitLocalKeyboardEvents),
+                    "The observer source did not retain keyboard pass-through")
         try require(NSRunningApplication.runningApplications(withBundleIdentifier: identifier).isEmpty,
                     "The isolated review application must be stopped before the standalone probe")
         if target == .keyboardControl {
