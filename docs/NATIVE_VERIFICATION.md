@@ -64,6 +64,12 @@ the exact application and fixture windows must still be found before proceeding.
 Only those two verified windows are raised, with the fixture window above the
 drop target. A setup image, geometry and per-point PID/status records are retained
 before hit checks; every pointer target must still belong to its expected process.
+Escape evidence retains the foreground application and actual mouse-button state
+before and after key posting and release. At the existing cancellation deadline,
+one AX traversal records the expected and observed fixture rows, duplicate Remove
+matches and selection-count labels. Its result is fixed before the post-Escape
+image is captured, then checked with the same cancellation requirement, so a
+failed assertion retains the state that caused it without extending its wait.
 It checks existing Accessibility, event-posting and screen-capture
 authorization without requesting or changing permissions. A `blocked` report
 means that observation is unavailable. A `captured` report proves its recorded

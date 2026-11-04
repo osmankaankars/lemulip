@@ -252,19 +252,57 @@ private final class DragReview {
     }
 
     private func workspaceContains(_ expected: Set<String>) throws -> Bool {
+        try workspaceObservation(expected).matches
+    }
+
+    private func workspaceObservation(_ expected: Set<String>) throws -> (matches: Bool, evidence: [String: Any]) {
         let list = try appNodes()
-        let rows = try list.filter { try text($0, kAXRoleAttribute) == kAXButtonRole }
-        var observed: Set<String> = []
-        for name in inputNames {
-            let matches = try rows.filter { try names($0).contains("Remove " + name) }
-            if matches.count > 1 { return false }
-            if matches.count == 1 { observed.insert(name) }
+        var removeButtonCounts = Dictionary(uniqueKeysWithValues: inputNames.map { ($0, 0) })
+        let expectedCountLabel = "\(expected.count) Selected"
+        var expectedCountMatches = 0
+        var selectedCountLabels: [String] = []
+        for node in list {
+            let role = try text(node, kAXRoleAttribute)
+            guard role == kAXButtonRole || role == kAXStaticTextRole else { continue }
+            let labels = try names(node)
+            if role == kAXButtonRole {
+                for name in inputNames where labels.contains("Remove " + name) {
+                    removeButtonCounts[name, default: 0] += 1
+                }
+            } else {
+                if labels.contains(expectedCountLabel) { expectedCountMatches += 1 }
+                selectedCountLabels += labels.filter {
+                    $0.range(of: #"^[0-9]+ Selected$"#, options: .regularExpression) != nil
+                }.sorted()
+            }
         }
-        let count = try list.filter {
-            guard try text($0, kAXRoleAttribute) == kAXStaticTextRole else { return false }
-            return try names($0).contains("\(expected.count) Selected")
+        let observed = Set(removeButtonCounts.filter { $0.value > 0 }.map { $0.key })
+        let matches = removeButtonCounts.values.allSatisfy { $0 <= 1 }
+            && observed == expected && expectedCountMatches == 1
+        return (matches, [
+            "matchesExpectedWorkspace": matches, "expectedFilenames": expected.sorted(),
+            "observedFilenames": observed.sorted(), "fixtureRemoveButtonCounts": removeButtonCounts,
+            "expectedSelectedCountLabel": expectedCountLabel, "expectedSelectedCountMatches": expectedCountMatches,
+            "selectedCountLabels": selectedCountLabels.sorted(),
+            "time": ISO8601DateFormatter().string(from: Date())
+        ])
+    }
+
+    private func recordEscapeInputState(_ phase: String) {
+        let foreground = NSWorkspace.shared.frontmostApplication
+        var state: [String: Any] = [
+            "phase": phase, "time": ISO8601DateFormatter().string(from: Date()),
+            "mouseDownSent": mouseDown,
+            "leftButtonReportedDown": CGEventSource.buttonState(.combinedSessionState, button: .left),
+            "foregroundPID": NSNull(), "foregroundBundleIdentifier": NSNull()
+        ]
+        if let foreground {
+            state["foregroundPID"] = Int(foreground.processIdentifier)
+            if let bundleIdentifier = foreground.bundleIdentifier { state["foregroundBundleIdentifier"] = bundleIdentifier }
         }
-        return observed == expected && count.count == 1
+        var states = record["escapeInputStates"] as? [[String: Any]] ?? []
+        states.append(state)
+        record["escapeInputStates"] = states
     }
 
     private func requireHit(_ point: CGPoint, owner: pid_t, stage: String) throws {
@@ -513,13 +551,27 @@ private final class DragReview {
         try await capture("02-leave-file-area")
         try await moveHeld(to: enter)
         try await capture("03-reenter-top-padding")
+        recordEscapeInputState("before-key-post")
         try key(53) // Escape while the same drag is still held.
+        recordEscapeInputState("after-key-post")
         try await pause(0.15)
         try mouse(.leftMouseUp, at: enter)
+        recordEscapeInputState("after-release")
         try await pause(0.7)
-        try require(try workspaceContains([existing.lastPathComponent]), "Escape did not cancel the actual Finder drag")
+        recordEscapeInputState("after-settle")
+        // Freeze the original cancellation check before the capture adds any delay.
+        let cancellation = try workspaceObservation([existing.lastPathComponent])
+        record["escapeCancellation"] = cancellation.evidence
+        do {
+            try await capture("04-after-escape")
+            record["escapeCancellationCapture"] = ["stage": "04-after-escape", "status": "captured"]
+        } catch {
+            record["escapeCancellationCapture"] = ["stage": "04-after-escape", "status": "failed",
+                                                    "reason": String(describing: error)]
+            throw error
+        }
+        try require(cancellation.matches, "Escape did not cancel the actual Finder drag")
         try verifyOriginals()
-        try await capture("04-after-escape")
 
         let secondSource = try await sourcePoint(single, stage: "drop-source")
         try requireHit(enter, owner: app.processIdentifier, stage: "drop-entry")
