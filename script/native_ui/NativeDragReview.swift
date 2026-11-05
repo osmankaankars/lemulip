@@ -7,7 +7,7 @@ import Foundation
 // A separate, explicitly interactive evidence probe. ReadOnlyAXSnapshot stays
 // read-only. This executable never requests or changes any macOS permission.
 // Usage: NativeDragReview <the prepare_native_ui.py review directory> [--control | --keyboard-control]
-private enum DragReviewIssue: Error, CustomStringConvertible {
+enum DragReviewIssue: Error, CustomStringConvertible {
     case blocked(String)
     case failed(String)
     var description: String {
@@ -21,11 +21,11 @@ private struct AXReadFailure: Error, CustomStringConvertible {
     var description: String { "AX read failed for \(attribute): \(status)" }
 }
 
-private enum DragReviewTheme: String, CaseIterable {
+enum DragReviewTheme: String, CaseIterable {
     case orchard, pistachio, lemonade
 }
 
-private enum DragReviewTarget {
+enum DragReviewTarget {
     case production, control, keyboardControl
 
     var identifier: String {
@@ -45,6 +45,19 @@ private enum DragReviewTarget {
     }
     var themes: [DragReviewTheme] { self == .keyboardControl ? [.orchard] : DragReviewTheme.allCases }
     var inputDriver: String { self == .keyboardControl ? "XCTest" : "CGEvent" }
+}
+
+enum SameHostEscapeInput: String {
+    case automatic, external
+}
+
+struct SameHostDragOptions {
+    var escapeInput: SameHostEscapeInput = .automatic
+    var leadInSeconds: Double = 0
+    var dwellSeconds: Double = 0.15
+    var externalDownTimeoutSeconds: Double = 12
+    var externalUpTimeoutSeconds: Double = 4
+    var onPrompt: (@MainActor (String) -> Void)? = nil
 }
 
 // Owns only the prebuilt, fixed one-test keyboard runner. This helper never
@@ -330,8 +343,9 @@ private final class KeyboardControlDriver {
 }
 
 @MainActor
-private final class DragReview {
+final class DragReview {
     private let target: DragReviewTarget
+    private let sameHost: SameHostDragOptions?
     private var identifier: String { target.identifier }
     private let directory: URL
     private let theme: DragReviewTheme
@@ -350,6 +364,8 @@ private final class DragReview {
     private var inputNames: Set<String> = []
     private var mouseDown = false
     private var escapeKeyDown = false
+    private var syntheticEscapePosts = 0
+    private var externalEscapePollCount = 0
     private var pointer = CGPoint.zero
     private var events: [[String: Any]] = []
     private var mouseEventRecords: [[String: Any]] = []
@@ -363,10 +379,12 @@ private final class DragReview {
         "scope": "Real Finder drag; held entry, exit, re-entry, Escape and drop frames. Visual review is separate."
     ]
 
-    init(directory: URL, theme: DragReviewTheme, target: DragReviewTarget) {
+    init(directory: URL, theme: DragReviewTheme, target: DragReviewTarget,
+         sameHost: SameHostDragOptions? = nil) {
         self.directory = directory.standardizedFileURL.resolvingSymlinksInPath()
         self.theme = theme
         self.target = target
+        self.sameHost = sameHost
         record["theme"] = theme.rawValue
         record["targetKind"] = target == .production ? "production" : "standard-appkit-control"
         record["inputDriver"] = target.inputDriver
@@ -375,6 +393,59 @@ private final class DragReview {
         }
         if target == .keyboardControl {
             record["scope"] = "One Orchard reference destination using the public XCTest keyboard API for Escape; observer-owned Finder mouse input. No production or physical-keyboard verification claim."
+        }
+        if let sameHost {
+            record["sameHost"] = [
+                "imagesCaptured": false, "screenCaptureRequired": false,
+                "captureKind": "target-ax-and-input-state",
+                "keyboardObservation": "key-53-state-only",
+                "sharedFinderPreparation": "paired-Command-1-before-drag",
+                "hardwareProvenanceVerified": false
+            ]
+            record["sameHostEscape"] = [
+                "mode": sameHost.escapeInput.rawValue, "status": "not-started",
+                "leadInSeconds": sameHost.leadInSeconds.isFinite ? sameHost.leadInSeconds as Any : NSNull(),
+                "dwellSeconds": sameHost.dwellSeconds.isFinite ? sameHost.dwellSeconds as Any : NSNull(),
+                "externalDownTimeoutSeconds": sameHost.externalDownTimeoutSeconds.isFinite
+                    ? sameHost.externalDownTimeoutSeconds as Any : NSNull(),
+                "externalUpTimeoutSeconds": sameHost.externalUpTimeoutSeconds.isFinite
+                    ? sameHost.externalUpTimeoutSeconds as Any : NSNull(),
+                "motionDelayTargetSeconds": 0.075, "pollIntervalSeconds": 0.01,
+                "syntheticEscapePosts": 0, "hardwareProvenanceVerified": false,
+                "stateObservationIsDeliveryAcknowledgement": false,
+                "timingSource": "ProcessInfo.systemUptime",
+                "downWaitSeconds": NSNull(), "heldSeconds": NSNull(), "motionDelaySeconds": NSNull()
+            ]
+        }
+    }
+
+    private func updateSameHostEscape(_ fields: [String: Any]) {
+        guard sameHost != nil else { return }
+        var evidence = record["sameHostEscape"] as? [String: Any] ?? [:]
+        evidence.merge(fields) { _, new in new }
+        evidence["syntheticEscapePosts"] = syntheticEscapePosts
+        record["sameHostEscape"] = evidence
+    }
+
+    private func sameHostBlocked(_ status: String, _ message: String) -> DragReviewIssue {
+        updateSameHostEscape(["status": status, "reason": message])
+        if sameHost != nil {
+            record["status"] = "blocked"
+            record["reason"] = message
+        }
+        return .blocked(message)
+    }
+
+    private func validateSameHostOptions() throws {
+        guard let sameHost else { return }
+        guard target != .keyboardControl,
+              sameHost.leadInSeconds.isFinite, (0...12).contains(sameHost.leadInSeconds),
+              sameHost.dwellSeconds.isFinite, (0.15...4).contains(sameHost.dwellSeconds),
+              sameHost.externalDownTimeoutSeconds.isFinite,
+              sameHost.externalDownTimeoutSeconds > 0, sameHost.externalDownTimeoutSeconds <= 12,
+              sameHost.externalUpTimeoutSeconds.isFinite,
+              sameHost.externalUpTimeoutSeconds > 0, sameHost.externalUpTimeoutSeconds <= 4 else {
+            throw sameHostBlocked("invalid-configuration", "The same-host Escape options exceed their fixed bounds")
         }
     }
 
@@ -787,6 +858,13 @@ private final class DragReview {
         try require(ProcessInfo.processInfo.systemUptime < expiresAt, "The bounded native drag review timed out")
         try assertTargets()
         try require(CGDisplayBounds(CGMainDisplayID()).contains(point), "Refusing a pointer event outside the observed display")
+        if sameHost != nil, type == .leftMouseDown {
+            guard !mouseDown,
+                  !CGEventSource.buttonState(.combinedSessionState, button: .left),
+                  !CGEventSource.buttonState(.hidSystemState, button: .left) else {
+                throw sameHostBlocked("mouse-already-down", "Refusing to take ownership of an already-held mouse button")
+            }
+        }
         // Reserve the final record for releasing our own button during cleanup.
         try require(mouseEventRecords.count < 255, "The bounded pointer event record limit was reached")
         guard let event = CGEvent(mouseEventSource: inputSource, mouseType: type, mouseCursorPosition: point, mouseButton: .left) else {
@@ -824,7 +902,18 @@ private final class DragReview {
         record["mouseEvents"] = mouseEventRecords
     }
 
+    private func postKeyEvent(_ event: CGEvent, code: CGKeyCode) {
+        event.post(tap: .cghidEventTap)
+        if code == 53 {
+            syntheticEscapePosts += 1
+            updateSameHostEscape([:])
+        }
+    }
+
     private func key(_ code: CGKeyCode, flags: CGEventFlags = []) throws {
+        if code == 53, sameHost?.escapeInput == .external {
+            throw sameHostBlocked("unexpected-synthetic-escape", "External Escape does not authorize a scripted Escape event")
+        }
         try assertTargets()
         let front = NSWorkspace.shared.frontmostApplication?.processIdentifier
         try require(front == finderApp?.processIdentifier || front == reviewApp?.processIdentifier,
@@ -839,13 +928,22 @@ private final class DragReview {
         }
         down.flags = flags
         up.flags = []
-        down.post(tap: .cghidEventTap)
-        defer { up.post(tap: .cghidEventTap) }
+        postKeyEvent(down, code: code)
+        defer { postKeyEvent(up, code: code) }
         if code == 18 { recordFinderViewShortcutState("after-key-down-before-paired-up") }
     }
 
     private func escapeWithDwell(movingTo motionPoint: CGPoint) async throws {
-        let dwell = 0.15
+        if sameHost?.escapeInput == .external {
+            throw sameHostBlocked("unexpected-synthetic-escape", "External Escape cannot use the automatic key pair")
+        }
+        let dwell = sameHost?.dwellSeconds ?? 0.15
+        let leadInStarted = ProcessInfo.processInfo.systemUptime
+        if let sameHost {
+            updateSameHostEscape(["status": "automatic-lead-in",
+                                  "leadInStartedSystemUptime": leadInStarted])
+            if sameHost.leadInSeconds > 0 { try await pause(sameHost.leadInSeconds) }
+        }
         try assertTargets()
         let front = NSWorkspace.shared.frontmostApplication?.processIdentifier
         try require(front == finderApp?.processIdentifier || front == reviewApp?.processIdentifier,
@@ -876,16 +974,23 @@ private final class DragReview {
             "continuedMotionDelta": ["x": motionPoint.x - pointer.x, "y": motionPoint.y - pointer.y],
             "scope": "Controlled continued-motion observer experiment; not a product fix or an Apple requirement."
         ]
-        down.post(tap: .cghidEventTap)
+        let downPosted = ProcessInfo.processInfo.systemUptime
+        postKeyEvent(down, code: 53)
         escapeKeyDown = true
+        updateSameHostEscape(["status": "automatic-key-held", "downPostedSystemUptime": downPosted,
+                              "downWaitSeconds": downPosted - leadInStarted])
         defer {
             // Release only the exact key paired with our guarded down, even if
             // the bounded pause fails. This paired release sends no new key-down.
-            up.post(tap: .cghidEventTap)
+            let upPosted = ProcessInfo.processInfo.systemUptime
+            postKeyEvent(up, code: 53)
             escapeKeyDown = false
+            updateSameHostEscape(["upPostedSystemUptime": upPosted, "heldSeconds": upPosted - downPosted])
             recordEscapeInputState("after-key-up")
         }
-        try await pause(dwell / 2)
+        let motionDelay = sameHost == nil ? dwell / 2 : 0.075
+        try await pause(sameHost == nil ? motionDelay
+                        : max(0, downPosted + motionDelay - ProcessInfo.processInfo.systemUptime))
         recordEscapeInputState("before-held-motion")
         let motionFront = NSWorkspace.shared.frontmostApplication?.processIdentifier
         try require(motionFront == finderApp?.processIdentifier || motionFront == reviewApp?.processIdentifier,
@@ -893,11 +998,159 @@ private final class DragReview {
         try require(mouseDown && CGEventSource.buttonState(.combinedSessionState, button: .left)
                     && escapeKeyDown && CGEventSource.keyState(.combinedSessionState, key: 53),
                     "The continued drag requires both this probe's mouse button and Escape to remain down")
+        let motionStarted = ProcessInfo.processInfo.systemUptime
         try mouse(.leftMouseDragged, at: motionPoint)
+        updateSameHostEscape(["motionStartedSystemUptime": motionStarted,
+                              "motionDelaySeconds": motionStarted - downPosted])
         recordEscapeInputState("after-held-motion")
-        try await pause(dwell / 2)
+        try await pause(sameHost == nil ? dwell / 2
+                        : max(0, downPosted + dwell - ProcessInfo.processInfo.systemUptime))
         // System input state is an observation, not an application delivery ACK.
         recordEscapeInputState("before-key-up")
+        updateSameHostEscape(["status": "posted-down-and-up"])
+    }
+
+    private func externalEscapeState() -> (hid: Bool, combined: Bool) {
+        let state = (hid: CGEventSource.keyState(.hidSystemState, key: 53),
+                     combined: CGEventSource.keyState(.combinedSessionState, key: 53))
+        externalEscapePollCount += 1
+        updateSameHostEscape(["pollCount": externalEscapePollCount,
+                              "lastHIDEscapeDown": state.hid, "lastCombinedEscapeDown": state.combined])
+        return state
+    }
+
+    private func validateExternalEscapeContext() throws {
+        if Task.isCancelled {
+            throw sameHostBlocked("interrupted", "The external Escape observation was interrupted")
+        }
+        guard ProcessInfo.processInfo.systemUptime < expiresAt else {
+            throw sameHostBlocked("run-deadline-exceeded", "The bounded external Escape observation expired")
+        }
+        do { try assertTargets() }
+        catch {
+            throw sameHostBlocked("invalid-target", "An external Escape target is no longer valid: \(error)")
+        }
+        let front = NSWorkspace.shared.frontmostApplication?.processIdentifier
+        guard front == finderApp?.processIdentifier || front == reviewApp?.processIdentifier else {
+            throw sameHostBlocked("invalid-foreground", "Another application became foreground during external Escape")
+        }
+        guard mouseDown,
+              CGEventSource.buttonState(.combinedSessionState, button: .left),
+              CGEventSource.buttonState(.hidSystemState, button: .left) else {
+            throw sameHostBlocked("invalid-owned-mouse", "External Escape requires the observer's still-held mouse button")
+        }
+        guard CGEventSource.flagsState(.combinedSessionState).intersection(relevantModifiers).isEmpty,
+              CGEventSource.flagsState(.hidSystemState).intersection(relevantModifiers).isEmpty else {
+            throw sameHostBlocked("invalid-modifiers", "External Escape requires Command, Shift, Option and Control to remain released")
+        }
+        guard CGPreflightPostEventAccess() else {
+            throw sameHostBlocked("post-access-unavailable", "Existing permission to release the owned mouse is unavailable")
+        }
+    }
+
+    private func pauseForExternalEscapePoll() async throws {
+        do { try await Task.sleep(nanoseconds: 10_000_000) }
+        catch {
+            throw sameHostBlocked("interrupted", "The external Escape observation was interrupted")
+        }
+    }
+
+    private func holdExternalEscape(until deadline: Double, earlyReleaseStatus: String) async throws {
+        while true {
+            try validateExternalEscapeContext()
+            let state = externalEscapeState()
+            guard state.hid && state.combined else {
+                throw sameHostBlocked(earlyReleaseStatus, "Escape was released before the requested held-key interval finished")
+            }
+            if ProcessInfo.processInfo.systemUptime >= deadline { return }
+            try await pauseForExternalEscapePoll()
+        }
+    }
+
+    private func escapeWithExternalInput(movingTo motionPoint: CGPoint) async throws {
+        guard let sameHost, sameHost.escapeInput == .external else {
+            throw sameHostBlocked("invalid-configuration", "The external Escape mode is unavailable")
+        }
+        try validateExternalEscapeContext()
+        guard motionPoint.x == pointer.x + 1 && motionPoint.y == pointer.y else {
+            throw sameHostBlocked("invalid-motion-geometry", "External Escape must retain the same one-point target motion")
+        }
+        let initialState = externalEscapeState()
+        guard !initialState.hid && !initialState.combined else {
+            throw sameHostBlocked("escape-already-down", "Release Escape before the external-input prompt")
+        }
+        record["escapeKeyProtocol"] = [
+            "kind": "external-key-state-observation", "keyCode": 53,
+            "inputDriver": "user-requested-external-Escape", "pollIntervalSeconds": 0.01,
+            "continuedMotionPoint": ["x": motionPoint.x, "y": motionPoint.y],
+            "continuedMotionDelta": ["x": motionPoint.x - pointer.x, "y": motionPoint.y - pointer.y],
+            "hardwareProvenanceVerified": false, "stateObservationIsDeliveryAcknowledgement": false,
+            "scope": "Only key 53 state is polled. No event tap, text collection, scripted Escape or owned physical key-up."
+        ]
+        let prompted = ProcessInfo.processInfo.systemUptime
+        let downDeadline = min(expiresAt, prompted + sameHost.externalDownTimeoutSeconds)
+        updateSameHostEscape(["status": "waiting-down", "promptSystemUptime": prompted,
+                              "downDeadlineSystemUptime": downDeadline])
+        sameHost.onPrompt?("press-escape")
+        var observedDown: Double?
+        while observedDown == nil {
+            try validateExternalEscapeContext()
+            let now = ProcessInfo.processInfo.systemUptime
+            guard now < downDeadline else {
+                throw sameHostBlocked("timed-out-waiting-down", "No complete Escape-down state was observed before the bounded prompt expired")
+            }
+            let state = externalEscapeState()
+            if state.hid && state.combined {
+                observedDown = ProcessInfo.processInfo.systemUptime
+            } else {
+                try await pauseForExternalEscapePoll()
+            }
+        }
+        guard let down = observedDown else {
+            throw sameHostBlocked("missing-down-observation", "The external Escape-down observation is unavailable")
+        }
+        updateSameHostEscape(["status": "external-key-held", "downObservedSystemUptime": down,
+                              "downWaitSeconds": down - prompted])
+        recordEscapeInputState("external-key-down-observed")
+        try await holdExternalEscape(until: down + 0.075, earlyReleaseStatus: "released-before-motion")
+        recordEscapeInputState("before-held-motion")
+        let motionStarted = ProcessInfo.processInfo.systemUptime
+        do { try mouse(.leftMouseDragged, at: motionPoint) }
+        catch {
+            throw sameHostBlocked("motion-failed", "The bounded external Escape motion could not be completed: \(error)")
+        }
+        updateSameHostEscape(["motionStartedSystemUptime": motionStarted,
+                              "motionDelaySeconds": motionStarted - down])
+        recordEscapeInputState("after-held-motion")
+        try await holdExternalEscape(until: ProcessInfo.processInfo.systemUptime + 0.075,
+                                     earlyReleaseStatus: "released-before-release-prompt")
+        let releasePrompted = ProcessInfo.processInfo.systemUptime
+        // A successful observation must remain inside the automatic replay's
+        // four-second dwell bound as well as the configured key-up wait.
+        let upDeadline = min(expiresAt, min(releasePrompted + sameHost.externalUpTimeoutSeconds, down + 4))
+        updateSameHostEscape(["status": "waiting-up", "releasePromptSystemUptime": releasePrompted,
+                              "upDeadlineSystemUptime": upDeadline])
+        sameHost.onPrompt?("release-escape")
+        while true {
+            try validateExternalEscapeContext()
+            let now = ProcessInfo.processInfo.systemUptime
+            guard now < upDeadline else {
+                throw sameHostBlocked("timed-out-waiting-up", "Escape was not observed released within the bounded replayable interval")
+            }
+            let state = externalEscapeState()
+            if !state.hid && !state.combined {
+                let up = ProcessInfo.processInfo.systemUptime
+                let held = up - down
+                guard (0.15...4).contains(held) else {
+                    throw sameHostBlocked("invalid-held-duration", "The observed Escape interval cannot be replayed inside the fixed bounds")
+                }
+                updateSameHostEscape(["status": "observed-external-pair", "upObservedSystemUptime": up,
+                                      "heldSeconds": held])
+                recordEscapeInputState("external-key-up-observed")
+                return
+            }
+            try await pauseForExternalEscapePoll()
+        }
     }
 
     private func escapeWithKeyboardDriver() async throws {
@@ -987,6 +1240,33 @@ private final class DragReview {
         let started = ProcessInfo.processInfo.systemUptime
         guard let output else { throw DragReviewIssue.failed("Evidence destination is not ready") }
         try assertTargets()
+        if sameHost != nil {
+            let list = try appNodes()
+            let labels = try list.compactMap { node -> String? in
+                let role = try text(node, kAXRoleAttribute)
+                guard role == kAXButtonRole || role == kAXStaticTextRole else { return nil }
+                return try names(node).sorted().joined(separator: " | ")
+            }
+            let event: [String: Any] = [
+                "stage": name, "captureKind": "target-ax-and-input-state",
+                "imagesCaptured": false, "screenCaptureRequired": false,
+                "pointer": ["x": pointer.x, "y": pointer.y], "mouseDownSent": mouseDown,
+                "leftButtonReportedDown": CGEventSource.buttonState(.combinedSessionState, button: .left),
+                "hidLeftButtonReportedDown": CGEventSource.buttonState(.hidSystemState, button: .left),
+                "escapeKeyReportedDown": CGEventSource.keyState(.combinedSessionState, key: 53),
+                "hidEscapeKeyReportedDown": CGEventSource.keyState(.hidSystemState, key: 53),
+                "displayPreferences": observedDisplayPreferences,
+                "captureStartedSystemUptime": started,
+                "captureCompletedSystemUptime": ProcessInfo.processInfo.systemUptime,
+                "time": ISO8601DateFormatter().string(from: Date()), "workspaceAXLabels": labels
+            ]
+            if setup { record["setupSnapshot"] = event }
+            else if diagnostic { diagnosticSnapshots.append(event) }
+            else { events.append(event) }
+            try JSONSerialization.data(withJSONObject: event, options: [.prettyPrinted, .sortedKeys])
+                .write(to: output.appendingPathComponent(name + ".json"), options: .atomic)
+            return
+        }
         let image = output.appendingPathComponent(name + ".png")
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
@@ -1033,9 +1313,11 @@ private final class DragReview {
     }
 
     func run() async throws {
+        try validateSameHostOptions()
+        sameHost?.onPrompt?("preparing")
         try validate()
-        let permissions = ["accessibility": AXIsProcessTrusted(), "postEvents": CGPreflightPostEventAccess(),
-                           "screenCapture": CGPreflightScreenCaptureAccess()]
+        var permissions = ["accessibility": AXIsProcessTrusted(), "postEvents": CGPreflightPostEventAccess()]
+        if sameHost == nil { permissions["screenCapture"] = CGPreflightScreenCaptureAccess() }
         record["preflight"] = permissions
         record["displayPreferencesAtStart"] = observedDisplayPreferences
         guard permissions.values.allSatisfy({ $0 }) else {
@@ -1164,6 +1446,7 @@ private final class DragReview {
         try requireHit(outside, owner: app.processIdentifier, stage: "cancel-outside")
         try requireHit(escapeMotionPoint, owner: app.processIdentifier, stage: "cancel-held-motion")
         try await capture("00-before-drag")
+        sameHost?.onPrompt?("dragging")
         try mouse(.leftMouseDown, at: source)
         try await pause(0.3)
         try await moveHeld(to: enter)
@@ -1174,9 +1457,11 @@ private final class DragReview {
         try await capture("03-reenter-top-padding")
         try recordEscapeObservation("before-key", expected: [existing.lastPathComponent])
         recordEscapeInputState(target == .keyboardControl ? "before-xctest-request" : "before-key-post")
-        if target == .keyboardControl { try await escapeWithKeyboardDriver() }
+        if sameHost?.escapeInput == .external { try await escapeWithExternalInput(movingTo: escapeMotionPoint) }
+        else if target == .keyboardControl { try await escapeWithKeyboardDriver() }
         else { try await escapeWithDwell(movingTo: escapeMotionPoint) } // Escape while the same drag is still held.
         recordEscapeInputState(target == .keyboardControl ? "after-xctest-end" : "after-key-post")
+        sameHost?.onPrompt?("settling")
         try await pause(0.15)
         let diagnosticStarted = ProcessInfo.processInfo.systemUptime
         recordEscapeInputState("before-held-observation")
@@ -1264,7 +1549,8 @@ private final class DragReview {
             if !keyboardStopped { errors.append("The keyboard driver did not stop; only our paired mouse release is allowed") }
         }
         if mouseDown {
-            if target != .keyboardControl, !CGEventSource.keyState(.combinedSessionState, key: 53),
+            if target != .keyboardControl, sameHost?.escapeInput != .external,
+               !CGEventSource.keyState(.combinedSessionState, key: 53),
                CGEventSource.flagsState(.combinedSessionState).intersection(relevantModifiers).isEmpty { try? key(53) }
             // Always release this probe's own held button, even if a target
             // has exited. Preserve any live modifiers instead of clearing them.
@@ -1372,7 +1658,24 @@ private final class DragReview {
                                                    "relevantFlags": flags.intersection(relevantModifiers).rawValue]
             if escapeDown { errors.append("Escape remains down after the keyboard driver stopped; no synthetic key-up was sent") }
             if !flags.intersection(relevantModifiers).isEmpty { errors.append("A modifier remains held after keyboard driver cleanup") }
+        } else if sameHost?.escapeInput == .external {
+            let escapeDown = CGEventSource.keyState(.combinedSessionState, key: 53)
+            let hidEscapeDown = CGEventSource.keyState(.hidSystemState, key: 53)
+            let flags = CGEventSource.flagsState(.combinedSessionState)
+            let hidFlags = CGEventSource.flagsState(.hidSystemState)
+            record["keyboardCleanupInputState"] = ["systemUptime": ProcessInfo.processInfo.systemUptime,
+                                                   "escapeKeyReportedDown": escapeDown,
+                                                   "hidEscapeKeyReportedDown": hidEscapeDown,
+                                                   "sessionFlags": flags.rawValue, "hidFlags": hidFlags.rawValue,
+                                                   "relevantFlags": flags.intersection(relevantModifiers).rawValue]
+            if escapeDown || hidEscapeDown {
+                errors.append("External Escape remains down; the observer did not send a key-up it does not own")
+            }
+            if !flags.intersection(relevantModifiers).isEmpty || !hidFlags.intersection(relevantModifiers).isEmpty {
+                errors.append("A modifier remains held after external Escape cleanup")
+            }
         }
+        updateSameHostEscape([:])
         record["stages"] = events
         record["diagnosticSnapshots"] = diagnosticSnapshots
         record["cleanup"] = ["completed": errors.isEmpty, "leftButtonReportedDown": leftButtonDown,
@@ -1390,6 +1693,7 @@ private final class DragReview {
     }
 }
 
+#if !SAME_HOST_REVIEW
 @main
 private struct NativeDragReview {
     @MainActor
@@ -1510,3 +1814,4 @@ private struct NativeDragReview {
         exit(aggregate["status"] as? String == "failed" ? 1 : 0)
     }
 }
+#endif

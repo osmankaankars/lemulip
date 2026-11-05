@@ -219,3 +219,41 @@ Synthetic-host failures are not being relabelled as successes. The replacement c
 ## Remaining Manual And Distribution Checks
 
 These automated cases do not replace listening to VoiceOver, auditioning optional sounds on speakers/headphones with system effects muted, continuous edge-autoscroll review, or authentic Retina captures. Complete those observations and verify the final full-engine universal archives before publishing the combined version. The promotional film remains last.
+
+## Same-Host Input Diagnostic Kit
+
+The isolated `codex/pr45-same-host-drag` workflow packages the exact C12 application
+(`d821d7343675e2850705d141ef9b3b93a6aee945`, tree
+`425baa28f00ec24551dd70c0cc874a75fa3be0c1`) with a D7-based native ARM64 helper.
+The helper has its own `app.lemulip.SameHostDragReview` identity and a native
+Mach-O main executable. Its signed resources contain the unchanged staged C12
+app, all four synthetic Orchard fixtures, the original staging provenance and a
+separate manifest for the helper commit, both Swift source hashes and every
+payload file. The kit needs no compiler or Python installation on the user's Mac.
+
+The same-host mode records target-app AX state and input state without taking
+screenshots or requiring Screen Recording. Accessibility and event-post access
+are checked in the executing helper; missing authorization is a blocked result,
+and the kit does not change TCC, quarantine or global preferences. A physical
+Escape instruction must not activate another window during the held gesture.
+The physical key must stay held until the release instruction; a completed
+physical trial supplies measured timing for an automatic replay with no further
+key input from the user.
+The existing native acceptance workflow and default diagnostic mode remain intact.
+
+Packaging verifies the distributed ZIP after native extraction, including hashes,
+executable modes, both bundle identities/signatures and ARM64 deployment metadata.
+It then checks a three-second C12 launch and an input-free helper UI launch.
+Separate CI execution checks accept an automatic baseline only when it reaches
+the cancellation observation (either captured or the exact existing Escape
+failure) with verified cleanup. The human-key timeout must remain blocked with
+zero synthetic Escape posts and verified cleanup. Startup/permission failures,
+generic failures and incomplete cleanup do not satisfy those checks. These are
+diagnostic execution receipts, not cancellation acceptance or physical-input
+proof. No release is published, no PR is merged, and C12 remains on HOLD.
+
+A separate CI-only executable exercises the external-key polling path with an
+explicitly synthetic Escape pair owned by the test stimulus. It must record two
+stimulus posts, zero observer Escape posts, an observed external pair and bounded
+cleanup. It is never included in the user kit, and its result is not physical-key
+evidence. The workflow rechecks the sealed package after these executions.
