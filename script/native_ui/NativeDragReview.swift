@@ -635,8 +635,10 @@ private final class DragReview {
                     "lastError": ["attribute": error.attribute, "status": error.status, "description": error.description]
                 ]
             } catch let error as AXReadFailure where retryFinderIconReadiness
-                && error.status == AXError.invalidUIElement.rawValue {
-                // Re-read only the initial Finder icon tree within the same deadline.
+                && (error.status == AXError.invalidUIElement.rawValue
+                    || (error.status == AXError.cannotComplete.rawValue && error.attribute == kAXChildrenAttribute)) {
+                // Only initial Finder icon discovery retries these reads;
+                // preserve its original deadline and exact-icon predicate.
                 finderIconRetryCount += 1
                 lastReadinessFailure = error.description
                 let failure: [String: Any] = ["attribute": error.attribute, "status": error.status,

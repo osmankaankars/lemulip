@@ -172,7 +172,38 @@ No manual or legacy raise fallback, focus correction, timing adjustment or
 permission change is introduced. R1 and R2 records are retained separately;
 R3 corrects the measurement concern and is not a retry to obtain a PASS.
 
-### R3 proof plan
+### R3 startup block and R4 bounded correction
+
+[R3 run 42118361099](https://github.com/osmankaankars/lemulip/actions/runs/42118361099)
+at commit `c71f006b2e39ec1e8b85f327017ba465d0d069e3`, tree
+`21cb78edb671ff039f2cddf11aae62f567ece2c4`, compiled all Intel binaries and passed
+all 50 portable checks. Its first Intel case then stopped before any drag at
+`startupPhase: finder-icons`, with `AX read failed for AXChildren: -25204`.
+The plain `NSWindow` had already become ready and accepted exactly `Existing`.
+There was one target-raise setup decision and no mouse-event or source-session
+record. Cleanup completed and the remaining three cases were not run.
+
+The exact call path is the initial Finder icon predicate, `finderNodes()` to
+`nodes(finderWindow, owner: finderPID)` to the `AXChildren` read. Every traversed
+node's owner is checked as Finder; the failing descendant is not recorded. The
+existing Finder readiness handler catches invalid elements, while only the
+separate initial-workspace handler catches cannot-complete on `AXChildren`.
+The observed error therefore escaped immediately. The classifier's
+`initial-workspace-missing` means its required `00-before-drag` snapshot is
+absent; the raw phase and error are more specific, and no initial selection
+failure or cancellation result should be inferred.
+
+Apple documents [cannot-complete during attribute reads](https://developer.apple.com/documentation/applicationservices/1462085-axuielementcopyattributevalue)
+as an accessibility messaging failure. That does not prove this instance was
+transient. R4 permits only this observed attribute/error combination in the
+existing Finder icon readiness handler, alongside its existing invalid-element
+case. The original eight-second deadline, 0.1-second pacing and recorded error
+list remain unchanged, and all four exact icons are still required. Persistent
+failure still stops the experiment. Command-1 and window raises are not
+repeated; global AX handling, messaging timeouts and held-drag assertions are
+unchanged. This is a pre-drag readiness correction, not a functional retry.
+
+### R4 proof plan
 
 The diagnostic starts from D10 commit
 `c4028f24af2af5693c8609dc71dc31a38276c6d1` in a clean, separate worktree and branch.
@@ -183,9 +214,10 @@ allowlist reuse, the new comparator/tests/workflow and this document. Product
 C13 candidate are outside the change scope.
 
 The local executor cannot execute AppKit. D10 supplies the original observed
-red signal, and R2 supplies the concrete measurement concern. The R3 proof plan
-is targeted portable validation followed by one fixed ARM64 and Intel native
-CI comparison, retaining every result. CI builds the pinned C12
+red signal, R2 supplies the concrete measurement concern, and R3 supplies the
+observed startup read error. The R4 proof plan is review of the narrow readiness
+change followed by one fixed ARM64 and Intel native CI comparison, retaining
+every result and any startup retries. CI builds the pinned C12
 product solely to prepare the existing stage; it sends no input to the product.
 The product baseline remains commit
 `d821d7343675e2850705d141ef9b3b93a6aee945`, tree
