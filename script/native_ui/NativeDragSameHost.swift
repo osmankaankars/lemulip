@@ -34,8 +34,95 @@ private enum SameHostHelperError: Error {
     case package, arguments, destination
 }
 
-private func kitRequire(_ condition: Bool) throws {
-    if !condition { throw SameHostHelperError.package }
+// Only these fixed codes and a bounded enumeration index leave the verifier.
+// Underlying errors, URLs, filenames and file contents are never exported.
+private enum PackageVerificationCode: String, Sendable {
+    case bundleIdentifier = "PV-B01", executableName = "PV-B02", executableURL = "PV-B03"
+    case architecture = "PV-B04", resourcesURL = "PV-B05", payloadDirectory = "PV-B06"
+    case reviewDirectory = "PV-P01", rootName = "PV-P02"
+    case manifestDigest = "PV-M01", manifestJSON = "PV-M02", schema = "PV-M03"
+    case diagnosticFlags = "PV-M04", applicationCommit = "PV-M05", applicationTree = "PV-M06"
+    case observerBase = "PV-M07", helperCommit = "PV-M08", helperTree = "PV-M09"
+    case observerHashFormat = "PV-M10", helperHashFormat = "PV-M11", guiHashFormat = "PV-M12"
+    case fileMap = "PV-M13", pathLength = "PV-M14", pathCharacters = "PV-M15"
+    case pathComponents = "PV-M16", fileHashFormat = "PV-M17"
+    case enumerator = "PV-E01", entryCount = "PV-E02", entryMetadata = "PV-E03"
+    case entrySymlink = "PV-E04", entryNormalization = "PV-E05", entryPrefix = "PV-E06"
+    case entryRegular = "PV-E07", entryListed = "PV-E08", entryDigest = "PV-E09"
+    case entrySizeAndHash = "PV-E10", entryDuplicate = "PV-E11", enumerationError = "PV-E12"
+    case exactInventory = "PV-E13"
+    case binaryHashLink = "PV-A01", provenanceListed = "PV-A02", appInfoDigest = "PV-A03"
+    case appInfoParse = "PV-A04", appInfoDictionary = "PV-A05", appIdentifier = "PV-A06"
+    case appExecutable = "PV-A07"
+    case provenanceJSON = "PV-V01", provenanceCommit = "PV-V02", provenanceTree = "PV-V03"
+    case provenanceHash = "PV-V04"
+    case fixtureCount = "PV-F01", fixtureCandidate = "PV-F02", fixtureName = "PV-F03"
+    case fixtureDigest = "PV-F04", fixtureRead = "PV-F05", fixtureContents = "PV-F06"
+    case unclassified = "PV-U00"
+
+    var stage: String {
+        switch rawValue.prefix(4) {
+        case "PV-B": return "bundle"
+        case "PV-P": return "payload"
+        case "PV-M": return "manifest"
+        case "PV-E": return "entries"
+        case "PV-A": return "application"
+        case "PV-V": return "provenance"
+        case "PV-F": return "fixtures"
+        default: return "verification"
+        }
+    }
+
+    var displayReason: String {
+        switch self {
+        case .entryNormalization: return "yol normalizasyonu"
+        case .entryPrefix: return "paket içi yol sınırı"
+        case .entrySymlink: return "sembolik bağlantı kontrolü"
+        case .entrySizeAndHash: return "dosya boyutu veya özeti"
+        case .exactInventory: return "dosya envanteri"
+        default:
+            switch stage {
+            case "bundle": return "yardımcı uygulama kimliği"
+            case "payload": return "paket dizini"
+            case "manifest": return "paket manifesti"
+            case "entries": return "paket dosyası kontrolü"
+            case "application": return "tanı uygulaması kimliği"
+            case "provenance": return "kaynak kimliği"
+            case "fixtures": return "örnek dosyalar"
+            default: return "doğrulama işlemi"
+            }
+        }
+    }
+}
+
+private struct PackageVerificationFailure: Error {
+    let code: PackageVerificationCode
+    let entryIndex: Int?
+
+    init(_ code: PackageVerificationCode, entryIndex: Int? = nil) {
+        self.code = code
+        self.entryIndex = entryIndex.flatMap { (0...(SameHostKit.maximumEntries + 1)).contains($0) ? $0 : nil }
+    }
+
+    var receipt: [String: Any] {
+        var result: [String: Any] = ["status": "FAIL", "stage": code.stage, "code": code.rawValue]
+        if let entryIndex { result["entryIndex"] = entryIndex }
+        return result
+    }
+}
+
+private func verificationOperation<T>(_ code: PackageVerificationCode, entryIndex: Int? = nil,
+                                       _ operation: () throws -> T) throws -> T {
+    do { return try operation() }
+    catch let failure as PackageVerificationFailure { throw failure }
+    catch { throw PackageVerificationFailure(code, entryIndex: entryIndex) }
+}
+
+private func kitRequire(_ condition: Bool, code: PackageVerificationCode? = nil, entryIndex: Int? = nil) throws {
+    if !condition {
+        if let code { throw PackageVerificationFailure(code, entryIndex: entryIndex) }
+        throw SameHostHelperError.package
+    }
 }
 
 private func exactBoolean(_ value: Any?, _ expected: Bool) -> Bool {
@@ -106,47 +193,51 @@ private struct VerifiedSameHostPayload {
     let manifestDigest: String
 
     static func fromMainBundle() throws -> VerifiedSameHostPayload {
-        try kitRequire(Bundle.main.bundleIdentifier == SameHostKit.bundleIdentifier)
-        try kitRequire(Bundle.main.object(forInfoDictionaryKey: "CFBundleExecutable") as? String == SameHostKit.executable)
-        try kitRequire(Bundle.main.executableURL?.lastPathComponent == SameHostKit.executable)
-        try kitRequire(SameHostKit.architecture == "arm64")
-        guard let resources = Bundle.main.resourceURL else { throw SameHostHelperError.package }
+        try kitRequire(Bundle.main.bundleIdentifier == SameHostKit.bundleIdentifier, code: .bundleIdentifier)
+        try kitRequire(Bundle.main.object(forInfoDictionaryKey: "CFBundleExecutable") as? String == SameHostKit.executable,
+                       code: .executableName)
+        try kitRequire(Bundle.main.executableURL?.lastPathComponent == SameHostKit.executable, code: .executableURL)
+        try kitRequire(SameHostKit.architecture == "arm64", code: .architecture)
+        guard let resources = Bundle.main.resourceURL else { throw PackageVerificationFailure(.resourcesURL) }
         let payload = resources.appendingPathComponent("Payload", isDirectory: true)
-        try checkedDirectory(payload)
+        try verificationOperation(.payloadDirectory) { try checkedDirectory(payload) }
         return try verify(payload.appendingPathComponent("lemulip-native-ui", isDirectory: true))
     }
 
     static func verify(_ proposedRoot: URL) throws -> VerifiedSameHostPayload {
-        try checkedDirectory(proposedRoot)
+        try verificationOperation(.reviewDirectory) { try checkedDirectory(proposedRoot) }
         let root = proposedRoot.standardizedFileURL.resolvingSymlinksInPath()
-        try kitRequire(root.lastPathComponent == "lemulip-native-ui")
+        try kitRequire(root.lastPathComponent == "lemulip-native-ui", code: .rootName)
         let manifestURL = root.appendingPathComponent(SameHostKit.manifestName)
-        let digest = try fileDigest(manifestURL, maximum: 2_097_152).0
-        let manifest = try boundedJSON(manifestURL, maximum: 2_097_152)
-        try kitRequire(boundedNumber(manifest["schema"], in: 1...1) == 1)
-        try kitRequire(exactBoolean(manifest["diagnosticOnly"], true) && exactBoolean(manifest["releaseReady"], false))
-        try kitRequire(manifest["applicationCommit"] as? String == SameHostKit.applicationCommit)
-        try kitRequire(manifest["applicationTree"] as? String == SameHostKit.applicationTree)
-        try kitRequire(manifest["observerBaseCommit"] as? String == SameHostKit.observerBaseCommit)
+        let digest = try verificationOperation(.manifestDigest) { try fileDigest(manifestURL, maximum: 2_097_152).0 }
+        let manifest = try verificationOperation(.manifestJSON) { try boundedJSON(manifestURL, maximum: 2_097_152) }
+        try kitRequire(boundedNumber(manifest["schema"], in: 1...1) == 1, code: .schema)
+        try kitRequire(exactBoolean(manifest["diagnosticOnly"], true) && exactBoolean(manifest["releaseReady"], false),
+                       code: .diagnosticFlags)
+        try kitRequire(manifest["applicationCommit"] as? String == SameHostKit.applicationCommit, code: .applicationCommit)
+        try kitRequire(manifest["applicationTree"] as? String == SameHostKit.applicationTree, code: .applicationTree)
+        try kitRequire(manifest["observerBaseCommit"] as? String == SameHostKit.observerBaseCommit, code: .observerBase)
         for key in ["helperCommit", "helperTree"] {
             if key == "helperTree" && manifest[key] == nil { continue }
             guard let value = manifest[key] as? String, hexadecimal(value, count: 40) else {
-                throw SameHostHelperError.package
+                throw PackageVerificationFailure(key == "helperCommit" ? .helperCommit : .helperTree)
             }
         }
         for key in ["observerSourceSHA256", "helperSourceSHA256", "stagedGUI_SHA256"] {
             guard let value = manifest[key] as? String, hexadecimal(value, count: 64) else {
-                throw SameHostHelperError.package
+                throw PackageVerificationFailure(key == "observerSourceSHA256" ? .observerHashFormat
+                    : (key == "helperSourceSHA256" ? .helperHashFormat : .guiHashFormat))
             }
         }
         guard let files = manifest["files"] as? [String: String],
-              !files.isEmpty, files.count <= SameHostKit.maximumFiles else { throw SameHostHelperError.package }
+              !files.isEmpty, files.count <= SameHostKit.maximumFiles else { throw PackageVerificationFailure(.fileMap) }
         for (path, hash) in files {
             let parts = path.split(separator: "/", omittingEmptySubsequences: false)
-            try kitRequire(!parts.isEmpty && path.utf8.count <= 1_024 && path != SameHostKit.manifestName)
-            try kitRequire(!path.contains("\\") && !path.unicodeScalars.contains { $0.value < 32 || $0.value == 127 })
-            try kitRequire(parts.allSatisfy { !$0.isEmpty && $0 != "." && $0 != ".." })
-            try kitRequire(hexadecimal(hash, count: 64))
+            try kitRequire(!parts.isEmpty && path.utf8.count <= 1_024 && path != SameHostKit.manifestName, code: .pathLength)
+            try kitRequire(!path.contains("\\") && !path.unicodeScalars.contains { $0.value < 32 || $0.value == 127 },
+                           code: .pathCharacters)
+            try kitRequire(parts.allSatisfy { !$0.isEmpty && $0 != "." && $0 != ".." }, code: .pathComponents)
+            try kitRequire(hexadecimal(hash, count: 64), code: .fileHashFormat)
         }
         let keys: [URLResourceKey] = [.isDirectoryKey, .isRegularFileKey, .isSymbolicLinkKey, .fileSizeKey]
         var enumerationFailed = false
@@ -154,54 +245,72 @@ private struct VerifiedSameHostPayload {
                                                               options: [], errorHandler: { _, _ in
             enumerationFailed = true
             return false
-        }) else { throw SameHostHelperError.package }
+        }) else { throw PackageVerificationFailure(.enumerator) }
         var observed: Set<String> = []
         var entries = 0
         var totalBytes = 0
         let prefix = root.path + "/"
         for case let entry as URL in enumerator {
             entries += 1
-            try kitRequire(entries <= SameHostKit.maximumEntries)
-            let values = try entry.resourceValues(forKeys: Set(keys))
-            try kitRequire(values.isSymbolicLink == false)
-            try kitRequire(entry.standardizedFileURL.path == entry.resolvingSymlinksInPath().path)
-            try kitRequire(entry.path.hasPrefix(prefix))
+            try kitRequire(entries <= SameHostKit.maximumEntries, code: .entryCount, entryIndex: entries)
+            let values = try verificationOperation(.entryMetadata, entryIndex: entries) {
+                try entry.resourceValues(forKeys: Set(keys))
+            }
+            try kitRequire(values.isSymbolicLink == false, code: .entrySymlink, entryIndex: entries)
+            try kitRequire(entry.standardizedFileURL.path == entry.resolvingSymlinksInPath().path,
+                           code: .entryNormalization, entryIndex: entries)
+            // An enumerator can return /private/var while the resolved root uses /var.
+            // Compare and slice the same resolved spelling; retain all entry guards.
+            let resolvedEntry = entry.resolvingSymlinksInPath()
+            try kitRequire(resolvedEntry.path.hasPrefix(prefix), code: .entryPrefix, entryIndex: entries)
             if values.isDirectory == true { continue }
-            try kitRequire(values.isRegularFile == true)
-            let relative = String(entry.path.dropFirst(prefix.count))
+            try kitRequire(values.isRegularFile == true, code: .entryRegular, entryIndex: entries)
+            let relative = String(resolvedEntry.path.dropFirst(prefix.count))
             if relative == SameHostKit.manifestName { continue }
-            guard let expected = files[relative] else { throw SameHostHelperError.package }
-            let (actual, bytes) = try fileDigest(entry, maximum: SameHostKit.maximumFileBytes)
+            guard let expected = files[relative] else { throw PackageVerificationFailure(.entryListed, entryIndex: entries) }
+            let (actual, bytes) = try verificationOperation(.entryDigest, entryIndex: entries) {
+                try fileDigest(entry, maximum: SameHostKit.maximumFileBytes)
+            }
             totalBytes += bytes
-            try kitRequire(totalBytes <= SameHostKit.maximumTotalBytes && actual == expected)
-            try kitRequire(observed.insert(relative).inserted)
+            try kitRequire(totalBytes <= SameHostKit.maximumTotalBytes && actual == expected,
+                           code: .entrySizeAndHash, entryIndex: entries)
+            try kitRequire(observed.insert(relative).inserted, code: .entryDuplicate, entryIndex: entries)
         }
-        try kitRequire(!enumerationFailed && observed == Set(files.keys))
+        try kitRequire(!enumerationFailed && observed == Set(files.keys),
+                       code: enumerationFailed ? .enumerationError : .exactInventory)
         let binaryPath = SameHostKit.applicationName + "/Contents/MacOS/Lemulip"
-        try kitRequire(files[binaryPath] == manifest["stagedGUI_SHA256"] as? String)
-        try kitRequire(files["provenance.json"] != nil)
+        try kitRequire(files[binaryPath] == manifest["stagedGUI_SHA256"] as? String, code: .binaryHashLink)
+        try kitRequire(files["provenance.json"] != nil, code: .provenanceListed)
         let appInfo = root.appendingPathComponent(SameHostKit.applicationName + "/Contents/Info.plist")
-        _ = try fileDigest(appInfo, maximum: 262_144)
-        let plist = try PropertyListSerialization.propertyList(from: Data(contentsOf: appInfo), options: [], format: nil)
-        guard let info = plist as? [String: Any] else { throw SameHostHelperError.package }
-        try kitRequire(info["CFBundleIdentifier"] as? String == SameHostKit.applicationIdentifier)
-        try kitRequire(info["CFBundleExecutable"] as? String == "Lemulip")
-        let provenance = try boundedJSON(root.appendingPathComponent("provenance.json"))
-        try kitRequire(provenance["sourceCommit"] as? String == SameHostKit.applicationCommit)
-        try kitRequire(provenance["sourceTree"] as? String == SameHostKit.applicationTree)
-        try kitRequire(provenance["stagedGUI_SHA256"] as? String == manifest["stagedGUI_SHA256"] as? String)
+        _ = try verificationOperation(.appInfoDigest) { try fileDigest(appInfo, maximum: 262_144) }
+        let plist = try verificationOperation(.appInfoParse) {
+            try PropertyListSerialization.propertyList(from: Data(contentsOf: appInfo), options: [], format: nil)
+        }
+        guard let info = plist as? [String: Any] else { throw PackageVerificationFailure(.appInfoDictionary) }
+        try kitRequire(info["CFBundleIdentifier"] as? String == SameHostKit.applicationIdentifier, code: .appIdentifier)
+        try kitRequire(info["CFBundleExecutable"] as? String == "Lemulip", code: .appExecutable)
+        let provenance = try verificationOperation(.provenanceJSON) {
+            try boundedJSON(root.appendingPathComponent("provenance.json"))
+        }
+        try kitRequire(provenance["sourceCommit"] as? String == SameHostKit.applicationCommit, code: .provenanceCommit)
+        try kitRequire(provenance["sourceTree"] as? String == SameHostKit.applicationTree, code: .provenanceTree)
+        try kitRequire(provenance["stagedGUI_SHA256"] as? String == manifest["stagedGUI_SHA256"] as? String,
+                       code: .provenanceHash)
         let fixturePrefix = "Fixtures/FinderDrop/orchard/"
         let fixturePaths = files.keys.filter { $0.hasPrefix(fixturePrefix) }
-        try kitRequire(fixturePaths.count == 4)
+        try kitRequire(fixturePaths.count == 4, code: .fixtureCount)
         for role in ["Existing", "Single", "Multi-A", "Multi-B"] {
             let candidates = fixturePaths.filter { $0.hasPrefix(fixturePrefix + role + "-") && $0.hasSuffix(".txt") }
-            try kitRequire(candidates.count == 1)
+            try kitRequire(candidates.count == 1, code: .fixtureCandidate)
             let name = String(candidates[0].dropFirst(fixturePrefix.count))
             let token = String(name.dropFirst(role.count + 1).dropLast(4))
-            try kitRequire(hexadecimal(token, count: 32))
+            try kitRequire(hexadecimal(token, count: 32), code: .fixtureName)
             let fixture = root.appendingPathComponent(candidates[0])
-            _ = try fileDigest(fixture, maximum: 65_535)
-            try kitRequire(try Data(contentsOf: fixture) == Data("Synthetic Finder input: orchard, \(role). Preserve these bytes.\n".utf8))
+            _ = try verificationOperation(.fixtureDigest) { try fileDigest(fixture, maximum: 65_535) }
+            try verificationOperation(.fixtureRead) {
+                try kitRequire(try Data(contentsOf: fixture) == Data("Synthetic Finder input: orchard, \(role). Preserve these bytes.\n".utf8),
+                               code: .fixtureContents)
+            }
         }
         return VerifiedSameHostPayload(root: root, manifest: manifest, manifestDigest: digest)
     }
@@ -215,6 +324,21 @@ private struct VerifiedSameHostPayload {
             if let value = manifest[key] as? String { result[key] = value }
         }
         return result
+    }
+}
+
+private struct SameHostPackageLoad {
+    let payload: VerifiedSameHostPayload?
+    let failure: PackageVerificationFailure?
+
+    static func fromMainBundle() -> SameHostPackageLoad {
+        do { return SameHostPackageLoad(payload: try VerifiedSameHostPayload.fromMainBundle(), failure: nil) }
+        catch let failure as PackageVerificationFailure { return SameHostPackageLoad(payload: nil, failure: failure) }
+        catch { return SameHostPackageLoad(payload: nil, failure: PackageVerificationFailure(.unclassified)) }
+    }
+
+    var receipt: [String: Any] {
+        failure?.receipt ?? ["status": "PASS", "stage": "complete", "code": "ok"]
     }
 }
 
@@ -413,6 +537,7 @@ private enum SameHostCaseRunner {
         } catch {
             initial["reason"] = "The same-host helper stopped before starting a diagnostic case"
             initial["helperCancelled"] = error is CancellationError
+            if let failure = error as? PackageVerificationFailure { initial["verification"] = failure.receipt }
             initial["cleanup"] = ["completed": true, "leftButtonReportedDown": false,
                                   "applicationStopped": true, "fixtureFinderWindowClosed": true,
                                   "fixedBundleRegistryEmpty": NSRunningApplication.runningApplications(withBundleIdentifier: SameHostKit.applicationIdentifier).isEmpty,
@@ -509,7 +634,8 @@ private final class SameHostCuePanel: NSPanel {
 @MainActor
 private final class SameHostApplication: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private let mode: SameHostLaunchMode
-    private var payload: VerifiedSameHostPayload?
+    private var packageLoad: SameHostPackageLoad
+    private var payload: VerifiedSameHostPayload? { packageLoad.payload }
     private var window: NSWindow?
     private var statusLabel = NSTextField(wrappingLabelWithString: "")
     private var permissionLabel = NSTextField(wrappingLabelWithString: "")
@@ -523,9 +649,9 @@ private final class SameHostApplication: NSObject, NSApplicationDelegate, NSWind
     private var latestResult: URL?
     private var activePhase = SameHostPhase.baseline
 
-    init(mode: SameHostLaunchMode, payload: VerifiedSameHostPayload?) {
+    init(mode: SameHostLaunchMode, packageLoad: SameHostPackageLoad) {
         self.mode = mode
-        self.payload = payload
+        self.packageLoad = packageLoad
         super.init()
     }
 
@@ -612,7 +738,8 @@ private final class SameHostApplication: NSObject, NSApplicationDelegate, NSWind
             && !oldReview && !inputCleanupBlocked
         refreshButton.isEnabled = task == nil
         if payload == nil {
-            statusLabel.stringValue = "Paket bütünlüğü doğrulanamadı. Bu kopyayla giriş gönderilmeyecek; doğrulanmış paketi yeniden açın."
+            let failure = packageLoad.failure ?? PackageVerificationFailure(.unclassified)
+            statusLabel.stringValue = "Paket doğrulanamadı — \(failure.code.rawValue) (\(failure.code.displayReason)). Kontrol başlatılmadı. Bu kodu paylaşabilirsiniz."
         } else if mode.isSmoke {
             statusLabel.stringValue = "Arayüz açılışı kontrol ediliyor. Başlat devre dışı; hiçbir fare veya klavye girdisi gönderilmeyecek."
         } else if inputCleanupBlocked {
@@ -628,13 +755,13 @@ private final class SameHostApplication: NSObject, NSApplicationDelegate, NSWind
 
     @objc private func refreshPressed(_ sender: Any?) {
         guard task == nil else { return }
-        payload = try? VerifiedSameHostPayload.fromMainBundle()
+        packageLoad = SameHostPackageLoad.fromMainBundle()
         refreshPermissions()
     }
 
     @objc private func startPressed(_ sender: Any?) {
         guard mode.isInteractive, task == nil else { return }
-        payload = try? VerifiedSameHostPayload.fromMainBundle()
+        packageLoad = SameHostPackageLoad.fromMainBundle()
         refreshPermissions()
         guard startButton.isEnabled, let payload else { return }
         startButton.isEnabled = false
@@ -826,7 +953,7 @@ private final class SameHostApplication: NSObject, NSApplicationDelegate, NSWind
             var success = self.payload != nil
             do { try await Task.sleep(nanoseconds: 3_000_000_000) }
             catch { success = false }
-            var result = Self.inputFreeReceipt(status: success ? "PASS" : "FAIL", verified: self.payload != nil)
+            var result = Self.inputFreeReceipt(status: success ? "PASS" : "FAIL", packageLoad: self.packageLoad)
             result["mode"] = "ui-smoke"
             result["seconds"] = 3
             do { try writeNewJSON(result, to: output) }
@@ -859,6 +986,7 @@ private final class SameHostApplication: NSObject, NSApplicationDelegate, NSWind
                         "mode": external ? "ci-human-timeout" : "ci-baseline",
                         "diagnosticOnly": true, "releaseReady": false, "physicalInputVerified": false,
                         "reportRetained": false,
+                        "verification": self.packageLoad.receipt,
                         "case": ["status": "blocked", "helperErrorCode": "helper-preflight-or-receipt-failed",
                                  "gestureOutcomesVerified": false]]
                     try? writeNewJSON(failed, to: output.appendingPathComponent("result.json"))
@@ -870,10 +998,11 @@ private final class SameHostApplication: NSObject, NSApplicationDelegate, NSWind
         }
     }
 
-    static func inputFreeReceipt(status: String, verified: Bool) -> [String: Any] {
-        ["schema": 1, "status": status, "payloadVerified": verified,
+    static func inputFreeReceipt(status: String, packageLoad: SameHostPackageLoad) -> [String: Any] {
+        ["schema": 1, "status": status, "payloadVerified": packageLoad.payload != nil,
          "helperBundleIdentifier": SameHostKit.bundleIdentifier,
-         "diagnosticOnly": true, "releaseReady": false, "inputEventsSent": 0]
+         "diagnosticOnly": true, "releaseReady": false, "inputEventsSent": 0,
+         "verification": packageLoad.receipt]
     }
 
     @objc private func showResult(_ sender: Any?) {
@@ -909,9 +1038,10 @@ private struct NativeDragSameHost {
             FileHandle.standardError.write(Data("Invalid diagnostic launch arguments.\n".utf8))
             Darwin.exit(2)
         }
-        let payload = try? VerifiedSameHostPayload.fromMainBundle()
+        let packageLoad = SameHostPackageLoad.fromMainBundle()
+        let payload = packageLoad.payload
         if case .verify = mode {
-            let receipt = SameHostApplication.inputFreeReceipt(status: payload == nil ? "FAIL" : "PASS", verified: payload != nil)
+            let receipt = SameHostApplication.inputFreeReceipt(status: payload == nil ? "FAIL" : "PASS", packageLoad: packageLoad)
             if let data = try? JSONSerialization.data(withJSONObject: receipt, options: [.sortedKeys]) {
                 FileHandle.standardOutput.write(data)
                 FileHandle.standardOutput.write(Data("\n".utf8))
@@ -920,7 +1050,7 @@ private struct NativeDragSameHost {
         }
         let application = NSApplication.shared
         application.setActivationPolicy(mode.isInteractive || mode.isSmoke ? .regular : .accessory)
-        let delegate = SameHostApplication(mode: mode, payload: payload)
+        let delegate = SameHostApplication(mode: mode, packageLoad: packageLoad)
         application.delegate = delegate
         withExtendedLifetime(delegate) { application.run() }
     }

@@ -21,7 +21,7 @@ APPLICATION_COMMIT = "d821d7343675e2850705d141ef9b3b93a6aee945"
 APPLICATION_TREE = "425baa28f00ec24551dd70c0cc874a75fa3be0c1"
 OBSERVER_BASE = "c91b08e1f6f5293281e2b54423c53221a289ad90"
 FOLDER = "Lemulip-PR45-Girdi-Karsilastirma-arm64"
-ARCHIVE = FOLDER + ".zip"
+ARCHIVE = "Lemulip-PR45-Girdi-Karsilastirma-v2-arm64.zip"
 HELPER = "Lemulip Input Check.app"
 HELPER_ID = "app.lemulip.SameHostDragReview"
 EXECUTABLE = "LemulipInputCheck"
@@ -33,7 +33,7 @@ LIMITS = {"diagnosticOnly": True, "releaseReady": False,
           "acceptanceXCTestExecuted": False, "comparisonExecution": "NOT RUN", "C12": "HOLD"}
 ESCAPE_FAILURE = "Escape did not cancel the actual Finder drag"
 
-README = """Lemulip PR #45 — aynı Mac'te girdi karşılaştırması (Apple Silicon / arm64)
+README = """Lemulip PR #45 / v2 — aynı Mac'te girdi karşılaştırması (Apple Silicon / arm64)
 
 ZIP'i açın ve Lemulip Input Check uygulamasına çift tıklayın. Swift, Python,
 Git, Command Line Tools veya Xcode kurulumu gerekmez. Bu ayrı bir tanı kopyasıdır.
@@ -202,8 +202,8 @@ def stage(source: Path, staged: Path, observer_binary: Path, output: Path, workf
         (macos / EXECUTABLE).chmod(0o755)
         info = {"CFBundleIdentifier": HELPER_ID, "CFBundleExecutable": EXECUTABLE,
                 "CFBundleName": helper.stem, "CFBundleDisplayName": helper.stem,
-                "CFBundlePackageType": "APPL", "CFBundleVersion": "1",
-                "CFBundleShortVersionString": "0.0.0", "LSMinimumSystemVersion": "13.0",
+                "CFBundlePackageType": "APPL", "CFBundleVersion": "2",
+                "CFBundleShortVersionString": "0.0.2", "LSMinimumSystemVersion": "13.0",
                 "NSHighResolutionCapable": True, "NSPrincipalClass": "NSApplication"}
         (helper / "Contents/Info.plist").write_bytes(plistlib.dumps(info))
         run("/usr/bin/codesign", "--force", "--sign", "-", "--identifier", HELPER_ID, helper)
@@ -255,6 +255,76 @@ def verify_contents(folder: Path) -> dict:
     return provenance
 
 
+def validate_package_selfcheck(record: dict, expected_pass: bool) -> None:
+    receipt = record.get("receipt")
+    if (record.get("exitCode") != (0 if expected_pass else 1) or not isinstance(receipt, dict)
+            or type(receipt.get("schema")) is not int or receipt["schema"] != 1
+            or receipt.get("status") != ("PASS" if expected_pass else "FAIL")
+            or receipt.get("payloadVerified") is not expected_pass
+            or receipt.get("helperBundleIdentifier") != HELPER_ID
+            or receipt.get("diagnosticOnly") is not True or receipt.get("releaseReady") is not False
+            or type(receipt.get("inputEventsSent")) is not int or receipt["inputEventsSent"] != 0):
+        raise ValueError("Package self-check did not produce the required input-free receipt")
+
+
+def verify_payload_path_regression(helper: Path, output: Path) -> None:
+    report = {"schema": 1, "status": "FAIL", "diagnosticOnly": True, "releaseReady": False,
+              "scope": "input-free path and invalid-payload checks only", "cases": []}
+    original = inventory(helper)
+
+    def check(label: str, app: Path, expected_pass: bool) -> None:
+        record = {"label": label, "expectedPass": expected_pass}
+        report["cases"].append(record)
+        process = subprocess.run([str(app / "Contents/MacOS" / EXECUTABLE), "--verify-package"],
+                                 capture_output=True, text=True, timeout=30)
+        record["exitCode"] = process.returncode
+        if len(process.stdout) > 8_192:
+            raise ValueError("Package self-check receipt exceeded its bound")
+        record["receipt"] = json.loads(process.stdout)
+        validate_package_selfcheck(record, expected_pass)
+        record["validated"] = True
+
+    try:
+        with tempfile.TemporaryDirectory(prefix="lemulip-payload-regression-", dir="/private/var/tmp") as temporary:
+            root = Path(temporary)
+            positive = root / HELPER
+            shutil.copytree(helper, positive)
+            alias = Path(str(positive).removeprefix("/private"))
+            if not str(positive).startswith("/private/var/") or not positive.samefile(alias):
+                raise ValueError("The private/var and var paths must identify the same copied bundle")
+            check("private-var", positive, True)
+            check("var-alias", alias, True)
+            for label in ("changed-fixture", "unexpected-file", "symlink-fixture"):
+                case_root = root / label
+                case_root.mkdir()
+                negative = case_root / HELPER
+                shutil.copytree(helper, negative)
+                payload = negative / PAYLOAD
+                fixtures = list((payload / FIXTURES).glob("Existing-*.txt"))
+                if len(fixtures) != 1:
+                    raise ValueError("Expected one synthetic Existing fixture")
+                fixture = fixtures[0]
+                if label == "changed-fixture":
+                    fixture.write_bytes(fixture.read_bytes() + b"Deliberate CI-only alteration.\n")
+                elif label == "unexpected-file":
+                    (payload / "unexpected-ci-file.txt").write_text("Deliberate CI-only extra file.\n")
+                else:
+                    outside = case_root / "same-bytes-outside-payload.txt"
+                    outside.write_bytes(fixture.read_bytes())
+                    fixture.unlink()
+                    fixture.symlink_to(outside)
+                check(label, negative, False)
+        if inventory(helper) != original:
+            raise ValueError("The original packaged helper changed during the copy-only regression")
+        report.update(status="PASS", inputEventsSent=0, originalBundleUnchanged=True)
+    except Exception as error:
+        report["errorType"] = type(error).__name__
+        raise
+    finally:
+        write_json(output / "payload-path-regression.json", report)
+        print("Package path regression: " + json.dumps(report, sort_keys=True))
+
+
 def verify(source: Path, output: Path, extracted: Path) -> None:
     report = {**LIMITS, "status": "FAIL", "scope": "package integrity and input-free native startup only"}
     try:
@@ -284,6 +354,8 @@ def verify(source: Path, output: Path, extracted: Path) -> None:
                     "helperBundleIdentifier": HELPER_ID, "diagnosticOnly": True, "releaseReady": False}
         if any(package_check.get(k) != v for k, v in expected.items()):
             raise ValueError("Helper package self-check did not verify its own payload")
+        verify_payload_path_regression(helper, output)
+        report["payloadPathRegression"] = read_json(output / "payload-path-regression.json")
         smoke = output / "smoke-ui.json"
         if smoke.exists():
             raise ValueError("Refusing an existing helper smoke receipt")

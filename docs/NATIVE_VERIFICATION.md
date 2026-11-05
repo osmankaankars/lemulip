@@ -257,3 +257,20 @@ explicitly synthetic Escape pair owned by the test stimulus. It must record two
 stimulus posts, zero observer Escape posts, an observed external pair and bounded
 cleanup. It is never included in the user kit, and its result is not physical-key
 evidence. The workflow rechecks the sealed package after these executions.
+
+### Payload Paths Under The Mac Temporary Directory
+
+The original helper incorrectly compared raw enumerator paths against a resolved
+root. Input-free run `42008279406` reused the exact delivered `96dda860...` archive:
+the normal runner location passed, but both `/private/var/tmp` and its `/var/tmp`
+alias failed with unchanged bytes. In each alias case all 20 entries passed the
+symlink and standardized/resolved equality checks; their raw prefix differed
+from the resolved root while the resolved prefix matched. This reproduces the
+path-spelling defect, not the owner's unobserved App Translocation path.
+
+Version 2 uses the resolved entry path for both containment and the relative
+manifest key. Symlink rejection, component restrictions, byte limits, exact
+membership and file hashes remain required. Package verification exercises the
+same helper under both temporary-directory spellings and separately rejects
+altered fixtures, unlisted files and a fixture symlink. Fixed verification codes
+identify a failing stage without exporting user paths, filenames or contents.

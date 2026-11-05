@@ -6,11 +6,31 @@ import stat
 import zipfile
 
 from package_same_host_drag import (APPLICATION_COMMIT, APPLICATION_TREE, ARCHIVE,
-    ESCAPE_FAILURE, FOLDER, LIMITS, checked_archive, inventory, sha256,
-    validate_observation, verify_contents, write_json)
+    ESCAPE_FAILURE, FOLDER, HELPER_ID, LIMITS, checked_archive, inventory, sha256,
+    validate_observation, validate_package_selfcheck, verify_contents, write_json)
 
 
 class SameHostDragPackageTests(unittest.TestCase):
+    def test_negative_package_check_requires_an_explicit_input_free_failure_receipt(self):
+        failure = {"exitCode": 1, "receipt": {"schema": 1, "status": "FAIL", "payloadVerified": False,
+                   "helperBundleIdentifier": HELPER_ID, "diagnosticOnly": True, "releaseReady": False,
+                   "inputEventsSent": 0}}
+        validate_package_selfcheck(failure, False)
+        success = copy.deepcopy(failure)
+        success["exitCode"] = 0
+        success["receipt"].update(status="PASS", payloadVerified=True)
+        validate_package_selfcheck(success, True)
+        for change in ("exit-only", "signal", "pass", "verified", "input"):
+            with self.subTest(change=change):
+                altered = copy.deepcopy(failure)
+                if change == "exit-only": del altered["receipt"]
+                elif change == "signal": altered["exitCode"] = -9
+                elif change == "pass": altered["receipt"]["status"] = "PASS"
+                elif change == "verified": altered["receipt"]["payloadVerified"] = True
+                else: altered["receipt"]["inputEventsSent"] = 1
+                with self.assertRaises(ValueError):
+                    validate_package_selfcheck(altered, False)
+
     def test_sealed_inventory_rejects_payload_or_executable_changes(self):
         for change in ("bytes", "mode", "extra", "missing", "symlink", "scope"):
             with self.subTest(change=change), tempfile.TemporaryDirectory() as temporary:
