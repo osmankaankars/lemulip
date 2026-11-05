@@ -77,8 +77,18 @@ The Finder view shortcut carries Command only on key-down and releases it in the
 paired key-up. The observer refuses pre-existing Command, Shift, Option or Control
 state and uses the existing bounded readiness wait for the shortcut modifiers
 to clear. Ordinary pointer events require that clear state and explicitly carry
-no modifiers. Input receipts retain constructor, posted and observed modifier
+none of those four modifiers. Input receipts retain constructor, posted and observed modifier
 flags, so a modified drag cannot silently stand in for the intended plain drag.
+
+The D7 diagnostic comparison preserves ordinary pointer-event constructor flags
+except Command, Shift, Option and Control, while retaining the refusal to post
+when any of those modifiers is held. D6 receipts include constructor bit
+`0x20000000`; its meaning has not been established. Keyboard events, the HID
+event source, suppression filters and interval, configured timing, cleanup,
+production code and acceptance gate criteria remain unchanged. Existing
+constructor and posted flag receipts record the difference; this is an input
+experiment, not a verified cancellation fix.
+
 Escape evidence retains the foreground application and actual mouse-button state
 before and after key posting and release. At the existing cancellation deadline,
 one AX traversal records the expected and observed fixture rows, duplicate Remove

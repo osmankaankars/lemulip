@@ -796,7 +796,8 @@ private final class DragReview {
         let sessionFlags = CGEventSource.flagsState(.combinedSessionState)
         try require(sessionFlags.intersection(relevantModifiers).isEmpty,
                     "Refusing plain pointer input while a Command, Shift, Option or Control modifier is held")
-        event.flags = []
+        // Keep constructor flags except the four guarded modifiers for this comparison.
+        event.flags = constructorFlags.subtracting(relevantModifiers)
         event.setIntegerValueField(.mouseEventClickState, value: 1)
         postMouseEvent(event, constructorFlags: constructorFlags, sessionFlags: sessionFlags, scope: "plain-gesture")
         pointer = point
