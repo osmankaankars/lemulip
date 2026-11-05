@@ -298,12 +298,24 @@ codes and exclude unapproved fields, arbitrary errors and nonboolean values.
 The normal helper build excludes this check entrypoint.
 
 A separate input-free CI executable runs against copies of the payload extracted
-from the distributed ZIP. With one owned copy running, it must launch a second
-copy as a distinct process, reuse that second process through its `/var` alias,
-and route the initial document back to the same process. It checks exact identity,
-unchanged source/fixtures and bounded cleanup of only its owned applications.
+from the distributed ZIP. It must open the first copy, stop that owned application
+and verify an empty review registry before opening the second copy. It then reuses
+the second copy through its `/var` alias and routes the initial document back to
+the same process. It checks exact identity, unchanged source/fixtures and bounded
+cleanup of only its owned applications. This sequence matches the helper's
+preexisting-app guard and the pinned application's
+`LSMultipleInstancesProhibited=true` setting.
 This check sends no mouse or keyboard events and requires no Accessibility grant.
 It validates the explicit launch policy, not an unobserved owner-side substitution
 or App Translocation cause. The executable is excluded from the user kit. The
 separate interaction baseline still requires both native permission checks and
 the existing cancellation/cleanup evidence; its failure remains a failed job.
+
+The initial check in run `42021870446` incorrectly expected two simultaneous
+copies to succeed. A matched its expected identity; B returned the correct
+bundle identifier but a different resolved bundle path. Only A became owned,
+and its cleanup completed. This remains a failed check with retained receipts.
+Apple's [Launch Services key reference](https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/LaunchServicesKeys.html)
+prohibits a second instance when the pinned setting is true. The sequential check corrects that test premise without
+altering the application's plist or treating this CI result as proof of the
+owner's original launch failure.

@@ -160,6 +160,7 @@ private struct LaunchCheckPayload {
             options: [], format: nil) as? [String: Any]
         try check(info?["CFBundleIdentifier"] as? String == LaunchCheckPins.identifier
                   && info?["CFBundleExecutable"] as? String == "Lemulip", "application-identity")
+        try check(boolean(info?["LSMultipleInstancesProhibited"], is: true), "application-instance-policy")
         let provenance = try dictionary(root.appendingPathComponent("provenance.json"))
         try check(provenance["sourceCommit"] as? String == LaunchCheckPins.applicationCommit
                   && provenance["sourceTree"] as? String == LaunchCheckPins.applicationTree
@@ -183,7 +184,7 @@ private struct LaunchCheckPayload {
                             "observerBaseCommit": LaunchCheckPins.observerBase,
                             "helperCommit": helperCommit, "stagedGUI_SHA256": guiHash,
                             "manifestSHA256": manifestHash, "fixtureSHA256": fixtureHash,
-                            "fixtureKind": "synthetic-orchard-existing"])
+                            "fixtureKind": "synthetic-orchard-existing", "multipleInstancesProhibited": true])
     }
 }
 
@@ -204,7 +205,7 @@ private final class LaunchIdentityCheck {
         "schema": 1, "status": "FAIL", "mode": "ci-strict-launch-identity",
         "diagnosticOnly": true, "releaseReady": false, "inputEventsSent": 0,
         "permissionRequested": false, "accessibilityUsed": false, "physicalInputVerified": false,
-        "scope": "Application selection and owned cleanup only; no input, cancellation acceptance or user-cause claim."
+        "scope": "Sequential application selection and owned cleanup only; no input, cancellation acceptance or user-cause claim."
     ]
 
     private func receipt(_ app: NSRunningApplication, bundle: URL,
@@ -266,21 +267,38 @@ private final class LaunchIdentityCheck {
             let a = try await NSWorkspace.shared.openApplication(at: aBundle, configuration: aConfiguration)
             result["launchIdentityA"] = receipt(a, bundle: aBundle, configuration: aConfiguration)
             try check(exactIdentity(a, bundle: aBundle), "launch-a-identity")
-            owned.append(OwnedApplication(application: a, bundle: aBundle, pid: a.processIdentifier))
-            try await waitForRegistry([a.processIdentifier])
+            let firstPID = a.processIdentifier
+            owned.append(OwnedApplication(application: a, bundle: aBundle, pid: firstPID))
+            try await waitForRegistry([firstPID])
 
-            phase = "launch-b-while-a-runs"
-            try check(exactIdentity(a, bundle: aBundle), "launch-a-no-longer-running")
+            // Pinned C12 forbids multiple simultaneous instances. Match the real
+            // observer's empty-registry precondition before selecting the B copy.
+            phase = "stop-first-copy"
+            let firstCleanupTask = Task { @MainActor in await self.cleanUp() }
+            let firstCleanup = await firstCleanupTask.value
+            result["firstCopyCleanup"] = firstCleanup
+            checks["firstCopyStoppedBeforeSecondLaunch"] = a.isTerminated
+            checks["registryEmptyBeforeSecondLaunch"] = registryMatches([])
+            try check(firstCleanup["completed"] as? Bool == true
+                      && checks["firstCopyStoppedBeforeSecondLaunch"] == true
+                      && checks["registryEmptyBeforeSecondLaunch"] == true, "first-copy-cleanup")
+
+            phase = "launch-b-after-a-stopped"
             let bConfiguration = SameHostAppLaunch.makeConfiguration(arguments: arguments, freshInstance: true)
             let b = try await NSWorkspace.shared.openApplication(at: bBundle, configuration: bConfiguration)
-            result["launchIdentityB"] = receipt(b, bundle: bBundle, configuration: bConfiguration)
+            var bReceipt = receipt(b, bundle: bBundle, configuration: bConfiguration)
+            let returnedBundle = b.bundleURL?.resolvingSymlinksInPath().path
+            // Descriptive only: a terminated process's numeric PID may be reused.
+            // These comparisons do not affect ownership or acceptance decisions.
+            bReceipt["returnedPIDMatchesFirst"] = b.processIdentifier == firstPID
+            bReceipt["returnedBundleMatchesFirst"] = returnedBundle == aBundle.resolvingSymlinksInPath().path
+            bReceipt["returnedBundleMatchesSource"] = returnedBundle == payload.application.resolvingSymlinksInPath().path
+            bReceipt["returnedApplicationFinishedLaunching"] = b.isFinishedLaunching
+            bReceipt["returnedApplicationTerminated"] = b.isTerminated
+            result["launchIdentityB"] = bReceipt
             try check(exactIdentity(b, bundle: bBundle), "launch-b-identity")
-            checks["distinctABProcesses"] = a.processIdentifier != b.processIdentifier
-            try check(checks["distinctABProcesses"] == true, "launch-b-reused-a")
             owned.append(OwnedApplication(application: b, bundle: bBundle, pid: b.processIdentifier))
-            try await waitForRegistry([a.processIdentifier, b.processIdentifier])
-            checks["bothCopiesRunning"] = exactIdentity(a, bundle: aBundle) && exactIdentity(b, bundle: bBundle)
-            try check(checks["bothCopiesRunning"] == true, "copies-not-both-running")
+            try await waitForRegistry([b.processIdentifier])
 
             phase = "var-alias-reuse"
             let aliasConfiguration = SameHostAppLaunch.makeConfiguration(arguments: arguments, freshInstance: false)
@@ -303,7 +321,7 @@ private final class LaunchIdentityCheck {
             checks["documentReusedB"] = exactIdentity(documentApp, bundle: bBundle)
                 && documentApp.processIdentifier == b.processIdentifier
             try check(checks["documentReusedB"] == true, "document-did-not-reuse-b")
-            try await waitForRegistry([a.processIdentifier, b.processIdentifier])
+            try await waitForRegistry([b.processIdentifier])
 
             phase = "post-launch-integrity"
             checks["sourceUnchanged"] = try inventory(payload.root) == payload.snapshot
