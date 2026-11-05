@@ -17,6 +17,8 @@ private func require(_ condition: Bool, _ message: String) throws {
     if !condition { throw ControlIssue.invalid(message) }
 }
 
+private let activationCases = ["raise-first", "no-raise-first", "no-raise-second", "raise-second"]
+
 private struct ControlConfiguration {
     let theme: String
     let evidenceKind: String
@@ -25,14 +27,32 @@ private struct ControlConfiguration {
     let traceURL: URL
     let originals: [String: Data]
 
+    var activationCase: String? {
+        evidenceKind.hasPrefix("activation-") ? String(evidenceKind.dropFirst("activation-".count)) : nil
+    }
+
+    var targetRaisePolicy: String? {
+        activationCase.map { $0.hasPrefix("no-raise-") ? "omitted" : "present" }
+    }
+
+    var activationTraceURL: URL? {
+        activationCase == nil ? nil : traceURL.deletingLastPathComponent().appendingPathComponent("activation.jsonl")
+    }
+
     var sourceCase: String? {
-        evidenceKind.hasPrefix("source-") ? String(evidenceKind.dropFirst("source-".count)) : nil
+        if let activationCase { return activationCase }
+        return evidenceKind.hasPrefix("source-") ? String(evidenceKind.dropFirst("source-".count)) : nil
     }
 
     var sourceBinding: [String: Any] {
         guard let sourceCase else { return [:] }
-        return ["sourceCase": sourceCase,
-                "dragSourceKind": sourceCase.hasPrefix("appkit-") ? "native-appkit" : "finder"]
+        var fields: [String: Any] = ["sourceCase": sourceCase,
+            "dragSourceKind": activationCase != nil || sourceCase.hasPrefix("appkit-") ? "native-appkit" : "finder"]
+        if let activationCase, let targetRaisePolicy {
+            fields["activationCase"] = activationCase
+            fields["targetRaisePolicy"] = targetRaisePolicy
+        }
+        return fields
     }
 
     init() throws {
@@ -50,8 +70,10 @@ private struct ControlConfiguration {
             try require(evidenceIndices.count == 1 && arguments.indices.contains(evidenceIndices[0] + 1),
                         "Require one fixed control evidence kind")
             evidenceKind = arguments[evidenceIndices[0] + 1]
-            try require(["keyboard", "capture-screenshots", "capture-ax-only", "lifecycle-appkit",
-                         "source-finder-first", "source-appkit-first", "source-appkit-second", "source-finder-second"].contains(evidenceKind)
+            let kinds = ["keyboard", "capture-screenshots", "capture-ax-only", "lifecycle-appkit",
+                         "source-finder-first", "source-appkit-first", "source-appkit-second", "source-finder-second"]
+                + activationCases.map { "activation-" + $0 }
+            try require(kinds.contains(evidenceKind)
                         && theme == "orchard", "The comparison is restricted to the Orchard control")
         }
 
@@ -72,6 +94,9 @@ private struct ControlConfiguration {
         case "source-finder-first", "source-appkit-first", "source-appkit-second", "source-finder-second":
             evidenceName = "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-Source-"
                 + String(evidenceKind.dropFirst("source-".count))
+        case "activation-raise-first", "activation-no-raise-first", "activation-no-raise-second", "activation-raise-second":
+            evidenceName = "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-Activation-"
+                + String(evidenceKind.dropFirst("activation-".count))
         default: evidenceName = "NativeDragControlEvidence"
         }
         let evidence = root.appendingPathComponent(evidenceName + "/" + theme, isDirectory: true)
@@ -187,12 +212,250 @@ private final class ControlTrace: @unchecked Sendable {
     }
 }
 
+// D11 adds a separate journal without changing the receiver trace or drop
+// implementation. Nothing in this journal is written or synchronized while
+// dispatching events, handling AXRaise, or tracking a drag. It is drained only
+// at normal termination, the owned watchdog, or a fatal journal limit.
+private final class ActivationJournal: @unchecked Sendable {
+    private let handle: FileHandle
+    private let binding: [String: Any]
+    let startupFields: [String: Any]
+    private let lock = NSLock()
+    private var buffer = Data()
+    private var count = 0
+    private var byteCount = 0
+    private let maximumRecords = 4_096
+    private let maximumBytes = 4 * 1_024 * 1_024
+
+    init(configuration: ControlConfiguration) throws {
+        guard let url = configuration.activationTraceURL else {
+            throw ControlIssue.invalid("The activation journal requires an explicit activation case")
+        }
+        try require(url.lastPathComponent == "activation.jsonl"
+                    && url.deletingLastPathComponent().path == url.deletingLastPathComponent().resolvingSymlinksInPath().path,
+                    "The fixed activation journal directory changed identity")
+        let bundle = Bundle.main.bundleURL.standardizedFileURL
+        try require(Bundle.main.object(forInfoDictionaryKey: "NSPrincipalClass") as? String == "NativeDragControlApplication",
+                    "The activation comparison requires the passive control application subclass")
+        let data = try Self.readRegularFile(configuration.root.appendingPathComponent("provenance.json"), maximumBytes: 262_144)
+        guard let raw = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            throw ControlIssue.invalid("The activation comparison provenance is invalid")
+        }
+        var provenance: [String: String] = [:]
+        for key in ["nativeDragControlSourceSHA256", "controlGUI_SHA256", "observerExperimentCommit",
+                    "observerExperimentTree", "sourceCommit", "sourceTree", "architecture"] {
+            guard let value = raw[key] as? String else {
+                throw ControlIssue.invalid("The activation comparison provenance is incomplete")
+            }
+            provenance[key] = value
+            if key != "architecture" {
+                let length = key.hasSuffix("SHA256") ? 64 : 40
+                try require(value.range(of: "^[a-f0-9]{\(length)}$", options: .regularExpression) != nil,
+                            "The activation comparison provenance contains a malformed digest")
+            }
+        }
+        try require(provenance["sourceCommit"] == "d821d7343675e2850705d141ef9b3b93a6aee945"
+                    && provenance["sourceTree"] == "425baa28f00ec24551dd70c0cc874a75fa3be0c1",
+                    "The activation comparison requires the pinned C12 product baseline")
+        #if arch(arm64)
+        let architecture = "arm64"
+        #elseif arch(x86_64)
+        let architecture = "x86_64"
+        #else
+        let architecture = "unsupported"
+        #endif
+        try require(provenance["architecture"] == architecture && architecture != "unsupported",
+                    "The activation comparison architecture does not match its provenance")
+        let executable = bundle.appendingPathComponent("Contents/MacOS/NativeDragControl")
+        try require(Bundle.main.executableURL?.standardizedFileURL.path == executable.path,
+                    "The activation control executable is outside its fixed bundle")
+        let executableData = try Self.readRegularFile(executable, maximumBytes: 134_217_728)
+        try require(Self.sha256(executableData) == provenance["controlGUI_SHA256"],
+                    "The activation control executable does not match its staged digest")
+        binding = configuration.sourceBinding
+        var fields: [String: Any] = provenance.mapValues { $0 as Any }
+        fields.merge([
+            "bundleIdentifier": "app.lemulip.NativeDragControl", "executableName": "NativeDragControl",
+            "bundleName": "Native Drag Control.app", "targetBundlePath": bundle.path,
+            "stagingRoot": configuration.root.path, "traceFileName": "activation.jsonl",
+            "originalSHA256": configuration.originals.mapValues(Self.sha256),
+            "maximumRecords": maximumRecords, "maximumBytes": maximumBytes,
+            "flushPolicy": "termination-or-watchdog"
+        ]) { _, value in value }
+        startupFields = fields
+        let descriptor = Darwin.open(url.path, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC,
+                                     S_IRUSR | S_IWUSR)
+        try require(descriptor >= 0, "Could not exclusively create the fixed activation journal")
+        handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
+    }
+
+    private static func sha256(_ data: Data) -> String {
+        SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+    }
+
+    private static func readRegularFile(_ url: URL, maximumBytes: Int) throws -> Data {
+        try require(url.standardizedFileURL.path == url.resolvingSymlinksInPath().path,
+                    "Symlinked activation comparison inputs are not allowed")
+        let descriptor = Darwin.open(url.path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
+        try require(descriptor >= 0, "A fixed activation comparison input could not be opened")
+        let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
+        defer { try? handle.close() }
+        var before = stat()
+        try require(Darwin.fstat(descriptor, &before) == 0
+                    && before.st_mode & mode_t(S_IFMT) == mode_t(S_IFREG)
+                    && before.st_size > 0 && before.st_size <= maximumBytes,
+                    "Require a bounded, nonempty regular activation comparison input")
+        var bytes = Data()
+        while bytes.count <= maximumBytes {
+            let chunk = try handle.read(upToCount: min(65_536, maximumBytes + 1 - bytes.count)) ?? Data()
+            if chunk.isEmpty { break }
+            bytes.append(chunk)
+        }
+        var after = stat()
+        try require(Darwin.fstat(descriptor, &after) == 0 && bytes.count == before.st_size
+                    && bytes.count <= maximumBytes && after.st_size == before.st_size
+                    && after.st_ino == before.st_ino && after.st_dev == before.st_dev,
+                    "An activation comparison input changed while being read")
+        return bytes
+    }
+
+    private func encoded(_ event: String, _ fields: [String: Any]) throws -> Data {
+        var value = fields
+        value.merge(binding) { _, fixed in fixed }
+        value["schema"] = 1
+        value["event"] = event
+        value["recordIndex"] = count
+        value["systemUptime"] = ProcessInfo.processInfo.systemUptime
+        value["pid"] = Int(ProcessInfo.processInfo.processIdentifier)
+        var data = try JSONSerialization.data(withJSONObject: value, options: [.sortedKeys])
+        data.append(0x0a)
+        return data
+    }
+
+    func record(_ event: String, _ fields: [String: Any] = [:]) {
+        lock.lock()
+        defer { lock.unlock() }
+        do {
+            let data = try encoded(event, fields)
+            if count >= maximumRecords - 1 || byteCount + data.count > maximumBytes - 8_192 {
+                buffer.append(try encoded("trace-limit", [:]))
+                try flushLocked()
+                Darwin.exit(2)
+            }
+            buffer.append(data)
+            count += 1
+            byteCount += data.count
+        } catch { fatalJournal(error) }
+    }
+
+    func flush() {
+        lock.lock()
+        defer { lock.unlock() }
+        do { try flushLocked() } catch { fatalJournal(error) }
+    }
+
+    private func flushLocked() throws {
+        if !buffer.isEmpty {
+            try handle.write(contentsOf: buffer)
+            buffer.removeAll(keepingCapacity: true)
+        }
+        try handle.synchronize()
+    }
+
+    private func fatalJournal(_ error: Error) -> Never {
+        FileHandle.standardError.write(Data(("Native drag activation journal failed: \(error)\n").utf8))
+        Darwin.exit(2)
+    }
+}
+
+@MainActor
+private func activationState(window: NSWindow?, received: TimeInterval) -> [String: Any] {
+    let cursor = NSEvent.mouseLocation
+    return [
+        "callbackSystemUptime": received, "applicationActive": NSApp.isActive,
+        "keyWindowNumber": NSApp.keyWindow.map { $0.windowNumber as Any } ?? NSNull(),
+        "mainWindowNumber": NSApp.mainWindow.map { $0.windowNumber as Any } ?? NSNull(),
+        "windowNumber": window.map { $0.windowNumber as Any } ?? NSNull(),
+        "windowIsKey": window.map { $0.isKeyWindow as Any } ?? NSNull(),
+        "windowIsMain": window.map { $0.isMainWindow as Any } ?? NSNull(),
+        "windowCanBecomeKey": window.map { $0.canBecomeKey as Any } ?? NSNull(),
+        "windowCanBecomeMain": window.map { $0.canBecomeMain as Any } ?? NSNull(),
+        "windowVisible": window.map { $0.isVisible as Any } ?? NSNull(),
+        "observedCursorScreen": ["x": Double(cursor.x), "y": Double(cursor.y)],
+        "cursorCoordinateSpace": "AppKit-screen-bottom-left"
+    ]
+}
+
+// Both D11 arms use this same normal NSWindow subclass. The override observes
+// an AX raise trigger; it does not suppress, repeat, or complete that action.
+@MainActor
+@objc(NativeDragActivationWindow)
+private final class ControlActivationWindow: NSWindow {
+    var activationJournal: ActivationJournal?
+    private var raiseIndex = 0
+
+    override func accessibilityPerformRaise() -> Bool {
+        let entered = ProcessInfo.processInfo.systemUptime
+        raiseIndex += 1
+        let index = raiseIndex
+        if let activationJournal {
+            var fields = activationState(window: self, received: entered)
+            fields["raiseIndex"] = index
+            activationJournal.record("target-ax-raise-enter", fields)
+        }
+        let triggered = super.accessibilityPerformRaise()
+        let returned = ProcessInfo.processInfo.systemUptime
+        if let activationJournal {
+            var fields = activationState(window: self, received: returned)
+            fields["raiseIndex"] = index
+            fields["actionTriggered"] = triggered
+            activationJournal.record("target-ax-raise-return", fields)
+        }
+        return triggered
+    }
+}
+
 @MainActor
 @objc(NativeDragControlApplication)
 private final class ControlApplication: NSApplication {
     var trace: ControlTrace?
+    var activationJournal: ActivationJournal?
+    weak var observedWindow: NSWindow?
+    private var dispatchIndex = 0
 
     override func sendEvent(_ event: NSEvent) {
+        let entered = ProcessInfo.processInfo.systemUptime
+        var dispatchKind: String?
+        var dispatchFields: [String: Any] = [:]
+        if activationJournal != nil {
+            if event.type == .appKitDefined {
+                // subtype is valid for AppKit-defined events. Do not read it
+                // from key events or infer undocumented data1/data2 meanings.
+                let subtype = event.subtype
+                if subtype == .applicationActivated || subtype == .applicationDeactivated {
+                    dispatchKind = "appkit-defined"
+                    dispatchFields["eventSubtype"] = Int(subtype.rawValue)
+                    dispatchFields["eventSubtypeName"] = subtype == .applicationActivated
+                        ? "applicationActivated" : "applicationDeactivated"
+                }
+            } else if [.leftMouseDown, .leftMouseUp, .leftMouseDragged].contains(event.type) {
+                dispatchKind = "target-mouse"
+                dispatchFields["locationInWindow"] = ["x": Double(event.locationInWindow.x),
+                                                      "y": Double(event.locationInWindow.y)]
+                dispatchFields["modifierFlags"] = event.modifierFlags.rawValue
+                dispatchFields["eventMatchesOwnedWindow"] = event.windowNumber == observedWindow?.windowNumber
+            }
+            if let dispatchKind {
+                dispatchIndex += 1
+                dispatchFields["dispatchIndex"] = dispatchIndex
+                dispatchFields["eventType"] = Int(event.type.rawValue)
+                dispatchFields["eventTimestamp"] = event.timestamp
+                dispatchFields["eventWindowNumber"] = event.windowNumber
+                var fields = activationState(window: observedWindow, received: entered)
+                fields.merge(dispatchFields) { _, value in value }
+                activationJournal?.record(dispatchKind + "-enter", fields)
+            }
+        }
         if (event.type == .keyDown || event.type == .keyUp) && event.keyCode == 53 {
             trace?.record("escape-send-event", [
                 "eventType": event.type == .keyDown ? "keyDown" : "keyUp",
@@ -207,6 +470,12 @@ private final class ControlApplication: NSApplication {
             ])
         }
         super.sendEvent(event)
+        let returned = ProcessInfo.processInfo.systemUptime
+        if let dispatchKind {
+            var fields = activationState(window: observedWindow, received: returned)
+            fields.merge(dispatchFields) { _, value in value }
+            activationJournal?.record(dispatchKind + "-return", fields)
+        }
     }
 }
 
@@ -443,26 +712,50 @@ private final class ControlContentView: NSView {
 }
 
 @MainActor
-private final class ControlDelegate: NSObject, NSApplicationDelegate {
+private final class ControlDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private let selection: ControlSelection
+    private let activationJournal: ActivationJournal?
     private var window: NSWindow?
     var watchdog: DispatchSourceTimer?
 
-    init(selection: ControlSelection) { self.selection = selection }
+    init(selection: ControlSelection, activationJournal: ActivationJournal?) {
+        self.selection = selection
+        self.activationJournal = activationJournal
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
-        let window = NSWindow(contentRect: NSRect(x: 80, y: 100, width: 920, height: 532),
-                              styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+        let window: NSWindow
+        if let activationJournal {
+            let observed = ControlActivationWindow(contentRect: NSRect(x: 80, y: 100, width: 920, height: 532),
+                styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+            observed.activationJournal = activationJournal
+            observed.delegate = self
+            window = observed
+        } else {
+            window = NSWindow(contentRect: NSRect(x: 80, y: 100, width: 920, height: 532),
+                styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+        }
         window.title = "Native Drag Control"
         window.contentMinSize = NSSize(width: 720, height: 532)
         window.isReleasedWhenClosed = false
         window.contentView = ControlContentView(selection: selection)
         self.window = window
+        (NSApp as? ControlApplication)?.observedWindow = window
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         selection.trace.record("application-ready", ["windowTitle": window.title,
                                "scope": "Separate standard AppKit destination, no custom Escape handling."])
+        if let activationJournal {
+            let received = ProcessInfo.processInfo.systemUptime
+            var fields = activationState(window: window, received: received)
+            fields["windowTitle"] = window.title
+            fields["windowClass"] = NSStringFromClass(type(of: window))
+            fields["normalNSWindow"] = !(window is NSPanel)
+            fields["styleMask"] = window.styleMask.rawValue
+            fields["windowLevel"] = window.level.rawValue
+            activationJournal.record("activation-ready", fields)
+        }
     }
 
     func application(_ application: NSApplication, open urls: [URL]) { receive(urls, origin: "open-urls") }
@@ -485,16 +778,48 @@ private final class ControlDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 
     func applicationDidBecomeActive(_ notification: Notification) {
+        let received = ProcessInfo.processInfo.systemUptime
+        activationJournal?.record("application-became-active", activationState(window: window, received: received))
         selection.trace.record("application-became-active")
     }
 
     func applicationDidResignActive(_ notification: Notification) {
+        let received = ProcessInfo.processInfo.systemUptime
+        activationJournal?.record("application-resigned-active", activationState(window: window, received: received))
         selection.trace.record("application-resigned-active")
     }
 
+    func windowDidBecomeKey(_ notification: Notification) {
+        let received = ProcessInfo.processInfo.systemUptime
+        activationJournal?.record("window-became-key", activationState(window: window, received: received))
+    }
+
+    func windowDidResignKey(_ notification: Notification) {
+        let received = ProcessInfo.processInfo.systemUptime
+        activationJournal?.record("window-resigned-key", activationState(window: window, received: received))
+    }
+
+    func windowDidBecomeMain(_ notification: Notification) {
+        let received = ProcessInfo.processInfo.systemUptime
+        activationJournal?.record("window-became-main", activationState(window: window, received: received))
+    }
+
+    func windowDidResignMain(_ notification: Notification) {
+        let received = ProcessInfo.processInfo.systemUptime
+        activationJournal?.record("window-resigned-main", activationState(window: window, received: received))
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
+        let received = ProcessInfo.processInfo.systemUptime
         watchdog?.cancel()
-        selection.trace.record("application-terminated", selection.configuration.originalState())
+        let originals = selection.configuration.originalState()
+        selection.trace.record("application-terminated", originals)
+        if let activationJournal {
+            var fields = activationState(window: window, received: received)
+            fields.merge(originals) { _, value in value }
+            activationJournal.record("activation-terminating", fields)
+            activationJournal.flush()
+        }
     }
 }
 
@@ -505,13 +830,22 @@ private enum NativeDragControl {
         do {
             let configuration = try ControlConfiguration()
             let trace = try ControlTrace(url: configuration.traceURL, sourceBinding: configuration.sourceBinding)
+            let activationJournal = try configuration.activationCase.map { _ in try ActivationJournal(configuration: configuration) }
             guard let application = ControlApplication.shared as? ControlApplication else {
                 throw ControlIssue.invalid("The passive NSApplication subclass did not initialize")
             }
             application.trace = trace
+            application.activationJournal = activationJournal
             let selection = ControlSelection(configuration: configuration, trace: trace)
-            let delegate = ControlDelegate(selection: selection)
+            let delegate = ControlDelegate(selection: selection, activationJournal: activationJournal)
             application.delegate = delegate
+            if let activationJournal {
+                let received = ProcessInfo.processInfo.systemUptime
+                var fields = activationState(window: nil, received: received)
+                fields.merge(activationJournal.startupFields) { _, value in value }
+                fields.merge(configuration.originalState()) { _, value in value }
+                activationJournal.record("activation-start", fields)
+            }
             trace.record("application-start", [
                 "bundleIdentifier": "app.lemulip.NativeDragControl", "theme": configuration.theme,
                 "bundlePath": Bundle.main.bundleURL.standardizedFileURL.path,
@@ -528,7 +862,13 @@ private enum NativeDragControl {
             let watchdog = DispatchSource.makeTimerSource(queue: .global(qos: .userInitiated))
             watchdog.schedule(deadline: .now() + 150)
             watchdog.setEventHandler {
-                trace.record("application-timeout", configuration.originalState())
+                let received = ProcessInfo.processInfo.systemUptime
+                let originals = configuration.originalState()
+                var fields = originals
+                fields["callbackSystemUptime"] = received
+                trace.record("application-timeout", originals)
+                activationJournal?.record("activation-timeout", fields)
+                activationJournal?.flush()
                 Darwin.exit(124)
             }
             delegate.watchdog = watchdog

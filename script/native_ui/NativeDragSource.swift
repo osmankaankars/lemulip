@@ -15,6 +15,8 @@ private func require(_ condition: Bool, _ message: String) throws {
     if !condition { throw SourceIssue.invalid(message) }
 }
 
+private let activationCases = ["raise-first", "no-raise-first", "no-raise-second", "raise-second"]
+
 private func pointJSON(_ point: NSPoint) -> [String: Double] {
     ["x": Double(point.x), "y": Double(point.y)]
 }
@@ -66,6 +68,14 @@ private struct SourceConfiguration {
     let requestedFrameCG: NSRect
     let requestedPointCG: NSPoint
 
+    var activationCase: String? { activationCases.contains(sourceCase) ? sourceCase : nil }
+
+    var activationBinding: [String: String] {
+        guard let activationCase else { return [:] }
+        return ["activationCase": activationCase,
+                "targetRaisePolicy": activationCase.hasPrefix("no-raise-") ? "omitted" : "present"]
+    }
+
     init() throws {
         let arguments = Array(CommandLine.arguments.dropFirst())
         let keys: Set<String> = ["--case", "--frame-x", "--frame-y", "--frame-width",
@@ -78,7 +88,7 @@ private struct SourceConfiguration {
             values[key] = arguments[index + 1]
         }
         sourceCase = values["--case"] ?? ""
-        try require(["appkit-first", "appkit-second"].contains(sourceCase), "Unknown native-source case")
+        try require((["appkit-first", "appkit-second"] + activationCases).contains(sourceCase), "Unknown native-source case")
         func number(_ key: String) throws -> CGFloat {
             guard let value = values[key].flatMap(Double.init), value.isFinite else {
                 throw SourceIssue.invalid("Native-source geometry must contain finite numbers")
@@ -100,9 +110,10 @@ private struct SourceConfiguration {
                     && Bundle.main.object(forInfoDictionaryKey: "NSPrincipalClass") as? String == "NativeDragSourceApplication",
                     "Require the exact isolated AppKit source bundle")
         folder = root.appendingPathComponent("Fixtures/FinderDrop/orchard", isDirectory: true)
-        let evidence = root.appendingPathComponent(
-            "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-Source-" + sourceCase + "/orchard",
-            isDirectory: true)
+        let evidencePrefix = activationCases.contains(sourceCase)
+            ? "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-Activation-"
+            : "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-Source-"
+        let evidence = root.appendingPathComponent(evidencePrefix + sourceCase + "/orchard", isDirectory: true)
         for directory in [root, bundle, folder, evidence] {
             try require(directory.standardizedFileURL.path == directory.resolvingSymlinksInPath().path
                         && (try directory.resourceValues(forKeys: [.isDirectoryKey])).isDirectory == true,
@@ -230,6 +241,7 @@ private struct ScreenMapping {
 private final class SourceTrace: @unchecked Sendable {
     private let handle: FileHandle
     private let sourceCase: String
+    private let activationBinding: [String: String]
     private let lock = NSLock()
     private var buffer = Data()
     private var count = 0
@@ -237,8 +249,9 @@ private final class SourceTrace: @unchecked Sendable {
     private let maximumRecords = 10_000
     private let maximumBytes = 8 * 1_024 * 1_024
 
-    init(url: URL, sourceCase: String) throws {
+    init(url: URL, sourceCase: String, activationBinding: [String: String] = [:]) throws {
         self.sourceCase = sourceCase
+        self.activationBinding = activationBinding
         let descriptor = Darwin.open(url.path, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC,
                                      S_IRUSR | S_IWUSR)
         try require(descriptor >= 0, "Could not exclusively create the fixed source trace")
@@ -251,6 +264,7 @@ private final class SourceTrace: @unchecked Sendable {
         value["event"] = event
         value["sourceCase"] = sourceCase
         value["dragSourceKind"] = "native-appkit"
+        value.merge(activationBinding.mapValues { $0 as Any }) { _, fixed in fixed }
         value["recordIndex"] = count
         value["systemUptime"] = ProcessInfo.processInfo.systemUptime
         value["pid"] = Int(ProcessInfo.processInfo.processIdentifier)
@@ -302,20 +316,37 @@ private final class SourceTrace: @unchecked Sendable {
 }
 
 @MainActor
-private func applicationState() -> [String: Any] {
-    ["applicationActive": NSApp.isActive,
-     "keyWindowNumber": NSApp.keyWindow.map { $0.windowNumber as Any } ?? NSNull()]
+private func applicationState(window: NSWindow? = nil, includeWindowDetails: Bool = false) -> [String: Any] {
+    var fields: [String: Any] = ["applicationActive": NSApp.isActive,
+                                "keyWindowNumber": NSApp.keyWindow.map { $0.windowNumber as Any } ?? NSNull()]
+    if includeWindowDetails {
+        let cursor = NSEvent.mouseLocation
+        fields.merge([
+            "mainWindowNumber": NSApp.mainWindow.map { $0.windowNumber as Any } ?? NSNull(),
+            "windowNumber": window.map { $0.windowNumber as Any } ?? NSNull(),
+            "windowIsKey": window.map { $0.isKeyWindow as Any } ?? NSNull(),
+            "windowIsMain": window.map { $0.isMainWindow as Any } ?? NSNull(),
+            "windowCanBecomeKey": window.map { $0.canBecomeKey as Any } ?? NSNull(),
+            "windowCanBecomeMain": window.map { $0.canBecomeMain as Any } ?? NSNull(),
+            "windowVisible": window.map { $0.isVisible as Any } ?? NSNull(),
+            "observedCursorScreen": ["x": Double(cursor.x), "y": Double(cursor.y)],
+            "cursorCoordinateSpace": "AppKit-screen-bottom-left"
+        ]) { _, value in value }
+    }
+    return fields
 }
 
 @MainActor
 @objc(NativeDragSourceApplication)
 private final class SourceApplication: NSApplication {
     var trace: SourceTrace?
+    var recordsActivationState = false
+    weak var observedWindow: NSWindow?
 
     override func sendEvent(_ event: NSEvent) {
         let received = ProcessInfo.processInfo.systemUptime
         if (event.type == .keyDown || event.type == .keyUp) && event.keyCode == 53 {
-            var fields = applicationState()
+            var fields = applicationState(window: observedWindow, includeWindowDetails: recordsActivationState)
             fields.merge(["eventType": event.type == .keyDown ? "keyDown" : "keyUp",
                           "keyCode": 53, "eventTimestamp": event.timestamp,
                           "callbackSystemUptime": received, "modifierFlags": event.modifierFlags.rawValue,
@@ -383,7 +414,7 @@ private final class SourceIconView: NSView, NSDraggingSource {
     }
 
     private func mouseRecord(_ name: String, _ event: NSEvent) {
-        var fields = applicationState()
+        var fields = applicationState(window: window, includeWindowDetails: configuration.activationCase != nil)
         fields.merge(["selected": selected, "filename": configuration.single.lastPathComponent,
                       "eventTimestamp": event.timestamp, "locationInWindow": pointJSON(event.locationInWindow),
                       "windowNumber": event.windowNumber, "sessionIndex": sessionIndex]) { _, value in value }
@@ -450,7 +481,7 @@ private final class SourceIconView: NSView, NSDraggingSource {
     }
 
     private func callbackFields(_ session: NSDraggingSession, point: NSPoint, received: TimeInterval) -> [String: Any] {
-        var fields = applicationState()
+        var fields = applicationState(window: window, includeWindowDetails: configuration.activationCase != nil)
         fields.merge([
             "callbackSystemUptime": received, "sessionIndex": sessionIndex,
             "sequenceNumber": session.draggingSequenceNumber, "filename": configuration.single.lastPathComponent,
@@ -465,7 +496,7 @@ private final class SourceIconView: NSView, NSDraggingSource {
 }
 
 @MainActor
-private final class SourceDelegate: NSObject, NSApplicationDelegate {
+private final class SourceDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     let configuration: SourceConfiguration
     let trace: SourceTrace
     var window: NSWindow?
@@ -499,6 +530,10 @@ private final class SourceDelegate: NSObject, NSApplicationDelegate {
             content.addSubview(image)
             self.window = window
             iconView = image
+            if configuration.activationCase != nil {
+                window.delegate = self
+                (NSApp as? SourceApplication)?.observedWindow = window
+            }
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             content.layoutSubtreeIfNeeded()
@@ -531,26 +566,69 @@ private final class SourceDelegate: NSObject, NSApplicationDelegate {
                 "offeredOperationMask": 1, "sendEventSubclassInstalled": true,
                 "traceBuffering": "startup-and-termination-flush", "maximumLifetimeSeconds": 130
             ]) { _, value in value }
+            if configuration.activationCase != nil {
+                let received = ProcessInfo.processInfo.systemUptime
+                fields.merge(applicationState(window: window, includeWindowDetails: true)) { _, value in value }
+                fields["callbackSystemUptime"] = received
+            }
             trace.record("source-ready", fields)
             trace.flush()
         } catch { trace.fail(error) }
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
-        trace.record("application-became-active", applicationState())
+        let received = ProcessInfo.processInfo.systemUptime
+        var fields = applicationState(window: window, includeWindowDetails: configuration.activationCase != nil)
+        if configuration.activationCase != nil { fields["callbackSystemUptime"] = received }
+        trace.record("application-became-active", fields)
     }
 
     func applicationDidResignActive(_ notification: Notification) {
-        trace.record("application-resigned-active", applicationState())
+        let received = ProcessInfo.processInfo.systemUptime
+        var fields = applicationState(window: window, includeWindowDetails: configuration.activationCase != nil)
+        if configuration.activationCase != nil { fields["callbackSystemUptime"] = received }
+        trace.record("application-resigned-active", fields)
+    }
+
+    private func recordWindowTransition(_ name: String, received: TimeInterval) {
+        guard configuration.activationCase != nil else { return }
+        var fields = applicationState(window: window, includeWindowDetails: true)
+        fields["callbackSystemUptime"] = received
+        trace.record(name, fields)
+    }
+
+    func windowDidBecomeKey(_ notification: Notification) {
+        let received = ProcessInfo.processInfo.systemUptime
+        recordWindowTransition("window-became-key", received: received)
+    }
+
+    func windowDidResignKey(_ notification: Notification) {
+        let received = ProcessInfo.processInfo.systemUptime
+        recordWindowTransition("window-resigned-key", received: received)
+    }
+
+    func windowDidBecomeMain(_ notification: Notification) {
+        let received = ProcessInfo.processInfo.systemUptime
+        recordWindowTransition("window-became-main", received: received)
+    }
+
+    func windowDidResignMain(_ notification: Notification) {
+        let received = ProcessInfo.processInfo.systemUptime
+        recordWindowTransition("window-resigned-main", received: received)
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 
     func applicationWillTerminate(_ notification: Notification) {
+        let received = ProcessInfo.processInfo.systemUptime
         watchdog?.cancel()
         var fields = configuration.originalState()
         fields["activeSession"] = iconView?.sessionActive ?? false
         fields["sessionCount"] = iconView?.sessionIndex ?? 0
+        if configuration.activationCase != nil {
+            fields.merge(applicationState(window: window, includeWindowDetails: true)) { _, value in value }
+            fields["callbackSystemUptime"] = received
+        }
         trace.record("application-terminating", fields)
         trace.flush()
     }
@@ -562,11 +640,13 @@ private enum NativeDragSource {
     static func main() {
         do {
             let configuration = try SourceConfiguration()
-            let trace = try SourceTrace(url: configuration.traceURL, sourceCase: configuration.sourceCase)
+            let trace = try SourceTrace(url: configuration.traceURL, sourceCase: configuration.sourceCase,
+                                        activationBinding: configuration.activationBinding)
             guard let application = SourceApplication.shared as? SourceApplication else {
                 throw SourceIssue.invalid("The passive source NSApplication subclass did not initialize")
             }
             application.trace = trace
+            application.recordsActivationState = configuration.activationCase != nil
             let delegate = SourceDelegate(configuration: configuration, trace: trace)
             application.delegate = delegate
             let watchdog = DispatchSource.makeTimerSource(queue: .global(qos: .userInitiated))

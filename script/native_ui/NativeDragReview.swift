@@ -35,15 +35,33 @@ private enum DragCaptureComparison: String {
 }
 
 // The source experiment keeps the AppKit observer and reference destination
-// fixed. Four named cases retain both source orders without replacing evidence.
+// fixed. The separate activation experiment uses only the native source and
+// omits all observer-owned target AXRaise requests in its two no-raise cases.
 private enum DragSourceComparison: String, CaseIterable {
     case finderFirst = "finder-first", appkitFirst = "appkit-first"
     case appkitSecond = "appkit-second", finderSecond = "finder-second"
+    case raiseFirst = "raise-first", noRaiseFirst = "no-raise-first"
+    case noRaiseSecond = "no-raise-second", raiseSecond = "raise-second"
 
-    var usesNativeSource: Bool { self == .appkitFirst || self == .appkitSecond }
+    var isActivationComparison: Bool {
+        switch self {
+        case .raiseFirst, .noRaiseFirst, .noRaiseSecond, .raiseSecond: return true
+        default: return false
+        }
+    }
+    var requestsTargetRaise: Bool { self != .noRaiseFirst && self != .noRaiseSecond }
+    var targetRaisePolicy: String { requestsTargetRaise ? "present" : "omitted" }
+    var usesNativeSource: Bool { self != .finderFirst && self != .finderSecond }
     var sourceKind: String { usesNativeSource ? "native-appkit" : "finder" }
-    var evidenceSuffix: String { "-Source-" + rawValue }
-    var arguments: [String] { ["--control", "--compare-capture", "ax-only", "--compare-source", rawValue] }
+    var evidenceSuffix: String { (isActivationComparison ? "-Activation-" : "-Source-") + rawValue }
+    var controlEvidenceKind: String { (isActivationComparison ? "activation-" : "source-") + rawValue }
+    var arguments: [String] {
+        ["--control", "--compare-capture", "ax-only",
+         isActivationComparison ? "--compare-activation" : "--compare-source", rawValue]
+    }
+    var activationBinding: [String: Any] {
+        isActivationComparison ? ["activationCase": rawValue, "targetRaisePolicy": targetRaisePolicy] : [:]
+    }
 }
 
 // Compare explicit AppKit startup with Swift async main without changing the
@@ -454,6 +472,11 @@ private final class DragReview {
             record["sourceCase"] = sourceComparison.rawValue
             record["dragSourceKind"] = sourceComparison.sourceKind
             record["scope"] = "Fixed reference destination and global input; Finder versus an instrumented copy-only AppKit file source. No production or physical-input acceptance claim."
+            if sourceComparison.isActivationComparison {
+                record.merge(sourceComparison.activationBinding) { _, fixed in fixed }
+                record["targetRaiseRequests"] = [[String: Any]]()
+                record["scope"] = "Fixed native source and reference destination; observer target AXRaise present versus omitted before input. No production or physical-input acceptance claim."
+            }
         }
     }
 
@@ -1206,8 +1229,9 @@ private final class DragReview {
         try await wait("The native source did not become foreground before input") {
             NSWorkspace.shared.frontmostApplication?.processIdentifier == sourceApp.processIdentifier
         }
-        try require(AXUIElementPerformAction(reviewWindow, kAXRaiseAction as CFString) == .success
-                    && AXUIElementPerformAction(sourceWindow, kAXRaiseAction as CFString) == .success,
+        try raiseTargetWindow(reviewWindow, phase: "focus-native-source",
+                              failureMessage: "Could not raise the verified native source and target windows")
+        try require(AXUIElementPerformAction(sourceWindow, kAXRaiseAction as CFString) == .success,
                     "Could not raise the verified native source and target windows")
         try await wait("The native source window did not retain foreground") {
             NSWorkspace.shared.frontmostApplication?.processIdentifier == sourceApp.processIdentifier
@@ -1244,6 +1268,33 @@ private final class DragReview {
         return expectedPoint
     }
 
+    // The only two observer target-raise sites pass through this policy. The
+    // fixed source activation/raise calls remain at their original call sites.
+    // Receipts stay in memory until finish(); no wait or I/O is added here.
+    private func raiseTargetWindow(_ window: AXUIElement, phase: String, failureMessage: String) throws {
+        guard let comparison = sourceComparison, comparison.isActivationComparison else {
+            try require(AXUIElementPerformAction(window, kAXRaiseAction as CFString) == .success, failureMessage)
+            return
+        }
+        try require(!mouseDown && !escapeKeyDown, "Target raise policy is restricted to pre-gesture setup")
+        guard let app = reviewApp else { throw DragReviewIssue.failed("The fixed target identity is unavailable") }
+        var requests = record["targetRaiseRequests"] as? [[String: Any]] ?? []
+        try require(requests.count < 16 && ["focus-finder", "focus-native-source"].contains(phase),
+                    "The target raise receipt exceeds its fixed setup scope")
+        let started = ProcessInfo.processInfo.systemUptime
+        let status: AXError? = comparison.requestsTargetRaise
+            ? AXUIElementPerformAction(window, kAXRaiseAction as CFString) : nil
+        let completed = ProcessInfo.processInfo.systemUptime
+        requests.append(["requestIndex": requests.count, "phase": phase,
+            "targetRaisePolicy": comparison.targetRaisePolicy, "performed": comparison.requestsTargetRaise,
+            "status": status.map { Int($0.rawValue) as Any } ?? NSNull(),
+            "startedSystemUptime": started, "completedSystemUptime": completed,
+            "targetPID": Int(app.processIdentifier), "targetWindowTitle": target.windowTitle,
+            "mouseDownSent": mouseDown])
+        record["targetRaiseRequests"] = requests
+        if let status { try require(status == .success, failureMessage) }
+    }
+
     private func focusFinderWindow() async throws {
         try assertTargets()
         guard let window = finderWindow, let finder = finderApp,
@@ -1258,10 +1309,10 @@ private final class DragReview {
         try await wait("Finder did not become foreground before arranging the fixed window stack") {
             NSWorkspace.shared.frontmostApplication?.processIdentifier == finder.processIdentifier
         }
-        // Other windows can remain after XCTest. Raise only our two verified
-        // windows, putting the drop target immediately behind its Finder source.
-        try require(AXUIElementPerformAction(review, kAXRaiseAction as CFString) == .success,
-                    "Could not raise the exact staged review window")
+        // The baseline raises the target immediately behind the Finder source.
+        // D11 omits only that target request; source raise and hit checks remain.
+        try raiseTargetWindow(review, phase: "focus-finder",
+                              failureMessage: "Could not raise the exact staged review window")
         try require(AXUIElementPerformAction(window, kAXRaiseAction as CFString) == .success,
                     "Could not raise the exact fixture Finder window")
         try await wait("The fixture Finder window did not become foreground") {
@@ -1411,7 +1462,7 @@ private final class DragReview {
         if target != .production { configuration.arguments += ["-controlTheme", theme.rawValue] }
         if target == .keyboardControl { configuration.arguments += ["-controlEvidenceKind", "keyboard"] }
         if target == .control, let captureComparison {
-            let kind = sourceComparison.map { "source-" + $0.rawValue }
+            let kind = sourceComparison.map(\.controlEvidenceKind)
                 ?? (DragObserverLifecycle.mode == "appkit" ? "lifecycle-appkit" : "capture-" + captureComparison.rawValue)
             configuration.arguments += ["-controlEvidenceKind", kind]
         }
@@ -1771,7 +1822,7 @@ private struct NativeDragReview {
             : (options.first == "--control" ? .control : .production)
         let captureComparison = options.firstIndex(of: "--compare-capture")
             .flatMap { DragCaptureComparison(rawValue: options[$0 + 1]) }
-        let sourceComparison = options.firstIndex(of: "--compare-source")
+        let sourceComparison = options.firstIndex(where: { $0 == "--compare-source" || $0 == "--compare-activation" })
             .flatMap { DragSourceComparison(rawValue: options[$0 + 1]) }
         if sourceComparison != nil && DragObserverLifecycle.mode != "appkit" {
             FileHandle.standardError.write(Data("The source comparison requires the fixed AppKit observer.\n".utf8))
@@ -1811,6 +1862,10 @@ private struct NativeDragReview {
             aggregate["sourceCase"] = sourceComparison.rawValue
             aggregate["dragSourceKind"] = sourceComparison.sourceKind
             aggregate["scope"] = "One Orchard reference-destination source comparison. Copy-only native source behavior is observed, not assumed equivalent to Finder."
+            if sourceComparison.isActivationComparison {
+                aggregate.merge(sourceComparison.activationBinding) { _, fixed in fixed }
+                aggregate["scope"] = "One fixed native-source case with observer target AXRaise present or omitted. Activation receipts are separate from strict cancellation and fresh-drop acceptance."
+            }
         }
         do {
             guard directory.lastPathComponent == "lemulip-native-ui" else {

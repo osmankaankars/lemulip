@@ -12,6 +12,7 @@ import compare_native_drag_capture as capture
 import compare_native_drag_lifecycle as lifecycle
 
 CASES = ("finder-first", "appkit-first", "appkit-second", "finder-second")
+ACTIVATION_CASES = ("raise-first", "no-raise-first", "no-raise-second", "raise-second")
 POLICY = "ax-only"
 SOURCE_BUNDLE = "Native Drag Source.app"
 SOURCE_ID = "app.lemulip.NativeDragSource"
@@ -24,16 +25,32 @@ SOURCE_EVENTS = CALLBACKS | {"source-ready", "source-mouse-down", "source-mouse-
     "source-session-requested", "source-session-created", "escape-send-event",
     "application-became-active", "application-resigned-active", "application-terminating"}
 ERROR_EVENTS = {"trace-limit", "source-failed", "watchdog-timeout", "application-timeout", "open-rejected"}
+ACTIVATION_SOURCE_EVENTS = {"window-became-key", "window-resigned-key", "window-became-main", "window-resigned-main"}
 
 
-def source_kind(case_name):
+def source_kind(case_name, *, comparison="source"):
+    if comparison == "activation":
+        capture.require(case_name in ACTIVATION_CASES, "unknown-activation-case")
+        return "native-appkit"
+    capture.require(comparison == "source", "unknown-comparison-family")
     capture.require(case_name in CASES, "unknown-source-case")
     return "native-appkit" if case_name.startswith("appkit-") else "finder"
 
 
-def evidence_for(stage, case_name):
-    source_kind(case_name)
-    return stage / ("NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-Source-" + case_name)
+def experiment_bindings(case_name, *, comparison="source"):
+    source_kind(case_name, comparison=comparison)
+    if comparison == "activation":
+        return {"activationCase": case_name, "targetRaisePolicy": "omitted" if case_name.startswith("no-raise-") else "present"}
+    return {}
+
+
+def evidence_suffix(case_name, *, comparison="source"):
+    source_kind(case_name, comparison=comparison)
+    return "-Lifecycle-appkit-" + ("Activation-" if comparison == "activation" else "Source-") + case_name
+
+
+def evidence_for(stage, case_name, *, comparison="source"):
+    return stage / ("NativeDragControlEvidence-Capture-ax-only" + evidence_suffix(case_name, comparison=comparison))
 
 
 def input_snapshot(stage):
@@ -173,7 +190,7 @@ def gesture_clock(case):
             "releaseBeforePost": release["systemUptimeBeforePost"], "releaseAfterPost": release["systemUptimeAfterPost"]}
 
 
-def receiver_analysis(path, stage, context, case_name, case, clock, passed):
+def receiver_analysis(path, stage, context, case_name, case, clock, passed, *, comparison="source"):
     pid = case.get("targetApplicationPID")
     capture.require(type(pid) is int and pid > 0, "target-application-pid")
     rows = read_trace(path, "receiver", pid)
@@ -183,11 +200,13 @@ def receiver_analysis(path, stage, context, case_name, case, clock, passed):
                     "receiver-lifecycle-trace")
     capture.fields_match(starts[0], {"bundleIdentifier": "app.lemulip.NativeDragControl", "theme": "orchard",
         "originalSHA256": context["fixtures"], "fixtureFilenames": sorted(context["fixtures"]),
-        "sourceCase": case_name, "dragSourceKind": source_kind(case_name), "stagingRoot": str(stage),
+        "sourceCase": case_name, "dragSourceKind": source_kind(case_name, comparison=comparison), "stagingRoot": str(stage),
+        **experiment_bindings(case_name, comparison=comparison),
         "bundlePath": str(stage / "Native Drag Control.app"),
         "executablePath": str(stage / "Native Drag Control.app/Contents/MacOS/NativeDragControl")}, "receiver-start-binding")
     for row in rows:
-        capture.fields_match(row, {"sourceCase": case_name, "dragSourceKind": source_kind(case_name)}, "receiver-case-binding")
+        capture.fields_match(row, {"sourceCase": case_name, "dragSourceKind": source_kind(case_name, comparison=comparison),
+            **experiment_bindings(case_name, comparison=comparison)}, "receiver-case-binding")
         for key in ("originalBytesUnchanged", "fixtureFileSetUnchanged"):
             if key in row:
                 capture.require(row[key] is True, "receiver-originals-changed")
@@ -200,7 +219,7 @@ def receiver_analysis(path, stage, context, case_name, case, clock, passed):
                         "receiver-operation-mask")
         capture.require(isinstance(row.get("pasteboardTypes"), list) and row["pasteboardTypes"]
                         and all(isinstance(v, str) for v in row["pasteboardTypes"]), "receiver-pasteboard-types")
-        if source_kind(case_name) == "native-appkit":
+        if source_kind(case_name, comparison=comparison) == "native-appkit":
             capture.require(row["sourceAllowedOperationMask"] == 1, "native-offered-mask-changed")
     before_key = [r for r in callbacks if clock["dragDownBeforePost"] <= r["systemUptime"] < clock["downStartedSystemUptime"]]
     entered = [r for r in before_key if r["event"] == "draggingEntered" and r.get("returnedCopy") is True]
@@ -253,14 +272,16 @@ def receiver_analysis(path, stage, context, case_name, case, clock, passed):
             "activationReceipts": [r for r in rows if r["event"] in ("application-became-active", "application-resigned-active")]}
 
 
-def source_analysis(path, stage, context, case_name, case, clock, receiver, passed):
+def source_analysis(path, stage, context, case_name, case, clock, receiver, passed, *, comparison="source"):
     pid = case.get("sourceApplicationPID")
     capture.require(type(pid) is int and pid > 0 and pid != receiver["pid"], "source-application-pid")
     capture.require(case.get("sourceApplicationPath") == str(stage / SOURCE_BUNDLE), "source-application-path")
     rows = read_trace(path, "source", pid)
     for row in rows:
-        capture.fields_match(row, {"sourceCase": case_name, "dragSourceKind": "native-appkit"}, "source-trace-case-binding")
-        capture.require(row["event"] in SOURCE_EVENTS, "source-trace-event-unknown")
+        capture.fields_match(row, {"sourceCase": case_name, "dragSourceKind": "native-appkit",
+            **experiment_bindings(case_name, comparison=comparison)}, "source-trace-case-binding")
+        allowed_events = SOURCE_EVENTS | (ACTIVATION_SOURCE_EVENTS if comparison == "activation" else set())
+        capture.require(row["event"] in allowed_events, "source-trace-event-unknown")
         for key in ("originalBytesUnchanged", "fixtureFileSetUnchanged"):
             if key in row:
                 capture.require(row[key] is True, "source-originals-changed")
@@ -364,19 +385,20 @@ def source_analysis(path, stage, context, case_name, case, clock, receiver, pass
             "interpretation": "A NONE callback after release is indeterminate; missing sendEvent receipts do not prove nondelivery."}
 
 
-def classify(stage, context, case_name, returncode):
-    kind = source_kind(case_name)
-    evidence = evidence_for(stage, case_name)
+def classify(stage, context, case_name, returncode, *, comparison="source"):
+    kind = source_kind(case_name, comparison=comparison)
+    evidence = evidence_for(stage, case_name, comparison=comparison)
     aggregate = capture.read_json(evidence / "report.json")
     case = capture.read_json(evidence / "orchard/report.json")
     startup = {}
     expected = {"sourceCase": case_name, "dragSourceKind": kind, "observerLifecycle": "appkit",
-                **{k: context["provenance"][k] for k in SOURCE_KEYS}}
+                **{k: context["provenance"][k] for k in SOURCE_KEYS},
+                **experiment_bindings(case_name, comparison=comparison)}
     for label, record in (("aggregate", aggregate), ("case", case)):
         capture.fields_match(record, expected, "source-comparison-binding")
         startup[label] = lifecycle.lifecycle_context(record.get("observerLifecycleAtStart"), "appkit")
     result = capture.classify(stage, context, "control", POLICY, returncode,
-                             evidence_suffix="-Lifecycle-appkit-Source-" + case_name)
+                             evidence_suffix=evidence_suffix(case_name, comparison=comparison))
     capture.fields_match(case["cleanup"], {"sourceApplicationStopped": True, "sourceBundleRegistryEmpty": True},
                          "source-cleanup-incomplete")
     signature = geometry_signature(case, kind)
@@ -386,9 +408,11 @@ def classify(stage, context, case_name, returncode):
     if result["passed"]:
         capture.require(geometries.get("drop-source") == case["sourceGeometry"], "fresh-source-geometry-changed")
     clock = gesture_clock(case)
-    receiver = receiver_analysis(evidence / "orchard/receiver.jsonl", stage, context, case_name, case, clock, result["passed"])
+    receiver = receiver_analysis(evidence / "orchard/receiver.jsonl", stage, context, case_name, case, clock, result["passed"],
+                                 comparison=comparison)
     if kind == "native-appkit":
-        source = source_analysis(evidence / "orchard/source.jsonl", stage, context, case_name, case, clock, receiver, result["passed"])
+        source = source_analysis(evidence / "orchard/source.jsonl", stage, context, case_name, case, clock, receiver, result["passed"],
+                                 comparison=comparison)
     else:
         capture.require(not (evidence / "orchard/source.jsonl").exists(), "finder-source-trace-unexpected")
         source = {"classification": "source-session-unobserved", "traceComplete": None,

@@ -128,7 +128,9 @@ def classify(stage, context, target, policy, returncode, evidence_suffix=""):
     bundle, evidence_name, kind = TARGETS[target]
     require(evidence_suffix in ("", "-Lifecycle-appkit",
         "-Lifecycle-appkit-Source-finder-first", "-Lifecycle-appkit-Source-appkit-first",
-        "-Lifecycle-appkit-Source-appkit-second", "-Lifecycle-appkit-Source-finder-second"),
+        "-Lifecycle-appkit-Source-appkit-second", "-Lifecycle-appkit-Source-finder-second",
+        "-Lifecycle-appkit-Activation-raise-first", "-Lifecycle-appkit-Activation-no-raise-first",
+        "-Lifecycle-appkit-Activation-no-raise-second", "-Lifecycle-appkit-Activation-raise-second"),
         "unknown-evidence-suffix")
     evidence = stage / (evidence_name + "-Capture-" + policy + evidence_suffix)
     aggregate = read_json(evidence / "report.json")
