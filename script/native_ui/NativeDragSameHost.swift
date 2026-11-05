@@ -442,8 +442,21 @@ private struct SameHostCaseResult {
     var safeErrorCode: String {
         if !cleanupCompleted { return "cleanup-incomplete" }
         if !reportRetained { return "report-not-retained" }
+        return primaryErrorCode
+    }
+
+    // Preserve the original stop reason even when cleanup changes the final status.
+    var primaryErrorCode: String {
+        switch record["reason"] as? String {
+        case "The launch did not produce the exact staged app": return "launch-identity-mismatch"
+        case "Opening the initial fixture did not reuse the exact staged app": return "document-open-identity-mismatch"
+        case SameHostKit.cancellationFailure: return "escape-cancellation-failed"
+        case "Existing authorization is insufficient; no permission was requested or changed",
+             "Existing event-post authorization is unavailable",
+             "Existing permission to release the owned mouse is unavailable": return "permission-unavailable"
+        default: break
+        }
         if passed { return "none" }
-        if specificCancellationFailure { return "escape-cancellation-failed" }
         if record["helperCancelled"] as? Bool == true { return "cancelled" }
         let escape = record["sameHostEscape"] as? [String: Any] ?? [:]
         switch escape["status"] as? String {
@@ -458,13 +471,65 @@ private struct SameHostCaseResult {
         return "diagnostic-stopped"
     }
 
+    var safeStartupPhase: String? {
+        guard let phase = record["startupPhase"] as? String,
+              ["keyboard-driver", "application-launch", "launch-identity", "application-window",
+               "initial-workspace", "fixture-finder-window", "finder-icons", "target-geometry", "complete"].contains(phase)
+        else { return nil }
+        return phase
+    }
+
+    var cleanupErrorCodes: [String] {
+        let cleanup = record["cleanup"] as? [String: Any] ?? [:]
+        return (cleanup["errors"] as? [String] ?? []).prefix(64).map { error in
+            switch error {
+            case "Refusing to terminate an application whose staged identity changed": return "cleanup-identity-mismatch"
+            case "The staged app did not terminate before the cleanup deadline": return "cleanup-application-still-running"
+            case "The fixed review bundle remains registered as running": return "cleanup-registry-not-empty"
+            default: return "cleanup-other-error"
+            }
+        }
+    }
+
+    var failureDetail: String {
+        let cleanupCodes = cleanupErrorCodes
+        let cleanupDetail = cleanupCodes.isEmpty ? "" : " (" + cleanupCodes.joined(separator: ", ") + ")"
+        return "İlk durma kodu: \(primaryErrorDescription). Başlangıç aşaması: \(safeStartupPhase ?? "unavailable"). "
+            + "Temizleme: \(cleanupCompleted ? "tamamlandı" : "tamamlanmadı")\(cleanupDetail)."
+    }
+
+    var primaryErrorDescription: String {
+        primaryErrorCode == "diagnostic-stopped" ? "diagnostic-stopped (ilk neden sınıflandırılamadı)" : primaryErrorCode
+    }
+
+    private func safeBooleans(_ value: Any?, keys: [String]) -> [String: Any] {
+        let source = value as? [String: Any] ?? [:]
+        var result: [String: Any] = [:]
+        for key in keys {
+            if exactBoolean(source[key], true) { result[key] = true }
+            else if exactBoolean(source[key], false) { result[key] = false }
+        }
+        return result
+    }
+
     func shareableSummary() -> [String: Any] {
         var summary: [String: Any] = [
             "phase": phase.rawValue, "passed": passed, "reportRetained": reportRetained,
             "initialWorkspaceCorrect": initialWorkspaceCorrect,
             "normalDropVerified": normalDropVerified, "errorCode": safeErrorCode,
+            "primaryErrorCode": primaryErrorCode,
             "physicalInputVerified": false, "imagesCaptured": false
         ]
+        if let safeStartupPhase { summary["startupPhase"] = safeStartupPhase }
+        summary["preflight"] = safeBooleans(record["preflight"], keys: ["accessibility", "postEvents"])
+        let identityKeys = ["bundleIdentifierMatches", "bundleURLPresent", "resolvedBundlePathMatches",
+                            "bundlePathHasTranslocationComponent", "requestedFreshInstance", "allowsRunningApplicationSubstitution"]
+        if record["launchIdentity"] != nil {
+            summary["launchIdentity"] = safeBooleans(record["launchIdentity"], keys: identityKeys)
+        }
+        if record["documentOpenIdentity"] != nil {
+            summary["documentOpenIdentity"] = safeBooleans(record["documentOpenIdentity"], keys: identityKeys + ["sameProcessAsLaunched"])
+        }
         if let cancellation { summary["escapeCancelled"] = cancellation }
         let status = record["status"] as? String ?? "failed"
         summary["status"] = ["captured", "failed", "blocked", "cancelled"].contains(status) ? status : "failed"
@@ -475,6 +540,7 @@ private struct SameHostCaseResult {
             else if exactBoolean(cleanup[key], false) { safeCleanup[key] = false }
         }
         safeCleanup["errorCount"] = (cleanup["errors"] as? [String] ?? []).count
+        safeCleanup["errorCodes"] = cleanupErrorCodes
         summary["cleanup"] = safeCleanup
         let escape = record["sameHostEscape"] as? [String: Any] ?? [:]
         var safeEscape: [String: Any] = ["hardwareProvenanceVerified": false, "stateObservationIsDeliveryAcknowledgement": false]
@@ -647,6 +713,7 @@ private final class SameHostApplication: NSObject, NSApplicationDelegate, NSWind
     private var terminationPending = false
     private var inputCleanupBlocked = false
     private var latestResult: URL?
+    private var latestFailureDetail = ""
     private var activePhase = SameHostPhase.baseline
 
     init(mode: SameHostLaunchMode, packageLoad: SameHostPackageLoad) {
@@ -733,6 +800,7 @@ private final class SameHostApplication: NSObject, NSApplicationDelegate, NSWind
         let accessibility = AXIsProcessTrusted()
         let posting = CGPreflightPostEventAccess()
         let oldReview = !NSRunningApplication.runningApplications(withBundleIdentifier: SameHostKit.applicationIdentifier).isEmpty
+        let failureDetail = latestFailureDetail.isEmpty ? "" : " " + latestFailureDetail
         permissionLabel.stringValue = "Erişilebilirlik: \(accessibility ? "hazır" : "eksik") · Giriş gönderme: \(posting ? "hazır" : "eksik")"
         startButton.isEnabled = mode.isInteractive && task == nil && payload != nil && accessibility && posting
             && !oldReview && !inputCleanupBlocked
@@ -743,12 +811,14 @@ private final class SameHostApplication: NSObject, NSApplicationDelegate, NSWind
         } else if mode.isSmoke {
             statusLabel.stringValue = "Arayüz açılışı kontrol ediliyor. Başlat devre dışı; hiçbir fare veya klavye girdisi gönderilmeyecek."
         } else if inputCleanupBlocked {
-            statusLabel.stringValue = "Giriş temizliği tamamen doğrulanamadığı için yeni tur başlatılmayacak. Escape’e basılıysanız bırakın. Sonucu Göster’den temizleme durumunu inceleyebilirsiniz."
-        } else if !accessibility || !posting {
-            statusLabel.stringValue = "Sistem Ayarları > Gizlilik ve Güvenlik > Erişilebilirlik bölümüne Lemulip Input Check’i (LemulipInputCheck) ekleyip etkinleştirin; sonra bu uygulamayı kapatıp yeniden açın. Terminal’e izin vermeniz gerekmez."
+            statusLabel.stringValue = latestFailureDetail + " Giriş temizliği tamamen doğrulanamadığı için yeni tur başlatılmayacak. Escape’e basılıysanız bırakın. Sonucu Göster’den ayrıntıları inceleyebilirsiniz."
+        } else if !accessibility {
+            statusLabel.stringValue = "Sistem Ayarları > Gizlilik ve Güvenlik > Erişilebilirlik bölümüne Lemulip Input Check’i (LemulipInputCheck) ekleyip etkinleştirin; sonra bu uygulamayı kapatıp aynı kopyayı yeniden açın. Terminal’e izin vermeniz gerekmez." + failureDetail
+        } else if !posting {
+            statusLabel.stringValue = "Erişilebilirlik hazır; bu çalışan süreç için giriş gönderme kontrolü henüz geçmedi. Bu uygulamayı kapatıp aynı kopyayı yeniden açın ve İzinleri Yenile’yi seçin." + failureDetail
         } else if oldReview {
-            statusLabel.stringValue = "Önce açık Lemulip Native UI Review uygulamasını kapatın, ardından İzinleri Yenile’yi seçin. Açık olan bu kopya kontrol tarafından kapatılmaz."
-        } else if latestResult == nil {
+            statusLabel.stringValue = "Önce açık Lemulip Native UI Review uygulamasını kapatın, ardından İzinleri Yenile’yi seçin. Açık olan bu kopya kontrol tarafından kapatılmaz." + failureDetail
+        } else if latestResult == nil && latestFailureDetail.isEmpty {
             statusLabel.stringValue = "Hazır. Bu bir tanı kontrolüdür; sürüm onayı veya fiziksel girişin donanım doğrulaması değildir."
         }
     }
@@ -764,6 +834,7 @@ private final class SameHostApplication: NSObject, NSApplicationDelegate, NSWind
         packageLoad = SameHostPackageLoad.fromMainBundle()
         refreshPermissions()
         guard startButton.isEnabled, let payload else { return }
+        latestFailureDetail = ""
         startButton.isEnabled = false
         refreshButton.isEnabled = false
         resultButton.isEnabled = false
@@ -847,12 +918,14 @@ private final class SameHostApplication: NSObject, NSApplicationDelegate, NSWind
         } catch is CancellationError { outcome = "cancelled" }
         catch { outcome = "helper-startup-failed" }
         inputCleanupBlocked = cases.contains { !$0.cleanupCompleted }
+        latestFailureDetail = cases.last.map { $0.passed ? "" : $0.failureDetail } ?? ""
+        let failureDetail = latestFailureDetail.isEmpty ? "" : " " + latestFailureDetail
         do {
             latestResult = try retainShareableResult(payload: payload, cases: cases, outcome: outcome)
-            statusLabel.stringValue = outcomeMessage(outcome) + " Sonucu Göster ile yerel TXT özetini açabilirsiniz."
+            statusLabel.stringValue = outcomeMessage(outcome) + failureDetail + " Sonucu Göster ile yerel TXT özetini açabilirsiniz."
         } catch {
             latestResult = nil
-            statusLabel.stringValue = outcomeMessage(outcome) + " Sonuç dosyası kaydedilemedi."
+            statusLabel.stringValue = outcomeMessage(outcome) + failureDetail + " Sonuç dosyası kaydedilemedi."
         }
     }
 
@@ -914,8 +987,23 @@ private final class SameHostApplication: NSObject, NSApplicationDelegate, NSWind
             lines.append("  Escape iptali: \(result.cancellation.map { $0 ? "evet" : "hayır" } ?? "ölçülmedi")")
             lines.append("  Yeni normal bırakma: \(result.normalDropVerified ? "doğrulandı" : "doğrulanmadı")")
             lines.append("  Giriş temizliği: \(result.cleanupCompleted ? "tamamlandı" : "TAMAMLANMADI")")
+            lines.append("  Temizleme hata kodları: " + (result.cleanupErrorCodes.isEmpty ? "none" : result.cleanupErrorCodes.joined(separator: ", ")))
             lines.append("  Yerel tanı raporu saklandı: \(result.reportRetained ? "evet" : "hayır")")
             lines.append("  Durum kodu: " + result.safeErrorCode)
+            lines.append("  İlk durma kodu: " + result.primaryErrorDescription)
+            lines.append("  Başlangıç aşaması: " + (result.safeStartupPhase ?? "unavailable"))
+            // Render only fields that already passed the JSON summary's allowlists.
+            let safe = result.shareableSummary()
+            for (field, title) in [("preflight", "Ön kontrol"), ("launchIdentity", "Başlatma kimliği"),
+                                   ("documentOpenIdentity", "Dosya açma kimliği")] {
+                guard let values = safe[field] as? [String: Any], !values.isEmpty else { continue }
+                let flags = values.keys.sorted().compactMap { key -> String? in
+                    if exactBoolean(values[key], true) { return key + "=true" }
+                    if exactBoolean(values[key], false) { return key + "=false" }
+                    return nil
+                }
+                lines.append("  " + title + ": " + flags.joined(separator: ", "))
+            }
             let escape = result.record["sameHostEscape"] as? [String: Any] ?? [:]
             if let wait = boundedNumber(escape["downWaitSeconds"], in: 0...120) {
                 lines.append(String(format: "  Escape basılı gözlemine kadar: %.3f sn", wait))
@@ -1028,6 +1116,80 @@ private final class SameHostApplication: NSObject, NSApplicationDelegate, NSWind
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
 }
 
+#if SAME_HOST_SUMMARY_CHECK
+// CI-only, input-free regression of the actual shareable-summary code. This
+// entrypoint is absent from the shipped helper and never initializes NSApp.
+@main
+private struct NativeDragSameHostSummaryCheck {
+    static func main() {
+        do {
+            let privateMarker = "summary-check-private-data"
+            let identityKeys = ["bundleIdentifierMatches", "bundleURLPresent", "resolvedBundlePathMatches",
+                                "bundlePathHasTranslocationComponent", "requestedFreshInstance", "allowsRunningApplicationSubstitution"]
+            var identity: [String: Any] = Dictionary(uniqueKeysWithValues: identityKeys.map { ($0, false as Any) })
+            identity["requestedFreshInstance"] = true
+            identity["unexpectedBoolean"] = true
+            identity["privatePath"] = privateMarker
+            let cleanup: [String: Any] = ["completed": false, "leftButtonReportedDown": false,
+                "applicationStopped": false, "fixtureFinderWindowClosed": true, "fixedBundleRegistryEmpty": false,
+                "errors": ["Refusing to terminate an application whose staged identity changed",
+                           "The staged app did not terminate before the cleanup deadline",
+                           "The fixed review bundle remains registered as running", privateMarker]]
+            var record: [String: Any] = ["status": "failed", "startupPhase": "launch-identity",
+                "reason": "The launch did not produce the exact staged app", "launchIdentity": identity,
+                "preflight": ["accessibility": true, "postEvents": true, "unexpectedBoolean": true], "cleanup": cleanup]
+            let launch = SameHostCaseResult(phase: .baseline, record: record, reportRetained: true)
+            let launchSummary = launch.shareableSummary()
+            try kitRequire(launch.safeErrorCode == "cleanup-incomplete" && launch.primaryErrorCode == "launch-identity-mismatch")
+            try kitRequire(launchSummary["errorCode"] as? String == "cleanup-incomplete"
+                           && launchSummary["primaryErrorCode"] as? String == "launch-identity-mismatch")
+            try kitRequire(launchSummary["startupPhase"] as? String == "launch-identity")
+            try kitRequire(Set((launchSummary["launchIdentity"] as? [String: Any] ?? [:]).keys) == Set(identityKeys))
+            try kitRequire(Set((launchSummary["preflight"] as? [String: Any] ?? [:]).keys) == Set(["accessibility", "postEvents"]))
+            let expectedCleanupCodes = ["cleanup-identity-mismatch", "cleanup-application-still-running",
+                                        "cleanup-registry-not-empty", "cleanup-other-error"]
+            try kitRequire((launchSummary["cleanup"] as? [String: Any])?["errorCodes"] as? [String] == expectedCleanupCodes)
+            try kitRequire(launch.failureDetail.contains("launch-identity-mismatch") && launch.failureDetail.contains("cleanup-identity-mismatch"))
+
+            record["reason"] = "Opening the initial fixture did not reuse the exact staged app"
+            record["startupPhase"] = "initial-workspace"
+            identity["sameProcessAsLaunched"] = false
+            record["documentOpenIdentity"] = identity
+            let document = SameHostCaseResult(phase: .baseline, record: record, reportRetained: true)
+            let documentSummary = document.shareableSummary()
+            try kitRequire(document.primaryErrorCode == "document-open-identity-mismatch" && document.safeErrorCode == "cleanup-incomplete")
+            try kitRequire(documentSummary["startupPhase"] as? String == "initial-workspace")
+            try kitRequire(Set((documentSummary["documentOpenIdentity"] as? [String: Any] ?? [:]).keys) == Set(identityKeys + ["sameProcessAsLaunched"]))
+
+            record["reason"] = privateMarker
+            record["startupPhase"] = privateMarker
+            record["launchIdentity"] = ["bundleURLPresent": NSNumber(value: 1), "privatePath": privateMarker] as [String: Any]
+            record["preflight"] = ["accessibility": NSNumber(value: 1), "postEvents": true, "unexpectedBoolean": true] as [String: Any]
+            let unknown = SameHostCaseResult(phase: .baseline, record: record, reportRetained: true)
+            let unknownSummary = unknown.shareableSummary()
+            try kitRequire(unknown.primaryErrorCode == "diagnostic-stopped" && unknownSummary["startupPhase"] == nil)
+            try kitRequire((unknownSummary["launchIdentity"] as? [String: Any])?.isEmpty == true)
+            try kitRequire(Set((unknownSummary["preflight"] as? [String: Any] ?? [:]).keys) == Set(["postEvents"]))
+            let encoded = try JSONSerialization.data(withJSONObject: [launchSummary, documentSummary, unknownSummary], options: [.sortedKeys])
+            let text = String(decoding: encoded, as: UTF8.self)
+            try kitRequire(!text.contains(privateMarker) && !text.contains("privatePath") && !text.contains("unexpectedBoolean"))
+            try kitRequire(!unknown.failureDetail.contains(privateMarker))
+
+            record["reason"] = "Existing authorization is insufficient; no permission was requested or changed"
+            record["preflight"] = ["accessibility": true, "postEvents": false]
+            let permission = SameHostCaseResult(phase: .baseline, record: record, reportRetained: true)
+            try kitRequire(permission.primaryErrorCode == "permission-unavailable" && permission.safeErrorCode == "cleanup-incomplete")
+            let receipt: [String: Any] = ["schema": 1, "status": "PASS", "mode": "summary-self-check",
+                "scenarios": 4, "inputEventsSent": 0, "diagnosticOnly": true, "releaseReady": false]
+            FileHandle.standardOutput.write(try JSONSerialization.data(withJSONObject: receipt, options: [.sortedKeys]))
+            FileHandle.standardOutput.write(Data("\n".utf8))
+        } catch {
+            FileHandle.standardError.write(Data("The input-free summary regression failed.\n".utf8))
+            Darwin.exit(1)
+        }
+    }
+}
+#else
 @main
 private struct NativeDragSameHost {
     @MainActor
@@ -1055,4 +1217,5 @@ private struct NativeDragSameHost {
         withExtendedLifetime(delegate) { application.run() }
     }
 }
+#endif
 #endif

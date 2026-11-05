@@ -10,6 +10,7 @@ on:
       - 'script/native_ui/NativeDragReview.swift'
       - 'script/native_ui/NativeDragSameHost.swift'
       - 'script/native_ui/NativeDragExternalProtocolCheck.swift'
+      - 'script/native_ui/NativeDragLaunchIdentityCheck.swift'
 
 permissions:
   contents: read
@@ -87,6 +88,20 @@ jobs:
           script/native_ui/NativeDragReview.swift script/native_ui/NativeDragExternalProtocolCheck.swift
           -framework AppKit -framework ApplicationServices -o "$RUNNER_TEMP/NativeDragExternalProtocolCheck"
 
+      - name: Build Separate Input-Free Launch Identity Check
+        run: >-
+          xcrun swiftc -D SAME_HOST_REVIEW -parse-as-library -target arm64-apple-macos13.0
+          script/native_ui/NativeDragReview.swift script/native_ui/NativeDragLaunchIdentityCheck.swift
+          -framework AppKit -framework ApplicationServices -o "$RUNNER_TEMP/NativeDragLaunchIdentityCheck"
+
+      - name: Check Primary Failure And Private Summary Boundaries
+        run: |
+          xcrun swiftc -D SAME_HOST_REVIEW -D SAME_HOST_SUMMARY_CHECK -parse-as-library \
+            -target arm64-apple-macos13.0 script/native_ui/NativeDragReview.swift \
+            script/native_ui/NativeDragSameHost.swift -framework AppKit -framework ApplicationServices \
+            -o "$RUNNER_TEMP/NativeDragSummaryCheck"
+          "$RUNNER_TEMP/NativeDragSummaryCheck" > "$RUNNER_TEMP/same-host-summary-check.json"
+
       - name: Package Isolated Diagnostic Kit
         run: >-
           python3 script/package_same_host_drag.py stage
@@ -100,6 +115,13 @@ jobs:
           python3 script/package_same_host_drag.py verify
           --source "$GITHUB_WORKSPACE/candidate-source" --output "$RUNNER_TEMP/same-host-delivery"
           --extracted "$RUNNER_TEMP/same-host-extracted"
+
+      - name: Verify Exact Launch And Document Routing Without Input
+        id: launch_identity
+        run: |
+          helper="$RUNNER_TEMP/same-host-extracted/Lemulip-PR45-Girdi-Karsilastirma-arm64/Lemulip Input Check.app"
+          "$RUNNER_TEMP/NativeDragLaunchIdentityCheck" \
+            "$helper/Contents/Resources/Payload/lemulip-native-ui" "$RUNNER_TEMP/same-host-launch-identity"
 
       - name: Exercise Packaged Automatic Baseline
         id: baseline
@@ -169,6 +191,8 @@ jobs:
             ${{ runner.temp }}/same-host-delivery/*.zip
             ${{ runner.temp }}/same-host-delivery/*.json
             ${{ runner.temp }}/same-host-delivery/SHA256SUMS.txt
+            ${{ runner.temp }}/same-host-launch-identity/result.json
+            ${{ runner.temp }}/same-host-summary-check.json
             ${{ runner.temp }}/same-host-baseline/result.json
             ${{ runner.temp }}/same-host-baseline/execution-validation.json
             ${{ runner.temp }}/same-host-human-timeout/result.json

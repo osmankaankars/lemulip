@@ -60,6 +60,35 @@ struct SameHostDragOptions {
     var onPrompt: (@MainActor (String) -> Void)? = nil
 }
 
+@MainActor
+enum SameHostAppLaunch {
+    static func makeConfiguration(arguments: [String], freshInstance: Bool) -> NSWorkspace.OpenConfiguration {
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.arguments = arguments
+        configuration.addsToRecentItems = false
+        configuration.allowsRunningApplicationSubstitution = false
+        configuration.createsNewApplicationInstance = freshInstance
+        return configuration
+    }
+
+    static func identityReceipt(for app: NSRunningApplication, expectedBundle: URL,
+                                expectedIdentifier: String, requestedFreshInstance: Bool,
+                                allowsRunningApplicationSubstitution: Bool) -> [String: Bool] {
+        let observedBundle = app.bundleURL
+        return [
+            "bundleIdentifierMatches": app.bundleIdentifier == expectedIdentifier,
+            "bundleURLPresent": observedBundle != nil,
+            "resolvedBundlePathMatches": observedBundle?.resolvingSymlinksInPath().path
+                == expectedBundle.standardizedFileURL.resolvingSymlinksInPath().path,
+            // This is a literal component observation, not proof of App Translocation.
+            // It must not participate in application acceptance or cleanup decisions.
+            "bundlePathHasTranslocationComponent": observedBundle?.pathComponents.contains("AppTranslocation") ?? false,
+            "requestedFreshInstance": requestedFreshInstance,
+            "allowsRunningApplicationSubstitution": allowsRunningApplicationSubstitution
+        ]
+    }
+}
+
 // Owns only the prebuilt, fixed one-test keyboard runner. This helper never
 // posts input, activates an app or builds a new target during the held drag.
 @MainActor
@@ -1356,16 +1385,31 @@ final class DragReview {
             defer { record["keyboardDriver"] = driver.evidence }
             try await driver.start(expiresAt: expiresAt)
         }
-        let configuration = NSWorkspace.OpenConfiguration()
-        configuration.arguments = ["-language", "en", "-theme", theme.rawValue, "-wheelEnabled", "NO",
-                                   "-completionPresentation", "quiet", "-NSQuitAlwaysKeepsWindows", "NO"]
-        if target != .production { configuration.arguments += ["-controlTheme", theme.rawValue] }
-        if target == .keyboardControl { configuration.arguments += ["-controlEvidenceKind", "keyboard"] }
-        configuration.addsToRecentItems = false
+        var arguments = ["-language", "en", "-theme", theme.rawValue, "-wheelEnabled", "NO",
+                         "-completionPresentation", "quiet", "-NSQuitAlwaysKeepsWindows", "NO"]
+        if target != .production { arguments += ["-controlTheme", theme.rawValue] }
+        if target == .keyboardControl { arguments += ["-controlEvidenceKind", "keyboard"] }
+        let configuration: NSWorkspace.OpenConfiguration
+        if sameHost != nil {
+            configuration = SameHostAppLaunch.makeConfiguration(arguments: arguments, freshInstance: true)
+            record["startupPhase"] = "application-launch"
+        } else {
+            configuration = NSWorkspace.OpenConfiguration()
+            configuration.arguments = arguments
+            configuration.addsToRecentItems = false
+        }
         reviewApp = try await NSWorkspace.shared.openApplication(at: bundle, configuration: configuration)
         guard let app = reviewApp else { throw DragReviewIssue.failed("The staged app did not launch") }
+        if sameHost != nil {
+            record["startupPhase"] = "launch-identity"
+            record["launchIdentity"] = SameHostAppLaunch.identityReceipt(
+                for: app, expectedBundle: bundle, expectedIdentifier: identifier,
+                requestedFreshInstance: configuration.createsNewApplicationInstance,
+                allowsRunningApplicationSubstitution: configuration.allowsRunningApplicationSubstitution)
+        }
         try require(app.bundleIdentifier == identifier && app.bundleURL?.resolvingSymlinksInPath().path == bundle.path,
                     "The launch did not produce the exact staged app")
+        if sameHost != nil { record["startupPhase"] = "application-window" }
         try await wait("The production review window did not appear", retryWindowReadiness: true) {
             self.reviewWindow = try self.window(in: app, title: self.target.windowTitle)
             return self.reviewWindow != nil
@@ -1376,7 +1420,23 @@ final class DragReview {
                     rect: CGRect(x: screen.minX + 16, y: screen.minY + 32, width: min(920, screen.width - 32), height: 560))
         let existing = try fixture("Existing")
         let single = try fixture("Single")
-        _ = try await NSWorkspace.shared.open([existing], withApplicationAt: bundle, configuration: configuration)
+        if sameHost != nil {
+            record["startupPhase"] = "initial-workspace"
+            let documentConfiguration = SameHostAppLaunch.makeConfiguration(arguments: arguments, freshInstance: false)
+            let documentApp = try await NSWorkspace.shared.open([existing], withApplicationAt: bundle,
+                                                                configuration: documentConfiguration)
+            var receipt = SameHostAppLaunch.identityReceipt(
+                for: documentApp, expectedBundle: bundle, expectedIdentifier: identifier,
+                requestedFreshInstance: documentConfiguration.createsNewApplicationInstance,
+                allowsRunningApplicationSubstitution: documentConfiguration.allowsRunningApplicationSubstitution)
+            receipt["sameProcessAsLaunched"] = documentApp.processIdentifier == app.processIdentifier
+            record["documentOpenIdentity"] = receipt
+            try require(documentApp.processIdentifier == app.processIdentifier && documentApp.bundleIdentifier == identifier
+                        && documentApp.bundleURL?.resolvingSymlinksInPath().path == bundle.path,
+                        "Opening the initial fixture did not reuse the exact staged app")
+        } else {
+            _ = try await NSWorkspace.shared.open([existing], withApplicationAt: bundle, configuration: configuration)
+        }
         record["startupPhase"] = "initial-workspace"
         try await wait("The production app did not accept the sole initial fixture", retryInitialWorkspaceReadiness: true) {
             try self.workspaceContains([existing.lastPathComponent])

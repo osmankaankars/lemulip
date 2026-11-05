@@ -274,3 +274,36 @@ membership and file hashes remain required. Package verification exercises the
 same helper under both temporary-directory spellings and separately rejects
 altered fixtures, unlisted files and a fixture symlink. Fixed verification codes
 identify a failing stage without exporting user paths, filenames or contents.
+
+### Exact Application Selection And First Failure Reporting
+
+Version 3 explicitly disables running-application substitution for same-host
+launches and requests a new instance for the initial staged application. Opening
+the initial fixture uses a separate configuration that permits reuse and must
+return the original process as well as the exact staged bundle identifier and
+resolved path. The first launch remains the cleanup ownership reference. Default
+observer operation and the strict identity/cleanup guards are unchanged.
+
+The helper records the startup phase before opening the application, checking its
+identity, finding its window and opening the initial fixture. Shareable receipts
+export only allowlisted identity booleans and fixed failure codes. The primary
+failure is reported separately from cleanup failure; raw bundle paths, arbitrary
+errors and Accessibility labels do not enter these summaries. A literal
+`AppTranslocation` path-component observation is diagnostic information only and
+never an acceptance or cleanup condition.
+
+The same Swift summary transformation is checked with synthetic failure records
+under a CI-only compile flag. It must retain the launch failure alongside cleanup
+codes and exclude unapproved fields, arbitrary errors and nonboolean values.
+The normal helper build excludes this check entrypoint.
+
+A separate input-free CI executable runs against copies of the payload extracted
+from the distributed ZIP. With one owned copy running, it must launch a second
+copy as a distinct process, reuse that second process through its `/var` alias,
+and route the initial document back to the same process. It checks exact identity,
+unchanged source/fixtures and bounded cleanup of only its owned applications.
+This check sends no mouse or keyboard events and requires no Accessibility grant.
+It validates the explicit launch policy, not an unobserved owner-side substitution
+or App Translocation cause. The executable is excluded from the user kit. The
+separate interaction baseline still requires both native permission checks and
+the existing cancellation/cleanup evidence; its failure remains a failed job.

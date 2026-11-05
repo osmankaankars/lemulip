@@ -21,7 +21,7 @@ APPLICATION_COMMIT = "d821d7343675e2850705d141ef9b3b93a6aee945"
 APPLICATION_TREE = "425baa28f00ec24551dd70c0cc874a75fa3be0c1"
 OBSERVER_BASE = "c91b08e1f6f5293281e2b54423c53221a289ad90"
 FOLDER = "Lemulip-PR45-Girdi-Karsilastirma-arm64"
-ARCHIVE = "Lemulip-PR45-Girdi-Karsilastirma-v2-arm64.zip"
+ARCHIVE = "Lemulip-PR45-Girdi-Karsilastirma-v3-arm64.zip"
 HELPER = "Lemulip Input Check.app"
 HELPER_ID = "app.lemulip.SameHostDragReview"
 EXECUTABLE = "LemulipInputCheck"
@@ -33,9 +33,10 @@ LIMITS = {"diagnosticOnly": True, "releaseReady": False,
           "acceptanceXCTestExecuted": False, "comparisonExecution": "NOT RUN", "C12": "HOLD"}
 ESCAPE_FAILURE = "Escape did not cancel the actual Finder drag"
 
-README = """Lemulip PR #45 / v2 — aynı Mac'te girdi karşılaştırması (Apple Silicon / arm64)
+README = """Lemulip PR #45 / v3 — aynı Mac'te girdi karşılaştırması (Apple Silicon / arm64)
 
-ZIP'i açın ve Lemulip Input Check uygulamasına çift tıklayın. Swift, Python,
+Açık eski Lemulip Input Check ve Lemulip Native UI Review uygulamalarını ⌘Q ile
+kapatın. ZIP'i açın ve Lemulip Input Check uygulamasına çift tıklayın. Swift, Python,
 Git, Command Line Tools veya Xcode kurulumu gerekmez. Bu ayrı bir tanı kopyasıdır.
 Uygulama C12 kaynağını ve yalnız sentetik Orchard dosyalarını kullanır.
 
@@ -202,8 +203,8 @@ def stage(source: Path, staged: Path, observer_binary: Path, output: Path, workf
         (macos / EXECUTABLE).chmod(0o755)
         info = {"CFBundleIdentifier": HELPER_ID, "CFBundleExecutable": EXECUTABLE,
                 "CFBundleName": helper.stem, "CFBundleDisplayName": helper.stem,
-                "CFBundlePackageType": "APPL", "CFBundleVersion": "2",
-                "CFBundleShortVersionString": "0.0.2", "LSMinimumSystemVersion": "13.0",
+                "CFBundlePackageType": "APPL", "CFBundleVersion": "3",
+                "CFBundleShortVersionString": "0.0.3", "LSMinimumSystemVersion": "13.0",
                 "NSHighResolutionCapable": True, "NSPrincipalClass": "NSApplication"}
         (helper / "Contents/Info.plist").write_bytes(plistlib.dumps(info))
         run("/usr/bin/codesign", "--force", "--sign", "-", "--identifier", HELPER_ID, helper)
