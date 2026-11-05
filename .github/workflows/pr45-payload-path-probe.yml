@@ -1,0 +1,142 @@
+name: PR45 Read-Only Payload Path Probe
+
+on:
+  push:
+    branches: ['codex/pr45-same-host-drag']
+    paths:
+      - '.github/workflows/pr45-payload-path-probe.yml'
+      - 'script/native_ui/NativePayloadPathProbe.swift'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+
+jobs:
+  observe:
+    runs-on: macos-15
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Build Only The Input-Free Foundation Probe
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(uname -m)" = arm64
+          xcrun swiftc -parse-as-library -target arm64-apple-macos13.0 \
+            script/native_ui/NativePayloadPathProbe.swift -o "$RUNNER_TEMP/NativePayloadPathProbe"
+
+      - name: Download The Fixed Original Diagnostic Artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/13403443123" > "$RUNNER_TEMP/path-probe-artifact.json"
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/13403443123/zip" > "$RUNNER_TEMP/path-probe-original.zip"
+
+      - name: Inspect Three Locations Without Input Or Permission Changes
+        run: |
+          python3 - <<'PYCODE'
+          import hashlib, json, os, pathlib, shutil, stat, subprocess, tempfile, zipfile
+          root = pathlib.Path(os.environ['RUNNER_TEMP'])
+          reports = root / 'payload-path-receipts'; reports.mkdir()
+          digest = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+          write = lambda name, value: (reports / name).write_text(json.dumps(value, indent=2) + '\n')
+          outer = root / 'path-probe-original.zip'
+          metadata = json.loads((root / 'path-probe-artifact.json').read_text())
+          outer_hash = '9b8ab86f9e91ffcc07a5d1900ec290dfced9af9211a4d6919bb8a0e2e4360939'
+          old_head = '083a3e745f62dee936c84006c20bb0a3aa0cea56'
+          assert metadata['id'] == 13403443123 and metadata['workflow_run']['id'] == 42004346466
+          assert metadata['workflow_run']['head_sha'] == old_head and metadata['expired'] is False
+          assert metadata['digest'] == 'sha256:' + outer_hash
+          assert metadata['size_in_bytes'] == outer.stat().st_size == 5697581 and digest(outer) == outer_hash
+          unpacked = root / 'path-probe-original'; unpacked.mkdir()
+          with zipfile.ZipFile(outer) as archive:
+              assert archive.testzip() is None
+              assert all(not pathlib.PurePosixPath(n).is_absolute() and '..' not in pathlib.PurePosixPath(n).parts for n in archive.namelist())
+              archive.extractall(unpacked)
+          original = unpacked / 'same-host-delivery'
+          folder_name = 'Lemulip-PR45-Girdi-Karsilastirma-arm64'
+          inner = original / (folder_name + '.zip')
+          inner_hash = '96dda860e757bcc015745ef06de81e93115c61705fc5742de20c6595402c0cfe'
+          assert inner.stat().st_size == 5689308 and digest(inner) == inner_hash
+          assert (original / 'SHA256SUMS.txt').read_text() == inner_hash + '  ' + inner.name + '\n'
+          provenance = json.loads((original / 'provenance.json').read_text())
+          assert provenance['helperCommit'] == old_head
+          assert provenance['helperTree'] == '61a46c293c7d551e60cdf7f1aff0c77c355f7649'
+          assert provenance['applicationSource']['commit'] == 'd821d7343675e2850705d141ef9b3b93a6aee945'
+          assert provenance['applicationSource']['tree'] == '425baa28f00ec24551dd70c0cc874a75fa3be0c1'
+          assert provenance['diagnosticOnly'] is True and provenance['releaseReady'] is False
+          assert digest(pathlib.Path('script/native_ui/NativeDragSameHost.swift')) == provenance['helperSourceSHA256']
+          with zipfile.ZipFile(inner) as archive:
+              assert archive.testzip() is None
+          normal = root / 'path-probe-normal'; normal.mkdir()
+          private = pathlib.Path(tempfile.mkdtemp(prefix='lemulip-path-probe-', dir='/private/var/tmp'))
+          alias = pathlib.Path(str(private).removeprefix('/private'))
+          assert os.path.samefile(private, alias)
+          for target in (normal, private):
+              subprocess.run(['/usr/bin/ditto', '-x', '-k', str(inner), str(target)], check=True, timeout=30)
+          def inventory(folder):
+              found = {}
+              for item in [folder, *sorted(folder.rglob('*'))]:
+                  mode = item.lstat().st_mode
+                  assert stat.S_ISREG(mode) or stat.S_ISDIR(mode)
+                  record = {'type': 'directory' if stat.S_ISDIR(mode) else 'file', 'mode': format(stat.S_IMODE(mode), '04o')}
+                  if stat.S_ISREG(mode): record['sha256'] = digest(item)
+                  found[item.relative_to(folder).as_posix()] = record
+              found.pop('inventory.json')
+              assert found == json.loads((folder / 'inventory.json').read_text())
+          for target in (normal, private): inventory(target / folder_name)
+          shutil.copy2('script/native_ui/NativePayloadPathProbe.swift', reports / 'NativePayloadPathProbe.swift')
+          write('source-receipt.json', {'schema': 1, 'diagnosticOnly': True, 'inputEventsSent': 0,
+              'originArtifact': 13403443123, 'originRun': 42004346466, 'originHelperCommit': old_head,
+              'outerSHA256': outer_hash, 'outerBytes': 5697581, 'innerSHA256': inner_hash, 'innerBytes': 5689308,
+              'workflowCommit': os.environ['GITHUB_SHA'], 'probeSourceSHA256': digest(pathlib.Path('script/native_ui/NativePayloadPathProbe.swift')),
+              'probeBinarySHA256': digest(root / 'NativePayloadPathProbe'), 'samePrivateVarObject': True,
+              'macOS': subprocess.check_output(['/usr/bin/sw_vers', '-productVersion'], text=True).strip(),
+              'macOSBuild': subprocess.check_output(['/usr/bin/sw_vers', '-buildVersion'], text=True).strip(),
+              'scope': 'Same original helper and three path spellings; no App Translocation or interaction claim.'})
+          for label, location in [('runner-temp', normal), ('private-var', private), ('var-alias', alias)]:
+              helper = location / folder_name / 'Lemulip Input Check.app'
+              binary = helper / 'Contents/MacOS/LemulipInputCheck'
+              assert digest(binary) == provenance['helper']['executableSHA256']
+              check = {'schema': 1, 'label': label, 'helperSHA256': digest(binary), 'timedOut': False}
+              try:
+                  execution = subprocess.run([str(binary), '--verify-package'], capture_output=True, text=True, timeout=30)
+                  check.update(exitCode=execution.returncode, stderrPresent=bool(execution.stderr))
+                  try:
+                      receipt = json.loads(execution.stdout)
+                      allowed = ('schema', 'status', 'payloadVerified', 'helperBundleIdentifier', 'diagnosticOnly', 'releaseReady', 'inputEventsSent')
+                      check['receipt'] = {k: receipt[k] for k in allowed if k in receipt}
+                  except (ValueError, TypeError): check['invalidJSONReceipt'] = True
+              except subprocess.TimeoutExpired:
+                  check.update(exitCode=None, timedOut=True)
+              except OSError as error:
+                  check.update(exitCode=None, launchErrorNumber=error.errno)
+              write(label + '-helper-check.json', check)
+              payload = helper / 'Contents/Resources/Payload/lemulip-native-ui'
+              try:
+                  execution = subprocess.run([str(root / 'NativePayloadPathProbe'), label, str(payload), str(reports / (label + '-paths.json'))],
+                                             capture_output=True, timeout=30)
+                  write(label + '-probe-execution.json', {'schema': 1, 'label': label, 'exitCode': execution.returncode, 'timedOut': False})
+              except subprocess.TimeoutExpired:
+                  write(label + '-probe-execution.json', {'schema': 1, 'label': label, 'exitCode': None, 'timedOut': True})
+          for target in (normal, private): inventory(target / folder_name)
+          assert digest(inner) == inner_hash and digest(outer) == outer_hash
+          write('post-probe-integrity.json', {'schema': 1, 'status': 'PASS', 'ZIPsUnchanged': True,
+                                            'copiesMatchOriginalInventory': True, 'inputEventsSent': 0})
+          PYCODE
+
+      - name: Retain Diagnostic Receipts Including Helper Failures
+        if: ${{ always() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: DIAGNOSTIC-PR45-PAYLOAD-PATH-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/payload-path-receipts/*.json
+            ${{ runner.temp }}/payload-path-receipts/NativePayloadPathProbe.swift
+          if-no-files-found: warn
+          retention-days: 14
