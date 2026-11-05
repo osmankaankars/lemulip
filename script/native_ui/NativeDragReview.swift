@@ -40,6 +40,7 @@ private enum DragCaptureComparison: String {
 @MainActor
 private enum DragObserverLifecycle {
     static var didFinishLaunching = false
+    static var activationPolicySetup: [String: Any] = [:]
     #if LEMULIP_APPKIT_OBSERVER
     static let mode = "appkit"
     static let evidenceSuffix = "-Lifecycle-appkit"
@@ -50,12 +51,14 @@ private enum DragObserverLifecycle {
 
     static var observation: [String: Any] {
         let application: NSApplication? = NSApp
-        return ["mode": mode, "didFinishLaunching": didFinishLaunching,
-                "nsApplicationPresent": application != nil,
-                "nsApplicationRunning": application?.isRunning ?? false,
-                "activationPolicy": application?.activationPolicy().rawValue ?? -1,
-                "threadIsMain": Thread.isMainThread,
-                "taskPriorityRawValue": Task.currentPriority.rawValue]
+        var result: [String: Any] = ["mode": mode, "didFinishLaunching": didFinishLaunching,
+            "nsApplicationPresent": application != nil,
+            "nsApplicationRunning": application?.isRunning ?? false,
+            "activationPolicy": application?.activationPolicy().rawValue ?? -1,
+            "threadIsMain": Thread.isMainThread,
+            "taskPriorityRawValue": Task.currentPriority.rawValue]
+        if !activationPolicySetup.isEmpty { result["activationPolicySetup"] = activationPolicySetup }
+        return result
     }
 }
 
@@ -1684,7 +1687,21 @@ private struct NativeDragAppKitReview {
             exit(2)
         }
         let application = NSApplication.shared
-        guard application.setActivationPolicy(.prohibited), application.activationPolicy() == .prohibited else {
+        // Unbundled executables normally already have this policy. A no-op
+        // setter's Boolean is not a receipt for the actual current state.
+        let initialPolicy = application.activationPolicy()
+        let attempted = initialPolicy != .prohibited
+        let accepted = attempted ? application.setActivationPolicy(.prohibited) : nil
+        let finalPolicy = application.activationPolicy()
+        DragObserverLifecycle.activationPolicySetup = [
+            "initialPolicy": initialPolicy.rawValue, "setAttempted": attempted,
+            "setAccepted": accepted.map { $0 as Any } ?? NSNull(), "finalPolicy": finalPolicy.rawValue]
+        if let data = try? JSONSerialization.data(withJSONObject: DragObserverLifecycle.activationPolicySetup,
+                                                  options: [.sortedKeys]) {
+            FileHandle.standardOutput.write(data)
+            FileHandle.standardOutput.write(Data([10]))
+        }
+        guard (!attempted || accepted == true), finalPolicy == .prohibited else {
             FileHandle.standardError.write(Data("Could not establish the nonactivating AppKit comparison policy.\n".utf8))
             exit(1)
         }

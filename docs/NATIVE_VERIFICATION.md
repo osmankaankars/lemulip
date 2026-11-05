@@ -229,9 +229,13 @@ AppKit startup changes the standalone observer's result. It builds two observer
 executables from the same source and compiler invocation; only the second adds
 `-D LEMULIP_APPKIT_OBSERVER`. The baseline keeps the existing Swift async main.
 The alternative uses a synchronous main, creates a windowless `NSApplication`,
-checks `.prohibited` activation policy and schedules the same async core once
+reads `.prohibited` activation policy and schedules the same async core once
 from `applicationDidFinishLaunching`. Its core additionally checks the launch
 notification, running application loop and activation policy before input.
+An already-prohibited process keeps that policy without calling the setter.
+Otherwise the policy change must succeed and its readback must be prohibited.
+Initial policy, attempted change, setter result and final policy are logged
+before input; failure never falls back to a different activation policy.
 The baseline's passive metadata reads the existing `NSApp` global without
 creating an application. See Apple's [run()](https://developer.apple.com/documentation/appkit/nsapplication/run())
 and [prohibited](https://developer.apple.com/documentation/appkit/nsapplication/activationpolicy-swift.enum/prohibited)
