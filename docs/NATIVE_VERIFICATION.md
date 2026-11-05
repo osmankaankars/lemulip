@@ -319,3 +319,51 @@ Apple's [Launch Services key reference](https://developer.apple.com/library/arch
 prohibits a second instance when the pinned setting is true. The sequential check corrects that test premise without
 altering the application's plist or treating this CI result as proof of the
 owner's original launch failure.
+
+### Runtime Identity When macOS Changes The Launch Location
+
+An owner-side version 3 report reached `launch-identity` with both permission
+checks true, a matching bundle identifier, an available bundle URL, a different
+resolved bundle path, and a literal `AppTranslocation` path component. No input
+was sent. The exact-location guard rejected the launch; the same condition then
+prevented cleanup from claiming the application. This identifies the failing
+condition, but does not establish the returned application's content identity.
+
+Version 4 validates that missing identity before accepting a runtime location.
+The expected file inventory comes from the already verified C12 payload. A
+shared input-free verifier checks the exact bundle inventory and static code
+signature, derives the expected code-directory hash requirement, and validates
+the running code returned by the first `NSWorkspace` launch against that exact
+requirement. Public Security APIs link the live code's disk bundle and executable
+to the returned runtime URLs. All checks must pass before the helper records
+ownership of that application instance. A matching identifier, a valid ad hoc
+signature, or an `AppTranslocation` path component alone is insufficient.
+
+The initial application object remains the ownership reference. Its PID, launch
+date, bundle and executable URLs must remain consistent and the original object
+must remain alive. Opening the initial fixture targets the verified runtime
+bundle with reuse allowed and requires that same owned instance. Document-open
+and cleanup also revalidate the running code against the pinned requirement.
+Only the owned application receives normal termination; no registry lookup
+transfers ownership to another process. Frequent held-drag checks compare the
+captured instance identity without recursively hashing files or altering input
+timing. Default observer operation retains its existing exact-path guard.
+
+Apple's [App Translocation Notes](https://developer.apple.com/forums/thread/724969)
+recommend making applications work when their launch location changes. There is
+no supported API to detect translocation or recover the original path. The
+helper neither depends on such detection nor changes quarantine or permissions.
+Its receipt claims pinned code/content and process identity, not proof of the
+original launch location. Full bundle verification and dynamic code validity
+remain separate checks; see Apple's
+[static](https://developer.apple.com/documentation/security/secstaticcodecheckvalidity(_:_:_:))
+and [dynamic](https://developer.apple.com/documentation/security/seccodecheckvalidity(_:_:_:))
+code-signing validity documentation.
+
+The separate launch check uses this same verifier on the ZIP payload and copies
+at different paths, retains sequential launches required by the pinned instance
+policy, and rejects modified files, unexpected inventory, symlinks and another
+application instance. A copied-path test is not evidence of actual Gatekeeper
+translocation. That behavior remains subject to the owner's next runtime
+receipt. These checks do not replace the permission-gated interaction baseline,
+the physical input comparison, or the C12 HOLD.

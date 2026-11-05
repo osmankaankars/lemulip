@@ -194,18 +194,20 @@ private final class LaunchIdentityCheck {
         let application: NSRunningApplication
         let bundle: URL
         let pid: pid_t
+        let identity: SameHostOwnedApplication
     }
 
     private let arguments = ["-language", "en", "-theme", "orchard", "-wheelEnabled", "NO",
                              "-completionPresentation", "quiet", "-NSQuitAlwaysKeepsWindows", "NO"]
     private var owned: [OwnedApplication] = []
+    private var expectedApplicationFiles: [String: String] = [:]
     private var phase = "preflight"
     private var checks: [String: Bool] = [:]
     var result: [String: Any] = [
         "schema": 1, "status": "FAIL", "mode": "ci-strict-launch-identity",
         "diagnosticOnly": true, "releaseReady": false, "inputEventsSent": 0,
         "permissionRequested": false, "accessibilityUsed": false, "physicalInputVerified": false,
-        "scope": "Sequential application selection and owned cleanup only; no input, cancellation acceptance or user-cause claim."
+        "scope": "Sealed bundle relocation, negative content validation, sequential application selection and owned cleanup only; no input, cancellation acceptance or App Translocation claim."
     ]
 
     private func receipt(_ app: NSRunningApplication, bundle: URL,
@@ -234,11 +236,128 @@ private final class LaunchIdentityCheck {
         }
     }
 
+    private func identity(for bundle: URL, files: [String: String]) throws -> SameHostAppIdentity {
+        try SameHostAppIdentity(expectedBundle: bundle, expectedIdentifier: LaunchCheckPins.identifier,
+                                executableName: "Lemulip", expectedFiles: files)
+    }
+
+    private func relocatedReceipt(_ identity: SameHostOwnedApplication) throws -> [String: Bool] {
+        let receipt = identity.receipt
+        let required = ["expectedBundleContentsVerified", "expectedStaticCodeValid", "runtimeBundleContentsVerified",
+                        "runtimeStaticCodeValid", "runtimeDynamicCodeValid", "codeDirectoryHashMatches",
+                        "securityBundlePathMatches", "securityExecutablePathMatches", "processIdentifierPresent",
+                        "launchDatePresent", "sameLaunchInstance"]
+        try check(Set(receipt.keys) == Set(required + ["runtimeBundlePathMatchesExpected"])
+                  && required.allSatisfy({ receipt[$0] == true })
+                  && receipt["runtimeBundlePathMatchesExpected"] == false, "relocated-identity-receipt")
+        return receipt
+    }
+
+    private func resignNegativeCopy(_ bundle: URL) async throws {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/codesign")
+        process.arguments = ["--force", "--sign", "-", "--identifier", LaunchCheckPins.identifier, bundle.path]
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        try process.run()
+        defer { if process.isRunning { process.terminate() } }
+        let deadline = ProcessInfo.processInfo.systemUptime + 8
+        while process.isRunning && ProcessInfo.processInfo.systemUptime < deadline {
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
+        try check(!process.isRunning, "negative-signing-deadline")
+        try check(process.terminationReason == .exit && process.terminationStatus == 0, "negative-signing-failed")
+    }
+
+    private func checkNegativeCopies(payload: LaunchCheckPayload, output: URL) async throws {
+        var receipts: [[String: Any]] = []
+        defer { result["contentRejections"] = receipts }
+        let labels = ["changed-executable", "changed-resource", "extra-file", "extra-directory",
+                      "symlink-file", "symlink-root", "translocation-marker", "resigned-same-identifier"]
+        for label in labels {
+            phase = "negative-" + label
+            var receipt: [String: Any] = ["case": label, "status": "FAIL", "inputEventsSent": 0,
+                                          "copyVerifiedBeforeMutation": false, "rejected": false]
+            do {
+                let caseRoot = output.appendingPathComponent("negative-" + UUID().uuidString, isDirectory: true)
+                try makeDirectory(caseRoot)
+                var parent = caseRoot
+                if label == "translocation-marker" {
+                    parent = caseRoot.appendingPathComponent("AppTranslocation", isDirectory: true)
+                    try makeDirectory(parent)
+                }
+                let bundle = parent.appendingPathComponent(LaunchCheckPins.application, isDirectory: true)
+                try FileManager.default.copyItem(at: payload.application, to: bundle)
+                _ = try identity(for: bundle, files: payload.applicationSnapshot)
+                receipt["copyVerifiedBeforeMutation"] = true
+                let resource = bundle.appendingPathComponent("Contents/Resources/LICENSE")
+                switch label {
+                case "changed-executable":
+                    let binary = bundle.appendingPathComponent("Contents/MacOS/Lemulip")
+                    let handle = try FileHandle(forUpdating: binary)
+                    defer { try? handle.close() }
+                    guard let first = try handle.read(upToCount: 1), let byte = first.first else {
+                        throw LaunchCheckIssue(code: "negative-binary-read")
+                    }
+                    try handle.seek(toOffset: 0)
+                    try handle.write(contentsOf: Data([byte ^ 1]))
+                case "changed-resource", "translocation-marker", "resigned-same-identifier":
+                    var data = try smallData(resource, maximum: 65_535)
+                    data.append(Data("\nDeliberate CI-only altered resource.\n".utf8))
+                    try data.write(to: resource)
+                case "extra-file":
+                    try Data("Deliberate CI-only extra file.\n".utf8)
+                        .write(to: bundle.appendingPathComponent("Contents/Resources/extra-ci-file.txt"), options: .withoutOverwriting)
+                case "extra-directory":
+                    try makeDirectory(bundle.appendingPathComponent("Contents/Resources/extra-ci-directory", isDirectory: true))
+                case "symlink-file":
+                    let outside = caseRoot.appendingPathComponent("same-bytes-outside-bundle.txt")
+                    try FileManager.default.copyItem(at: resource, to: outside)
+                    try check(try digest(outside).0 == digest(resource).0, "negative-symlink-byte-copy")
+                    try FileManager.default.removeItem(at: resource)
+                    try FileManager.default.createSymbolicLink(at: resource, withDestinationURL: outside)
+                case "symlink-root":
+                    let outside = caseRoot.appendingPathComponent("same-bytes-real-bundle.app", isDirectory: true)
+                    try FileManager.default.moveItem(at: bundle, to: outside)
+                    try FileManager.default.createSymbolicLink(at: bundle, withDestinationURL: outside)
+                default: throw LaunchCheckIssue(code: "negative-case-unknown")
+                }
+                if label == "resigned-same-identifier" {
+                    try await resignNegativeCopy(bundle)
+                    // Its own altered bytes have a valid static signature and the
+                    // same identifier, but may not satisfy the pinned source map.
+                    _ = try identity(for: bundle, files: inventory(bundle))
+                    receipt["alteredCandidateStaticCodeValid"] = true
+                }
+                do {
+                    _ = try identity(for: bundle, files: payload.applicationSnapshot)
+                } catch let failure as SameHostAppIdentityFailure {
+                    receipt["rejectionCode"] = failure.code
+                    receipt["rejected"] = failure.code == "expected-contents-mismatch"
+                }
+                try check(receipt["rejected"] as? Bool == true, "negative-copy-not-rejected")
+                receipt["status"] = "PASS"
+                receipts.append(receipt)
+            } catch {
+                receipt["failureCode"] = (error as? LaunchCheckIssue)?.code
+                    ?? (error as? SameHostAppIdentityFailure)?.code ?? "negative-native-operation-failed"
+                receipts.append(receipt)
+                throw error
+            }
+        }
+        checks["allContentNegativesRejected"] = receipts.count == labels.count
+            && receipts.allSatisfy { $0["status"] as? String == "PASS" }
+    }
+
     func run(source: URL, output: URL) async {
         do {
             let payload = try LaunchCheckPayload.verify(source)
             result["source"] = payload.sourceReceipt
+            expectedApplicationFiles = payload.applicationSnapshot
             try check(registryMatches([]), "preexisting-review-process")
+            phase = "source-signature"
+            let expectedIdentity = try identity(for: payload.application, files: payload.applicationSnapshot)
+            try await checkNegativeCopies(payload: payload, output: output)
             phase = "copy-a"
             let aRoot = output.appendingPathComponent("copy-a-" + UUID().uuidString, isDirectory: true)
             try makeDirectory(aRoot)
@@ -266,9 +385,15 @@ private final class LaunchIdentityCheck {
             let aConfiguration = SameHostAppLaunch.makeConfiguration(arguments: arguments, freshInstance: true)
             let a = try await NSWorkspace.shared.openApplication(at: aBundle, configuration: aConfiguration)
             result["launchIdentityA"] = receipt(a, bundle: aBundle, configuration: aConfiguration)
+            let aIdentity = try expectedIdentity.claim(a)
+            owned.append(OwnedApplication(application: a, bundle: aIdentity.bundleURL,
+                                          pid: a.processIdentifier, identity: aIdentity))
+            result["runtimeIdentityA"] = try relocatedReceipt(aIdentity)
+            checks["relocatedCopyAccepted"] = aIdentity.matches(a)
+                && aIdentity.bundleURL.resolvingSymlinksInPath().path != payload.application.resolvingSymlinksInPath().path
+            try check(checks["relocatedCopyAccepted"] == true, "relocated-copy-not-accepted")
             try check(exactIdentity(a, bundle: aBundle), "launch-a-identity")
             let firstPID = a.processIdentifier
-            owned.append(OwnedApplication(application: a, bundle: aBundle, pid: firstPID))
             try await waitForRegistry([firstPID])
 
             // Pinned C12 forbids multiple simultaneous instances. Match the real
@@ -296,9 +421,22 @@ private final class LaunchIdentityCheck {
             bReceipt["returnedApplicationFinishedLaunching"] = b.isFinishedLaunching
             bReceipt["returnedApplicationTerminated"] = b.isTerminated
             result["launchIdentityB"] = bReceipt
+            let bIdentity = try expectedIdentity.claim(b)
+            owned.append(OwnedApplication(application: b, bundle: bIdentity.bundleURL,
+                                          pid: b.processIdentifier, identity: bIdentity))
+            result["runtimeIdentityB"] = try relocatedReceipt(bIdentity)
             try check(exactIdentity(b, bundle: bBundle), "launch-b-identity")
-            owned.append(OwnedApplication(application: b, bundle: bBundle, pid: b.processIdentifier))
             try await waitForRegistry([b.processIdentifier])
+            checks["oldOwnershipRejectsNewProcess"] = !aIdentity.matches(b)
+            do {
+                try aIdentity.validate(b)
+                checks["oldOwnershipValidationRejectsNewProcess"] = false
+            } catch let failure as SameHostAppIdentityFailure {
+                checks["oldOwnershipValidationRejectsNewProcess"] = failure.code == "process-identity-changed"
+                result["oldOwnershipRejectionCode"] = failure.code
+            }
+            try check(checks["oldOwnershipRejectsNewProcess"] == true
+                      && checks["oldOwnershipValidationRejectsNewProcess"] == true, "old-ownership-accepted-new-process")
 
             phase = "var-alias-reuse"
             let aliasConfiguration = SameHostAppLaunch.makeConfiguration(arguments: arguments, freshInstance: false)
@@ -306,20 +444,23 @@ private final class LaunchIdentityCheck {
             var aliasReceipt = receipt(aliasApp, bundle: bBundle, configuration: aliasConfiguration)
             aliasReceipt["sameProcessAsLaunched"] = aliasApp.processIdentifier == b.processIdentifier
             result["aliasLaunchIdentity"] = aliasReceipt
+            try bIdentity.validate(aliasApp)
             checks["aliasReusedB"] = exactIdentity(aliasApp, bundle: bBundle)
-                && aliasApp.processIdentifier == b.processIdentifier
+                && aliasApp.processIdentifier == b.processIdentifier && bIdentity.matches(aliasApp)
             try check(checks["aliasReusedB"] == true, "var-alias-did-not-reuse-b")
 
             phase = "document-open"
             try check(exactIdentity(b, bundle: bBundle), "launch-b-no-longer-running")
             let documentConfiguration = SameHostAppLaunch.makeConfiguration(arguments: arguments, freshInstance: false)
-            let documentApp = try await NSWorkspace.shared.open([existing], withApplicationAt: alias,
+            let documentApp = try await NSWorkspace.shared.open([existing], withApplicationAt: bIdentity.bundleURL,
                                                                 configuration: documentConfiguration)
             var documentReceipt = receipt(documentApp, bundle: bBundle, configuration: documentConfiguration)
             documentReceipt["sameProcessAsLaunched"] = documentApp.processIdentifier == b.processIdentifier
             result["documentOpenIdentity"] = documentReceipt
+            try bIdentity.validate(documentApp)
+            try SameHostAppIdentity.verifyContents(at: bIdentity.bundleURL, expectedFiles: payload.applicationSnapshot)
             checks["documentReusedB"] = exactIdentity(documentApp, bundle: bBundle)
-                && documentApp.processIdentifier == b.processIdentifier
+                && documentApp.processIdentifier == b.processIdentifier && bIdentity.matches(documentApp)
             try check(checks["documentReusedB"] == true, "document-did-not-reuse-b")
             try await waitForRegistry([b.processIdentifier])
 
@@ -333,7 +474,8 @@ private final class LaunchIdentityCheck {
                       && checks["fixtureUnchanged"] == true, "post-launch-integrity")
             phase = "complete"
         } catch {
-            result["primaryFailureCode"] = (error as? LaunchCheckIssue)?.code ?? "native-operation-failed"
+            result["primaryFailureCode"] = (error as? LaunchCheckIssue)?.code
+                ?? (error as? SameHostAppIdentityFailure)?.code ?? "native-operation-failed"
             result["primaryFailurePhase"] = phase
         }
         result["checks"] = checks
@@ -354,6 +496,13 @@ private final class LaunchIdentityCheck {
             guard entry.application.processIdentifier == entry.pid,
                   exactIdentity(entry.application, bundle: entry.bundle) else {
                 errors.append("owned-identity-changed")
+                continue
+            }
+            do {
+                try entry.identity.validate(entry.application)
+                try SameHostAppIdentity.verifyContents(at: entry.bundle, expectedFiles: expectedApplicationFiles)
+            } catch {
+                errors.append("owned-code-or-contents-changed")
                 continue
             }
             if entry.application.terminate() { requested += 1 }

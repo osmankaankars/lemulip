@@ -46,6 +46,7 @@ private enum PackageVerificationCode: String, Sendable {
     case observerHashFormat = "PV-M10", helperHashFormat = "PV-M11", guiHashFormat = "PV-M12"
     case fileMap = "PV-M13", pathLength = "PV-M14", pathCharacters = "PV-M15"
     case pathComponents = "PV-M16", fileHashFormat = "PV-M17"
+    case identityHashFormat = "PV-M18"
     case enumerator = "PV-E01", entryCount = "PV-E02", entryMetadata = "PV-E03"
     case entrySymlink = "PV-E04", entryNormalization = "PV-E05", entryPrefix = "PV-E06"
     case entryRegular = "PV-E07", entryListed = "PV-E08", entryDigest = "PV-E09"
@@ -223,10 +224,11 @@ private struct VerifiedSameHostPayload {
                 throw PackageVerificationFailure(key == "helperCommit" ? .helperCommit : .helperTree)
             }
         }
-        for key in ["observerSourceSHA256", "helperSourceSHA256", "stagedGUI_SHA256"] {
+        for key in ["observerSourceSHA256", "helperSourceSHA256", "identitySourceSHA256", "stagedGUI_SHA256"] {
             guard let value = manifest[key] as? String, hexadecimal(value, count: 64) else {
                 throw PackageVerificationFailure(key == "observerSourceSHA256" ? .observerHashFormat
-                    : (key == "helperSourceSHA256" ? .helperHashFormat : .guiHashFormat))
+                    : (key == "helperSourceSHA256" ? .helperHashFormat
+                       : (key == "identitySourceSHA256" ? .identityHashFormat : .guiHashFormat)))
             }
         }
         guard let files = manifest["files"] as? [String: String],
@@ -320,7 +322,7 @@ private struct VerifiedSameHostPayload {
                                    "sourceTree": SameHostKit.applicationTree,
                                    "observerBaseCommit": SameHostKit.observerBaseCommit,
                                    "architecture": SameHostKit.architecture]
-        for key in ["helperCommit", "helperTree", "observerSourceSHA256", "helperSourceSHA256", "stagedGUI_SHA256"] {
+        for key in ["helperCommit", "helperTree", "observerSourceSHA256", "helperSourceSHA256", "identitySourceSHA256", "stagedGUI_SHA256"] {
             if let value = manifest[key] as? String { result[key] = value }
         }
         return result
@@ -448,7 +450,9 @@ private struct SameHostCaseResult {
     // Preserve the original stop reason even when cleanup changes the final status.
     var primaryErrorCode: String {
         switch record["reason"] as? String {
-        case "The launch did not produce the exact staged app": return "launch-identity-mismatch"
+        case "The expected review application identity could not be verified": return "expected-identity-invalid"
+        case "The launch did not produce the exact staged app",
+             "The launch did not produce the verified review app": return "launch-identity-mismatch"
         case "Opening the initial fixture did not reuse the exact staged app": return "document-open-identity-mismatch"
         case SameHostKit.cancellationFailure: return "escape-cancellation-failed"
         case "Existing authorization is insufficient; no permission was requested or changed",
@@ -473,7 +477,7 @@ private struct SameHostCaseResult {
 
     var safeStartupPhase: String? {
         guard let phase = record["startupPhase"] as? String,
-              ["keyboard-driver", "application-launch", "launch-identity", "application-window",
+              ["keyboard-driver", "expected-application-identity", "application-launch", "launch-identity", "application-window",
                "initial-workspace", "fixture-finder-window", "finder-icons", "target-geometry", "complete"].contains(phase)
         else { return nil }
         return phase
@@ -528,7 +532,21 @@ private struct SameHostCaseResult {
             summary["launchIdentity"] = safeBooleans(record["launchIdentity"], keys: identityKeys)
         }
         if record["documentOpenIdentity"] != nil {
-            summary["documentOpenIdentity"] = safeBooleans(record["documentOpenIdentity"], keys: identityKeys + ["sameProcessAsLaunched"])
+            summary["documentOpenIdentity"] = safeBooleans(record["documentOpenIdentity"], keys: identityKeys
+                + ["sameProcessAsLaunched", "ownedRuntimeIdentityMatches"])
+        }
+        if record["runtimeIdentity"] != nil {
+            summary["runtimeIdentity"] = safeBooleans(record["runtimeIdentity"], keys: [
+                "expectedBundleContentsVerified", "expectedStaticCodeValid", "runtimeBundleContentsVerified",
+                "runtimeStaticCodeValid", "runtimeDynamicCodeValid", "codeDirectoryHashMatches",
+                "securityBundlePathMatches", "securityExecutablePathMatches", "processIdentifierPresent",
+                "launchDatePresent", "sameLaunchInstance", "runtimeBundlePathMatchesExpected"
+            ])
+        }
+        for field in ["runtimeIdentityFailureCode", "cleanupIdentityFailureCode"] {
+            if let code = record[field] as? String, SameHostAppIdentityFailure(rawValue: code) != nil {
+                summary[field] = code
+            }
         }
         if let cancellation { summary["escapeCancelled"] = cancellation }
         let status = record["status"] as? String ?? "failed"
@@ -582,6 +600,7 @@ private struct SameHostCaseResult {
 private enum SameHostCaseRunner {
     static func run(payload: VerifiedSameHostPayload, session: URL, phase: SameHostPhase,
                     options: SameHostDragOptions) async -> SameHostCaseResult {
+        var caseOptions = options
         var initial: [String: Any] = payload.identityRecord()
         initial.merge(["status": "blocked", "theme": "orchard", "targetKind": "production",
                        "gestureOutcomesVerified": false, "helperPhase": phase.rawValue,
@@ -598,6 +617,11 @@ private enum SameHostCaseRunner {
             try FileManager.default.copyItem(at: payload.root, to: stage)
             let copied = try VerifiedSameHostPayload.verify(stage)
             try kitRequire(copied.manifestDigest == payload.manifestDigest)
+            let applicationPrefix = SameHostKit.applicationName + "/"
+            let files = copied.manifest["files"] as? [String: String] ?? [:]
+            caseOptions.expectedApplicationFiles = Dictionary(uniqueKeysWithValues: files.compactMap { path, hash in
+                path.hasPrefix(applicationPrefix) ? (String(path.dropFirst(applicationPrefix.count)), hash) : nil
+            })
             try makeNewDirectory(stage.appendingPathComponent("NativeDragEvidence", isDirectory: true))
             try Task.checkCancellation()
         } catch {
@@ -610,7 +634,7 @@ private enum SameHostCaseRunner {
                                   "errors": [String]()]
             return SameHostCaseResult(phase: phase, record: initial, reportRetained: false)
         }
-        let review = DragReview(directory: stage, theme: .orchard, target: .production, sameHost: options)
+        let review = DragReview(directory: stage, theme: .orchard, target: .production, sameHost: caseOptions)
         review.record.merge(initial, uniquingKeysWith: { _, new in new })
         do { try await review.run() }
         catch let issue as DragReviewIssue {
@@ -995,7 +1019,7 @@ private final class SameHostApplication: NSObject, NSApplicationDelegate, NSWind
             // Render only fields that already passed the JSON summary's allowlists.
             let safe = result.shareableSummary()
             for (field, title) in [("preflight", "Ön kontrol"), ("launchIdentity", "Başlatma kimliği"),
-                                   ("documentOpenIdentity", "Dosya açma kimliği")] {
+                                   ("runtimeIdentity", "Çalışan kod doğrulaması"), ("documentOpenIdentity", "Dosya açma kimliği")] {
                 guard let values = safe[field] as? [String: Any], !values.isEmpty else { continue }
                 let flags = values.keys.sorted().compactMap { key -> String? in
                     if exactBoolean(values[key], true) { return key + "=true" }
@@ -1003,6 +1027,10 @@ private final class SameHostApplication: NSObject, NSApplicationDelegate, NSWind
                     return nil
                 }
                 lines.append("  " + title + ": " + flags.joined(separator: ", "))
+            }
+            for (field, title) in [("runtimeIdentityFailureCode", "Çalışan kod durma nedeni"),
+                                   ("cleanupIdentityFailureCode", "Kapatma kimliği durma nedeni")] {
+                if let code = safe[field] as? String { lines.append("  " + title + ": " + code) }
             }
             let escape = result.record["sameHostEscape"] as? [String: Any] ?? [:]
             if let wait = boundedNumber(escape["downWaitSeconds"], in: 0...120) {
@@ -1138,6 +1166,11 @@ private struct NativeDragSameHostSummaryCheck {
             var record: [String: Any] = ["status": "failed", "startupPhase": "launch-identity",
                 "reason": "The launch did not produce the exact staged app", "launchIdentity": identity,
                 "preflight": ["accessibility": true, "postEvents": true, "unexpectedBoolean": true], "cleanup": cleanup]
+            record["runtimeIdentity"] = ["expectedBundleContentsVerified": true,
+                "runtimeBundlePathMatchesExpected": false, "codeDirectoryHashMatches": NSNumber(value: 1),
+                "privatePath": privateMarker, "unexpectedBoolean": true] as [String: Any]
+            record["runtimeIdentityFailureCode"] = "runtime-contents-mismatch"
+            record["cleanupIdentityFailureCode"] = privateMarker
             let launch = SameHostCaseResult(phase: .baseline, record: record, reportRetained: true)
             let launchSummary = launch.shareableSummary()
             try kitRequire(launch.safeErrorCode == "cleanup-incomplete" && launch.primaryErrorCode == "launch-identity-mismatch")
@@ -1146,6 +1179,10 @@ private struct NativeDragSameHostSummaryCheck {
             try kitRequire(launchSummary["startupPhase"] as? String == "launch-identity")
             try kitRequire(Set((launchSummary["launchIdentity"] as? [String: Any] ?? [:]).keys) == Set(identityKeys))
             try kitRequire(Set((launchSummary["preflight"] as? [String: Any] ?? [:]).keys) == Set(["accessibility", "postEvents"]))
+            try kitRequire(Set((launchSummary["runtimeIdentity"] as? [String: Any] ?? [:]).keys)
+                           == Set(["expectedBundleContentsVerified", "runtimeBundlePathMatchesExpected"]))
+            try kitRequire(launchSummary["runtimeIdentityFailureCode"] as? String == "runtime-contents-mismatch"
+                           && launchSummary["cleanupIdentityFailureCode"] == nil)
             let expectedCleanupCodes = ["cleanup-identity-mismatch", "cleanup-application-still-running",
                                         "cleanup-registry-not-empty", "cleanup-other-error"]
             try kitRequire((launchSummary["cleanup"] as? [String: Any])?["errorCodes"] as? [String] == expectedCleanupCodes)
@@ -1163,11 +1200,13 @@ private struct NativeDragSameHostSummaryCheck {
 
             record["reason"] = privateMarker
             record["startupPhase"] = privateMarker
+            record["runtimeIdentityFailureCode"] = privateMarker
             record["launchIdentity"] = ["bundleURLPresent": NSNumber(value: 1), "privatePath": privateMarker] as [String: Any]
             record["preflight"] = ["accessibility": NSNumber(value: 1), "postEvents": true, "unexpectedBoolean": true] as [String: Any]
             let unknown = SameHostCaseResult(phase: .baseline, record: record, reportRetained: true)
             let unknownSummary = unknown.shareableSummary()
             try kitRequire(unknown.primaryErrorCode == "diagnostic-stopped" && unknownSummary["startupPhase"] == nil)
+            try kitRequire(unknownSummary["runtimeIdentityFailureCode"] == nil)
             try kitRequire((unknownSummary["launchIdentity"] as? [String: Any])?.isEmpty == true)
             try kitRequire(Set((unknownSummary["preflight"] as? [String: Any] ?? [:]).keys) == Set(["postEvents"]))
             let encoded = try JSONSerialization.data(withJSONObject: [launchSummary, documentSummary, unknownSummary], options: [.sortedKeys])

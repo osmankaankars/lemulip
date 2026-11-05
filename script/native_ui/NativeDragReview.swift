@@ -52,6 +52,8 @@ enum SameHostEscapeInput: String {
 }
 
 struct SameHostDragOptions {
+    // Supplied only after the helper validates the sealed C12 payload.
+    var expectedApplicationFiles: [String: String] = [:]
     var escapeInput: SameHostEscapeInput = .automatic
     var leadInSeconds: Double = 0
     var dwellSeconds: Double = 0.15
@@ -385,6 +387,9 @@ final class DragReview {
     private var folder: URL!
     private var output: URL?
     private var reviewApp: NSRunningApplication?
+#if SAME_HOST_REVIEW
+    private var sameHostOwnedApp: SameHostOwnedApplication?
+#endif
     private var finderApp: NSRunningApplication?
     private var reviewWindow: AXUIElement?
     private var finderWindow: AXUIElement?
@@ -676,11 +681,18 @@ final class DragReview {
 
     private func assertTargets() throws {
         guard let app = reviewApp, let finder = finderApp else { throw DragReviewIssue.failed("Review targets are not ready") }
-        try require(!app.isTerminated && app.bundleIdentifier == identifier &&
-                    app.bundleURL?.resolvingSymlinksInPath().path == bundle.path, "The staged app identity changed")
+        try require(reviewApplicationMatches(app), "The staged app identity changed")
         try require(!finder.isTerminated && finder.bundleIdentifier == "com.apple.finder" &&
                     finder.bundleURL?.resolvingSymlinksInPath().path == "/System/Library/CoreServices/Finder.app",
                     "The Finder process identity changed")
+    }
+
+    private func reviewApplicationMatches(_ app: NSRunningApplication) -> Bool {
+#if SAME_HOST_REVIEW
+        if sameHost != nil { return sameHostOwnedApp?.matches(app) == true }
+#endif
+        return !app.isTerminated && app.bundleIdentifier == identifier &&
+            app.bundleURL?.resolvingSymlinksInPath().path == bundle.path
     }
 
     private func arrange(_ window: AXUIElement, owner: pid_t, rect: CGRect) throws {
@@ -1398,6 +1410,25 @@ final class DragReview {
             configuration.arguments = arguments
             configuration.addsToRecentItems = false
         }
+#if SAME_HOST_REVIEW
+        let expectedIdentity: SameHostAppIdentity?
+        if let sameHost {
+            record["startupPhase"] = "expected-application-identity"
+            do {
+                expectedIdentity = try SameHostAppIdentity(expectedBundle: bundle, expectedIdentifier: identifier,
+                    executableName: target.executable, expectedFiles: sameHost.expectedApplicationFiles)
+            } catch {
+                if let failure = error as? SameHostAppIdentityFailure { record["runtimeIdentityFailureCode"] = failure.code }
+                throw DragReviewIssue.failed("The expected review application identity could not be verified")
+            }
+            record["startupPhase"] = "application-launch"
+        } else { expectedIdentity = nil }
+        if sameHost != nil {
+            // Recheck after full content validation, immediately before launch.
+            try require(NSRunningApplication.runningApplications(withBundleIdentifier: identifier).isEmpty,
+                        "The isolated review application must be stopped before the standalone probe")
+        }
+#endif
         reviewApp = try await NSWorkspace.shared.openApplication(at: bundle, configuration: configuration)
         guard let app = reviewApp else { throw DragReviewIssue.failed("The staged app did not launch") }
         if sameHost != nil {
@@ -1407,8 +1438,30 @@ final class DragReview {
                 requestedFreshInstance: configuration.createsNewApplicationInstance,
                 allowsRunningApplicationSubstitution: configuration.allowsRunningApplicationSubstitution)
         }
-        try require(app.bundleIdentifier == identifier && app.bundleURL?.resolvingSymlinksInPath().path == bundle.path,
-                    "The launch did not produce the exact staged app")
+#if SAME_HOST_REVIEW
+        if let expectedIdentity {
+            do {
+                let owned = try expectedIdentity.claim(app)
+                sameHostOwnedApp = owned
+                record["runtimeIdentity"] = owned.receipt
+                try await wait("The verified review app was not the sole registered review instance") {
+                    let registered = NSRunningApplication.runningApplications(withBundleIdentifier: self.identifier)
+                    try self.require(registered.allSatisfy { $0.processIdentifier == app.processIdentifier },
+                                     "Another review instance appeared during launch")
+                    return registered.count == 1 && owned.matches(registered[0])
+                }
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                if let failure = error as? SameHostAppIdentityFailure { record["runtimeIdentityFailureCode"] = failure.code }
+                throw DragReviewIssue.failed("The launch did not produce the verified review app")
+            }
+        } else {
+            try require(reviewApplicationMatches(app), "The launch did not produce the exact staged app")
+        }
+#else
+        try require(reviewApplicationMatches(app), "The launch did not produce the exact staged app")
+#endif
         if sameHost != nil { record["startupPhase"] = "application-window" }
         try await wait("The production review window did not appear", retryWindowReadiness: true) {
             self.reviewWindow = try self.window(in: app, title: self.target.windowTitle)
@@ -1423,7 +1476,21 @@ final class DragReview {
         if sameHost != nil {
             record["startupPhase"] = "initial-workspace"
             let documentConfiguration = SameHostAppLaunch.makeConfiguration(arguments: arguments, freshInstance: false)
-            let documentApp = try await NSWorkspace.shared.open([existing], withApplicationAt: bundle,
+            let documentBundle: URL
+#if SAME_HOST_REVIEW
+            guard let owned = sameHostOwnedApp else {
+                throw DragReviewIssue.failed("The launch did not produce the verified review app")
+            }
+            do { try owned.validate(app) }
+            catch {
+                if let failure = error as? SameHostAppIdentityFailure { record["runtimeIdentityFailureCode"] = failure.code }
+                throw DragReviewIssue.failed("Opening the initial fixture did not reuse the exact staged app")
+            }
+            documentBundle = owned.bundleURL
+#else
+            documentBundle = bundle
+#endif
+            let documentApp = try await NSWorkspace.shared.open([existing], withApplicationAt: documentBundle,
                                                                 configuration: documentConfiguration)
             var receipt = SameHostAppLaunch.identityReceipt(
                 for: documentApp, expectedBundle: bundle, expectedIdentifier: identifier,
@@ -1431,9 +1498,17 @@ final class DragReview {
                 allowsRunningApplicationSubstitution: documentConfiguration.allowsRunningApplicationSubstitution)
             receipt["sameProcessAsLaunched"] = documentApp.processIdentifier == app.processIdentifier
             record["documentOpenIdentity"] = receipt
-            try require(documentApp.processIdentifier == app.processIdentifier && documentApp.bundleIdentifier == identifier
-                        && documentApp.bundleURL?.resolvingSymlinksInPath().path == bundle.path,
+            try require(documentApp.processIdentifier == app.processIdentifier && reviewApplicationMatches(documentApp),
                         "Opening the initial fixture did not reuse the exact staged app")
+#if SAME_HOST_REVIEW
+            do { try owned.validate(documentApp) }
+            catch {
+                if let failure = error as? SameHostAppIdentityFailure { record["runtimeIdentityFailureCode"] = failure.code }
+                throw DragReviewIssue.failed("Opening the initial fixture did not reuse the exact staged app")
+            }
+            receipt["ownedRuntimeIdentityMatches"] = true
+            record["documentOpenIdentity"] = receipt
+#endif
         } else {
             _ = try await NSWorkspace.shared.open([existing], withApplicationAt: bundle, configuration: configuration)
         }
@@ -1678,9 +1753,21 @@ final class DragReview {
         } else if keyboardStopped && finderWindow != nil {
             errors.append("The fixture Finder owner is unavailable during cleanup")
         }
-        // Terminate only the exact staged app launched by this probe.
+        // Terminate only the application instance owned by this probe.
         if keyboardStopped, let app = reviewApp, !app.isTerminated {
-            if app.bundleIdentifier == identifier && app.bundleURL?.resolvingSymlinksInPath().path == bundle.path {
+            var mayTerminate = reviewApplicationMatches(app)
+#if SAME_HOST_REVIEW
+            if sameHost != nil && mayTerminate {
+                do {
+                    guard let owned = sameHostOwnedApp else { throw DragReviewIssue.failed("No owned review application") }
+                    try owned.validate(app)
+                } catch {
+                    mayTerminate = false
+                    if let failure = error as? SameHostAppIdentityFailure { record["cleanupIdentityFailureCode"] = failure.code }
+                }
+            }
+#endif
+            if mayTerminate {
                 if !app.terminate() && !app.isTerminated { errors.append("The staged app refused normal termination") }
             } else { errors.append("Refusing to terminate an application whose staged identity changed") }
         }

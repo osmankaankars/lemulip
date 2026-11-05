@@ -1,5 +1,6 @@
 import AppKit
 import ApplicationServices
+import Darwin
 import Foundation
 
 // CI-only protocol exercise. This executable is never included in the user kit.
@@ -60,6 +61,66 @@ private final class SyntheticExternalEscape {
 @main
 private struct NativeDragExternalProtocolCheck {
     @MainActor
+    private static func expectedApplicationFiles(in source: URL) throws -> [String: String] {
+        let manifestURL = source.appendingPathComponent("kit-manifest.json")
+        let values = try manifestURL.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey, .fileSizeKey])
+        let maximum = 2_097_152
+        guard values.isRegularFile == true, values.isSymbolicLink == false,
+              let size = values.fileSize, size > 0, size <= maximum else {
+            throw DragReviewIssue.failed("The CI payload manifest must be a bounded regular file")
+        }
+        let descriptor = open(manifestURL.path, O_RDONLY | O_NOFOLLOW)
+        guard descriptor >= 0 else { throw DragReviewIssue.failed("The CI payload manifest could not be opened safely") }
+        let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
+        defer { try? handle.close() }
+        var information = stat()
+        guard fstat(descriptor, &information) == 0, information.st_mode & mode_t(S_IFMT) == mode_t(S_IFREG),
+              information.st_size == Int64(size) else {
+            throw DragReviewIssue.failed("The CI payload manifest file identity changed")
+        }
+        var data = Data()
+        while let chunk = try handle.read(upToCount: 65_536), !chunk.isEmpty {
+            data.append(chunk)
+            guard data.count <= size && data.count <= maximum else {
+                throw DragReviewIssue.failed("The CI payload manifest exceeded its read bound")
+            }
+        }
+        guard data.count == size,
+              let manifest = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let schema = manifest["schema"] as? NSNumber, CFGetTypeID(schema) != CFBooleanGetTypeID(), schema.doubleValue == 1,
+              let diagnostic = manifest["diagnosticOnly"] as? NSNumber, CFGetTypeID(diagnostic) == CFBooleanGetTypeID(), diagnostic.boolValue,
+              let release = manifest["releaseReady"] as? NSNumber, CFGetTypeID(release) == CFBooleanGetTypeID(), !release.boolValue,
+              manifest["applicationCommit"] as? String == "d821d7343675e2850705d141ef9b3b93a6aee945",
+              manifest["applicationTree"] as? String == "425baa28f00ec24551dd70c0cc874a75fa3be0c1",
+              let files = manifest["files"] as? [String: String], !files.isEmpty, files.count <= 4_096 else {
+            throw DragReviewIssue.failed("The CI payload manifest does not identify the pinned diagnostic C12 source")
+        }
+        for (path, hash) in files {
+            let components = path.split(separator: "/", omittingEmptySubsequences: false)
+            guard path.utf8.count <= 1_024, !components.isEmpty,
+                  !path.contains("\\"), !path.unicodeScalars.contains(where: { $0.value < 32 || $0.value == 127 }),
+                  components.allSatisfy({ !$0.isEmpty && $0 != "." && $0 != ".." }),
+                  hash.utf8.count == 64,
+                  hash.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }) else {
+                throw DragReviewIssue.failed("The CI payload manifest contains an invalid file expectation")
+            }
+        }
+        let application = "Lemulip Native UI Review.app"
+        let prefix = application + "/"
+        let expected = Dictionary(uniqueKeysWithValues: files.compactMap { path, hash -> (String, String)? in
+            path.hasPrefix(prefix) ? (String(path.dropFirst(prefix.count)), hash) : nil
+        })
+        guard !expected.isEmpty, let guiHash = manifest["stagedGUI_SHA256"] as? String,
+              expected["Contents/MacOS/Lemulip"] == guiHash else {
+            throw DragReviewIssue.failed("The CI payload manifest does not seal the pinned application executable")
+        }
+        _ = try SameHostAppIdentity(expectedBundle: source.appendingPathComponent(application, isDirectory: true),
+                                    expectedIdentifier: "app.lemulip.NativeUIReview", executableName: "Lemulip",
+                                    expectedFiles: expected)
+        return expected
+    }
+
+    @MainActor
     static func main() async {
         var result: [String: Any] = ["schema": 1, "status": "FAIL", "mode": "ci-synthetic-external-protocol",
                                      "diagnosticOnly": true, "releaseReady": false,
@@ -80,12 +141,15 @@ private struct NativeDragExternalProtocolCheck {
             }
             try FileManager.default.createDirectory(at: output, withIntermediateDirectories: false)
             destination = output.appendingPathComponent("result.json")
+            let applicationFiles = try expectedApplicationFiles(in: source)
+            result["expectedApplicationFilesVerified"] = true
             let directory = output.appendingPathComponent("lemulip-native-ui", isDirectory: true)
             try FileManager.default.copyItem(at: source, to: directory)
             try FileManager.default.createDirectory(at: directory.appendingPathComponent("NativeDragEvidence"),
                                                     withIntermediateDirectories: false)
             let stimulus = SyntheticExternalEscape(stagedBundle: directory.appendingPathComponent("Lemulip Native UI Review.app"))
             var options = SameHostDragOptions()
+            options.expectedApplicationFiles = applicationFiles
             options.escapeInput = .external
             options.onPrompt = { prompt in if prompt == "press-escape" { stimulus.start() } }
             let review = DragReview(directory: directory, theme: .orchard, target: .production, sameHost: options)

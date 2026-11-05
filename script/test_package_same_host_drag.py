@@ -87,7 +87,8 @@ class SameHostDragPackageTests(unittest.TestCase):
 
     def receipt(self, mode):
         manifest = {"stagedGUI_SHA256": "a" * 64, "helperCommit": "b" * 40,
-                    "observerSourceSHA256": "c" * 64, "helperSourceSHA256": "d" * 64}
+                    "observerSourceSHA256": "c" * 64, "helperSourceSHA256": "d" * 64,
+                    "identitySourceSHA256": "e" * 64}
         case = {"sourceCommit": APPLICATION_COMMIT, "sourceTree": APPLICATION_TREE, **manifest,
                 "theme": "orchard", "targetKind": "production", "inputDriver": "CGEvent", "permissionRequested": False,
                 "cleanup": {"completed": True, "errors": [], "leftButtonReportedDown": False,

@@ -9,6 +9,7 @@ on:
       - 'script/test_package_same_host_drag.py'
       - 'script/native_ui/NativeDragReview.swift'
       - 'script/native_ui/NativeDragSameHost.swift'
+      - 'script/native_ui/NativeDragAppIdentity.swift'
       - 'script/native_ui/NativeDragExternalProtocolCheck.swift'
       - 'script/native_ui/NativeDragLaunchIdentityCheck.swift'
 
@@ -80,25 +81,35 @@ jobs:
         run: >-
           xcrun swiftc -D SAME_HOST_REVIEW -parse-as-library -target arm64-apple-macos13.0
           script/native_ui/NativeDragReview.swift script/native_ui/NativeDragSameHost.swift
-          -framework AppKit -framework ApplicationServices -o "$RUNNER_TEMP/LemulipInputCheck"
+          script/native_ui/NativeDragAppIdentity.swift
+          -framework AppKit -framework ApplicationServices -framework Security -o "$RUNNER_TEMP/LemulipInputCheck"
+
+      - name: Compile Standalone Observer With Existing Identity Policy
+        run: >-
+          xcrun swiftc -parse-as-library -target arm64-apple-macos13.0
+          script/native_ui/NativeDragReview.swift
+          -framework AppKit -framework ApplicationServices -o "$RUNNER_TEMP/NativeDragReview"
 
       - name: Build Separate CI-Only External-Key Protocol Check
         run: >-
           xcrun swiftc -D SAME_HOST_REVIEW -parse-as-library -target arm64-apple-macos13.0
           script/native_ui/NativeDragReview.swift script/native_ui/NativeDragExternalProtocolCheck.swift
-          -framework AppKit -framework ApplicationServices -o "$RUNNER_TEMP/NativeDragExternalProtocolCheck"
+          script/native_ui/NativeDragAppIdentity.swift
+          -framework AppKit -framework ApplicationServices -framework Security -o "$RUNNER_TEMP/NativeDragExternalProtocolCheck"
 
       - name: Build Separate Input-Free Launch Identity Check
         run: >-
           xcrun swiftc -D SAME_HOST_REVIEW -parse-as-library -target arm64-apple-macos13.0
           script/native_ui/NativeDragReview.swift script/native_ui/NativeDragLaunchIdentityCheck.swift
-          -framework AppKit -framework ApplicationServices -o "$RUNNER_TEMP/NativeDragLaunchIdentityCheck"
+          script/native_ui/NativeDragAppIdentity.swift
+          -framework AppKit -framework ApplicationServices -framework Security -o "$RUNNER_TEMP/NativeDragLaunchIdentityCheck"
 
       - name: Check Primary Failure And Private Summary Boundaries
         run: |
           xcrun swiftc -D SAME_HOST_REVIEW -D SAME_HOST_SUMMARY_CHECK -parse-as-library \
             -target arm64-apple-macos13.0 script/native_ui/NativeDragReview.swift \
-            script/native_ui/NativeDragSameHost.swift -framework AppKit -framework ApplicationServices \
+            script/native_ui/NativeDragSameHost.swift script/native_ui/NativeDragAppIdentity.swift \
+            -framework AppKit -framework ApplicationServices -framework Security \
             -o "$RUNNER_TEMP/NativeDragSummaryCheck"
           "$RUNNER_TEMP/NativeDragSummaryCheck" > "$RUNNER_TEMP/same-host-summary-check.json"
 

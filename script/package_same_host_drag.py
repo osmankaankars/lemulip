@@ -21,7 +21,7 @@ APPLICATION_COMMIT = "d821d7343675e2850705d141ef9b3b93a6aee945"
 APPLICATION_TREE = "425baa28f00ec24551dd70c0cc874a75fa3be0c1"
 OBSERVER_BASE = "c91b08e1f6f5293281e2b54423c53221a289ad90"
 FOLDER = "Lemulip-PR45-Girdi-Karsilastirma-arm64"
-ARCHIVE = "Lemulip-PR45-Girdi-Karsilastirma-v3-arm64.zip"
+ARCHIVE = "Lemulip-PR45-Girdi-Karsilastirma-v4-arm64.zip"
 HELPER = "Lemulip Input Check.app"
 HELPER_ID = "app.lemulip.SameHostDragReview"
 EXECUTABLE = "LemulipInputCheck"
@@ -33,7 +33,7 @@ LIMITS = {"diagnosticOnly": True, "releaseReady": False,
           "acceptanceXCTestExecuted": False, "comparisonExecution": "NOT RUN", "C12": "HOLD"}
 ESCAPE_FAILURE = "Escape did not cancel the actual Finder drag"
 
-README = """Lemulip PR #45 / v3 — aynı Mac'te girdi karşılaştırması (Apple Silicon / arm64)
+README = """Lemulip PR #45 / v4 — aynı Mac'te girdi karşılaştırması (Apple Silicon / arm64)
 
 Açık eski Lemulip Input Check ve Lemulip Native UI Review uygulamalarını ⌘Q ile
 kapatın. ZIP'i açın ve Lemulip Input Check uygulamasına çift tıklayın. Swift, Python,
@@ -94,7 +94,8 @@ def helper_source(expected: str) -> dict:
     return {"helperCommit": expected, "helperTree": run("git", "-C", ROOT, "rev-parse", "HEAD^{tree}"),
             "observerBaseCommit": OBSERVER_BASE,
             "observerSourceSHA256": sha256(ROOT / "script/native_ui/NativeDragReview.swift"),
-            "helperSourceSHA256": sha256(ROOT / "script/native_ui/NativeDragSameHost.swift")}
+            "helperSourceSHA256": sha256(ROOT / "script/native_ui/NativeDragSameHost.swift"),
+            "identitySourceSHA256": sha256(ROOT / "script/native_ui/NativeDragAppIdentity.swift")}
 
 
 def inventory(directory: Path) -> dict:
@@ -150,7 +151,7 @@ def verify_payload(payload: Path) -> dict:
     if any(manifest.get(k) != v for k, v in expected.items()):
         raise ValueError("Incorrect application pins or diagnostic scope")
     for field, length in (("helperCommit", 40), ("observerSourceSHA256", 64),
-                          ("helperSourceSHA256", 64), ("stagedGUI_SHA256", 64)):
+                          ("helperSourceSHA256", 64), ("identitySourceSHA256", 64), ("stagedGUI_SHA256", 64)):
         if not re.fullmatch(r"[0-9a-f]{" + str(length) + "}", manifest.get(field, "")):
             raise ValueError("Missing source or executable identity")
     if manifest.get("files") != payload_hashes(payload):
@@ -203,8 +204,8 @@ def stage(source: Path, staged: Path, observer_binary: Path, output: Path, workf
         (macos / EXECUTABLE).chmod(0o755)
         info = {"CFBundleIdentifier": HELPER_ID, "CFBundleExecutable": EXECUTABLE,
                 "CFBundleName": helper.stem, "CFBundleDisplayName": helper.stem,
-                "CFBundlePackageType": "APPL", "CFBundleVersion": "3",
-                "CFBundleShortVersionString": "0.0.3", "LSMinimumSystemVersion": "13.0",
+                "CFBundlePackageType": "APPL", "CFBundleVersion": "4",
+                "CFBundleShortVersionString": "0.0.4", "LSMinimumSystemVersion": "13.0",
                 "NSHighResolutionCapable": True, "NSPrincipalClass": "NSApplication"}
         (helper / "Contents/Info.plist").write_bytes(plistlib.dumps(info))
         run("/usr/bin/codesign", "--force", "--sign", "-", "--identifier", HELPER_ID, helper)
@@ -387,7 +388,7 @@ def validate_observation(result: dict, mode: str, manifest: dict) -> dict:
                 "stagedGUI_SHA256": manifest["stagedGUI_SHA256"],
                 "theme": "orchard", "targetKind": "production", "inputDriver": "CGEvent",
                 "permissionRequested": False,
-                **{k: manifest[k] for k in ("helperCommit", "observerSourceSHA256", "helperSourceSHA256")}}
+                **{k: manifest[k] for k in ("helperCommit", "observerSourceSHA256", "helperSourceSHA256", "identitySourceSHA256")}}
     if any(case.get(k) != v for k, v in identity.items()):
         raise ValueError("Observed source/binary identity does not match the package")
     cleanup = case.get("cleanup", {})
