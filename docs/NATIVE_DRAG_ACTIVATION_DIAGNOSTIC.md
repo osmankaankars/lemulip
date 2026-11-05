@@ -45,9 +45,10 @@ both arms; this is not a test that removes every possible activation request.
 | 4 | `raise-second` | Present | Native AppKit |
 
 All four cases use the same built control window and drop view, source,
-observer, fixtures, permissions, geometry and nominal input sequence. The
-target remains a normal `NSWindow`; no panel policy is introduced. Both arms
-receive the same passive instrumentation. Source activation and source-window
+observer, fixtures, permissions, geometry and nominal input sequence. R3 uses
+an actual `NSWindow` with the original D10 constructor, without an AXRaise
+override or a window subclass. Both arms receive the same buffered event and
+window-state instrumentation. Source activation and source-window
 AXRaise remain at their original setup call sites. No focus correction occurs
 while the drag is held.
 
@@ -56,7 +57,8 @@ gesture requires three `focus-finder` decisions followed by one
 `focus-native-source` decision. A successful cancellation and its fresh-drop
 continuation add one further `focus-native-source` decision. Each record binds
 the target PID and window title, phase, index, policy, actual action status,
-entry/return clocks and the absence of an observer-held mouse button. An
+entry/return clocks and the absence of an observer-held mouse button. A zero
+AX API status is not proof that a raise was triggered or completed. An
 omission is represented by `performed: false` and a null action status, not by
 a missing record.
 
@@ -68,10 +70,10 @@ the no-raise arm must not repair that condition by raising the target.
 
 The target keeps its existing receiver trace and adds a bounded, exclusively
 created `activation.jsonl` journal. New activation evidence is buffered during
-the interaction and flushed at lifecycle boundaries. It records target AXRaise
-handler entry/return, AppKit-defined event dispatch, local application active
-state, key/main-window changes and narrowly scoped delivered mouse metadata.
-Overrides always forward to AppKit. Event subtype is read only for
+the interaction and flushed at lifecycle boundaries. It records AppKit-defined
+event dispatch, local application active state, key/main-window changes and
+narrowly scoped delivered mouse metadata. The application event override
+always forwards once to AppKit. Event subtype is read only for
 `.appKitDefined`, never indiscriminately for keyboard or mouse events.
 
 The source adds local key/main-window receipts to its existing buffered trace.
@@ -79,13 +81,16 @@ The observer's target-raise ledger also stays in memory until the normal report
 write. No global input monitor, new keyboard handler, screenshot capture,
 spring-loading conformance or private activation API is introduced.
 
-The target's `accessibilityPerformRaise` override is an observation point, not
-a guarantee that every system raise or activation passes through that method.
-An absent callback cannot prove nondelivery. An unexpected callback in an
-omitted arm must remain visible in the interpretation. AppKit-defined event
-metadata and activation notifications do not identify an external requesting
-process. Neither a stale `currentEvent` nor a foreground snapshot is used as
-proof of origin.
+R3 deliberately installs no `accessibilityPerformRaise` override. Its ready
+record requires `targetAXRaiseOverrideInstalled: false` and
+`targetRaiseObservation: "observer-request-ledger-only"`; hook coverage is
+reported as `not-installed`. Contradictory target AX hook rows invalidate the
+passive-evidence contract while preserving the strict native outcome. The
+observer ledger proves its own explicit requests or omissions, not the absence
+of all possible system activation requests. AppKit-defined event metadata and
+activation notifications do not identify an external requesting process.
+Neither a stale `currentEvent` nor a foreground snapshot is used as proof of
+origin.
 
 ## Acceptance and interpretation
 
@@ -119,6 +124,56 @@ activation-dependent waiting, timing tuning or retry for a passing result.
 
 ## Isolation and verification record
 
+### Revision history and R3 correction
+
+[R1 run 42115651324](https://github.com/osmankaankars/lemulip/actions/runs/42115651324)
+at commit `cf90fec45ffd079fee1e4504f76dc8c521584a4b` stopped at native source
+compilation on both architectures. Swift could not type-check a dictionary
+merge expression in reasonable time. No native interaction ran. R2 split that
+expression into the same nine individual assignments, preserving values,
+ordering and the single cursor sample.
+
+[R2 run 42116433788](https://github.com/osmankaankars/lemulip/actions/runs/42116433788)
+at commit `c0fa9c8197418715bfe09b7d80e0fd0a1ab90cdc`, tree
+`667fdc4fc2111a2b6be0a00e552c02738211e999`, completed all four fixed cases on
+both architectures. Its target was the instrumented `ControlActivationWindow`
+subclass, so these results remain scoped to that class:
+
+| Case | ARM64 R2 | Intel R2 |
+| --- | --- | --- |
+| `raise-first` | Cancellation and fresh-drop PASS | First-session acceptance FAIL |
+| `no-raise-first` | First-session acceptance FAIL | First-session acceptance FAIL |
+| `no-raise-second` | Cancellation and fresh-drop PASS | Cancellation and fresh-drop PASS |
+| `raise-second` | First-session acceptance FAIL | Cancellation and fresh-drop PASS |
+
+All eight cases retained valid original fixtures and completed cleanup. In
+each failed case the target became active/key, received Escape and accepted the
+first session after release; the native source ended with `.copy`. The omitted
+first case failed on both architectures with zero observer target AXRaise
+requests. This shows those requests were not necessary for those observed
+failures **within the instrumented class**.
+
+However, every present-arm target AX override returned `false` from
+`super.accessibilityPerformRaise()`, despite observer AX API status zero.
+Apple's [accessibility integration guidance](https://developer.apple.com/documentation/Accessibility/integrating-accessibility-into-your-app)
+says current method-based APIs take precedence over legacy APIs when both are
+implemented. Adding the modern override could therefore change the chosen
+action route; forwarding to `super` does not establish equivalence to plain
+`NSWindow`. The records do not prove that a route change occurred internally,
+but they expose a concrete measurement confound. R2 must not be described as
+a faithful comparison of successful raises against omissions on the original
+window.
+
+R3 removes only that subclass and override, restores the original plain-window
+constructor and makes the absence of the hook explicit in the evidence
+contract. The observer requests, source, input, geometry, initial ordering,
+buffered event journals and strict acceptance requirements remain unchanged.
+No manual or legacy raise fallback, focus correction, timing adjustment or
+permission change is introduced. R1 and R2 records are retained separately;
+R3 corrects the measurement concern and is not a retry to obtain a PASS.
+
+### R3 proof plan
+
 The diagnostic starts from D10 commit
 `c4028f24af2af5693c8609dc71dc31a38276c6d1` in a clean, separate worktree and branch.
 There were no dirty paths in that worktree before mutation. Planned changes are
@@ -127,9 +182,10 @@ allowlist reuse, the new comparator/tests/workflow and this document. Product
 `Sources`, `Resources`, `Package.swift`, build/staging scripts and the unpublished
 C13 candidate are outside the change scope.
 
-The local executor cannot execute AppKit. D10 supplies the observed red signal;
-the proof plan is targeted portable validation followed by one fixed ARM64 and
-Intel native CI comparison, retaining every result. CI builds the pinned C12
+The local executor cannot execute AppKit. D10 supplies the original observed
+red signal, and R2 supplies the concrete measurement concern. The R3 proof plan
+is targeted portable validation followed by one fixed ARM64 and Intel native
+CI comparison, retaining every result. CI builds the pinned C12
 product solely to prepare the existing stage; it sends no input to the product.
 The product baseline remains commit
 `d821d7343675e2850705d141ef9b3b93a6aee945`, tree

@@ -386,35 +386,6 @@ private func activationState(window: NSWindow?, received: TimeInterval) -> [Stri
     ]
 }
 
-// Both D11 arms use this same normal NSWindow subclass. The override observes
-// an AX raise trigger; it does not suppress, repeat, or complete that action.
-@MainActor
-@objc(NativeDragActivationWindow)
-private final class ControlActivationWindow: NSWindow {
-    var activationJournal: ActivationJournal?
-    private var raiseIndex = 0
-
-    override func accessibilityPerformRaise() -> Bool {
-        let entered = ProcessInfo.processInfo.systemUptime
-        raiseIndex += 1
-        let index = raiseIndex
-        if let activationJournal {
-            var fields = activationState(window: self, received: entered)
-            fields["raiseIndex"] = index
-            activationJournal.record("target-ax-raise-enter", fields)
-        }
-        let triggered = super.accessibilityPerformRaise()
-        let returned = ProcessInfo.processInfo.systemUptime
-        if let activationJournal {
-            var fields = activationState(window: self, received: returned)
-            fields["raiseIndex"] = index
-            fields["actionTriggered"] = triggered
-            activationJournal.record("target-ax-raise-return", fields)
-        }
-        return triggered
-    }
-}
-
 @MainActor
 @objc(NativeDragControlApplication)
 private final class ControlApplication: NSApplication {
@@ -725,17 +696,9 @@ private final class ControlDelegate: NSObject, NSApplicationDelegate, NSWindowDe
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
-        let window: NSWindow
-        if let activationJournal {
-            let observed = ControlActivationWindow(contentRect: NSRect(x: 80, y: 100, width: 920, height: 532),
-                styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
-            observed.activationJournal = activationJournal
-            observed.delegate = self
-            window = observed
-        } else {
-            window = NSWindow(contentRect: NSRect(x: 80, y: 100, width: 920, height: 532),
-                styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
-        }
+        let window = NSWindow(contentRect: NSRect(x: 80, y: 100, width: 920, height: 532),
+            styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false)
+        if activationJournal != nil { window.delegate = self }
         window.title = "Native Drag Control"
         window.contentMinSize = NSSize(width: 720, height: 532)
         window.isReleasedWhenClosed = false
@@ -752,6 +715,8 @@ private final class ControlDelegate: NSObject, NSApplicationDelegate, NSWindowDe
             fields["windowTitle"] = window.title
             fields["windowClass"] = NSStringFromClass(type(of: window))
             fields["normalNSWindow"] = !(window is NSPanel)
+            fields["targetAXRaiseOverrideInstalled"] = false
+            fields["targetRaiseObservation"] = "observer-request-ledger-only"
             fields["styleMask"] = window.styleMask.rawValue
             fields["windowLevel"] = window.level.rawValue
             activationJournal.record("activation-ready", fields)

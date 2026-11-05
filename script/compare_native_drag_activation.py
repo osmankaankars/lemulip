@@ -187,9 +187,12 @@ def activation_analysis(stage, context, case_name, case, result, requests):
         "bundleIdentifier": "app.lemulip.NativeDragControl", "executableName": "NativeDragControl", "bundleName": "Native Drag Control.app",
         "targetBundlePath": str(stage / "Native Drag Control.app"), "stagingRoot": str(stage),
         "originalSHA256": context["fixtures"]}, "activation-start-identity")
-    capture.fields_match(ready[0], {"windowTitle": "Native Drag Control", "normalNSWindow": True}, "activation-window-kind")
-    capture.require(isinstance(ready[0].get("windowClass"), str) and 0 < len(ready[0]["windowClass"]) <= 256,
-                    "activation-window-class")
+    capture.fields_match(ready[0], {"windowTitle": "Native Drag Control", "normalNSWindow": True,
+                                   "windowClass": "NSWindow"}, "activation-window-kind")
+    capture.fields_match(ready[0], {"targetAXRaiseOverrideInstalled": False,
+        "targetRaiseObservation": "observer-request-ledger-only"}, "activation-raise-observation-policy")
+    capture.require(not any(row["event"] in ("target-ax-raise-enter", "target-ax-raise-return") for row in rows),
+                    "activation-raise-hook-contradiction")
     capture.require(type(ready[0].get("styleMask")) is int and ready[0]["styleMask"] >= 0
                     and type(ready[0].get("windowLevel")) is int, "activation-window-policy")
     clock = result["escapePostTiming"]
@@ -236,16 +239,17 @@ def activation_analysis(stage, context, case_name, case, result, requests):
     return {"activationSHA256": capture.sha256(directory / "activation.jsonl"), "traceComplete": True,
         "recordCount": len(rows), "targetWindowClass": ready[0]["windowClass"], "targetWindowNumber": target_number,
         "targetWindowPolicy": {key: ready[0][key] for key in
-            ("windowClass", "normalNSWindow", "styleMask", "windowLevel", "windowCanBecomeKey", "windowCanBecomeMain")},
+            ("windowClass", "normalNSWindow", "styleMask", "windowLevel", "windowCanBecomeKey", "windowCanBecomeMain",
+             "targetAXRaiseOverrideInstalled", "targetRaiseObservation")},
         "initialSourceActiveAndKey": True, "sourceWindowNumber": source_number,
         "intentionalOmissionVerified": omitted, "observerTargetRaiseDispatchCount": sum(r["performed"] for r in requests),
-        "targetAXRaiseCallbackCount": len(raises), "targetAXHookCoverage": "observed" if raises else "unobserved",
+        "targetAXRaiseCallbackCount": len(raises), "targetAXHookCoverage": "not-installed",
         "targetRaiseReceiptInOmittedCase": omitted and bool(raises), "pairs": pairs,
         "targetStateBeforeEscape": target_before, "sourceStateBeforeEscape": source_before,
         "sourceActiveKeyReceiptsThroughEscape": source_retained, "targetActiveReceiptsDuringHeldDrag": held_active,
         "targetBecameActiveDuringHeldDrag": became_active, "sourceResignOrKeyLossDuringHeldDrag": source_lost,
         "sourceStateReceipts": source_states, "targetStateReceipts": target_states,
-        "interpretation": "The observer journal proves its own intentional AXRaise decisions. Hook absence does not prove absence of every raising/activation path; clock overlaps are observations, not causal attribution. An active snapshot before dispatch can precede deactivation and is not by itself a new activation. Process-local transition/key receipts and strict drag outcomes remain separate."}
+        "interpretation": "The target is a plain NSWindow without an AXRaise override. The observer journal records its own intentional AXRaise dispatch or omission; status 0 does not prove action completion. Target AXRaise callbacks are not instrumented, and no claim is made about every raising/activation path. An active snapshot before dispatch can precede deactivation and is not by itself a new activation. Process-local transition/key receipts and strict drag outcomes remain separate."}
 
 
 def retain_invalid_evidence(result, error, scope):

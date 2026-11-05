@@ -28,7 +28,7 @@ def state(active, number=7, key=None):
         "observedCursorScreen": {"x": 474.5, "y": 745}, "cursorCoordinateSpace": "AppKit-screen-bottom-left"}
 
 
-def emit(stage, context, case_name, passed=False, hooks=True, target_activates=None):
+def emit(stage, context, case_name, passed=False, target_activates=None):
     # Retain the D10 fixture's strict native records, then explicitly bind them
     # to D11's separate namespace. This is test data, not a runtime alias route.
     code = emit_source(stage, context, "appkit-first", passed=passed)
@@ -108,13 +108,9 @@ def emit(stage, context, case_name, passed=False, hooks=True, target_activates=N
         bundleIdentifier="app.lemulip.NativeDragControl", executableName="NativeDragControl", bundleName="Native Drag Control.app",
         targetBundlePath=str(stage / "Native Drag Control.app"), stagingRoot=str(stage), originalSHA256=context["fixtures"]),
         row("activation-ready", 2., active=True, windowTitle="Native Drag Control", normalNSWindow=True,
-            windowClass="NativeDragActivationWindow", styleMask=15, windowLevel=0),
+            windowClass="NSWindow", styleMask=15, windowLevel=0, targetAXRaiseOverrideInstalled=False,
+            targetRaiseObservation="observer-request-ledger-only"),
         row("application-resigned-active", 2.55)]
-    if hooks and present:
-        for request in requests:
-            started = request["startedSystemUptime"]
-            rows += [row("target-ax-raise-enter", started + .001, raiseIndex=request["requestIndex"]),
-                     row("target-ax-raise-return", started + .005, raiseIndex=request["requestIndex"], actionTriggered=True)]
     if target_activates:
         rows += [row("appkit-defined-enter", 8.48, dispatchIndex=0, eventType=13, eventSubtype=1, eventTimestamp=8.47, eventWindowNumber=7),
                  row("appkit-defined-return", 8.49, active=True, dispatchIndex=0, eventType=13, eventSubtype=1,
@@ -133,12 +129,12 @@ def alter_report(directory, action):
 
 
 class ActivationComparisonTests(unittest.TestCase):
-    def run_cases(self, stage, context, output, pass_for=None, change=None, hooks=True):
+    def run_cases(self, stage, context, output, pass_for=None, change=None):
         commands = []
         def runner(command, log):
             name = activation.CASES[len(commands)]
             commands.append(command)
-            code = emit(stage, context, name, passed=bool(pass_for and pass_for(name)), hooks=hooks)
+            code = emit(stage, context, name, passed=bool(pass_for and pass_for(name)))
             if change:
                 change(name, activation.evidence_for(stage, name) / "orchard")
             return code
@@ -177,26 +173,45 @@ class ActivationComparisonTests(unittest.TestCase):
                                  "AppKit-screen-bottom-left")
                 self.assertIn("observedCursorScreen", case["activationEvidence"]["targetStateBeforeEscape"])
 
-    def test_unobserved_raise_hook_or_unexpected_omitted_hook_does_not_discard_safe_outcome(self):
-        for unexpected in (False, True):
-            with self.subTest(unexpected=unexpected), tempfile.TemporaryDirectory() as temporary:
+    def test_plain_window_without_hook_keeps_observer_request_ledger_authoritative(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            stage, context = fixture(Path(temporary))
+            report, commands = self.run_cases(stage, context, Path(temporary) / "out",
+                pass_for=lambda name: name.startswith("no-raise"))
+            self.assertEqual(len(commands), 4)
+            self.assertTrue(report["comparisonComplete"])
+            for case in report["cases"]:
+                evidence = case["activationEvidence"]
+                self.assertEqual(evidence["targetAXHookCoverage"], "not-installed")
+                self.assertEqual(evidence["targetAXRaiseCallbackCount"], 0)
+                self.assertEqual(evidence["targetWindowPolicy"]["windowClass"], "NSWindow")
+                self.assertFalse(evidence["targetWindowPolicy"]["targetAXRaiseOverrideInstalled"])
+                self.assertEqual(evidence["targetWindowPolicy"]["targetRaiseObservation"], "observer-request-ledger-only")
+                self.assertEqual(evidence["observerTargetRaiseDispatchCount"],
+                                 len(case["targetRaiseRequests"]) if case["targetRaisePolicy"] == "present" else 0)
+
+    def test_contradictory_hook_rows_stop_both_policies_and_retain_strict_outcome(self):
+        for invalid_case in ("raise-first", "no-raise-first"):
+            with self.subTest(invalid_case=invalid_case), tempfile.TemporaryDirectory() as temporary:
                 stage, context = fixture(Path(temporary))
                 def change(name, directory):
-                    if unexpected and name == "no-raise-first":
+                    if name == invalid_case:
                         rows = read_trace(directory / "activation.jsonl")
                         for event, clock in (("target-ax-raise-enter", 2.71), ("target-ax-raise-return", 2.72)):
                             rows.append({**copy.deepcopy(rows[1]), "event": event, "raiseIndex": 0,
                                 "callbackSystemUptime": clock, "systemUptime": clock + .001, "actionTriggered": True})
                         save_rows(directory / "activation.jsonl", rows)
-                report, commands = self.run_cases(stage, context, Path(temporary) / "out", hooks=False,
+                report, commands = self.run_cases(stage, context, Path(temporary) / "out",
                     pass_for=lambda name: name.startswith("no-raise"), change=change)
-                self.assertEqual(len(commands), 4)
-                self.assertTrue(report["comparisonComplete"])
-                self.assertEqual(report["cases"][0]["activationEvidence"]["targetAXHookCoverage"], "unobserved")
-                if unexpected:
-                    self.assertTrue(report["cases"][1]["passed"])
-                    self.assertFalse(report["activationComparison"]["activationContrastObserved"])
-                    self.assertEqual(report["activationComparison"]["omittedCasesWithTargetRaiseReceipts"], ["no-raise-first"])
+                index = activation.CASES.index(invalid_case)
+                self.assertEqual(len(commands), index + 1)
+                invalid = report["cases"][index]
+                self.assertEqual(invalid["reasonCode"], "activation-raise-hook-contradiction")
+                self.assertTrue(invalid["passiveEvidenceInvalid"])
+                self.assertFalse(invalid["mayContinue"])
+                self.assertEqual(invalid["strictNativeOutcome"]["outcome"],
+                                 "captured" if invalid_case.startswith("no-raise") else "escape-cancellation-failed")
+                self.assertTrue(all(row["outcome"] == "not-run" for row in report["cases"][index + 1:]))
 
     def test_every_raise_site_needs_an_explicit_correct_unheld_decision(self):
         changes = {
@@ -228,8 +243,12 @@ class ActivationComparisonTests(unittest.TestCase):
             "wrong-pid": lambda p: rewrite_trace(p, lambda rows: rows[0].update(pid=201)),
             "wrong-provenance": lambda p: rewrite_trace(p, lambda rows: rows[0].update(controlGUI_SHA256="f" * 64)),
             "missing-ready": lambda p: rewrite_trace(p, lambda rows: rows[1].update(event="application-became-active")),
+            "subclass": lambda p: rewrite_trace(p, lambda rows: rows[1].update(windowClass="NativeDragActivationWindow")),
+            "missing-hook-marker": lambda p: rewrite_trace(p, lambda rows: rows[1].pop("targetAXRaiseOverrideInstalled")),
+            "installed-hook": lambda p: rewrite_trace(p, lambda rows: rows[1].update(targetAXRaiseOverrideInstalled=True)),
+            "wrong-observation-policy": lambda p: rewrite_trace(p, lambda rows: rows[1].update(targetRaiseObservation="target-hook")),
             "missing-termination": lambda p: rewrite_trace(p, lambda rows: rows.pop()),
-            "missing-return": lambda p: rewrite_trace(p, lambda rows: next(r for r in rows if r["event"] == "target-ax-raise-return").update(event="application-became-active")),
+            "missing-return": lambda p: rewrite_trace(p, lambda rows: next(r for r in rows if r["event"] == "appkit-defined-return").update(event="application-became-active")),
             "return-index": lambda p: rewrite_trace(p, lambda rows: next(r for r in rows if r["event"] == "appkit-defined-return").update(dispatchIndex=99)),
             "window-changed": lambda p: rewrite_trace(p, lambda rows: rows[-1].update(windowNumber=99)),
         }
