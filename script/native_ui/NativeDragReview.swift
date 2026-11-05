@@ -34,6 +34,18 @@ private enum DragCaptureComparison: String {
     var capturesImages: Bool { self == .screenshots }
 }
 
+// The source experiment keeps the AppKit observer and reference destination
+// fixed. Four named cases retain both source orders without replacing evidence.
+private enum DragSourceComparison: String, CaseIterable {
+    case finderFirst = "finder-first", appkitFirst = "appkit-first"
+    case appkitSecond = "appkit-second", finderSecond = "finder-second"
+
+    var usesNativeSource: Bool { self == .appkitFirst || self == .appkitSecond }
+    var sourceKind: String { usesNativeSource ? "native-appkit" : "finder" }
+    var evidenceSuffix: String { "-Source-" + rawValue }
+    var arguments: [String] { ["--control", "--compare-capture", "ax-only", "--compare-source", rawValue] }
+}
+
 // Compare explicit AppKit startup with Swift async main without changing the
 // executable launch route, permissions, target apps or input protocol. Reading
 // NSApp here must never instantiate NSApplication in the baseline process.
@@ -370,8 +382,10 @@ private final class KeyboardControlDriver {
 private final class DragReview {
     private let target: DragReviewTarget
     private let captureComparison: DragCaptureComparison?
+    private let sourceComparison: DragSourceComparison?
     private var evidenceName: String {
         target.evidenceName + (captureComparison?.evidenceSuffix ?? "") + DragObserverLifecycle.evidenceSuffix
+            + (sourceComparison?.evidenceSuffix ?? "")
     }
     private var identifier: String { target.identifier }
     private let directory: URL
@@ -386,6 +400,12 @@ private final class DragReview {
     private var finderApp: NSRunningApplication?
     private var reviewWindow: AXUIElement?
     private var finderWindow: AXUIElement?
+    private let nativeSourceIdentifier = "app.lemulip.NativeDragSource"
+    private var nativeSourceBundle: URL { directory.appendingPathComponent("Native Drag Source.app", isDirectory: true) }
+    private var nativeSourceApp: NSRunningApplication?
+    private var nativeSourceWindow: AXUIElement?
+    private var nativeSourceExpectedPoint: CGPoint?
+    private var nativeSourceExpectedFrame: CGRect?
     private var keyboardDriver: KeyboardControlDriver?
     private var originals: [String: Data] = [:]
     private var inputNames: Set<String> = []
@@ -406,11 +426,12 @@ private final class DragReview {
     ]
 
     init(directory: URL, theme: DragReviewTheme, target: DragReviewTarget,
-         captureComparison: DragCaptureComparison? = nil) {
+         captureComparison: DragCaptureComparison? = nil, sourceComparison: DragSourceComparison? = nil) {
         self.directory = directory.standardizedFileURL.resolvingSymlinksInPath()
         self.theme = theme
         self.target = target
         self.captureComparison = captureComparison
+        self.sourceComparison = sourceComparison
         record["theme"] = theme.rawValue
         record["targetKind"] = target == .production ? "production" : "standard-appkit-control"
         record["inputDriver"] = target.inputDriver
@@ -428,6 +449,11 @@ private final class DragReview {
             record["nativeAcceptanceXCTestExecuted"] = false
             record["observerLifecycle"] = DragObserverLifecycle.mode
             record["scope"] = "Orchard capture-only comparison with unchanged input, permissions, identity and cancellation requirements; not native acceptance."
+        }
+        if let sourceComparison {
+            record["sourceCase"] = sourceComparison.rawValue
+            record["dragSourceKind"] = sourceComparison.sourceKind
+            record["scope"] = "Fixed reference destination and global input; Finder versus an instrumented copy-only AppKit file source. No production or physical-input acceptance claim."
         }
     }
 
@@ -650,6 +676,17 @@ private final class DragReview {
         let info = try PropertyListSerialization.propertyList(from: infoData, options: [], format: nil) as? [String: Any]
         try require(info?["CFBundleIdentifier"] as? String == identifier && info?["CFBundleExecutable"] as? String == target.executable,
                     "The target does not match its fixed staged identity")
+        if sourceComparison != nil {
+            try require(target == .control && theme == .orchard && captureComparison == .axOnly
+                        && DragObserverLifecycle.mode == "appkit", "The source comparison requires its fixed control configuration")
+            try require(nativeSourceBundle.standardizedFileURL.path == nativeSourceBundle.resolvingSymlinksInPath().path,
+                        "Symlinked native source bundles are not allowed")
+            let sourceInfoData = try Data(contentsOf: nativeSourceBundle.appendingPathComponent("Contents/Info.plist"))
+            let sourceInfo = try PropertyListSerialization.propertyList(from: sourceInfoData, options: [], format: nil) as? [String: Any]
+            try require(sourceInfo?["CFBundleIdentifier"] as? String == nativeSourceIdentifier
+                        && sourceInfo?["CFBundleExecutable"] as? String == "NativeDragSource",
+                        "The native source does not match its fixed staged identity")
+        }
         inputNames = try fixtureSet()
         try require(inputNames.count == 4, "Require exactly four staged Finder inputs")
         for prefix in ["Existing", "Single", "Multi-A", "Multi-B"] {
@@ -674,6 +711,7 @@ private final class DragReview {
                    : ["controlGUI_SHA256", "nativeDragControlSourceSHA256"])
                 + (target == .keyboardControl ? ["nativeDragKeyboardTestsSourceSHA256", "keyboardRunnerInfoSHA256",
                                                 "keyboardRunnerExecutableSHA256"] : [])
+                + (sourceComparison != nil ? ["nativeDragSourceSourceSHA256", "sourceGUI_SHA256"] : [])
             for key in keys {
                 if let value = provenance[key] as? String { record[key] = value }
             }
@@ -687,6 +725,24 @@ private final class DragReview {
         try require(!finder.isTerminated && finder.bundleIdentifier == "com.apple.finder" &&
                     finder.bundleURL?.resolvingSymlinksInPath().path == "/System/Library/CoreServices/Finder.app",
                     "The Finder process identity changed")
+        if nativeSourceApp != nil { try assertNativeSource() }
+    }
+
+    private func assertNativeSource() throws {
+        guard sourceComparison?.usesNativeSource == true, let source = nativeSourceApp else {
+            throw DragReviewIssue.failed("The owned native drag source is unavailable")
+        }
+        try require(!source.isTerminated && source.bundleIdentifier == nativeSourceIdentifier
+                    && source.bundleURL?.resolvingSymlinksInPath().path == nativeSourceBundle.path
+                    && source.executableURL?.resolvingSymlinksInPath().path
+                        == nativeSourceBundle.appendingPathComponent("Contents/MacOS/NativeDragSource").path,
+                    "The owned native drag source identity changed")
+    }
+
+    private func isExpectedForeground(_ process: pid_t?) -> Bool {
+        guard let process else { return false }
+        return process == finderApp?.processIdentifier || process == reviewApp?.processIdentifier
+            || (sourceComparison?.usesNativeSource == true && process == nativeSourceApp?.processIdentifier)
     }
 
     private func arrange(_ window: AXUIElement, owner: pid_t, rect: CGRect) throws {
@@ -941,7 +997,7 @@ private final class DragReview {
     private func key(_ code: CGKeyCode, flags: CGEventFlags = []) throws {
         try assertTargets()
         let front = NSWorkspace.shared.frontmostApplication?.processIdentifier
-        try require(front == finderApp?.processIdentifier || front == reviewApp?.processIdentifier,
+        try require(isExpectedForeground(front),
                     "Refusing a key event while another application is foreground")
         try require(!CGEventSource.keyState(.combinedSessionState, key: code),
                     "Refusing to take ownership of an already-held shortcut key")
@@ -962,7 +1018,7 @@ private final class DragReview {
         let dwell = 0.15
         try assertTargets()
         let front = NSWorkspace.shared.frontmostApplication?.processIdentifier
-        try require(front == finderApp?.processIdentifier || front == reviewApp?.processIdentifier,
+        try require(isExpectedForeground(front),
                     "Refusing a key event while another application is foreground")
         try require(CGPreflightPostEventAccess(), "Existing event-post authorization is unavailable")
         try require(!CGEventSource.keyState(.combinedSessionState, key: 53),
@@ -1011,7 +1067,7 @@ private final class DragReview {
         try await pause(dwell / 2)
         recordEscapeInputState("before-held-motion")
         let motionFront = NSWorkspace.shared.frontmostApplication?.processIdentifier
-        try require(motionFront == finderApp?.processIdentifier || motionFront == reviewApp?.processIdentifier,
+        try require(isExpectedForeground(motionFront),
                     "Refusing drag motion while another application is foreground")
         try require(mouseDown && CGEventSource.buttonState(.combinedSessionState, button: .left)
                     && escapeKeyDown && CGEventSource.keyState(.combinedSessionState, key: 53),
@@ -1058,6 +1114,9 @@ private final class DragReview {
     }
 
     private func sourcePoint(_ input: URL, stage: String) async throws -> CGPoint {
+        if sourceComparison?.usesNativeSource == true {
+            return try await nativeSourcePoint(input, stage: stage)
+        }
         try assertTargets()
         try await focusFinderWindow()
         try await wait("Finder did not become foreground") {
@@ -1067,6 +1126,9 @@ private final class DragReview {
         let rect = try frame(source)
         let point = CGPoint(x: rect.midX, y: rect.midY)
         try require(CGDisplayBounds(CGMainDisplayID()).contains(rect), "The source Finder icon is not fully onscreen")
+        if sourceComparison != nil {
+            try recordSourceGeometry(stage: stage, finderIcon: rect, point: point)
+        }
         try requireHit(point, owner: finderApp!.processIdentifier, stage: stage)
         try mouse(.mouseMoved, at: point)
         try mouse(.leftMouseDown, at: point)
@@ -1079,6 +1141,107 @@ private final class DragReview {
             return try self.names(selected[0]).contains(input.lastPathComponent)
         }
         return point
+    }
+
+    private func recordSourceGeometry(stage: String, finderIcon: CGRect, point: CGPoint,
+                                      nativeWindow: CGRect? = nil, nativeIcon: CGRect? = nil) throws {
+        guard let finderWindow else { throw DragReviewIssue.failed("The fixture Finder geometry is unavailable") }
+        var geometry: [String: Any] = ["coordinateSpace": "quartz-global-top-left",
+            "finderWindow": NSStringFromRect(try frame(finderWindow)), "finderIcon": NSStringFromRect(finderIcon),
+            "sourcePoint": ["x": point.x, "y": point.y], "nativeWindow": NSNull(), "nativeIcon": NSNull()]
+        if let nativeWindow { geometry["nativeWindow"] = NSStringFromRect(nativeWindow) }
+        if let nativeIcon { geometry["nativeIcon"] = NSStringFromRect(nativeIcon) }
+        var geometries = record["sourceGeometries"] as? [String: Any] ?? [:]
+        geometries[stage] = geometry
+        record["sourceGeometries"] = geometries
+        if stage == "cancel-source" { record["sourceGeometry"] = geometry }
+    }
+
+    private func nativeSourcePoint(_ input: URL, stage: String) async throws -> CGPoint {
+        try assertTargets()
+        guard let comparison = sourceComparison, comparison.usesNativeSource else {
+            throw DragReviewIssue.failed("The native source requires an explicit fixed source case")
+        }
+        if nativeSourceApp == nil {
+            // Measure the real Finder source before placing its native-source
+            // counterpart at the same window frame and pointer origin.
+            try await focusFinderWindow()
+            let finderIcon = try unique(finderNodes(), role: kAXImageRole, name: input.lastPathComponent)
+            let iconFrame = try frame(finderIcon)
+            let point = CGPoint(x: iconFrame.midX, y: iconFrame.midY)
+            let sourceFrame = try frame(finderWindow!)
+            try require(CGDisplayBounds(CGMainDisplayID()).contains(iconFrame) && sourceFrame.contains(point),
+                        "The measured Finder source must be onscreen inside its window")
+            try require(NSRunningApplication.runningApplications(withBundleIdentifier: nativeSourceIdentifier).isEmpty,
+                        "A native source instance is already running")
+            let configuration = NSWorkspace.OpenConfiguration()
+            configuration.arguments = ["--case", comparison.rawValue,
+                "--frame-x", String(Double(sourceFrame.minX)), "--frame-y", String(Double(sourceFrame.minY)),
+                "--frame-width", String(Double(sourceFrame.width)), "--frame-height", String(Double(sourceFrame.height)),
+                "--point-x", String(Double(point.x)), "--point-y", String(Double(point.y))]
+            configuration.addsToRecentItems = false
+            nativeSourceExpectedPoint = point
+            nativeSourceExpectedFrame = sourceFrame
+            nativeSourceApp = try await NSWorkspace.shared.openApplication(at: nativeSourceBundle, configuration: configuration)
+            try assertNativeSource()
+            record["sourceApplicationPath"] = nativeSourceBundle.path
+            record["sourceApplicationPID"] = Int(nativeSourceApp!.processIdentifier)
+            try await wait("The native source window did not appear", retryWindowReadiness: true) {
+                self.nativeSourceWindow = try self.window(in: self.nativeSourceApp!, title: "Native Drag Source")
+                return self.nativeSourceWindow != nil
+            }
+        }
+        try assertNativeSource()
+        guard let sourceApp = nativeSourceApp, let sourceWindow = nativeSourceWindow,
+              let expectedPoint = nativeSourceExpectedPoint, let expectedFrame = nativeSourceExpectedFrame,
+              let reviewWindow, let reviewApp else {
+            throw DragReviewIssue.failed("The native source geometry was not retained")
+        }
+        try require(try pid(sourceWindow) == sourceApp.processIdentifier
+                    && text(sourceWindow, kAXRoleAttribute) == kAXWindowRole
+                    && text(sourceWindow, kAXTitleAttribute) == "Native Drag Source"
+                    && pid(reviewWindow) == reviewApp.processIdentifier,
+                    "The fixed native source and target windows changed")
+        sourceApp.activate(options: [])
+        try await wait("The native source did not become foreground before input") {
+            NSWorkspace.shared.frontmostApplication?.processIdentifier == sourceApp.processIdentifier
+        }
+        try require(AXUIElementPerformAction(reviewWindow, kAXRaiseAction as CFString) == .success
+                    && AXUIElementPerformAction(sourceWindow, kAXRaiseAction as CFString) == .success,
+                    "Could not raise the verified native source and target windows")
+        try await wait("The native source window did not retain foreground") {
+            NSWorkspace.shared.frontmostApplication?.processIdentifier == sourceApp.processIdentifier
+        }
+        let actualFrame = try frame(sourceWindow)
+        try require(abs(actualFrame.minX - expectedFrame.minX) <= 1 && abs(actualFrame.minY - expectedFrame.minY) <= 1
+                    && abs(actualFrame.width - expectedFrame.width) <= 1 && abs(actualFrame.height - expectedFrame.height) <= 1,
+                    "The native source window differs from the measured Finder frame")
+        let sourceNodes = try nodes(sourceWindow, owner: sourceApp.processIdentifier)
+        let image = try unique(sourceNodes, role: kAXImageRole, name: input.lastPathComponent)
+        let actualIcon = try frame(image)
+        let actualPoint = CGPoint(x: actualIcon.midX, y: actualIcon.midY)
+        try require(abs(actualPoint.x - expectedPoint.x) <= 0.5 && abs(actualPoint.y - expectedPoint.y) <= 0.5
+                    && CGDisplayBounds(CGMainDisplayID()).contains(actualIcon),
+                    "The native source image does not match the measured Finder pointer origin")
+        let finderIcon = try frame(unique(finderNodes(), role: kAXImageRole, name: input.lastPathComponent))
+        try require(abs(finderIcon.midX - expectedPoint.x) <= 0.5 && abs(finderIcon.midY - expectedPoint.y) <= 0.5,
+                    "The measured Finder source moved between gestures")
+        try recordSourceGeometry(stage: stage, finderIcon: finderIcon, point: expectedPoint,
+                                 nativeWindow: actualFrame, nativeIcon: actualIcon)
+        try requireHit(expectedPoint, owner: sourceApp.processIdentifier, stage: stage)
+        try mouse(.mouseMoved, at: expectedPoint)
+        try mouse(.leftMouseDown, at: expectedPoint)
+        try await pause(0.08)
+        try mouse(.leftMouseUp, at: expectedPoint)
+        try await wait("The native source did not select its sole exact fixture") {
+            try self.assertNativeSource()
+            let images = try self.nodes(sourceWindow, owner: sourceApp.processIdentifier).filter {
+                try self.text($0, kAXRoleAttribute) == kAXImageRole
+            }
+            let selected = try images.filter { (try self.read($0, kAXSelectedAttribute) as? NSNumber)?.boolValue == true }
+            return try selected.count == 1 && self.names(selected[0]).contains(input.lastPathComponent)
+        }
+        return expectedPoint
     }
 
     private func focusFinderWindow() async throws {
@@ -1231,6 +1394,10 @@ private final class DragReview {
                     "The observer source did not retain keyboard pass-through")
         try require(NSRunningApplication.runningApplications(withBundleIdentifier: identifier).isEmpty,
                     "The isolated review application must be stopped before the standalone probe")
+        if sourceComparison != nil {
+            try require(NSRunningApplication.runningApplications(withBundleIdentifier: nativeSourceIdentifier).isEmpty,
+                        "The isolated native source must be stopped before the source comparison")
+        }
         if target == .keyboardControl {
             record["startupPhase"] = "keyboard-driver"
             let driver = try KeyboardControlDriver(directory: directory)
@@ -1244,7 +1411,8 @@ private final class DragReview {
         if target != .production { configuration.arguments += ["-controlTheme", theme.rawValue] }
         if target == .keyboardControl { configuration.arguments += ["-controlEvidenceKind", "keyboard"] }
         if target == .control, let captureComparison {
-            let kind = DragObserverLifecycle.mode == "appkit" ? "lifecycle-appkit" : "capture-" + captureComparison.rawValue
+            let kind = sourceComparison.map { "source-" + $0.rawValue }
+                ?? (DragObserverLifecycle.mode == "appkit" ? "lifecycle-appkit" : "capture-" + captureComparison.rawValue)
             configuration.arguments += ["-controlEvidenceKind", kind]
         }
         configuration.addsToRecentItems = false
@@ -1252,6 +1420,7 @@ private final class DragReview {
         guard let app = reviewApp else { throw DragReviewIssue.failed("The staged app did not launch") }
         try require(app.bundleIdentifier == identifier && app.bundleURL?.resolvingSymlinksInPath().path == bundle.path,
                     "The launch did not produce the exact staged app")
+        if sourceComparison != nil { record["targetApplicationPID"] = Int(app.processIdentifier) }
         try await wait("The production review window did not appear", retryWindowReadiness: true) {
             self.reviewWindow = try self.window(in: app, title: self.target.windowTitle)
             return self.reviewWindow != nil
@@ -1508,6 +1677,16 @@ private final class DragReview {
                 if !app.terminate() && !app.isTerminated { errors.append("The staged app refused normal termination") }
             } else { errors.append("Refusing to terminate an application whose staged identity changed") }
         }
+        if keyboardStopped, let source = nativeSourceApp, !source.isTerminated {
+            do {
+                try assertNativeSource()
+                if !source.terminate() && !source.isTerminated {
+                    errors.append("The staged native source refused normal termination")
+                }
+            } catch {
+                errors.append("Refusing to terminate a native source whose staged identity changed: \(error)")
+            }
+        }
         while ProcessInfo.processInfo.systemUptime < deadline {
             if let root = finderRoot, let window = finderWindow, !finderClosed {
                 do {
@@ -1523,15 +1702,22 @@ private final class DragReview {
             if !CGEventSource.buttonState(.combinedSessionState, button: .left),
                reviewApp?.isTerminated ?? true,
                NSRunningApplication.runningApplications(withBundleIdentifier: identifier).isEmpty,
+               nativeSourceApp?.isTerminated ?? true,
+               sourceComparison == nil || NSRunningApplication.runningApplications(withBundleIdentifier: nativeSourceIdentifier).isEmpty,
                finderClosed || finderRoot == nil { break }
             try? await Task.sleep(nanoseconds: 100_000_000)
         }
         let leftButtonDown = CGEventSource.buttonState(.combinedSessionState, button: .left)
         let applicationStopped = reviewApp?.isTerminated ?? true
         let registryEmpty = NSRunningApplication.runningApplications(withBundleIdentifier: identifier).isEmpty
+        let sourceApplicationStopped = nativeSourceApp?.isTerminated ?? true
+        let sourceRegistryEmpty = sourceComparison == nil
+            || NSRunningApplication.runningApplications(withBundleIdentifier: nativeSourceIdentifier).isEmpty
         if leftButtonDown { errors.append("The left mouse button remains down; no further theme may run") }
         if !applicationStopped { errors.append("The staged app did not terminate before the cleanup deadline") }
         if !registryEmpty { errors.append("The fixed review bundle remains registered as running") }
+        if !sourceApplicationStopped { errors.append("The staged native source did not terminate before the cleanup deadline") }
+        if !sourceRegistryEmpty { errors.append("The fixed native source bundle remains registered as running") }
         if !finderClosed { errors.append("The exact fixture Finder window was not confirmed closed") }
         if target == .keyboardControl {
             let escapeDown = CGEventSource.keyState(.combinedSessionState, key: 53)
@@ -1545,9 +1731,14 @@ private final class DragReview {
         }
         record["stages"] = events
         record["diagnosticSnapshots"] = diagnosticSnapshots
-        record["cleanup"] = ["completed": errors.isEmpty, "leftButtonReportedDown": leftButtonDown,
+        var cleanup: [String: Any] = ["completed": errors.isEmpty, "leftButtonReportedDown": leftButtonDown,
                              "applicationStopped": applicationStopped, "fixtureFinderWindowClosed": finderClosed,
                              "fixedBundleRegistryEmpty": registryEmpty, "timeoutSeconds": 8, "errors": errors]
+        if sourceComparison != nil {
+            cleanup["sourceApplicationStopped"] = sourceApplicationStopped
+            cleanup["sourceBundleRegistryEmpty"] = sourceRegistryEmpty
+        }
+        record["cleanup"] = cleanup
         if target == .keyboardControl { record["keyboardDriverStopConfirmed"] = keyboardStopped }
         return errors.isEmpty
     }
@@ -1571,16 +1762,24 @@ private struct NativeDragReview {
                               ["--compare-capture", "screenshots"], ["--compare-capture", "ax-only"],
                               ["--control", "--compare-capture", "screenshots"],
                               ["--control", "--compare-capture", "ax-only"]]
+            + DragSourceComparison.allCases.map(\.arguments)
         guard CommandLine.arguments.count >= 2, allowedOptions.contains(options) else {
             FileHandle.standardError.write(Data("Usage: NativeDragReview <isolated review directory> [--control | --keyboard-control]\nCapture comparison: <directory> [--control] --compare-capture screenshots|ax-only\n".utf8))
             exit(2)
         }
         let target: DragReviewTarget = options.first == "--keyboard-control" ? .keyboardControl
             : (options.first == "--control" ? .control : .production)
-        let captureComparison = options.contains("--compare-capture")
-            ? DragCaptureComparison(rawValue: options.last!) : nil
+        let captureComparison = options.firstIndex(of: "--compare-capture")
+            .flatMap { DragCaptureComparison(rawValue: options[$0 + 1]) }
+        let sourceComparison = options.firstIndex(of: "--compare-source")
+            .flatMap { DragSourceComparison(rawValue: options[$0 + 1]) }
+        if sourceComparison != nil && DragObserverLifecycle.mode != "appkit" {
+            FileHandle.standardError.write(Data("The source comparison requires the fixed AppKit observer.\n".utf8))
+            exit(2)
+        }
         let themes: [DragReviewTheme] = captureComparison == nil ? target.themes : [.orchard]
         let evidenceName = target.evidenceName + (captureComparison?.evidenceSuffix ?? "") + DragObserverLifecycle.evidenceSuffix
+            + (sourceComparison?.evidenceSuffix ?? "")
         let directory = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
             .standardizedFileURL.resolvingSymlinksInPath()
         var aggregate: [String: Any] = [
@@ -1607,6 +1806,11 @@ private struct NativeDragReview {
             aggregate["observerLifecycle"] = DragObserverLifecycle.mode
             aggregate["observerLifecycleAtStart"] = DragObserverLifecycle.observation
             aggregate["scope"] = "One Orchard capture-only comparison; unchanged permissions, input, identity and acceptance. AX-only results do not verify visual outline behavior."
+        }
+        if let sourceComparison {
+            aggregate["sourceCase"] = sourceComparison.rawValue
+            aggregate["dragSourceKind"] = sourceComparison.sourceKind
+            aggregate["scope"] = "One Orchard reference-destination source comparison. Copy-only native source behavior is observed, not assumed equivalent to Finder."
         }
         do {
             guard directory.lastPathComponent == "lemulip-native-ui" else {
@@ -1639,7 +1843,7 @@ private struct NativeDragReview {
                 // A new object gives each theme its own fixtures, AX handles,
                 // original-byte receipt and bounded 110-second run clock.
                 let review = DragReview(directory: directory, theme: theme, target: target,
-                                        captureComparison: captureComparison)
+                                        captureComparison: captureComparison, sourceComparison: sourceComparison)
                 do { try await review.run() }
                 catch let error as DragReviewIssue {
                     switch error {
@@ -1676,7 +1880,7 @@ private struct NativeDragReview {
                             "observerExperimentCommit", "observerExperimentTree",
                             "compiledTestSourceSHA256", "nativeDragReviewSourceSHA256", "controlGUI_SHA256",
                             "nativeDragControlSourceSHA256", "nativeDragKeyboardTestsSourceSHA256", "keyboardRunnerInfoSHA256",
-                            "keyboardRunnerExecutableSHA256"] {
+                            "keyboardRunnerExecutableSHA256", "nativeDragSourceSourceSHA256", "sourceGUI_SHA256"] {
                     if aggregate[key] == nil, let value = review.record[key] { aggregate[key] = value }
                 }
             }
@@ -1723,8 +1927,10 @@ private struct NativeDragAppKitReview {
     @MainActor
     static func main() {
         let options = Array(CommandLine.arguments.dropFirst(2))
+        let allowed = [["--compare-capture", "ax-only"], ["--control", "--compare-capture", "ax-only"]]
+            + DragSourceComparison.allCases.map(\.arguments)
         guard CommandLine.arguments.count >= 2,
-              [["--compare-capture", "ax-only"], ["--control", "--compare-capture", "ax-only"]].contains(options) else {
+              allowed.contains(options) else {
             FileHandle.standardError.write(Data("AppKit lifecycle comparison requires the fixed Orchard AX-only arguments.\n".utf8))
             exit(2)
         }

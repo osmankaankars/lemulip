@@ -280,6 +280,62 @@ explicit AppKit lifecycle alone did not resolve the tested failure. Every failur
 remains a failure in the retained comparison. This diagnostic does not run the
 native acceptance XCTest suite and cannot change the C12 HOLD or release gate.
 
+## Instrumented drag-source comparison
+
+`script/compare_native_drag_sources.py` runs four fixed, serial Orchard cases:
+Finder, native AppKit source, native AppKit source, then Finder. Each uses the
+same standard AppKit control destination, windowless AppKit observer, AX-only
+capture, staged paths, fixture bytes and synthetic input protocol. This is an
+isolated diagnostic. It does not run production acceptance, resolve the C12
+HOLD or authorize promotion of the lifecycle experiment.
+
+The native source is a separate, fixed `Native Drag Source.app`. It uses the
+normal `NSView.mouseDragged` and `beginDraggingSession` path to offer the exact
+Single fixture as a file URL. Its source operation mask permits copying only.
+It has no custom Escape or cancellation handler and keeps AppKit's default
+cancellation animation. Finder's offered operations and pasteboard types can
+differ; both are retained in the receiver trace. Results therefore compare two
+source implementations, rather than claiming their protocols are identical.
+
+Before input, the observer measures the real Finder icon center and window
+frame. The native window and its single accessible image must reproduce those
+coordinates. Each case retains the source and target geometry. The comparator
+requires the shared geometry to match across all four cases, along with the
+observer, destination, source bundle, fixture and provenance inventories. Each
+case has its own evidence root ending in `-Source-<case>`, and existing evidence
+is never replaced. Application activation and window raising happen only during
+initial selection or preparation for the later fresh drag, never while a drag
+is held. No PID-directed Escape, authorization request or preference change is
+introduced.
+
+The source records the native session's `willBegin`, movement and end callbacks,
+the dragging sequence number, offered operations, and the final operation.
+Callback entry uptime is captured before validation. The destination's matching
+sequence receipts, observer key-post and mouse-release times, and exact workspace
+contents are joined after cleanup. A `willBegin` receipt is required; merely
+requesting a session is insufficient. Source receipts are bounded and buffered
+in memory during interaction, then flushed on termination, failure or watchdog
+expiry. The startup binding is flushed before any input. The observer does not
+read the trace while dragging.
+
+A source end with operation `none` after the Escape post and before mouse release,
+with accepted entry/re-entry and no accepted destination drop, can establish that
+the native source session ended before release. An end with `none` only after
+release remains indeterminate: the normal cancellation animation can delay the
+callback. An accepted destination drop joined to a source end with copy is
+reported as a completed drop. Absence from `NSApplication.sendEvent` alone does
+not prove that AppKit never received Escape. A successful native-source case
+does not establish Finder success or identify the precise OS dispatch mechanism.
+
+The existing cancellation assertion, later fresh-drop assertion, original bytes,
+fixture file set and eight-second cleanup deadline remain required. Cleanup also
+checks normal termination and an empty registry for the owned source bundle;
+it never terminates an unowned application. Missing or malformed source receipts,
+identity drift, missing session completion, changed inputs, or incomplete cleanup
+stop later input. A recognized cancellation failure may be followed by the next
+predeclared case only after verified cleanup. Every failed case stays failed in
+the overall diagnostic; there is no retry-until-success policy.
+
 ## Historical Evidence
 
 

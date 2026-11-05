@@ -25,6 +25,16 @@ private struct ControlConfiguration {
     let traceURL: URL
     let originals: [String: Data]
 
+    var sourceCase: String? {
+        evidenceKind.hasPrefix("source-") ? String(evidenceKind.dropFirst("source-".count)) : nil
+    }
+
+    var sourceBinding: [String: Any] {
+        guard let sourceCase else { return [:] }
+        return ["sourceCase": sourceCase,
+                "dragSourceKind": sourceCase.hasPrefix("appkit-") ? "native-appkit" : "finder"]
+    }
+
     init() throws {
         let arguments = CommandLine.arguments
         let themeIndices = arguments.indices.filter { arguments[$0] == "-controlTheme" }
@@ -40,7 +50,8 @@ private struct ControlConfiguration {
             try require(evidenceIndices.count == 1 && arguments.indices.contains(evidenceIndices[0] + 1),
                         "Require one fixed control evidence kind")
             evidenceKind = arguments[evidenceIndices[0] + 1]
-            try require(["keyboard", "capture-screenshots", "capture-ax-only", "lifecycle-appkit"].contains(evidenceKind)
+            try require(["keyboard", "capture-screenshots", "capture-ax-only", "lifecycle-appkit",
+                         "source-finder-first", "source-appkit-first", "source-appkit-second", "source-finder-second"].contains(evidenceKind)
                         && theme == "orchard", "The comparison is restricted to the Orchard control")
         }
 
@@ -58,6 +69,9 @@ private struct ControlConfiguration {
         case "capture-screenshots": evidenceName = "NativeDragControlEvidence-Capture-screenshots"
         case "capture-ax-only": evidenceName = "NativeDragControlEvidence-Capture-ax-only"
         case "lifecycle-appkit": evidenceName = "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit"
+        case "source-finder-first", "source-appkit-first", "source-appkit-second", "source-finder-second":
+            evidenceName = "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-Source-"
+                + String(evidenceKind.dropFirst("source-".count))
         default: evidenceName = "NativeDragControlEvidence"
         }
         let evidence = root.appendingPathComponent(evidenceName + "/" + theme, isDirectory: true)
@@ -132,8 +146,10 @@ private final class ControlTrace: @unchecked Sendable {
     private var byteCount = 0
     private let maximumRecords = 10_000
     private let maximumBytes = 8 * 1_024 * 1_024
+    private let sourceBinding: [String: Any]
 
-    init(url: URL) throws {
+    init(url: URL, sourceBinding: [String: Any] = [:]) throws {
+        self.sourceBinding = sourceBinding
         let descriptor = Darwin.open(url.path, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC,
                                      S_IRUSR | S_IWUSR)
         try require(descriptor >= 0, "Could not exclusively create the fixed receiver trace")
@@ -145,6 +161,7 @@ private final class ControlTrace: @unchecked Sendable {
         defer { lock.unlock() }
         do {
             var value = fields
+            value.merge(sourceBinding) { _, fixed in fixed }
             value["schema"] = 1
             value["event"] = event
             value["recordIndex"] = count
@@ -335,6 +352,7 @@ private final class ControlDropView: NSView {
         if let sender {
             fields["sequenceNumber"] = sender.draggingSequenceNumber
             fields["sourceAllowedOperationMask"] = sender.draggingSourceOperationMask.rawValue
+            fields["pasteboardTypes"] = sender.draggingPasteboard.types?.map(\.rawValue).sorted() ?? []
             fields["sourceIsInThisApplication"] = sender.draggingSource != nil
             fields["draggingLocationInWindow"] = ["x": sender.draggingLocation.x, "y": sender.draggingLocation.y]
         }
@@ -486,7 +504,7 @@ private enum NativeDragControl {
     static func main() {
         do {
             let configuration = try ControlConfiguration()
-            let trace = try ControlTrace(url: configuration.traceURL)
+            let trace = try ControlTrace(url: configuration.traceURL, sourceBinding: configuration.sourceBinding)
             guard let application = ControlApplication.shared as? ControlApplication else {
                 throw ControlIssue.invalid("The passive NSApplication subclass did not initialize")
             }
@@ -496,6 +514,9 @@ private enum NativeDragControl {
             application.delegate = delegate
             trace.record("application-start", [
                 "bundleIdentifier": "app.lemulip.NativeDragControl", "theme": configuration.theme,
+                "bundlePath": Bundle.main.bundleURL.standardizedFileURL.path,
+                "executablePath": Bundle.main.executableURL?.standardizedFileURL.path ?? "",
+                "stagingRoot": configuration.root.path,
                 "evidenceKind": configuration.evidenceKind,
                 "fixtureFilenames": configuration.originals.keys.sorted(),
                 "originalSHA256": configuration.originals.mapValues { SHA256.hash(data: $0).map { String(format: "%02x", $0) }.joined() },
