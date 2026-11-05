@@ -534,6 +534,7 @@ private final class DragReview {
     private func wait(_ message: String, seconds: Double = 8, retryWindowReadiness: Bool = false,
                       retryInitialWorkspaceReadiness: Bool = false,
                       retryFinderIconReadiness: Bool = false,
+                      retryFreshDropWorkspaceReadiness: Bool = false,
                       until condition: () throws -> Bool) async throws {
         let deadline = ProcessInfo.processInfo.systemUptime + seconds
         var lastReadinessFailure: String?
@@ -548,8 +549,26 @@ private final class DragReview {
             record["finderIconReadiness"] = ["phase": "finder-icons", "retryCount": 0,
                                             "lastError": NSNull(), "errors": finderIconErrors, "timeoutSeconds": seconds]
         }
+        var freshDropRetryCount = 0
+        var freshDropErrors: [[String: Any]] = []
+        if retryFreshDropWorkspaceReadiness {
+            record["freshDropWorkspaceReadiness"] = [
+                "phase": "post-fresh-drop", "status": "waiting", "retryCount": 0,
+                "lastError": NSNull(), "errors": freshDropErrors, "timeoutSeconds": seconds,
+                "deadlineSystemUptime": deadline]
+        }
         repeat {
-            do { if try condition() { return } }
+            do {
+                if try condition() {
+                    if retryFreshDropWorkspaceReadiness {
+                        var receipt = record["freshDropWorkspaceReadiness"] as? [String: Any] ?? [:]
+                        receipt["status"] = "matched"
+                        receipt["matchedSystemUptime"] = ProcessInfo.processInfo.systemUptime
+                        record["freshDropWorkspaceReadiness"] = receipt
+                    }
+                    return
+                }
+            }
             catch let error as AXReadFailure where retryWindowReadiness
                 && error.status == AXError.cannotComplete.rawValue
                 && (error.attribute == kAXWindowsAttribute || error.attribute == kAXTitleAttribute) {
@@ -578,9 +597,28 @@ private final class DragReview {
                     "phase": "finder-icons", "retryCount": finderIconRetryCount, "timeoutSeconds": seconds,
                     "lastError": failure, "errors": finderIconErrors
                 ]
+            } catch let error as AXReadFailure where retryFreshDropWorkspaceReadiness
+                && error.status == AXError.invalidUIElement.rawValue && error.attribute == kAXRoleAttribute {
+                // The accepted drop replaces row subviews. Rebuild the observed
+                // tree on the next predicate call, within this original deadline.
+                // No cancellation assertion or other AX failure uses this retry.
+                freshDropRetryCount += 1
+                lastReadinessFailure = error.description
+                let failure: [String: Any] = ["attribute": error.attribute, "status": error.status,
+                                             "description": error.description, "systemUptime": ProcessInfo.processInfo.systemUptime]
+                freshDropErrors.append(failure)
+                record["freshDropWorkspaceReadiness"] = [
+                    "phase": "post-fresh-drop", "status": "retrying", "retryCount": freshDropRetryCount,
+                    "timeoutSeconds": seconds, "deadlineSystemUptime": deadline,
+                    "lastError": failure, "errors": freshDropErrors]
             }
             try await pause(0.1)
         } while ProcessInfo.processInfo.systemUptime < deadline
+        if retryFreshDropWorkspaceReadiness {
+            var receipt = record["freshDropWorkspaceReadiness"] as? [String: Any] ?? [:]
+            receipt["status"] = "timed-out"
+            record["freshDropWorkspaceReadiness"] = receipt
+        }
         throw DragReviewIssue.failed(lastReadinessFailure.map { message + "; last readiness error: " + $0 } ?? message)
     }
 
@@ -1353,8 +1391,10 @@ private final class DragReview {
         try await moveHeld(to: enter)
         try await capture("05-before-accepted-drop")
         try mouse(.leftMouseUp, at: enter)
-        try await wait("The real Finder drop did not add exactly its file") {
-            try self.workspaceContains([existing.lastPathComponent, single.lastPathComponent])
+        try await wait("The real Finder drop did not add exactly its file",
+                       retryFreshDropWorkspaceReadiness: captureComparison != nil) {
+            if self.captureComparison != nil { try self.assertTargets() }
+            return try self.workspaceContains([existing.lastPathComponent, single.lastPathComponent])
         }
         try verifyOriginals()
         try await capture("06-after-accepted-drop")

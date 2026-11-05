@@ -259,6 +259,17 @@ The original cancellation assertion, later fresh drop, owned cleanup and stop-on
 unsafe-transition policy remain intact. Timing receipts are observations, not
 new timing thresholds or application-delivery acknowledgements.
 
+In comparison mode only, the final fresh-drop workspace wait may retry an
+`AXRole` read that returns `invalidUIElement` while rows are being replaced.
+Each retry revalidates the exact target identities and rebuilds the AX tree;
+the original eight-second wait and overall run deadline remain fixed. The
+required Existing-plus-Single workspace must still match. A separate readiness
+receipt distinguishes an unmatched/retrying wait from a completed wait before
+the final capture. Other AX errors, the cancellation assertion and capture
+failures retain their existing failure behavior. The control receiver accepted
+the fresh drop; the subsequent AX error is consistent with row replacement
+invalidating an in-progress snapshot, rather than proof of the exact AX node.
+
 A baseline FAIL/AppKit PASS would identify sensitivity to the AppKit startup and
 lifecycle configuration in that CI session. It would not distinguish WindowServer
 setup, event dispatch or task scheduling as the precise cause, and would not by
