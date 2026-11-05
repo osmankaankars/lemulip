@@ -34,6 +34,31 @@ private enum DragCaptureComparison: String {
     var capturesImages: Bool { self == .screenshots }
 }
 
+// Compare explicit AppKit startup with Swift async main without changing the
+// executable launch route, permissions, target apps or input protocol. Reading
+// NSApp here must never instantiate NSApplication in the baseline process.
+@MainActor
+private enum DragObserverLifecycle {
+    static var didFinishLaunching = false
+    #if LEMULIP_APPKIT_OBSERVER
+    static let mode = "appkit"
+    static let evidenceSuffix = "-Lifecycle-appkit"
+    #else
+    static let mode = "swift-async"
+    static let evidenceSuffix = ""
+    #endif
+
+    static var observation: [String: Any] {
+        let application: NSApplication? = NSApp
+        return ["mode": mode, "didFinishLaunching": didFinishLaunching,
+                "nsApplicationPresent": application != nil,
+                "nsApplicationRunning": application?.isRunning ?? false,
+                "activationPolicy": application?.activationPolicy().rawValue ?? -1,
+                "threadIsMain": Thread.isMainThread,
+                "taskPriorityRawValue": Task.currentPriority.rawValue]
+    }
+}
+
 private enum DragReviewTarget {
     case production, control, keyboardControl
 
@@ -342,7 +367,9 @@ private final class KeyboardControlDriver {
 private final class DragReview {
     private let target: DragReviewTarget
     private let captureComparison: DragCaptureComparison?
-    private var evidenceName: String { target.evidenceName + (captureComparison?.evidenceSuffix ?? "") }
+    private var evidenceName: String {
+        target.evidenceName + (captureComparison?.evidenceSuffix ?? "") + DragObserverLifecycle.evidenceSuffix
+    }
     private var identifier: String { target.identifier }
     private let directory: URL
     private let theme: DragReviewTheme
@@ -364,6 +391,7 @@ private final class DragReview {
     private var pointer = CGPoint.zero
     private var events: [[String: Any]] = []
     private var mouseEventRecords: [[String: Any]] = []
+    private var pauseRecords: [[String: Any]] = []
     private let relevantModifiers: CGEventFlags = [.maskCommand, .maskShift, .maskAlternate, .maskControl]
     private var diagnosticSnapshots: [[String: Any]] = []
     private let expiresAt = ProcessInfo.processInfo.systemUptime + 110
@@ -395,6 +423,7 @@ private final class DragReview {
             record["imagesCaptured"] = false
             record["diagnosticOnly"] = true
             record["nativeAcceptanceXCTestExecuted"] = false
+            record["observerLifecycle"] = DragObserverLifecycle.mode
             record["scope"] = "Orchard capture-only comparison with unchanged input, permissions, identity and cancellation requirements; not native acceptance."
         }
     }
@@ -484,7 +513,19 @@ private final class DragReview {
 
     private func pause(_ seconds: Double) async throws {
         try require(ProcessInfo.processInfo.systemUptime + seconds < expiresAt, "The bounded native drag review timed out")
+        let started = ProcessInfo.processInfo.systemUptime
         try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+        if captureComparison != nil {
+            // Passive, in-memory timing in both comparison arms. No deadline,
+            // priority or requested sleep duration changes with the lifecycle.
+            let completed = ProcessInfo.processInfo.systemUptime
+            if pauseRecords.count < 512 {
+                pauseRecords.append(["requestedSeconds": seconds, "startedSystemUptime": started,
+                                     "completedSystemUptime": completed,
+                                     "observerLifecycle": DragObserverLifecycle.observation])
+                record["pauseTimings"] = pauseRecords
+            } else { record["pauseTimingLimitReached"] = true }
+        }
     }
 
     private func wait(_ message: String, seconds: Double = 8, retryWindowReadiness: Bool = false,
@@ -755,6 +796,7 @@ private final class DragReview {
             state["foregroundPID"] = Int(foreground.processIdentifier)
             if let bundleIdentifier = foreground.bundleIdentifier { state["foregroundBundleIdentifier"] = bundleIdentifier }
         }
+        if captureComparison != nil { state["observerLifecycle"] = DragObserverLifecycle.observation }
         var states = record["escapeInputStates"] as? [[String: Any]] ?? []
         states.append(state)
         record["escapeInputStates"] = states
@@ -806,6 +848,7 @@ private final class DragReview {
     }
 
     private func mouse(_ type: CGEventType, at point: CGPoint) throws {
+        let entered = ProcessInfo.processInfo.systemUptime
         try require(ProcessInfo.processInfo.systemUptime < expiresAt, "The bounded native drag review timed out")
         try assertTargets()
         try require(CGDisplayBounds(CGMainDisplayID()).contains(point), "Refusing a pointer event outside the observed display")
@@ -821,18 +864,19 @@ private final class DragReview {
         // Keep constructor flags except the four guarded modifiers for this comparison.
         event.flags = constructorFlags.subtracting(relevantModifiers)
         event.setIntegerValueField(.mouseEventClickState, value: 1)
-        postMouseEvent(event, constructorFlags: constructorFlags, sessionFlags: sessionFlags, scope: "plain-gesture")
+        postMouseEvent(event, constructorFlags: constructorFlags, sessionFlags: sessionFlags, scope: "plain-gesture",
+                       mouseEntered: captureComparison == nil ? nil : entered)
         pointer = point
         if type == .leftMouseDown { mouseDown = true }
         if type == .leftMouseUp { mouseDown = false }
     }
 
     private func postMouseEvent(_ event: CGEvent, constructorFlags: CGEventFlags,
-                                sessionFlags: CGEventFlags, scope: String) {
+                                sessionFlags: CGEventFlags, scope: String, mouseEntered: Double? = nil) {
         let started = ProcessInfo.processInfo.systemUptime
         let postedFlags = event.flags.rawValue
         event.post(tap: .cghidEventTap)
-        mouseEventRecords.append([
+        var observation: [String: Any] = [
             "scope": scope, "eventType": event.type.rawValue, "eventTap": "cghidEventTap",
             "sourceStateID": event.getIntegerValueField(.eventSourceStateID),
             "mouseEventNumber": event.getIntegerValueField(.mouseEventNumber),
@@ -842,7 +886,12 @@ private final class DragReview {
             "sessionFlagsBeforePost": sessionFlags.rawValue,
             "systemUptimeBeforePost": started, "systemUptimeAfterPost": ProcessInfo.processInfo.systemUptime,
             "postCalled": true
-        ])
+        ]
+        if let mouseEntered {
+            observation["mouseEnteredSystemUptime"] = mouseEntered
+            observation["guardsAndConstructionCompletedSystemUptime"] = started
+        }
+        mouseEventRecords.append(observation)
         record["mouseEvents"] = mouseEventRecords
     }
 
@@ -898,13 +947,22 @@ private final class DragReview {
             "continuedMotionDelta": ["x": motionPoint.x - pointer.x, "y": motionPoint.y - pointer.y],
             "scope": "Controlled continued-motion observer experiment; not a product fix or an Apple requirement."
         ]
+        let downStarted = ProcessInfo.processInfo.systemUptime
         down.post(tap: .cghidEventTap)
+        let downCompleted = ProcessInfo.processInfo.systemUptime
         escapeKeyDown = true
         defer {
             // Release only the exact key paired with our guarded down, even if
             // the bounded pause fails. This paired release sends no new key-down.
+            let upStarted = ProcessInfo.processInfo.systemUptime
             up.post(tap: .cghidEventTap)
+            let upCompleted = ProcessInfo.processInfo.systemUptime
             escapeKeyDown = false
+            if captureComparison != nil {
+                record["escapePostTiming"] = ["downStartedSystemUptime": downStarted,
+                    "downCompletedSystemUptime": downCompleted, "upStartedSystemUptime": upStarted,
+                    "upCompletedSystemUptime": upCompleted, "heldSeconds": upStarted - downStarted]
+            }
             recordEscapeInputState("after-key-up")
         }
         try await pause(dwell / 2)
@@ -1086,6 +1144,17 @@ private final class DragReview {
 
     func run() async throws {
         try validate()
+        if captureComparison != nil {
+            record["observerLifecycleAtStart"] = DragObserverLifecycle.observation
+        }
+        #if LEMULIP_APPKIT_OBSERVER
+        guard captureComparison == .axOnly, target != .keyboardControl,
+              DragObserverLifecycle.didFinishLaunching,
+              let application = NSApp, application.isRunning,
+              application.activationPolicy() == .prohibited else {
+            throw DragReviewIssue.blocked("The windowless AppKit lifecycle comparison is not ready")
+        }
+        #endif
         let permissions = ["accessibility": AXIsProcessTrusted(), "postEvents": CGPreflightPostEventAccess(),
                            "screenCapture": CGPreflightScreenCaptureAccess()]
         record["preflight"] = permissions
@@ -1132,7 +1201,8 @@ private final class DragReview {
         if target != .production { configuration.arguments += ["-controlTheme", theme.rawValue] }
         if target == .keyboardControl { configuration.arguments += ["-controlEvidenceKind", "keyboard"] }
         if target == .control, let captureComparison {
-            configuration.arguments += ["-controlEvidenceKind", "capture-" + captureComparison.rawValue]
+            let kind = DragObserverLifecycle.mode == "appkit" ? "lifecycle-appkit" : "capture-" + captureComparison.rawValue
+            configuration.arguments += ["-controlEvidenceKind", kind]
         }
         configuration.addsToRecentItems = false
         reviewApp = try await NSWorkspace.shared.openApplication(at: bundle, configuration: configuration)
@@ -1445,7 +1515,9 @@ private final class DragReview {
     }
 }
 
+#if !LEMULIP_APPKIT_OBSERVER
 @main
+#endif
 private struct NativeDragReview {
     @MainActor
     static func main() async {
@@ -1463,7 +1535,7 @@ private struct NativeDragReview {
         let captureComparison = options.contains("--compare-capture")
             ? DragCaptureComparison(rawValue: options.last!) : nil
         let themes: [DragReviewTheme] = captureComparison == nil ? target.themes : [.orchard]
-        let evidenceName = target.evidenceName + (captureComparison?.evidenceSuffix ?? "")
+        let evidenceName = target.evidenceName + (captureComparison?.evidenceSuffix ?? "") + DragObserverLifecycle.evidenceSuffix
         let directory = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
             .standardizedFileURL.resolvingSymlinksInPath()
         var aggregate: [String: Any] = [
@@ -1487,6 +1559,8 @@ private struct NativeDragReview {
             aggregate["imagesCaptured"] = false
             aggregate["diagnosticOnly"] = true
             aggregate["nativeAcceptanceXCTestExecuted"] = false
+            aggregate["observerLifecycle"] = DragObserverLifecycle.mode
+            aggregate["observerLifecycleAtStart"] = DragObserverLifecycle.observation
             aggregate["scope"] = "One Orchard capture-only comparison; unchanged permissions, input, identity and acceptance. AX-only results do not verify visual outline behavior."
         }
         do {
@@ -1586,3 +1660,40 @@ private struct NativeDragReview {
         exit(aggregate["status"] as? String == "failed" ? 1 : 0)
     }
 }
+
+#if LEMULIP_APPKIT_OBSERVER
+@MainActor
+private final class DragObserverApplicationDelegate: NSObject, NSApplicationDelegate {
+    private var task: Task<Void, Never>?
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        guard task == nil else { return }
+        DragObserverLifecycle.didFinishLaunching = true
+        task = Task { @MainActor in await NativeDragReview.main() }
+    }
+}
+
+@main
+private struct NativeDragAppKitReview {
+    @MainActor
+    static func main() {
+        let options = Array(CommandLine.arguments.dropFirst(2))
+        guard CommandLine.arguments.count >= 2,
+              [["--compare-capture", "ax-only"], ["--control", "--compare-capture", "ax-only"]].contains(options) else {
+            FileHandle.standardError.write(Data("AppKit lifecycle comparison requires the fixed Orchard AX-only arguments.\n".utf8))
+            exit(2)
+        }
+        let application = NSApplication.shared
+        guard application.setActivationPolicy(.prohibited), application.activationPolicy() == .prohibited else {
+            FileHandle.standardError.write(Data("Could not establish the nonactivating AppKit comparison policy.\n".utf8))
+            exit(1)
+        }
+        let delegate = DragObserverApplicationDelegate()
+        application.delegate = delegate
+        withExtendedLifetime(delegate) { application.run() }
+        // The shared core exits only after its normal evidence and cleanup
+        // path. Returning from run() first is not a successful comparison.
+        exit(1)
+    }
+}
+#endif

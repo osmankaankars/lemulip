@@ -209,6 +209,60 @@ runs no native acceptance XCTest suite, and cannot satisfy the three-theme
 visual review or replace the existing full native gate. Private owner reports
 and local user paths are not included in its source.
 
+On 5 November 2026, [run 42035806356](https://github.com/osmankaankars/lemulip/actions/runs/42035806356)
+completed this comparison at observer `4a19cc538c7f342b9a74ac3fbf005a41d0f0ff49`
+against unchanged C12 `d821d7343675e2850705d141ef9b3b93a6aee945`.
+All eight cases, four on each architecture, failed the exact cancellation
+assertion: Existing alone before Escape and while still held, then Existing plus
+Single after release. Each retained all three successful permission preflights,
+complete owned cleanup and identical before/after input inventories. Both control
+receivers recorded unmodified Escape down/up before accepting the same drag.
+Neither mode reached the later fresh-drop check. Removing image capture shortened
+observation time but did not resolve cancellation in these samples. C12 remains
+HOLD; this result does not establish a product defect or exclude other timing and
+host differences.
+
+### Explicit AppKit Lifecycle Comparison
+
+The separate `Native Finder Lifecycle Comparison` workflow asks whether explicit
+AppKit startup changes the standalone observer's result. It builds two observer
+executables from the same source and compiler invocation; only the second adds
+`-D LEMULIP_APPKIT_OBSERVER`. The baseline keeps the existing Swift async main.
+The alternative uses a synchronous main, creates a windowless `NSApplication`,
+checks `.prohibited` activation policy and schedules the same async core once
+from `applicationDidFinishLaunching`. Its core additionally checks the launch
+notification, running application loop and activation policy before input.
+The baseline's passive metadata reads the existing `NSApp` global without
+creating an application. See Apple's [run()](https://developer.apple.com/documentation/appkit/nsapplication/run())
+and [prohibited](https://developer.apple.com/documentation/appkit/nsapplication/activationpolicy-swift.enum/prohibited)
+contracts. Swift async main may itself run a Core Foundation loop; this is an
+AppKit startup/lifecycle comparison, not a claim that the baseline lacks a runloop.
+
+Both executables are started directly by the same orchestration process. There
+is no helper app package, alternative authorization route or permission request.
+Both use the fixed Orchard AX-only capture option, while retaining the original
+AX, event-posting and screen-capture checks. Standard control and production each
+run baseline then AppKit, serially, against the same C12 staging and fixture paths.
+The AppKit evidence root adds `-Lifecycle-appkit`; control receiver routing only
+adds that corresponding fixed destination. Both observer binaries, target bundles,
+fixtures and provenance are hashed before and after each case.
+
+Shared passive records include actual pause start/return times, pointer guard and
+construction time, Escape post start/return times, task priority, main-thread
+status and existing AppKit lifecycle state. They do not change requested waits,
+deadlines, scheduling priority, input source, suppression, flags or geometry.
+The original cancellation assertion, later fresh drop, owned cleanup and stop-on-
+unsafe-transition policy remain intact. Timing receipts are observations, not
+new timing thresholds or application-delivery acknowledgements.
+
+A baseline FAIL/AppKit PASS would identify sensitivity to the AppKit startup and
+lifecycle configuration in that CI session. It would not distinguish WindowServer
+setup, event dispatch or task scheduling as the precise cause, and would not by
+itself reproduce the interactive owner's host. Two failures would show that
+explicit AppKit lifecycle alone did not resolve the tested failure. Every failure
+remains a failure in the retained comparison. This diagnostic does not run the
+native acceptance XCTest suite and cannot change the C12 HOLD or release gate.
+
 ## Historical Evidence
 
 

@@ -124,9 +124,10 @@ def cleanup_complete(cleanup):
         and all(cleanup.get(k) is True for k in ("applicationStopped", "fixtureFinderWindowClosed", "fixedBundleRegistryEmpty")))
 
 
-def classify(stage, context, target, policy, returncode):
+def classify(stage, context, target, policy, returncode, evidence_suffix=""):
     bundle, evidence_name, kind = TARGETS[target]
-    evidence = stage / (evidence_name + "-Capture-" + policy)
+    require(evidence_suffix in ("", "-Lifecycle-appkit"), "unknown-evidence-suffix")
+    evidence = stage / (evidence_name + "-Capture-" + policy + evidence_suffix)
     aggregate = read_json(evidence / "report.json")
     case_path = evidence / "orchard/report.json"
     case = read_json(case_path)

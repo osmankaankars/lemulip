@@ -40,7 +40,7 @@ private struct ControlConfiguration {
             try require(evidenceIndices.count == 1 && arguments.indices.contains(evidenceIndices[0] + 1),
                         "Require one fixed control evidence kind")
             evidenceKind = arguments[evidenceIndices[0] + 1]
-            try require(["keyboard", "capture-screenshots", "capture-ax-only"].contains(evidenceKind)
+            try require(["keyboard", "capture-screenshots", "capture-ax-only", "lifecycle-appkit"].contains(evidenceKind)
                         && theme == "orchard", "The comparison is restricted to the Orchard control")
         }
 
@@ -57,6 +57,7 @@ private struct ControlConfiguration {
         case "keyboard": evidenceName = "NativeDragKeyboardEvidence"
         case "capture-screenshots": evidenceName = "NativeDragControlEvidence-Capture-screenshots"
         case "capture-ax-only": evidenceName = "NativeDragControlEvidence-Capture-ax-only"
+        case "lifecycle-appkit": evidenceName = "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit"
         default: evidenceName = "NativeDragControlEvidence"
         }
         let evidence = root.appendingPathComponent(evidenceName + "/" + theme, isDirectory: true)
