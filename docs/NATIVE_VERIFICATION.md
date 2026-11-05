@@ -170,6 +170,45 @@ report must be inspected together for the candidate under review. Source tests
 and successful staging alone do not establish runtime success. These checks do
 not certify VoiceOver speech or physical audio playback.
 
+### Capture-Only Observer Comparison
+
+The separate `Native Finder Capture Comparison` workflow isolates the image
+capture path from the existing standalone observer. It builds the pinned C12
+application once, then uses the same staged application, fixtures, observer and
+host for four serial Orchard cases: standard AppKit control with screenshots,
+control with AX-only observation, production with screenshots, and production
+with AX-only observation. ARM64 and Intel run independently. The diagnostic CLI
+is `NativeDragReview <review-directory> [--control] --compare-capture screenshots|ax-only`.
+Without that explicit option, the original three-theme and keyboard paths remain
+unchanged.
+
+Only the capture method changes between paired conditions. AX labels and input
+state are still collected at every original stage. AX-only capture omits the
+`screencapture` subprocess and PNG decoding/hashing; it does not compensate for
+the omitted time. Both conditions require the same existing Accessibility,
+event-posting and screen-capture grants. They keep the same event source, flags,
+keyboard pass-through, fixed pauses, geometry, identity checks, Existing-only
+cancellation assertion, fresh accepted drop and original-byte checks.
+
+Fixed `-Capture-screenshots` and `-Capture-ax-only` evidence roots prevent one
+condition from overwriting another. The control's extra argument selects only
+one of these fixed trace destinations. Configuration records
+`imageCaptureEnabled`; actual successful image capture records `imagesCaptured`.
+The workflow retains the precise source and executable hashes. It continues
+after a captured case or the exact cancellation failure only when the report
+was retained, owned cleanup completed, the app registry is empty and the button
+is released. A blocked permission check, unknown failure, missing report or
+incomplete cleanup stops subsequent input. Any failed case keeps the overall
+comparison failed, even when a later case passes.
+
+A screenshots FAIL followed by AX-only PASS would identify sensitivity to the
+image-capture path, including its timing cost; it would not distinguish the
+subprocess, PNG work or elapsed time as the precise cause. Matching outcomes do
+not support a capture-only explanation. This comparison is diagnostic-only,
+runs no native acceptance XCTest suite, and cannot satisfy the three-theme
+visual review or replace the existing full native gate. Private owner reports
+and local user paths are not included in its source.
+
 ## Historical Evidence
 
 

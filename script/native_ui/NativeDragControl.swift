@@ -40,8 +40,8 @@ private struct ControlConfiguration {
             try require(evidenceIndices.count == 1 && arguments.indices.contains(evidenceIndices[0] + 1),
                         "Require one fixed control evidence kind")
             evidenceKind = arguments[evidenceIndices[0] + 1]
-            try require(evidenceKind == "keyboard" && theme == "orchard",
-                        "The keyboard comparison is restricted to the Orchard control")
+            try require(["keyboard", "capture-screenshots", "capture-ax-only"].contains(evidenceKind)
+                        && theme == "orchard", "The comparison is restricted to the Orchard control")
         }
 
         let bundle = Bundle.main.bundleURL.standardizedFileURL
@@ -52,7 +52,13 @@ private struct ControlConfiguration {
                     && Bundle.main.object(forInfoDictionaryKey: "CFBundleExecutable") as? String == "NativeDragControl",
                     "Require the exact isolated AppKit control bundle")
         folder = root.appendingPathComponent("Fixtures/FinderDrop/" + theme, isDirectory: true)
-        let evidenceName = evidenceKind == "keyboard" ? "NativeDragKeyboardEvidence" : "NativeDragControlEvidence"
+        let evidenceName: String
+        switch evidenceKind {
+        case "keyboard": evidenceName = "NativeDragKeyboardEvidence"
+        case "capture-screenshots": evidenceName = "NativeDragControlEvidence-Capture-screenshots"
+        case "capture-ax-only": evidenceName = "NativeDragControlEvidence-Capture-ax-only"
+        default: evidenceName = "NativeDragControlEvidence"
+        }
         let evidence = root.appendingPathComponent(evidenceName + "/" + theme, isDirectory: true)
         for url in [root, bundle, folder, evidence] {
             try require(url.standardizedFileURL.path == url.resolvingSymlinksInPath().path,

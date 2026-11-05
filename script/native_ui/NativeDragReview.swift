@@ -7,6 +7,7 @@ import Foundation
 // A separate, explicitly interactive evidence probe. ReadOnlyAXSnapshot stays
 // read-only. This executable never requests or changes any macOS permission.
 // Usage: NativeDragReview <the prepare_native_ui.py review directory> [--control | --keyboard-control]
+// Capture-only diagnostic: <directory> [--control] --compare-capture screenshots|ax-only
 private enum DragReviewIssue: Error, CustomStringConvertible {
     case blocked(String)
     case failed(String)
@@ -23,6 +24,14 @@ private struct AXReadFailure: Error, CustomStringConvertible {
 
 private enum DragReviewTheme: String, CaseIterable {
     case orchard, pistachio, lemonade
+}
+
+private enum DragCaptureComparison: String {
+    case screenshots
+    case axOnly = "ax-only"
+
+    var evidenceSuffix: String { "-Capture-" + rawValue }
+    var capturesImages: Bool { self == .screenshots }
 }
 
 private enum DragReviewTarget {
@@ -332,6 +341,8 @@ private final class KeyboardControlDriver {
 @MainActor
 private final class DragReview {
     private let target: DragReviewTarget
+    private let captureComparison: DragCaptureComparison?
+    private var evidenceName: String { target.evidenceName + (captureComparison?.evidenceSuffix ?? "") }
     private var identifier: String { target.identifier }
     private let directory: URL
     private let theme: DragReviewTheme
@@ -363,10 +374,12 @@ private final class DragReview {
         "scope": "Real Finder drag; held entry, exit, re-entry, Escape and drop frames. Visual review is separate."
     ]
 
-    init(directory: URL, theme: DragReviewTheme, target: DragReviewTarget) {
+    init(directory: URL, theme: DragReviewTheme, target: DragReviewTarget,
+         captureComparison: DragCaptureComparison? = nil) {
         self.directory = directory.standardizedFileURL.resolvingSymlinksInPath()
         self.theme = theme
         self.target = target
+        self.captureComparison = captureComparison
         record["theme"] = theme.rawValue
         record["targetKind"] = target == .production ? "production" : "standard-appkit-control"
         record["inputDriver"] = target.inputDriver
@@ -375,6 +388,14 @@ private final class DragReview {
         }
         if target == .keyboardControl {
             record["scope"] = "One Orchard reference destination using the public XCTest keyboard API for Escape; observer-owned Finder mouse input. No production or physical-keyboard verification claim."
+        }
+        if let captureComparison {
+            record["captureComparison"] = captureComparison.rawValue
+            record["imageCaptureEnabled"] = captureComparison.capturesImages
+            record["imagesCaptured"] = false
+            record["diagnosticOnly"] = true
+            record["nativeAcceptanceXCTestExecuted"] = false
+            record["scope"] = "Orchard capture-only comparison with unchanged input, permissions, identity and cancellation requirements; not native acceptance."
         }
     }
 
@@ -534,7 +555,7 @@ private final class DragReview {
         try require(directory.lastPathComponent == "lemulip-native-ui", "Use the isolated native UI staging directory")
         bundle = directory.appendingPathComponent(target.bundleName, isDirectory: true)
         folder = directory.appendingPathComponent("Fixtures/FinderDrop/" + theme.rawValue, isDirectory: true)
-        let evidenceRoot = directory.appendingPathComponent(target.evidenceName, isDirectory: true)
+        let evidenceRoot = directory.appendingPathComponent(evidenceName, isDirectory: true)
         for url in [bundle!, folder!, evidenceRoot] {
             try require(url.standardizedFileURL.path == url.resolvingSymlinksInPath().path,
                         "Symlinked review targets are not allowed")
@@ -563,7 +584,8 @@ private final class DragReview {
         record["originalSHA256"] = originals.mapValues { SHA256.hash(data: $0).map { String(format: "%02x", $0) }.joined() }
         if let data = try? Data(contentsOf: directory.appendingPathComponent("provenance.json")),
            let provenance = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-            let keys = ["sourceCommit", "sourceTree", "architecture", "nativeDragReviewSourceSHA256"]
+            let keys = ["sourceCommit", "sourceTree", "architecture", "nativeDragReviewSourceSHA256",
+                        "observerExperimentCommit", "observerExperimentTree"]
                 + (target == .production ? ["stagedGUI_SHA256", "compiledTestSourceSHA256"]
                    : ["controlGUI_SHA256", "nativeDragControlSourceSHA256"])
                 + (target == .keyboardControl ? ["nativeDragKeyboardTestsSourceSHA256", "keyboardRunnerInfoSHA256",
@@ -987,6 +1009,30 @@ private final class DragReview {
         let started = ProcessInfo.processInfo.systemUptime
         guard let output else { throw DragReviewIssue.failed("Evidence destination is not ready") }
         try assertTargets()
+        if captureComparison == .axOnly {
+            let list = try appNodes()
+            let labels = try list.compactMap { node -> String? in
+                let role = try text(node, kAXRoleAttribute)
+                guard role == kAXButtonRole || role == kAXStaticTextRole else { return nil }
+                return try names(node).sorted().joined(separator: " | ")
+            }
+            let event: [String: Any] = [
+                "stage": name, "captureKind": "target-ax-only", "imagesCaptured": false,
+                "pointer": ["x": pointer.x, "y": pointer.y], "mouseDownSent": mouseDown,
+                "leftButtonReportedDown": CGEventSource.buttonState(.combinedSessionState, button: .left),
+                "displayPreferences": observedDisplayPreferences,
+                "captureStartedSystemUptime": started,
+                "captureCompletedSystemUptime": ProcessInfo.processInfo.systemUptime,
+                "time": ISO8601DateFormatter().string(from: Date()), "workspaceAXLabels": labels,
+                "foregroundBundleIdentifier": NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "none"
+            ]
+            if setup { record["setupSnapshot"] = event }
+            else if diagnostic { diagnosticSnapshots.append(event) }
+            else { events.append(event) }
+            try JSONSerialization.data(withJSONObject: event, options: [.prettyPrinted, .sortedKeys])
+                .write(to: output.appendingPathComponent(name + ".json"), options: .atomic)
+            return
+        }
         let image = output.appendingPathComponent(name + ".png")
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/sbin/screencapture")
@@ -1007,7 +1053,7 @@ private final class DragReview {
             guard role == kAXButtonRole || role == kAXStaticTextRole else { return nil }
             return try names(node).sorted().joined(separator: " | ")
         }
-        let event: [String: Any] = [
+        var event: [String: Any] = [
             "stage": name, "image": image.lastPathComponent,
             "imageSHA256": SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined(),
             "pixelWidth": bitmap.pixelsWide, "pixelHeight": bitmap.pixelsHigh,
@@ -1018,6 +1064,12 @@ private final class DragReview {
             "captureCompletedSystemUptime": ProcessInfo.processInfo.systemUptime,
             "time": ISO8601DateFormatter().string(from: Date()), "workspaceAXLabels": labels
         ]
+        if captureComparison != nil {
+            record["imagesCaptured"] = true
+            event["captureKind"] = "screen-and-target-ax"
+            event["imagesCaptured"] = true
+            event["foregroundBundleIdentifier"] = NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "none"
+        }
         if setup { record["setupSnapshot"] = event }
         else if diagnostic { diagnosticSnapshots.append(event) }
         else { events.append(event) }
@@ -1079,6 +1131,9 @@ private final class DragReview {
                                    "-completionPresentation", "quiet", "-NSQuitAlwaysKeepsWindows", "NO"]
         if target != .production { configuration.arguments += ["-controlTheme", theme.rawValue] }
         if target == .keyboardControl { configuration.arguments += ["-controlEvidenceKind", "keyboard"] }
+        if target == .control, let captureComparison {
+            configuration.arguments += ["-controlEvidenceKind", "capture-" + captureComparison.rawValue]
+        }
         configuration.addsToRecentItems = false
         reviewApp = try await NSWorkspace.shared.openApplication(at: bundle, configuration: configuration)
         guard let app = reviewApp else { throw DragReviewIssue.failed("The staged app did not launch") }
@@ -1394,17 +1449,25 @@ private final class DragReview {
 private struct NativeDragReview {
     @MainActor
     static func main() async {
-        guard CommandLine.arguments.count == 2
-            || (CommandLine.arguments.count == 3 && ["--control", "--keyboard-control"].contains(CommandLine.arguments[2])) else {
-            FileHandle.standardError.write(Data("Usage: NativeDragReview <isolated review directory> [--control | --keyboard-control]\n".utf8))
+        let options = Array(CommandLine.arguments.dropFirst(2))
+        let allowedOptions = [[], ["--control"], ["--keyboard-control"],
+                              ["--compare-capture", "screenshots"], ["--compare-capture", "ax-only"],
+                              ["--control", "--compare-capture", "screenshots"],
+                              ["--control", "--compare-capture", "ax-only"]]
+        guard CommandLine.arguments.count >= 2, allowedOptions.contains(options) else {
+            FileHandle.standardError.write(Data("Usage: NativeDragReview <isolated review directory> [--control | --keyboard-control]\nCapture comparison: <directory> [--control] --compare-capture screenshots|ax-only\n".utf8))
             exit(2)
         }
-        let target: DragReviewTarget = CommandLine.arguments.count == 2 ? .production
-            : (CommandLine.arguments[2] == "--keyboard-control" ? .keyboardControl : .control)
+        let target: DragReviewTarget = options.first == "--keyboard-control" ? .keyboardControl
+            : (options.first == "--control" ? .control : .production)
+        let captureComparison = options.contains("--compare-capture")
+            ? DragCaptureComparison(rawValue: options.last!) : nil
+        let themes: [DragReviewTheme] = captureComparison == nil ? target.themes : [.orchard]
+        let evidenceName = target.evidenceName + (captureComparison?.evidenceSuffix ?? "")
         let directory = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
             .standardizedFileURL.resolvingSymlinksInPath()
         var aggregate: [String: Any] = [
-            "schema": 2, "status": "not-run", "expectedThemes": target.themes.map(\.rawValue),
+            "schema": 2, "status": "not-run", "expectedThemes": themes.map(\.rawValue),
             "allThemesCaptured": false, "gestureOutcomesVerified": false,
             "outlineVisualReviewRequired": true, "outlineBehaviorVerified": false,
             "permissionRequested": false,
@@ -1418,11 +1481,19 @@ private struct NativeDragReview {
         if target == .keyboardControl {
             aggregate["scope"] = "One Orchard standard AppKit reference destination; public XCTest Escape and observer-owned Finder mouse. No production or physical-keyboard verification claim."
         }
+        if let captureComparison {
+            aggregate["captureComparison"] = captureComparison.rawValue
+            aggregate["imageCaptureEnabled"] = captureComparison.capturesImages
+            aggregate["imagesCaptured"] = false
+            aggregate["diagnosticOnly"] = true
+            aggregate["nativeAcceptanceXCTestExecuted"] = false
+            aggregate["scope"] = "One Orchard capture-only comparison; unchanged permissions, input, identity and acceptance. AX-only results do not verify visual outline behavior."
+        }
         do {
             guard directory.lastPathComponent == "lemulip-native-ui" else {
                 throw DragReviewIssue.failed("Use the isolated native UI staging directory")
             }
-            let destination = directory.appendingPathComponent(target.evidenceName, isDirectory: true)
+            let destination = directory.appendingPathComponent(evidenceName, isDirectory: true)
             let standardized = destination.standardizedFileURL
             let resolved = destination.resolvingSymlinksInPath()
             let samePath = standardized.path == resolved.path
@@ -1441,14 +1512,15 @@ private struct NativeDragReview {
             try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: false)
             var reports: [[String: Any]] = []
             var stopReason: String?
-            for theme in target.themes {
+            for theme in themes {
                 if let stopReason {
                     reports.append(["theme": theme.rawValue, "status": "not-run", "reason": stopReason])
                     continue
                 }
                 // A new object gives each theme its own fixtures, AX handles,
                 // original-byte receipt and bounded 110-second run clock.
-                let review = DragReview(directory: directory, theme: theme, target: target)
+                let review = DragReview(directory: directory, theme: theme, target: target,
+                                        captureComparison: captureComparison)
                 do { try await review.run() }
                 catch let error as DragReviewIssue {
                     switch error {
@@ -1477,11 +1549,12 @@ private struct NativeDragReview {
                 var summary: [String: Any] = ["theme": theme.rawValue,
                     "status": review.record["status"] as? String ?? "failed", "reportRetained": reportRetained]
                 if reportRetained { summary["report"] = theme.rawValue + "/report.json" }
-                for key in ["reason", "reportError", "gestureOutcomesVerified", "cleanup", "displayPreferencesAtStart", "keyboardDriverStopConfirmed"] {
+                for key in ["reason", "reportError", "gestureOutcomesVerified", "cleanup", "displayPreferencesAtStart", "keyboardDriverStopConfirmed", "imagesCaptured"] {
                     if let value = review.record[key] { summary[key] = value }
                 }
                 reports.append(summary)
                 for key in ["sourceCommit", "sourceTree", "architecture", "stagedGUI_SHA256",
+                            "observerExperimentCommit", "observerExperimentTree",
                             "compiledTestSourceSHA256", "nativeDragReviewSourceSHA256", "controlGUI_SHA256",
                             "nativeDragControlSourceSHA256", "nativeDragKeyboardTestsSourceSHA256", "keyboardRunnerInfoSHA256",
                             "keyboardRunnerExecutableSHA256"] {
@@ -1489,7 +1562,10 @@ private struct NativeDragReview {
                 }
             }
             let statuses = reports.compactMap { $0["status"] as? String }
-            let captured = statuses.count == target.themes.count && statuses.allSatisfy { $0 == "captured" }
+            let captured = statuses.count == themes.count && statuses.allSatisfy { $0 == "captured" }
+            if captureComparison != nil {
+                aggregate["imagesCaptured"] = reports.contains { $0["imagesCaptured"] as? Bool == true }
+            }
             aggregate["themes"] = reports
             aggregate["allThemesCaptured"] = captured
             aggregate["gestureOutcomesVerified"] = captured
