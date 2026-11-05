@@ -260,7 +260,9 @@ unsafe-transition policy remain intact. Timing receipts are observations, not
 new timing thresholds or application-delivery acknowledgements.
 
 In comparison mode only, the final fresh-drop workspace wait may retry an
-`AXRole` read that returns `invalidUIElement` while rows are being replaced.
+AX read that returns `invalidUIElement` while rows are being replaced. This
+node-validity error was observed on both `AXRole` and `AXChildren`; it is not
+specific to the attribute being read.
 Each retry revalidates the exact target identities and rebuilds the AX tree;
 the original eight-second wait and overall run deadline remain fixed. The
 required Existing-plus-Single workspace must still match. A separate readiness

@@ -598,9 +598,11 @@ private final class DragReview {
                     "lastError": failure, "errors": finderIconErrors
                 ]
             } catch let error as AXReadFailure where retryFreshDropWorkspaceReadiness
-                && error.status == AXError.invalidUIElement.rawValue && error.attribute == kAXRoleAttribute {
+                && error.status == AXError.invalidUIElement.rawValue {
                 // The accepted drop replaces row subviews. Rebuild the observed
                 // tree on the next predicate call, within this original deadline.
+                // An invalid element may fail on any of its attributes; Role
+                // and Children have both been observed in this exact phase.
                 // No cancellation assertion or other AX failure uses this retry.
                 freshDropRetryCount += 1
                 lastReadinessFailure = error.description
