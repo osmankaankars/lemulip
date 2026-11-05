@@ -321,17 +321,15 @@ private func applicationState(window: NSWindow? = nil, includeWindowDetails: Boo
                                 "keyWindowNumber": NSApp.keyWindow.map { $0.windowNumber as Any } ?? NSNull()]
     if includeWindowDetails {
         let cursor = NSEvent.mouseLocation
-        fields.merge([
-            "mainWindowNumber": NSApp.mainWindow.map { $0.windowNumber as Any } ?? NSNull(),
-            "windowNumber": window.map { $0.windowNumber as Any } ?? NSNull(),
-            "windowIsKey": window.map { $0.isKeyWindow as Any } ?? NSNull(),
-            "windowIsMain": window.map { $0.isMainWindow as Any } ?? NSNull(),
-            "windowCanBecomeKey": window.map { $0.canBecomeKey as Any } ?? NSNull(),
-            "windowCanBecomeMain": window.map { $0.canBecomeMain as Any } ?? NSNull(),
-            "windowVisible": window.map { $0.isVisible as Any } ?? NSNull(),
-            "observedCursorScreen": ["x": Double(cursor.x), "y": Double(cursor.y)],
-            "cursorCoordinateSpace": "AppKit-screen-bottom-left"
-        ]) { _, value in value }
+        fields["mainWindowNumber"] = NSApp.mainWindow.map { $0.windowNumber as Any } ?? NSNull()
+        fields["windowNumber"] = window.map { $0.windowNumber as Any } ?? NSNull()
+        fields["windowIsKey"] = window.map { $0.isKeyWindow as Any } ?? NSNull()
+        fields["windowIsMain"] = window.map { $0.isMainWindow as Any } ?? NSNull()
+        fields["windowCanBecomeKey"] = window.map { $0.canBecomeKey as Any } ?? NSNull()
+        fields["windowCanBecomeMain"] = window.map { $0.canBecomeMain as Any } ?? NSNull()
+        fields["windowVisible"] = window.map { $0.isVisible as Any } ?? NSNull()
+        fields["observedCursorScreen"] = ["x": Double(cursor.x), "y": Double(cursor.y)]
+        fields["cursorCoordinateSpace"] = "AppKit-screen-bottom-left"
     }
     return fields
 }
