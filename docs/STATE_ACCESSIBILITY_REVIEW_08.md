@@ -40,7 +40,7 @@ The C12 production diff against main
 
 The independent source review found no additional concrete blocker in that
 production diff. It is separate from native execution and from the still-open
-drag observer failure. D13 changes only diagnostic infrastructure and leaves
+drag observer failure. D13 and D14 change only diagnostic infrastructure and leave
 these production sources byte-for-byte equal to C12.
 
 ## Selected visual observations
@@ -76,10 +76,16 @@ The native drag recording step in the same C12 run failed cancellation in all
 three themes on both architectures: `Escape did not cancel the actual Finder
 drag`. The 58 successful XCTest cases do not override that separate failure.
 
-The [D12 held AX comparison](NATIVE_DRAG_HELD_AX_DIAGNOSTIC.md) and
-[D13 mouse producer comparison](NATIVE_DRAG_MOUSE_DRIVER_DIAGNOSTIC.md) are
+The [D12 held AX comparison](NATIVE_DRAG_HELD_AX_DIAGNOSTIC.md),
+[D13 mouse producer comparison](NATIVE_DRAG_MOUSE_DRIVER_DIAGNOSTIC.md) and
+[D14 event-origin observations](NATIVE_DRAG_EVENT_ORIGIN_DIAGNOSTIC.md) are
 diagnostic work. Their scope and results must remain separate from the original
 enter, exit, reenter, Escape, release and fresh-drop acceptance sequence.
+
+D14 R2 added no production change. ARM had four comparable cancellation failures;
+Intel had one strict diagnostic pass, one incomplete cleanup and two unrun cases.
+The added event metadata and selected system logs did not establish the upstream
+held-activation request. These results do not close the original gate.
 
 To complete task 08, close or explicitly resolve task 07's remaining CI gate on
 the final candidate, review any resulting production changes, and retain the
