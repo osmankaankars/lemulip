@@ -8,13 +8,14 @@ ROOT = Path(__file__).resolve().parent.parent
 
 class NativeCoverageTests(unittest.TestCase):
     def test_real_app_has_all_ten_bilingual_options_and_first_click_cancel(self):
-        # The one-shot keyboard reference control has its own runner and is not
-        # production acceptance coverage. Keep the exact 58-case gate intact.
-        diagnostic = 'NativeDragKeyboardTests.swift'
-        self.assertNotIn('script/native_ui/' + diagnostic,
-                         (ROOT / '.github/workflows/native-ui-review.yml').read_text())
+        # The keyboard and mouse reference controls have separate runners and
+        # are not production acceptance. Keep the exact 58-case gate intact.
+        diagnostics = {'NativeDragKeyboardTests.swift', 'NativeDragMouseTests.swift'}
+        workflow = (ROOT / '.github/workflows/native-ui-review.yml').read_text()
+        for diagnostic in diagnostics:
+            self.assertNotIn('script/native_ui/' + diagnostic, workflow)
         sources = '\n'.join(p.read_text() for p in (ROOT / 'script/native_ui').glob('*Tests.swift')
-                            if p.name != diagnostic)
+                            if p.name not in diagnostics)
         required = {f'test{language}{control}Control' for language in ('English', 'Turkish')
                     for control in ('Quality', 'Dimension', 'Speed', 'Volume', 'PageRange')}
         required |= {'testMergeFirstCancelClickDiscardsActivePositionDraft',

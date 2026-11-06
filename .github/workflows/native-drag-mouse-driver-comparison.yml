@@ -1,0 +1,211 @@
+name: Native Drag Mouse Driver Comparison
+
+on:
+  push:
+    branches: ['codex/drag-mouse-driver-07']
+    paths:
+      - '.github/workflows/native-drag-mouse-driver-comparison.yml'
+      - 'script/compare_native_drag_mouse_driver.py'
+      - 'script/test_compare_native_drag_mouse_driver.py'
+      - 'script/test_native_coverage.py'
+      - 'script/compare_native_drag_held_ax.py'
+      - 'script/test_compare_native_drag_held_ax.py'
+      - 'script/compare_native_drag_activation.py'
+      - 'script/test_compare_native_drag_activation.py'
+      - 'script/compare_native_drag_sources.py'
+      - 'script/test_compare_native_drag_sources.py'
+      - 'script/compare_native_drag_lifecycle.py'
+      - 'script/test_compare_native_drag_lifecycle.py'
+      - 'script/compare_native_drag_capture.py'
+      - 'script/test_compare_native_drag_capture.py'
+      - 'script/native_ui/NativeDragReview.swift'
+      - 'script/native_ui/NativeDragControl.swift'
+      - 'script/native_ui/NativeDragSource.swift'
+      - 'script/native_ui/NativeDragMouseDriver.swift'
+      - 'script/native_ui/NativeDragMouseTests.swift'
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+  CANDIDATE_COMMIT: d821d7343675e2850705d141ef9b3b93a6aee945
+  CANDIDATE_TREE: 425baa28f00ec24551dd70c0cc874a75fa3be0c1
+  OBSERVER_BASE: 0d14c496030d49e6d4943445bad0164ad71c3726
+
+concurrency:
+  group: native-drag-mouse-driver-${{ github.ref }}
+  cancel-in-progress: true
+
+# Diagnostic only: fixed native source/control and Quartz/XCTest/XCTest/Quartz order.
+# One entry, terminal hold and global CG Escape; no held observer AX reads.
+# Both arms retain the same idle/live prebuilt XCTest runner. C12 is staging only.
+# Existing permissions are read, never granted. The original acceptance gate is unchanged.
+jobs:
+  compare:
+    name: Orchard Mouse Driver Comparison (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - name: Check Out Observer Experiment
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Check Exact Observer Source And Existing Gates
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+          test "$(uname -m)" = '${{ matrix.arch }}'
+          git merge-base --is-ancestor "$OBSERVER_BASE" HEAD
+          python3 script/privacy_check.py
+          python3 script/test_compare_native_drag_mouse_driver.py
+          python3 script/test_compare_native_drag_held_ax.py
+          python3 script/test_compare_native_drag_activation.py
+          python3 script/test_compare_native_drag_sources.py
+          python3 script/test_compare_native_drag_lifecycle.py
+          python3 script/test_compare_native_drag_capture.py
+          python3 script/test_native_release_gate.py
+          python3 script/test_native_coverage.py
+          python3 script/test_prepare_native_ui.py
+      - name: Check Out Exact C12 Application
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ env.CANDIDATE_COMMIT }}
+          path: candidate-source
+          persist-credentials: false
+      - name: Check Application Pins
+        working-directory: candidate-source
+        run: |
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_COMMIT"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$CANDIDATE_TREE"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+      - name: Build Unchanged C12 Application
+        working-directory: candidate-source
+        env:
+          CONFIGURATION: debug
+          LEMULIP_ENGINE_PACKS: ''
+        run: ./script/build_app.sh
+      - name: Stage One Application And Fixture Set
+        working-directory: candidate-source
+        run: >-
+          python3 script/prepare_native_ui.py --app dist/Lemulip.app
+          --output "$RUNNER_TEMP/lemulip-native-ui"
+      - name: Build Fixed Observers And Native Control And Source
+        run: |
+          xcrun swiftc -parse-as-library script/native_ui/NativeDragReview.swift \
+            -o "$RUNNER_TEMP/lemulip-native-ui/NativeDragReview"
+          xcrun swiftc -D LEMULIP_APPKIT_OBSERVER -parse-as-library script/native_ui/NativeDragReview.swift \
+            -o "$RUNNER_TEMP/lemulip-native-ui/NativeDragReviewAppKit"
+          xcrun swiftc -D LEMULIP_APPKIT_OBSERVER -D LEMULIP_MOUSE_DRIVER_OBSERVER -parse-as-library \
+            script/native_ui/NativeDragReview.swift script/native_ui/NativeDragMouseDriver.swift \
+            -o "$RUNNER_TEMP/lemulip-native-ui/NativeDragReviewMouseAppKit"
+          python3 - <<'PYCODE'
+          import os, pathlib, plistlib
+          root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'lemulip-native-ui'
+          for role in ('Control', 'Source'):
+              name = 'Native Drag ' + role
+              executable = 'NativeDrag' + role
+              contents = root / (name + '.app') / 'Contents'
+              (contents / 'MacOS').mkdir(parents=True, exist_ok=False)
+              info = {'CFBundleIdentifier': 'app.lemulip.' + executable,
+                      'CFBundleExecutable': executable, 'CFBundleName': name,
+                      'CFBundleDisplayName': name, 'CFBundlePackageType': 'APPL',
+                      'CFBundleShortVersionString': '0.0.0', 'CFBundleVersion': '1',
+                      'NSPrincipalClass': executable + 'Application',
+                      'NSHighResolutionCapable': True, 'LSMinimumSystemVersion': '13.0'}
+              (contents / 'Info.plist').write_bytes(plistlib.dumps(info))
+          PYCODE
+          xcrun swiftc -parse-as-library -module-name NativeDragControl \
+            script/native_ui/NativeDragControl.swift \
+            -o "$RUNNER_TEMP/lemulip-native-ui/Native Drag Control.app/Contents/MacOS/NativeDragControl"
+          xcrun swiftc -parse-as-library -module-name NativeDragSource \
+            script/native_ui/NativeDragSource.swift \
+            -o "$RUNNER_TEMP/lemulip-native-ui/Native Drag Source.app/Contents/MacOS/NativeDragSource"
+          codesign --force --sign - "$RUNNER_TEMP/lemulip-native-ui/Native Drag Control.app"
+          codesign --verify --strict "$RUNNER_TEMP/lemulip-native-ui/Native Drag Control.app"
+          codesign --force --sign - "$RUNNER_TEMP/lemulip-native-ui/Native Drag Source.app"
+          codesign --verify --strict "$RUNNER_TEMP/lemulip-native-ui/Native Drag Source.app"
+      - name: Build Public XCTest Mouse Runner Once
+        run: |
+          python3 script/compare_native_drag_mouse_driver.py \
+            --staged "$RUNNER_TEMP/lemulip-native-ui" --prepare-driver \
+            > "$RUNNER_TEMP/lemulip-native-ui/mouse-driver-build.json"
+      - name: Record Observer And Source Builds And Unchanged Application Provenance
+        run: |
+          python3 - <<'PYCODE'
+          import hashlib, json, os, pathlib, shutil, subprocess
+          root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'lemulip-native-ui'
+          path = root / 'provenance.json'
+          record = json.loads(path.read_text())
+          assert record['sourceCommit'] == os.environ['CANDIDATE_COMMIT']
+          assert record['sourceTree'] == os.environ['CANDIDATE_TREE']
+          digest = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+          record.update(observerExperimentCommit=os.environ['GITHUB_SHA'],
+                        observerExperimentTree=subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], text=True).strip(),
+                        nativeDragReviewSourceSHA256=digest(pathlib.Path('script/native_ui/NativeDragReview.swift')),
+                        mouseDriverComparatorSourceSHA256=digest(pathlib.Path('script/compare_native_drag_mouse_driver.py')),
+                        nativeDragControlSourceSHA256=digest(pathlib.Path('script/native_ui/NativeDragControl.swift')),
+                        nativeDragSourceSourceSHA256=digest(pathlib.Path('script/native_ui/NativeDragSource.swift')),
+                        observerExecutableSHA256=digest(root / 'NativeDragReview'),
+                        observerAppKitExecutableSHA256=digest(root / 'NativeDragReviewAppKit'),
+                        observerMouseAppKitExecutableSHA256=digest(root / 'NativeDragReviewMouseAppKit'),
+                        observerMouseAppKitBuild={'executable': 'NativeDragReviewMouseAppKit',
+                          'swiftDefines': ['LEMULIP_APPKIT_OBSERVER', 'LEMULIP_MOUSE_DRIVER_OBSERVER']},
+                        observerBuildModes={
+                          'swift-async': {'executable': 'NativeDragReview', 'swiftDefines': []},
+                          'appkit': {'executable': 'NativeDragReviewAppKit', 'swiftDefines': ['LEMULIP_APPKIT_OBSERVER']}},
+                        controlGUI_SHA256=digest(root / 'Native Drag Control.app/Contents/MacOS/NativeDragControl'),
+                        sourceGUI_SHA256=digest(root / 'Native Drag Source.app/Contents/MacOS/NativeDragSource'),
+                        diagnosticOnly=True, nativeAcceptanceXCTestExecuted=False,
+                        scope='Four fixed Quartz/XCTest/XCTest/Quartz native-source control cases with one entry, a terminal hold, independent global CG Escape and no held observer AX reads. Nominal timing is shared; observed entry/release clocks are retained. C12 HOLD and the original enter/exit/reentry acceptance gate remain unchanged.')
+          driver = json.loads((root / 'mouse-driver-build.json').read_text())
+          for key, value in driver.items():
+              assert key not in record or record[key] == value, key
+          record.update(driver)
+          retained = root / 'DiagnosticSources'
+          retained.mkdir(exist_ok=False)
+          for name in ('NativeDragReview.swift', 'NativeDragControl.swift', 'NativeDragSource.swift',
+                       'NativeDragMouseDriver.swift', 'NativeDragMouseTests.swift'):
+              shutil.copyfile(pathlib.Path('script/native_ui') / name, retained / name)
+          for source in sorted(pathlib.Path('script').glob('compare_native_drag_*.py')):
+              shutil.copyfile(source, retained / source.name)
+          path.write_text(json.dumps(record, indent=2) + '\n')
+          PYCODE
+      - name: Compare Four Serial Mouse Driver Cases In One Existing CI Session
+        run: >-
+          python3 script/compare_native_drag_mouse_driver.py
+          --staged "$RUNNER_TEMP/lemulip-native-ui"
+          --output "$RUNNER_TEMP/drag-mouse-driver-comparison"
+          --experiment-commit "$GITHUB_SHA"
+      - name: Confirm Source Remains Unchanged
+        if: always()
+        run: |
+          git diff --exit-code HEAD --
+          if test -d candidate-source/.git; then git -C candidate-source diff --exit-code HEAD --; fi
+      - name: Retain Every Comparison Result
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Drag-Mouse-Driver-${{ matrix.arch }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/lemulip-native-ui/provenance.json
+            ${{ runner.temp }}/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-*
+            ${{ runner.temp }}/lemulip-native-ui/DiagnosticSources
+            ${{ runner.temp }}/lemulip-native-ui/MouseControl
+            ${{ runner.temp }}/lemulip-native-ui/MouseRunner
+            ${{ runner.temp }}/lemulip-native-ui/MouseDerivedData/Build/Products/*.xctestrun
+            ${{ runner.temp }}/lemulip-native-ui/MouseDerivedData/Logs/Test
+            ${{ runner.temp }}/lemulip-native-ui/mouse-build.log
+            ${{ runner.temp }}/lemulip-native-ui/mouse-driver-build.json
+            ${{ runner.temp }}/drag-mouse-driver-comparison
+          if-no-files-found: error
+          retention-days: 14

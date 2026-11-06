@@ -16,7 +16,8 @@ private func require(_ condition: Bool, _ message: String) throws {
 }
 
 private let heldAXCases = ["ax-read-first", "ax-quiet-first", "ax-quiet-second", "ax-read-second"]
-private let activationCases = ["raise-first", "no-raise-first", "no-raise-second", "raise-second"] + heldAXCases
+private let mouseDriverCases = ["quartz-first", "xctest-first", "xctest-second", "quartz-second"]
+private let activationCases = ["raise-first", "no-raise-first", "no-raise-second", "raise-second"] + heldAXCases + mouseDriverCases
 
 private func pointJSON(_ point: NSPoint) -> [String: Double] {
     ["x": Double(point.x), "y": Double(point.y)]
@@ -79,6 +80,10 @@ private struct SourceConfiguration {
             fields["heldAXCase"] = activationCase
             fields["heldAXPolicy"] = activationCase.hasPrefix("ax-quiet-") ? "omitted" : "present"
         }
+        if mouseDriverCases.contains(activationCase) {
+            fields["mouseDriverCase"] = activationCase
+            fields["mouseProducer"] = activationCase.hasPrefix("xctest-") ? "xctest" : "quartz"
+        }
         return fields
     }
 
@@ -116,9 +121,11 @@ private struct SourceConfiguration {
                     && Bundle.main.object(forInfoDictionaryKey: "NSPrincipalClass") as? String == "NativeDragSourceApplication",
                     "Require the exact isolated AppKit source bundle")
         folder = root.appendingPathComponent("Fixtures/FinderDrop/orchard", isDirectory: true)
-        let evidencePrefix = activationCases.contains(sourceCase)
-            ? "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-Activation-"
-            : "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-Source-"
+        let evidencePrefix = mouseDriverCases.contains(sourceCase)
+            ? "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-"
+            : (activationCases.contains(sourceCase)
+                ? "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-Activation-"
+                : "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-Source-")
         let evidence = root.appendingPathComponent(evidencePrefix + sourceCase + "/orchard", isDirectory: true)
         for directory in [root, bundle, folder, evidence] {
             try require(directory.standardizedFileURL.path == directory.resolvingSymlinksInPath().path
@@ -422,6 +429,19 @@ private final class SourceIconView: NSView, NSDraggingSource {
         fields.merge(["selected": selected, "filename": configuration.single.lastPathComponent,
                       "eventTimestamp": event.timestamp, "locationInWindow": pointJSON(event.locationInWindow),
                       "windowNumber": event.windowNumber, "sessionIndex": sessionIndex]) { _, value in value }
+        if mouseDriverCases.contains(configuration.sourceCase) {
+            var delivered: [String: Any] = ["eventType": event.type.rawValue, "eventNumber": event.eventNumber,
+                "buttonNumber": event.buttonNumber, "clickCount": event.clickCount,
+                "pressure": event.pressure, "modifierFlags": event.modifierFlags.rawValue]
+            if let cg = event.cgEvent {
+                delivered["cgSourceStateID"] = cg.getIntegerValueField(.eventSourceStateID)
+                delivered["cgSourcePID"] = cg.getIntegerValueField(.eventSourceUnixProcessID)
+                delivered["cgMouseEventNumber"] = cg.getIntegerValueField(.mouseEventNumber)
+                delivered["cgMousePressure"] = cg.getDoubleValueField(.mouseEventPressure)
+                delivered["cgTimestampNanoseconds"] = cg.timestamp
+            }
+            fields["deliveredMouseEvent"] = delivered
+        }
         trace.record(name, fields)
     }
 

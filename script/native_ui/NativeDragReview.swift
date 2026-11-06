@@ -46,6 +46,16 @@ private enum DragSourceComparison: String, CaseIterable {
     case noRaiseSecond = "no-raise-second", raiseSecond = "raise-second"
     case axReadFirst = "ax-read-first", axQuietFirst = "ax-quiet-first"
     case axQuietSecond = "ax-quiet-second", axReadSecond = "ax-read-second"
+    case quartzFirst = "quartz-first", xctestFirst = "xctest-first"
+    case xctestSecond = "xctest-second", quartzSecond = "quartz-second"
+
+    var isMouseDriverComparison: Bool {
+        switch self {
+        case .quartzFirst, .xctestFirst, .xctestSecond, .quartzSecond: return true
+        default: return false
+        }
+    }
+    var mouseProducer: String { self == .xctestFirst || self == .xctestSecond ? "xctest" : "quartz" }
 
     var isHeldAXComparison: Bool {
         switch self {
@@ -58,7 +68,7 @@ private enum DragSourceComparison: String, CaseIterable {
     }
 
     var isActivationComparison: Bool {
-        if isHeldAXComparison { return true }
+        if isHeldAXComparison || isMouseDriverComparison { return true }
         switch self {
         case .raiseFirst, .noRaiseFirst, .noRaiseSecond, .raiseSecond: return true
         default: return false
@@ -68,11 +78,13 @@ private enum DragSourceComparison: String, CaseIterable {
     var targetRaisePolicy: String { requestsTargetRaise ? "present" : "omitted" }
     var usesNativeSource: Bool { self != .finderFirst && self != .finderSecond }
     var sourceKind: String { usesNativeSource ? "native-appkit" : "finder" }
-    var evidenceSuffix: String { (isActivationComparison ? "-Activation-" : "-Source-") + rawValue }
+    var evidenceSuffix: String {
+        (isMouseDriverComparison ? "-MouseDriver-" : (isActivationComparison ? "-Activation-" : "-Source-")) + rawValue
+    }
     var controlEvidenceKind: String { (isActivationComparison ? "activation-" : "source-") + rawValue }
     var arguments: [String] {
         ["--control", "--compare-capture", "ax-only",
-         isActivationComparison ? "--compare-activation" : "--compare-source", rawValue]
+         isMouseDriverComparison ? "--compare-mouse-driver" : (isActivationComparison ? "--compare-activation" : "--compare-source"), rawValue]
     }
     var activationBinding: [String: Any] {
         guard isActivationComparison else { return [:] }
@@ -80,6 +92,10 @@ private enum DragSourceComparison: String, CaseIterable {
         if isHeldAXComparison {
             fields["heldAXCase"] = rawValue
             fields["heldAXPolicy"] = heldAXPolicy
+        }
+        if isMouseDriverComparison {
+            fields["mouseDriverCase"] = rawValue
+            fields["mouseProducer"] = mouseProducer
         }
         return fields
     }
@@ -446,6 +462,18 @@ private final class DragReview {
     private var nativeSourceExpectedPoint: CGPoint?
     private var nativeSourceExpectedFrame: CGRect?
     private var keyboardDriver: KeyboardControlDriver?
+    #if LEMULIP_MOUSE_DRIVER_OBSERVER
+    private var mouseControlDriver: MouseControlDriver?
+    #endif
+    private var mouseDriverGestures: [[String: Any]] = []
+    private var mouseDriverAXGuardViolations: [[String: Any]] = []
+    private var mouseDriverGestureRunning: Bool {
+        #if LEMULIP_MOUSE_DRIVER_OBSERVER
+        return mouseControlDriver?.gestureRunning ?? false
+        #else
+        return false
+        #endif
+    }
     private var originals: [String: Data] = [:]
     private var inputNames: Set<String> = []
     private var mouseDown = false
@@ -464,7 +492,7 @@ private final class DragReview {
     private var omitsHeldAX: Bool { mouseDown && heldAXPolicy == "omitted" }
     private let relevantModifiers: CGEventFlags = [.maskCommand, .maskShift, .maskAlternate, .maskControl]
     private var diagnosticSnapshots: [[String: Any]] = []
-    private let expiresAt = ProcessInfo.processInfo.systemUptime + 110
+    private var expiresAt = ProcessInfo.processInfo.systemUptime + 110
     var record: [String: Any] = [
         "schema": 1, "status": "not-run",
         "gestureOutcomesVerified": false, "outlineVisualReviewRequired": true,
@@ -510,6 +538,18 @@ private final class DragReview {
                 record["heldAXSlotSeconds"] = 0.25
                 record["scope"] = "Fixed native source and plain target with 0.25-second observation slots; explicit observer AX reads during held gestures are present or omitted. Final cancellation and fresh-drop checks remain required. Diagnostic only."
             }
+            if sourceComparison.isMouseDriverComparison {
+                expiresAt = ProcessInfo.processInfo.systemUptime + 180
+                record["inputDriver"] = "mouse-" + sourceComparison.mouseProducer + "-global-cg-escape"
+                record["scope"] = "D13 simple entry and terminal hold, Quartz versus public XCTest mouse gesture. Independent global Escape; no held AX reads, exit/reentry or continued mouse motion. Not the production acceptance protocol."
+                record["mouseDriverProtocol"] = ["schema": 1, "case": sourceComparison.rawValue,
+                    "mouseProducer": sourceComparison.mouseProducer, "path": "single-entry-terminal-hold",
+                    "initialHoldSeconds": 0.3, "nominalVelocityPointsPerSecond": 400.0,
+                    "cancelDestinationHoldSeconds": 5.0, "freshDestinationHoldSeconds": 1.0,
+                    "escapeOffsetSeconds": 2.0, "escapeDwellSeconds": 0.15,
+                    "heldObserverAXPolicy": "omitted", "runnerPresentInBothArms": true,
+                    "continuedMouseMotionDuringEscape": false, "productionAcceptanceCoverage": false]
+            }
         }
     }
 
@@ -523,6 +563,10 @@ private final class DragReview {
     }
 
     private func read(_ node: AXUIElement, _ key: String) throws -> CFTypeRef? {
+        if sourceComparison?.isMouseDriverComparison == true && (mouseDown || mouseDriverGestureRunning) {
+            mouseDriverAXGuardViolations.append(["attribute": key, "systemUptime": ProcessInfo.processInfo.systemUptime])
+            throw DragReviewIssue.failed("D13 forbids observer AX reads while a mouse gesture is in flight")
+        }
         try require(ProcessInfo.processInfo.systemUptime < expiresAt, "The bounded native drag review timed out")
         if omitsHeldAX {
             heldAXReadGuardViolations.append(["attribute": key,
@@ -807,6 +851,9 @@ private final class DragReview {
                 + (target == .keyboardControl ? ["nativeDragKeyboardTestsSourceSHA256", "keyboardRunnerInfoSHA256",
                                                 "keyboardRunnerExecutableSHA256"] : [])
                 + (sourceComparison != nil ? ["nativeDragSourceSourceSHA256", "sourceGUI_SHA256"] : [])
+                + (sourceComparison?.isMouseDriverComparison == true
+                    ? ["nativeDragMouseDriverSourceSHA256", "nativeDragMouseTestsSourceSHA256",
+                       "observerMouseAppKitExecutableSHA256"] : [])
             for key in keys {
                 if let value = provenance[key] as? String { record[key] = value }
             }
@@ -1336,6 +1383,18 @@ private final class DragReview {
         try recordSourceGeometry(stage: stage, finderIcon: finderIcon, point: expectedPoint,
                                  nativeWindow: actualFrame, nativeIcon: actualIcon)
         try requireHit(expectedPoint, owner: sourceApp.processIdentifier, stage: stage)
+        if comparison.isMouseDriverComparison {
+            // The real gesture's down selects this sole source image. Neither
+            // D13 arm receives a separate observer-generated selection click.
+            guard let selected = try read(image, kAXSelectedAttribute) as? NSNumber else {
+                throw DragReviewIssue.failed("D13 cannot observe the source image's initial selection")
+            }
+            var selections = record["mouseDriverSourceSelectionBeforeGesture"] as? [String: Any] ?? [:]
+            selections[stage] = ["selected": selected.boolValue, "systemUptime": ProcessInfo.processInfo.systemUptime,
+                                 "selectionClickPosted": false]
+            record["mouseDriverSourceSelectionBeforeGesture"] = selections
+            return expectedPoint
+        }
         try mouse(.mouseMoved, at: expectedPoint)
         try mouse(.leftMouseDown, at: expectedPoint)
         try await pause(0.08)
@@ -1488,6 +1547,263 @@ private final class DragReview {
         }
     }
 
+    #if LEMULIP_MOUSE_DRIVER_OBSERVER
+    private func mouseProbePoint(_ point: CGPoint) -> [String: Double] {
+        ["x": Double(point.x), "y": Double(point.y)]
+    }
+
+    private func mouseProbeRect(_ rect: CGRect) -> [String: Double] {
+        ["x": Double(rect.minX), "y": Double(rect.minY),
+         "width": Double(rect.width), "height": Double(rect.height)]
+    }
+
+    // The existing receiver writes and synchronizes each complete line. Read
+    // only that owned file, ignore an unfinished last line, and retain its
+    // record index. Source callbacks remain buffered and are joined afterward.
+    private func mouseProbeReceiverRows() throws -> [[String: Any]] {
+        guard let output, let comparison = sourceComparison, let app = reviewApp else {
+            throw DragReviewIssue.failed("D13 receiver identity is unavailable")
+        }
+        let url = output.appendingPathComponent("receiver.jsonl")
+        try require(url.standardizedFileURL.path == url.resolvingSymlinksInPath().path,
+                    "D13 refuses a symlinked receiver journal")
+        let descriptor = Darwin.open(url.path, O_RDONLY | O_NOFOLLOW | O_CLOEXEC)
+        try require(descriptor >= 0, "D13 receiver journal could not be opened")
+        let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
+        defer { try? handle.close() }
+        var attributes = stat()
+        let maximum = 8 * 1_024 * 1_024
+        try require(Darwin.fstat(descriptor, &attributes) == 0
+                    && attributes.st_mode & mode_t(S_IFMT) == mode_t(S_IFREG)
+                    && attributes.st_size > 0 && attributes.st_size <= maximum,
+                    "D13 receiver journal must remain a bounded regular file")
+        let data = try handle.read(upToCount: maximum + 1) ?? Data()
+        try require(data.count <= maximum, "D13 receiver journal exceeded its bound")
+        guard let newline = data.lastIndex(of: 0x0a),
+              let text = String(data: data.prefix(through: newline), encoding: .utf8) else {
+            throw DragReviewIssue.failed("D13 receiver journal has no complete UTF-8 record")
+        }
+        var rows: [[String: Any]] = []
+        for line in text.split(separator: "\n") {
+            guard let row = try JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any] else {
+                throw DragReviewIssue.failed("D13 receiver journal has a malformed complete record")
+            }
+            try require((row["pid"] as? NSNumber)?.int32Value == app.processIdentifier
+                        && row["sourceCase"] as? String == comparison.rawValue
+                        && row["mouseDriverCase"] as? String == comparison.rawValue,
+                        "D13 receiver journal does not belong to this case and process")
+            rows.append(row)
+        }
+        try require(rows.count <= 10_000, "D13 receiver journal exceeded its record bound")
+        return rows
+    }
+
+    private func mouseProbeDestinationEntry(at point: CGPoint, after started: Double,
+                                           excluding priorSequence: Int?) async throws -> [String: Any] {
+        let deadline = min(expiresAt - 1, ProcessInfo.processInfo.systemUptime + 20)
+        var sawHeldButton = false
+        repeat {
+            try assertTargets()
+            let held = CGEventSource.buttonState(.combinedSessionState, button: .left)
+            if held { sawHeldButton = true }
+            if sawHeldButton && !held {
+                throw DragReviewIssue.failed("D13 mouse gesture ended before verified destination entry")
+            }
+            guard let cursorEvent = CGEvent(source: nil) else {
+                throw DragReviewIssue.failed("D13 cannot observe the cursor")
+            }
+            let cursor = cursorEvent.location
+            if held && hypot(cursor.x - point.x, cursor.y - point.y) <= 1 {
+                let rows = try mouseProbeReceiverRows()
+                if let entry = rows.last(where: { row in
+                    row["event"] as? String == "draggingEntered"
+                        && row["returnedCopy"] as? Bool == true
+                        && ((row["systemUptime"] as? NSNumber)?.doubleValue ?? -1) >= started
+                        && (row["sequenceNumber"] as? NSNumber)?.intValue != priorSequence
+                }), let sequence = entry["sequenceNumber"] as? NSNumber,
+                    let entryTime = entry["systemUptime"] as? NSNumber,
+                    let recordIndex = entry["recordIndex"] as? NSNumber {
+                    return ["observedSystemUptime": ProcessInfo.processInfo.systemUptime,
+                            "receiverEntrySystemUptime": entryTime.doubleValue,
+                            "sequenceNumber": sequence.intValue, "receiverRecordIndex": recordIndex.intValue,
+                            "cursorCG": mouseProbePoint(cursor), "leftButtonReportedDown": held,
+                            "sourcePID": Int(nativeSourceApp!.processIdentifier),
+                            "targetPID": Int(reviewApp!.processIdentifier)]
+                }
+            }
+            try await pause(0.025)
+        } while ProcessInfo.processInfo.systemUptime < deadline
+        throw DragReviewIssue.failed("D13 did not observe a live drag at the destination before its deadline")
+    }
+
+    private func mouseProbePause(until deadline: Double) async throws {
+        let remaining = deadline - ProcessInfo.processInfo.systemUptime
+        if remaining > 0 { try await pause(remaining) }
+    }
+
+    private func mouseProbeEscape() async throws {
+        try assertTargets()
+        try require(CGPreflightPostEventAccess()
+                    && isExpectedForeground(NSWorkspace.shared.frontmostApplication?.processIdentifier)
+                    && CGEventSource.buttonState(.combinedSessionState, button: .left)
+                    && !CGEventSource.keyState(.combinedSessionState, key: 53)
+                    && CGEventSource.flagsState(.combinedSessionState).intersection(relevantModifiers).isEmpty,
+                    "D13 Escape requires the live owned gesture, expected foreground and clear keyboard")
+        guard let down = CGEvent(keyboardEventSource: inputSource, virtualKey: 53, keyDown: true),
+              let up = CGEvent(keyboardEventSource: inputSource, virtualKey: 53, keyDown: false) else {
+            throw DragReviewIssue.failed("D13 could not create the global Escape pair")
+        }
+        down.flags = []
+        up.flags = []
+        record["escapeKeyProtocol"] = ["kind": "d13-global-escape-no-pointer-motion", "keyCode": 53,
+            "eventTap": "cghidEventTap", "keyDownDwellSeconds": 0.15,
+            "downSourceStateID": down.getIntegerValueField(.eventSourceStateID),
+            "upSourceStateID": up.getIntegerValueField(.eventSourceStateID),
+            "downFlags": down.flags.rawValue, "upFlags": up.flags.rawValue,
+            "downTimestampNanoseconds": down.timestamp, "upTimestampNanoseconds": up.timestamp,
+            "continuedMotion": false]
+        recordEscapeInputState("d13-before-key-post")
+        let downStarted = ProcessInfo.processInfo.systemUptime
+        down.post(tap: .cghidEventTap)
+        let downCompleted = ProcessInfo.processInfo.systemUptime
+        escapeKeyDown = true
+        defer {
+            let upStarted = ProcessInfo.processInfo.systemUptime
+            up.post(tap: .cghidEventTap)
+            let upCompleted = ProcessInfo.processInfo.systemUptime
+            escapeKeyDown = false
+            record["escapePostTiming"] = ["downStartedSystemUptime": downStarted,
+                "downCompletedSystemUptime": downCompleted, "upStartedSystemUptime": upStarted,
+                "upCompletedSystemUptime": upCompleted, "heldSeconds": upStarted - downStarted]
+            recordEscapeInputState("d13-after-key-up")
+        }
+        try await mouseProbePause(until: downCompleted + 0.15)
+        recordEscapeInputState("d13-before-key-up")
+        try require(CGEventSource.buttonState(.combinedSessionState, button: .left),
+                    "D13 mouse button was released before the Escape pair completed")
+    }
+
+    private func mouseProbeGesture(phase: String, source: CGPoint, destination: CGPoint,
+                                   excluding priorSequence: Int?) async throws -> [String: Any] {
+        guard let comparison = sourceComparison, comparison.isMouseDriverComparison,
+              let driver = mouseControlDriver, let sourceApp = nativeSourceApp,
+              let sourceWindow = nativeSourceWindow, let targetApp = reviewApp,
+              let targetWindow = reviewWindow else {
+            throw DragReviewIssue.failed("D13 gesture setup is incomplete")
+        }
+        try require(phase == "cancel" || phase == "fresh", "Unknown D13 phase")
+        let sourceFrame = try frame(sourceWindow)
+        let targetFrame = try frame(targetWindow)
+        try require(!mouseDown && !driver.gestureRunning
+                    && !CGEventSource.buttonState(.combinedSessionState, button: .left),
+                    "D13 will not take ownership of an already-held button")
+        let started = ProcessInfo.processInfo.systemUptime
+        let hold = phase == "cancel" ? 5.0 : 1.0
+        var gesture: [String: Any] = ["phase": phase, "mouseProducer": comparison.mouseProducer,
+            "startedSystemUptime": started, "sourcePoint": mouseProbePoint(source),
+            "targetPoint": mouseProbePoint(destination), "sourceFrame": mouseProbeRect(sourceFrame),
+            "targetFrame": mouseProbeRect(targetFrame), "destinationHoldSeconds": hold,
+            "completed": false]
+        defer {
+            mouseDriverGestures.append(gesture)
+            record["mouseDriverGestures"] = mouseDriverGestures
+            record["mouseControlDriver"] = driver.evidence
+        }
+        if comparison.mouseProducer == "xctest" {
+            try await driver.requestGesture(source: sourceApp, application: nativeSourceBundle,
+                sourcePoint: source, targetPoint: destination, sourceFrame: sourceFrame,
+                target: targetApp, targetApplication: bundle, targetFrame: targetFrame,
+                phase: phase, destinationHold: hold, expiresAt: min(expiresAt, started + 30))
+            gesture["requestPublishedSystemUptime"] = ProcessInfo.processInfo.systemUptime
+        } else {
+            try mouse(.leftMouseDown, at: source)
+            try await pause(0.3)
+            let distance = Double(hypot(destination.x - source.x, destination.y - source.y))
+            let steps = max(1, Int(ceil(distance / 10)))
+            try require(steps <= 100, "D13 straight pointer path exceeds its bounded event count")
+            let movementStarted = ProcessInfo.processInfo.systemUptime
+            for step in 1...steps {
+                let fraction = CGFloat(step) / CGFloat(steps)
+                try await mouseProbePause(until: movementStarted + distance / 400 * Double(fraction))
+                try mouse(.leftMouseDragged, at: CGPoint(x: source.x + (destination.x - source.x) * fraction,
+                                                       y: source.y + (destination.y - source.y) * fraction))
+            }
+            gesture["lastMovementPostCompletedSystemUptime"] = ProcessInfo.processInfo.systemUptime
+        }
+        let entry = try await mouseProbeDestinationEntry(at: destination, after: started, excluding: priorSequence)
+        gesture["entryObservation"] = entry
+        let entryObserved = (entry["observedSystemUptime"] as! Double)
+        if phase == "cancel" {
+            gesture["escapeScheduledSystemUptime"] = entryObserved + 2
+            try await mouseProbePause(until: entryObserved + 2)
+            try await mouseProbeEscape()
+            try require(CGEventSource.buttonState(.combinedSessionState, button: .left),
+                        "D13 mouse was released before Escape overlap could be verified")
+            gesture["escapeBeforeReleaseVerified"] = true
+        }
+        if comparison.mouseProducer == "xctest" {
+            try await driver.waitForGestureEnd(expiresAt: min(expiresAt, started + 30))
+            gesture["releaseMethod"] = "xctest-gesture-return"
+        } else {
+            gesture["releaseScheduledSystemUptime"] = entryObserved + hold
+            try await mouseProbePause(until: entryObserved + hold)
+            try mouse(.leftMouseUp, at: destination)
+            gesture["releaseMethod"] = "quartz-mouse-up"
+        }
+        gesture["releaseObservedSystemUptime"] = ProcessInfo.processInfo.systemUptime
+        gesture["releaseButtonState"] = CGEventSource.buttonState(.combinedSessionState, button: .left)
+        try require(gesture["releaseButtonState"] as? Bool == false,
+                    "D13 gesture completion did not release its mouse button")
+        gesture["completed"] = true
+        return gesture
+    }
+
+    private func runMouseDriverProbe(source: CGPoint, destination: CGPoint,
+                                     existing: URL, single: URL) async throws {
+        let initialStarted = ProcessInfo.processInfo.systemUptime
+        let initial = try workspaceObservation([existing.lastPathComponent])
+        record["mouseDriverInitialWorkspace"] = initial.evidence
+        record["mouseDriverInitialWorkspaceTiming"] = ["startedSystemUptime": initialStarted,
+            "completedSystemUptime": ProcessInfo.processInfo.systemUptime]
+        try require(initial.matches, "D13 must start with exactly Existing")
+        let cancelled = try await mouseProbeGesture(phase: "cancel", source: source,
+                                                   destination: destination, excluding: nil)
+        try await pause(0.7)
+        let cancellationStarted = ProcessInfo.processInfo.systemUptime
+        let cancellation = try workspaceObservation([existing.lastPathComponent])
+        record["escapeCancellation"] = cancellation.evidence
+        record["escapeCancellationObservationTiming"] = ["startedSystemUptime": cancellationStarted,
+            "completedSystemUptime": ProcessInfo.processInfo.systemUptime]
+        record["mouseDriverCancellationObserved"] = true
+        try verifyOriginals()
+        record["originalBytesUnchanged"] = true
+        record["userFileSetUnchanged"] = true
+        try await capture("d13-cancel-after-release")
+        try require(cancellation.matches, "Escape did not cancel the actual native drag")
+
+        let secondSource = try await sourcePoint(single, stage: "drop-source")
+        try requireHit(destination, owner: reviewApp!.processIdentifier, stage: "d13-fresh-entry")
+        let prior = (cancelled["entryObservation"] as? [String: Any])?["sequenceNumber"] as? Int
+        try require(prior != nil, "D13 did not retain the first drag sequence")
+        _ = try await mouseProbeGesture(phase: "fresh", source: secondSource,
+                                        destination: destination, excluding: prior)
+        try await pause(0.7)
+        let freshStarted = ProcessInfo.processInfo.systemUptime
+        let fresh = try workspaceObservation([existing.lastPathComponent, single.lastPathComponent])
+        record["freshDropWorkspace"] = fresh.evidence
+        record["freshDropObservationTiming"] = ["startedSystemUptime": freshStarted,
+            "completedSystemUptime": ProcessInfo.processInfo.systemUptime]
+        try verifyOriginals()
+        try await capture("d13-fresh-after-release")
+        try require(fresh.matches, "The D13 fresh drag did not add exactly Single once")
+        record["status"] = "captured"
+        record["gestureOutcomesVerified"] = true
+        record["originalBytesUnchanged"] = true
+        record["userFileSetUnchanged"] = true
+        record["metadataExclusion"] = "Only Finder's .DS_Store view metadata"
+    }
+    #endif
+
     func run() async throws {
         try validate()
         if captureComparison != nil {
@@ -1545,6 +1861,15 @@ private final class DragReview {
             defer { record["keyboardDriver"] = driver.evidence }
             try await driver.start(expiresAt: expiresAt)
         }
+        #if LEMULIP_MOUSE_DRIVER_OBSERVER
+        if let comparison = sourceComparison, comparison.isMouseDriverComparison {
+            record["startupPhase"] = "mouse-driver"
+            let driver = try MouseControlDriver(directory: directory, caseName: comparison.rawValue)
+            mouseControlDriver = driver
+            try await driver.start(expiresAt: expiresAt)
+            record["mouseControlDriver"] = driver.evidence
+        }
+        #endif
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.arguments = ["-language", "en", "-theme", theme.rawValue, "-wheelEnabled", "NO",
                                    "-completionPresentation", "quiet", "-NSQuitAlwaysKeepsWindows", "NO"]
@@ -1610,7 +1935,8 @@ private final class DragReview {
         record["startupPhase"] = "complete"
         let enter = CGPoint(x: (header.minX + clear.maxX) / 2, y: header.minY - 4)
         let escapeMotionPoint = CGPoint(x: enter.x + 1, y: enter.y)
-        let releasePoint = target == .keyboardControl ? enter : escapeMotionPoint
+        let releasePoint = target == .keyboardControl || sourceComparison?.isMouseDriverComparison == true
+            ? enter : escapeMotionPoint
         let topPadding = CGRect(x: header.minX, y: header.minY - 8, width: clear.maxX - header.minX, height: 8)
         let outside = CGPoint(x: enter.x, y: header.minY - 24)
         let finderTop = header.maxY + 100
@@ -1641,6 +1967,12 @@ private final class DragReview {
         try requireHit(outside, owner: app.processIdentifier, stage: "cancel-outside")
         try requireHit(escapeMotionPoint, owner: app.processIdentifier, stage: "cancel-held-motion")
         try await capture("00-before-drag")
+        #if LEMULIP_MOUSE_DRIVER_OBSERVER
+        if sourceComparison?.isMouseDriverComparison == true {
+            try await runMouseDriverProbe(source: source, destination: enter, existing: existing, single: single)
+            return
+        }
+        #endif
         if heldAXPolicy != nil {
             let started = ProcessInfo.processInfo.systemUptime
             let initial = try workspaceObservation([existing.lastPathComponent])
@@ -1742,6 +2074,18 @@ private final class DragReview {
         var deadline = ProcessInfo.processInfo.systemUptime + 8
         var errors: [String] = []
         var keyboardStopped = true
+        #if LEMULIP_MOUSE_DRIVER_OBSERVER
+        var mouseDriverStopped = true
+        var mouseDriverNormal = true
+        if let driver = mouseControlDriver {
+            // XCTest owns its full mouse gesture. Let its bounded operation
+            // return before stopping the runner; never manufacture its up.
+            if driver.gestureRunning {
+                do { try await driver.waitForGestureEnd(expiresAt: ProcessInfo.processInfo.systemUptime + 20) }
+                catch { errors.append("The XCTest mouse gesture did not finish: " + String(describing: error)) }
+            }
+        }
+        #endif
         if let driver = keyboardDriver, !driver.ended {
             // A synchronous XCTest input may still be running after its request
             // expires. Stop its owned processes before any further native input.
@@ -1766,6 +2110,19 @@ private final class DragReview {
                 errors.append("Could not release this probe's held mouse button")
             }
         }
+        #if LEMULIP_MOUSE_DRIVER_OBSERVER
+        if let driver = mouseControlDriver {
+            // The common idle runner also witnesses Quartz cases. Finish it
+            // only after releasing any mouse button owned by this observer.
+            mouseDriverStopped = await driver.stop(gracefully: !driver.gestureRunning)
+            mouseDriverNormal = driver.completedNormally
+            record["mouseControlDriver"] = driver.evidence
+            if !mouseDriverStopped { errors.append("The owned mouse runner did not stop") }
+            if !mouseDriverNormal { errors.append("The mouse runner did not complete its final handshake") }
+            keyboardStopped = mouseDriverStopped
+            deadline = ProcessInfo.processInfo.systemUptime + 8
+        }
+        #endif
         if let driver = keyboardDriver, driver.ended {
             // END means the only key call returned. Keep the runner alive until
             // the observed gesture (including an error-path release) is over.
@@ -1885,6 +2242,12 @@ private final class DragReview {
             cleanup["sourceApplicationStopped"] = sourceApplicationStopped
             cleanup["sourceBundleRegistryEmpty"] = sourceRegistryEmpty
         }
+        #if LEMULIP_MOUSE_DRIVER_OBSERVER
+        if sourceComparison?.isMouseDriverComparison == true {
+            cleanup["mouseDriverStopped"] = mouseDriverStopped
+            cleanup["mouseDriverNormal"] = mouseDriverNormal
+        }
+        #endif
         record["cleanup"] = cleanup
         if target == .keyboardControl { record["keyboardDriverStopConfirmed"] = keyboardStopped }
         return errors.isEmpty
@@ -1893,6 +2256,17 @@ private final class DragReview {
     func finish() throws {
         guard let output else { throw DragReviewIssue.failed("The per-theme evidence destination was not created") }
         if let driver = keyboardDriver { record["keyboardDriver"] = driver.evidence }
+        #if LEMULIP_MOUSE_DRIVER_OBSERVER
+        if let driver = mouseControlDriver { record["mouseControlDriver"] = driver.evidence }
+        #endif
+        if sourceComparison?.isMouseDriverComparison == true {
+            record["mouseDriverGestures"] = mouseDriverGestures
+            // Retain the empty journal too: the XCTest arm must prove that
+            // this observer posted no pointer events.
+            record["mouseEvents"] = mouseEventRecords
+            record["mouseDriverAXGuardViolations"] = mouseDriverAXGuardViolations
+            record["heldObserverAXReadCount"] = 0
+        }
         if heldAXPolicy != nil {
             record["heldAXReads"] = heldAXReads
             record["heldAXReadCount"] = heldAXReads.count
@@ -1924,12 +2298,18 @@ private struct NativeDragReview {
             : (options.first == "--control" ? .control : .production)
         let captureComparison = options.firstIndex(of: "--compare-capture")
             .flatMap { DragCaptureComparison(rawValue: options[$0 + 1]) }
-        let sourceComparison = options.firstIndex(where: { $0 == "--compare-source" || $0 == "--compare-activation" })
+        let sourceComparison = options.firstIndex(where: { $0 == "--compare-source" || $0 == "--compare-activation" || $0 == "--compare-mouse-driver" })
             .flatMap { DragSourceComparison(rawValue: options[$0 + 1]) }
         if sourceComparison != nil && DragObserverLifecycle.mode != "appkit" {
             FileHandle.standardError.write(Data("The source comparison requires the fixed AppKit observer.\n".utf8))
             exit(2)
         }
+        #if !LEMULIP_MOUSE_DRIVER_OBSERVER
+        if sourceComparison?.isMouseDriverComparison == true {
+            FileHandle.standardError.write(Data("The mouse comparison requires its separately built observer.\n".utf8))
+            exit(2)
+        }
+        #endif
         let themes: [DragReviewTheme] = captureComparison == nil ? target.themes : [.orchard]
         let evidenceName = target.evidenceName + (captureComparison?.evidenceSuffix ?? "") + DragObserverLifecycle.evidenceSuffix
             + (sourceComparison?.evidenceSuffix ?? "")
@@ -1971,6 +2351,10 @@ private struct NativeDragReview {
             if sourceComparison.isHeldAXComparison {
                 aggregate["heldAXSlotSeconds"] = 0.25
                 aggregate["scope"] = "One fixed native-source case with present target raises and 0.25-second held observation slots; observer AX reads are explicitly present or omitted. Strict final cancellation and fresh-drop acceptance remain required."
+            }
+            if sourceComparison.isMouseDriverComparison {
+                aggregate["inputDriver"] = "mouse-" + sourceComparison.mouseProducer + "-global-cg-escape"
+                aggregate["scope"] = "D13 single-entry terminal-hold mouse-producer comparison with independent global Escape. No exit/reentry or held observer AX reads. Diagnostic only; not production acceptance coverage."
             }
         }
         do {
@@ -2041,7 +2425,9 @@ private struct NativeDragReview {
                             "observerExperimentCommit", "observerExperimentTree",
                             "compiledTestSourceSHA256", "nativeDragReviewSourceSHA256", "controlGUI_SHA256",
                             "nativeDragControlSourceSHA256", "nativeDragKeyboardTestsSourceSHA256", "keyboardRunnerInfoSHA256",
-                            "keyboardRunnerExecutableSHA256", "nativeDragSourceSourceSHA256", "sourceGUI_SHA256"] {
+                            "keyboardRunnerExecutableSHA256", "nativeDragSourceSourceSHA256", "sourceGUI_SHA256",
+                            "nativeDragMouseDriverSourceSHA256", "nativeDragMouseTestsSourceSHA256",
+                            "observerMouseAppKitExecutableSHA256"] {
                     if aggregate[key] == nil, let value = review.record[key] { aggregate[key] = value }
                 }
             }

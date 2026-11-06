@@ -18,7 +18,8 @@ private func require(_ condition: Bool, _ message: String) throws {
 }
 
 private let heldAXCases = ["ax-read-first", "ax-quiet-first", "ax-quiet-second", "ax-read-second"]
-private let activationCases = ["raise-first", "no-raise-first", "no-raise-second", "raise-second"] + heldAXCases
+private let mouseDriverCases = ["quartz-first", "xctest-first", "xctest-second", "quartz-second"]
+private let activationCases = ["raise-first", "no-raise-first", "no-raise-second", "raise-second"] + heldAXCases + mouseDriverCases
 
 private struct ControlConfiguration {
     let theme: String
@@ -55,6 +56,10 @@ private struct ControlConfiguration {
             if heldAXCases.contains(activationCase) {
                 fields["heldAXCase"] = activationCase
                 fields["heldAXPolicy"] = activationCase.hasPrefix("ax-quiet-") ? "omitted" : "present"
+            }
+            if mouseDriverCases.contains(activationCase) {
+                fields["mouseDriverCase"] = activationCase
+                fields["mouseProducer"] = activationCase.hasPrefix("xctest-") ? "xctest" : "quartz"
             }
         }
         return fields
@@ -102,6 +107,9 @@ private struct ControlConfiguration {
         case "activation-raise-first", "activation-no-raise-first", "activation-no-raise-second", "activation-raise-second",
              "activation-ax-read-first", "activation-ax-quiet-first", "activation-ax-quiet-second", "activation-ax-read-second":
             evidenceName = "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-Activation-"
+                + String(evidenceKind.dropFirst("activation-".count))
+        case "activation-quartz-first", "activation-xctest-first", "activation-xctest-second", "activation-quartz-second":
+            evidenceName = "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-"
                 + String(evidenceKind.dropFirst("activation-".count))
         default: evidenceName = "NativeDragControlEvidence"
         }
