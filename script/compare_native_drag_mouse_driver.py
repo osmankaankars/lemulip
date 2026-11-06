@@ -22,6 +22,8 @@ import compare_native_drag_lifecycle as lifecycle
 import compare_native_drag_sources as sources
 
 CASES = ("quartz-first", "xctest-first", "xctest-second", "quartz-second")
+RECEIVER_SYNC_CASES = ("quartz-sync-first", "quartz-deferred-first", "quartz-deferred-second", "quartz-sync-second")
+RECEIVER_SYNC_POLICIES = dict(zip(RECEIVER_SYNC_CASES, ("per-record", "lifecycle", "lifecycle", "per-record")))
 OBSERVER = "NativeDragReviewMouseAppKit"
 RUNNER_ID = "app.lemulip.NativeDragMouseTests.xctrunner"
 RUNNER_RELATIVE = "MouseDerivedData/Build/Products/Debug/QualityReview-Runner.app"
@@ -38,11 +40,21 @@ RELEASE_OBSERVATION_POLL_SECONDS = .025
 
 
 def bindings(case_name):
-    capture.require(case_name in CASES, "unknown-mouse-driver-case")
-    return {"sourceCase": case_name, "dragSourceKind": "native-appkit",
+    capture.require(case_name in CASES or case_name in RECEIVER_SYNC_CASES, "unknown-mouse-driver-case")
+    identity = {"sourceCase": case_name, "dragSourceKind": "native-appkit",
             "activationCase": case_name, "targetRaisePolicy": "present",
             "mouseDriverCase": case_name,
             "mouseProducer": "xctest" if case_name.startswith("xctest-") else "quartz"}
+    if case_name in RECEIVER_SYNC_CASES:
+        identity.update(receiverSyncCase=case_name, receiverTraceSyncPolicy=RECEIVER_SYNC_POLICIES[case_name])
+    return identity
+
+
+def fixed_case_plan(case_plan):
+    """Only the complete legacy or receiver-sync plan is a supported input."""
+    capture.require(isinstance(case_plan, (tuple, list))
+                    and tuple(case_plan) in (CASES, RECEIVER_SYNC_CASES), "mouse-case-plan")
+    return tuple(case_plan)
 
 
 def evidence_for(stage, case_name):
@@ -91,7 +103,8 @@ def xctest_target(manifest):
     return target
 
 
-def manifest_metadata(stage, *, prepare=False):
+def manifest_metadata(stage, *, prepare=False, case_plan=CASES):
+    case_plan = fixed_case_plan(case_plan)
     products = stage / "MouseDerivedData/Build/Products"
     manifests = sorted(products.glob("*.xctestrun"))
     originals = [path for path in manifests if not path.name.startswith("D13-")]
@@ -104,7 +117,7 @@ def manifest_metadata(stage, *, prepare=False):
     capture.require("LEMULIP_MOUSE_DRIVER_CASE" not in original_target.get("EnvironmentVariables", {}),
                     "mouse-xctestrun-preexisting-case")
     hashes = {}
-    for name in CASES:
+    for name in case_plan:
         destination = products / ("D13-" + name + ".xctestrun")
         expected = copy.deepcopy(template)
         target = xctest_target(expected)
@@ -116,7 +129,7 @@ def manifest_metadata(stage, *, prepare=False):
         hashes[name] = capture.sha256(destination)
         capture.require(plistlib.loads(destination.read_bytes()) == expected, "mouse-xctestrun-case-binding")
     capture.require({path.name for path in products.glob("*.xctestrun")}
-                    == {original.name, *("D13-" + name + ".xctestrun" for name in CASES)},
+                    == {original.name, *("D13-" + name + ".xctestrun" for name in case_plan)},
                     "mouse-xctestrun-unexpected-manifest")
     return {"mouseXCTestRunSHA256": hashes, "mouseOriginalXCTestRunPath": str(original),
             "mouseOriginalXCTestRunSHA256": capture.sha256(original)}
@@ -143,7 +156,7 @@ def runner_metadata(stage):
             "mouseTestsExecutablePath": str(test_executable)}
 
 
-def prepare_mouse_driver(stage):
+def prepare_mouse_driver(stage, *, case_plan=CASES):
     """Build once, before any native input; return provenance additions.
 
     The caller writes these additions into its staged provenance receipt before
@@ -151,6 +164,7 @@ def prepare_mouse_driver(stage):
     the runner or grants permissions.
     """
     import prepare_native_ui as staging
+    case_plan = fixed_case_plan(case_plan)
     capture.require(platform.system() == "Darwin", "native-mac-required")
     capture.require(stage.name == "lemulip-native-ui" and stage == stage.resolve(), "staging-root")
     for name in ("MouseControl", "MouseRunner", "MouseDerivedData", "mouse-build.log"):
@@ -166,7 +180,7 @@ def prepare_mouse_driver(stage):
     project_file.write_text(original.replace("app.lemulip.NativeQualityUITests", "app.lemulip.NativeDragMouseTests"))
     control = stage / "MouseControl"
     control.mkdir(mode=0o700, exist_ok=False)
-    for name in CASES:
+    for name in case_plan:
         directory = control / name
         directory.mkdir(mode=0o700, exist_ok=False)
         capture.write_json(directory / "configuration.json", {"schema": 1, "case": name, "nonce": uuid.uuid4().hex})
@@ -176,11 +190,11 @@ def prepare_mouse_driver(stage):
     with (stage / "mouse-build.log").open("xb") as log:
         completed = subprocess.run(command, stdout=log, stderr=subprocess.STDOUT, check=False)
     capture.require(completed.returncode == 0, "mouse-runner-build-failed")
-    return {**runner_metadata(stage), **manifest_metadata(stage, prepare=True),
+    return {**runner_metadata(stage), **manifest_metadata(stage, prepare=True, case_plan=case_plan),
         "nativeDragMouseTestsSourceSHA256": capture.sha256(source),
         "nativeDragMouseDriverSourceSHA256": capture.sha256(capture.ROOT / "script/native_ui/NativeDragMouseDriver.swift"),
         "mouseDriverComparatorSourceSHA256": capture.sha256(Path(__file__)),
-        "mouseConfigurationsSHA256": {name: capture.sha256(control / name / "configuration.json") for name in CASES},
+        "mouseConfigurationsSHA256": {name: capture.sha256(control / name / "configuration.json") for name in case_plan},
         "mouseComparisonScope": "One entry and a terminal hold in the standard AppKit receiver; diagnostic only, distinct from the original enter/exit/reentry gate."}
 
 
@@ -208,11 +222,12 @@ def inventory_tree(stage, root, output):
         output[path.relative_to(stage).as_posix()] = entry
 
 
-def input_snapshot(stage):
+def input_snapshot(stage, *, case_plan=CASES):
+    case_plan = fixed_case_plan(case_plan)
     result = sources.input_snapshot(stage)
     for name in (OBSERVER, "MouseRunner", RUNNER_RELATIVE):
         inventory_tree(stage, stage / name, result)
-    for name in CASES:
+    for name in case_plan:
         inventory_tree(stage, stage / "MouseControl" / name / "configuration.json", result)
     products = stage / "MouseDerivedData/Build/Products"
     manifests = sorted(products.glob("*.xctestrun"))
@@ -222,7 +237,8 @@ def input_snapshot(stage):
     return result
 
 
-def context_for(stage, experiment_commit):
+def context_for(stage, experiment_commit, *, case_plan=CASES):
+    case_plan = fixed_case_plan(case_plan)
     context = sources.context_for(stage, experiment_commit)
     provenance = context["provenance"]
     links = {
@@ -234,13 +250,13 @@ def context_for(stage, experiment_commit):
     capture.require(all(provenance.get(key) == capture.sha256(path) for key, path in links.items()),
                     "mouse-source-binary-hash-link")
     capture.fields_match(provenance, runner_metadata(stage), "mouse-runner-provenance")
-    capture.fields_match(provenance, manifest_metadata(stage), "mouse-xctestrun-provenance")
+    capture.fields_match(provenance, manifest_metadata(stage, case_plan=case_plan), "mouse-xctestrun-provenance")
     capture.fields_match(provenance, {"mouseConfigurationsSHA256": {name:
-        capture.sha256(stage / "MouseControl" / name / "configuration.json") for name in CASES}}, "mouse-configuration-provenance")
-    context["mouseConfigurations"] = {name: configuration_for(stage, name) for name in CASES}
+        capture.sha256(stage / "MouseControl" / name / "configuration.json") for name in case_plan}}, "mouse-configuration-provenance")
+    context["mouseConfigurations"] = {name: configuration_for(stage, name) for name in case_plan}
     capture.require(len({value["nonce"] for value in context["mouseConfigurations"].values()}) == 4,
                     "mouse-configuration-nonces-not-unique")
-    context["inputs"] = input_snapshot(stage)
+    context["inputs"] = input_snapshot(stage, case_plan=case_plan)
     return context
 
 

@@ -48,8 +48,21 @@ private enum DragSourceComparison: String, CaseIterable {
     case axQuietSecond = "ax-quiet-second", axReadSecond = "ax-read-second"
     case quartzFirst = "quartz-first", xctestFirst = "xctest-first"
     case xctestSecond = "xctest-second", quartzSecond = "quartz-second"
+    case quartzSyncFirst = "quartz-sync-first", quartzDeferredFirst = "quartz-deferred-first"
+    case quartzDeferredSecond = "quartz-deferred-second", quartzSyncSecond = "quartz-sync-second"
+
+    var isReceiverSyncComparison: Bool {
+        switch self {
+        case .quartzSyncFirst, .quartzDeferredFirst, .quartzDeferredSecond, .quartzSyncSecond: return true
+        default: return false
+        }
+    }
+    var receiverTraceSyncPolicy: String {
+        self == .quartzDeferredFirst || self == .quartzDeferredSecond ? "lifecycle" : "per-record"
+    }
 
     var isMouseDriverComparison: Bool {
+        if isReceiverSyncComparison { return true }
         switch self {
         case .quartzFirst, .xctestFirst, .xctestSecond, .quartzSecond: return true
         default: return false
@@ -96,6 +109,10 @@ private enum DragSourceComparison: String, CaseIterable {
         if isMouseDriverComparison {
             fields["mouseDriverCase"] = rawValue
             fields["mouseProducer"] = mouseProducer
+        }
+        if isReceiverSyncComparison {
+            fields["receiverSyncCase"] = rawValue
+            fields["receiverTraceSyncPolicy"] = receiverTraceSyncPolicy
         }
         return fields
     }

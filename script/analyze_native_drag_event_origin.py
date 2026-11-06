@@ -20,7 +20,7 @@ import compare_native_drag_mouse_driver as mouse
 capture, sources, activation = mouse.capture, mouse.sources, mouse.activation
 OUTPUT_NAME = "event-origin-analysis.json"
 PROTOCOL_BASE_COMMIT = "d69f6b344a0dc069027f04061686a308dae79ba4"
-COMPARATOR_SOURCE_SHA256 = "ca5693963391c13658a35e9bb9d78dbb4805288c7330721b04c972d89abc826c"
+COMPARATOR_SOURCE_SHA256 = "44839f19f4eff2b23246bd3919658d8880d234db1c9c31629503ed586b2ebabc"
 DIAGNOSTIC = {"schema": 1, "protocolBaseCommit": PROTOCOL_BASE_COMMIT,
               "inputProtocol": "D13-R3-unchanged", "targetMouseEventIdentitySchema": 1}
 CONTROL_BUILD = {"executable": "Native Drag Control.app/Contents/MacOS/NativeDragControl",

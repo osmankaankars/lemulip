@@ -3,6 +3,10 @@ import CryptoKit
 import Darwin
 import Foundation
 
+#if LEMULIP_RECEIVER_SYNC_TRACE && (LEMULIP_EVENT_ORIGIN_TRACE || LEMULIP_DISPATCH_STACK_TRACE)
+#error("Receiver synchronization tracing cannot be combined with event-origin or dispatch-stack tracing")
+#endif
+
 // An isolated AppKit control for the Finder-input observer. This is not the
 // production application and contains no Escape handler or drag cancellation
 // workaround. Its passive receipts distinguish destination callbacks from
@@ -18,7 +22,8 @@ private func require(_ condition: Bool, _ message: String) throws {
 }
 
 private let heldAXCases = ["ax-read-first", "ax-quiet-first", "ax-quiet-second", "ax-read-second"]
-private let mouseDriverCases = ["quartz-first", "xctest-first", "xctest-second", "quartz-second"]
+private let receiverSyncCases = ["quartz-sync-first", "quartz-deferred-first", "quartz-deferred-second", "quartz-sync-second"]
+private let mouseDriverCases = ["quartz-first", "xctest-first", "xctest-second", "quartz-second"] + receiverSyncCases
 private let activationCases = ["raise-first", "no-raise-first", "no-raise-second", "raise-second"] + heldAXCases + mouseDriverCases
 
 private struct ControlConfiguration {
@@ -61,6 +66,10 @@ private struct ControlConfiguration {
                 fields["mouseDriverCase"] = activationCase
                 fields["mouseProducer"] = activationCase.hasPrefix("xctest-") ? "xctest" : "quartz"
             }
+            if receiverSyncCases.contains(activationCase) {
+                fields["receiverSyncCase"] = activationCase
+                fields["receiverTraceSyncPolicy"] = activationCase.hasPrefix("quartz-deferred-") ? "lifecycle" : "per-record"
+            }
         }
         return fields
     }
@@ -86,6 +95,15 @@ private struct ControlConfiguration {
             try require(kinds.contains(evidenceKind)
                         && theme == "orchard", "The comparison is restricted to the Orchard control")
         }
+        let receiverSyncCase = evidenceKind.hasPrefix("activation-")
+            ? String(evidenceKind.dropFirst("activation-".count)) : ""
+        #if LEMULIP_RECEIVER_SYNC_TRACE
+        try require(receiverSyncCases.contains(receiverSyncCase),
+                    "Receiver synchronization tracing requires a fixed receiver-sync case")
+        #else
+        try require(!receiverSyncCases.contains(receiverSyncCase),
+                    "Receiver-sync cases require the isolated receiver synchronization build")
+        #endif
 
         let bundle = Bundle.main.bundleURL.standardizedFileURL
         root = bundle.deletingLastPathComponent()
@@ -108,7 +126,9 @@ private struct ControlConfiguration {
              "activation-ax-read-first", "activation-ax-quiet-first", "activation-ax-quiet-second", "activation-ax-read-second":
             evidenceName = "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-Activation-"
                 + String(evidenceKind.dropFirst("activation-".count))
-        case "activation-quartz-first", "activation-xctest-first", "activation-xctest-second", "activation-quartz-second":
+        case "activation-quartz-first", "activation-xctest-first", "activation-xctest-second", "activation-quartz-second",
+             "activation-quartz-sync-first", "activation-quartz-deferred-first",
+             "activation-quartz-deferred-second", "activation-quartz-sync-second":
             evidenceName = "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-"
                 + String(evidenceKind.dropFirst("activation-".count))
         default: evidenceName = "NativeDragControlEvidence"
@@ -186,9 +206,50 @@ private final class ControlTrace: @unchecked Sendable {
     private let maximumRecords = 10_000
     private let maximumBytes = 8 * 1_024 * 1_024
     private let sourceBinding: [String: Any]
+    #if LEMULIP_RECEIVER_SYNC_TRACE
+    private struct WriteReceipt {
+        let recordIndex: Int
+        let event: String
+        let recordSystemUptime: TimeInterval
+        let byteOffset: Int
+        let byteCount: Int
+        let writeStartedSystemUptime: TimeInterval
+        let writeCompletedSystemUptime: TimeInterval
+        let synchronizeStartedSystemUptime: TimeInterval?
+        let synchronizeCompletedSystemUptime: TimeInterval?
+
+        var fields: [String: Any] {
+            ["recordIndex": recordIndex, "event": event, "recordSystemUptime": recordSystemUptime,
+             "byteOffset": byteOffset, "byteCount": byteCount,
+             "writeStartedSystemUptime": writeStartedSystemUptime,
+             "writeCompletedSystemUptime": writeCompletedSystemUptime,
+             "synchronizeAttempted": synchronizeStartedSystemUptime != nil,
+             "synchronizeStartedSystemUptime": synchronizeStartedSystemUptime.map { $0 as Any } ?? NSNull(),
+             "synchronizeCompletedSystemUptime": synchronizeCompletedSystemUptime.map { $0 as Any } ?? NSNull()]
+        }
+    }
+
+    private let receiverSyncCase: String
+    private let receiverTraceSyncPolicy: String
+    private var writeReceipts: [WriteReceipt] = []
+    private var perRecordSynchronizeCount = 0
+    private var synchronizationFinished = false
+    #endif
 
     init(url: URL, sourceBinding: [String: Any] = [:]) throws {
         self.sourceBinding = sourceBinding
+        #if LEMULIP_RECEIVER_SYNC_TRACE
+        guard let receiverSyncCase = sourceBinding["receiverSyncCase"] as? String,
+              receiverSyncCases.contains(receiverSyncCase) else {
+            throw ControlIssue.invalid("The receiver trace requires a fixed receiver-sync binding")
+        }
+        let policy = receiverSyncCase.hasPrefix("quartz-deferred-") ? "lifecycle" : "per-record"
+        try require(sourceBinding["receiverTraceSyncPolicy"] as? String == policy
+                    && url.lastPathComponent == "receiver.jsonl",
+                    "The receiver trace synchronization binding is invalid")
+        self.receiverSyncCase = receiverSyncCase
+        receiverTraceSyncPolicy = policy
+        #endif
         let descriptor = Darwin.open(url.path, O_WRONLY | O_CREAT | O_EXCL | O_NOFOLLOW | O_CLOEXEC,
                                      S_IRUSR | S_IWUSR)
         try require(descriptor >= 0, "Could not exclusively create the fixed receiver trace")
@@ -204,7 +265,8 @@ private final class ControlTrace: @unchecked Sendable {
             value["schema"] = 1
             value["event"] = event
             value["recordIndex"] = count
-            value["systemUptime"] = ProcessInfo.processInfo.systemUptime
+            let recordSystemUptime = ProcessInfo.processInfo.systemUptime
+            value["systemUptime"] = recordSystemUptime
             value["time"] = ISO8601DateFormatter().string(from: Date())
             value["pid"] = Int(ProcessInfo.processInfo.processIdentifier)
             let withinLimit = count < maximumRecords && byteCount < maximumBytes - 8_192
@@ -214,8 +276,34 @@ private final class ControlTrace: @unchecked Sendable {
             }
             var data = try JSONSerialization.data(withJSONObject: value, options: [.sortedKeys])
             data.append(0x0a)
+            #if LEMULIP_RECEIVER_SYNC_TRACE
+            // Keep every complete line immediately readable by the existing
+            // observer. Only the explicit synchronization policy differs.
+            let writeStarted = ProcessInfo.processInfo.systemUptime
+            try handle.write(contentsOf: data)
+            let writeCompleted = ProcessInfo.processInfo.systemUptime
+            var synchronizeStarted: TimeInterval?
+            var synchronizeCompleted: TimeInterval?
+            if receiverTraceSyncPolicy == "per-record" || !withinLimit {
+                synchronizeStarted = ProcessInfo.processInfo.systemUptime
+                try handle.synchronize()
+                synchronizeCompleted = ProcessInfo.processInfo.systemUptime
+            }
+            // A trace-limit row keeps the original fatal framing and is
+            // synchronized before exit, but can never yield a complete receipt.
+            if withinLimit {
+                writeReceipts.append(WriteReceipt(
+                    recordIndex: count, event: event, recordSystemUptime: recordSystemUptime,
+                    byteOffset: byteCount, byteCount: data.count,
+                    writeStartedSystemUptime: writeStarted, writeCompletedSystemUptime: writeCompleted,
+                    synchronizeStartedSystemUptime: synchronizeStarted,
+                    synchronizeCompletedSystemUptime: synchronizeCompleted))
+                if synchronizeStarted != nil { perRecordSynchronizeCount += 1 }
+            }
+            #else
             try handle.write(contentsOf: data)
             try handle.synchronize()
+            #endif
             count += 1
             byteCount += data.count
             if !withinLimit { Darwin.exit(2) }
@@ -224,6 +312,47 @@ private final class ControlTrace: @unchecked Sendable {
             Darwin.exit(2)
         }
     }
+
+    #if LEMULIP_RECEIVER_SYNC_TRACE
+    // Receipts stay in bounded memory until the existing termination journal
+    // entry. There is no extra setup flush: the policy covers the whole trace.
+    // A failed write, synchronization, or limit yields no complete receipt.
+    func finishSynchronization(phase: String) -> [String: Any] {
+        lock.lock()
+        defer { lock.unlock() }
+        do {
+            let normal = phase == "termination"
+            try require(normal || phase == "watchdog", "Unknown receiver synchronization lifecycle phase")
+            try require(!synchronizationFinished && count > 0 && count <= maximumRecords
+                        && byteCount <= maximumBytes && writeReceipts.count == count,
+                        "The receiver trace synchronization receipt is incomplete or already finalized")
+            try require(writeReceipts.last?.event == (normal ? "application-terminated" : "application-timeout"),
+                        "The receiver trace has no matching final lifecycle row")
+            let started = ProcessInfo.processInfo.systemUptime
+            try handle.synchronize()
+            let completed = ProcessInfo.processInfo.systemUptime
+            synchronizationFinished = true
+            // Do not suppress any later receiver callback. A late raw row will
+            // disagree with this snapshot and the artifact validator rejects it.
+            return [
+                "schema": 1, "status": normal ? "complete" : "incomplete",
+                "reasonCode": normal ? NSNull() as Any : "watchdog-termination",
+                "receiverSyncCase": receiverSyncCase, "receiverTraceSyncPolicy": receiverTraceSyncPolicy,
+                "targetPID": Int(ProcessInfo.processInfo.processIdentifier), "traceFileName": "receiver.jsonl",
+                "recordWritePolicy": "immediate", "synchronizationAPI": "FileHandle.synchronize",
+                "maximumRecordCount": maximumRecords, "maximumTraceBytes": maximumBytes,
+                "recordCount": count, "writtenByteCount": byteCount,
+                "perRecordSynchronizeCount": perRecordSynchronizeCount,
+                "records": writeReceipts.map(\.fields),
+                "lifecycleSynchronization": ["phase": phase, "recordCount": count, "writtenByteCount": byteCount,
+                    "startedSystemUptime": started, "completedSystemUptime": completed, "succeeded": true]
+            ]
+        } catch {
+            FileHandle.standardError.write(Data(("Native drag receiver synchronization failed: \(error)\n").utf8))
+            Darwin.exit(2)
+        }
+    }
+    #endif
 }
 
 // D11 adds a separate journal without changing the receiver trace or drop
@@ -295,6 +424,9 @@ private final class ActivationJournal: @unchecked Sendable {
         #endif
         #if LEMULIP_DISPATCH_STACK_TRACE
         fields["targetDispatchStackSchema"] = 1
+        #endif
+        #if LEMULIP_RECEIVER_SYNC_TRACE
+        fields["receiverTraceSynchronizationSchema"] = 1
         #endif
         fields.merge([
             "bundleIdentifier": "app.lemulip.NativeDragControl", "executableName": "NativeDragControl",
@@ -852,6 +984,9 @@ private final class ControlDelegate: NSObject, NSApplicationDelegate, NSWindowDe
             #if LEMULIP_DISPATCH_STACK_TRACE
             fields["targetDispatchStackSchema"] = 1
             #endif
+            #if LEMULIP_RECEIVER_SYNC_TRACE
+            fields["receiverTraceSynchronizationSchema"] = 1
+            #endif
             activationJournal.record("activation-ready", fields)
         }
     }
@@ -920,6 +1055,9 @@ private final class ControlDelegate: NSObject, NSApplicationDelegate, NSWindowDe
                 fields["dispatchStackObservation"] = application.finishDispatchStackObservation()
             }
             #endif
+            #if LEMULIP_RECEIVER_SYNC_TRACE
+            fields["receiverTraceSynchronization"] = selection.trace.finishSynchronization(phase: "termination")
+            #endif
             activationJournal.record("activation-terminating", fields)
             activationJournal.flush()
         }
@@ -970,6 +1108,9 @@ private enum NativeDragControl {
                 var fields = originals
                 fields["callbackSystemUptime"] = received
                 trace.record("application-timeout", originals)
+                #if LEMULIP_RECEIVER_SYNC_TRACE
+                fields["receiverTraceSynchronization"] = trace.finishSynchronization(phase: "watchdog")
+                #endif
                 activationJournal?.record("activation-timeout", fields)
                 activationJournal?.flush()
                 Darwin.exit(124)

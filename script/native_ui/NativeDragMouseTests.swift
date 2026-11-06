@@ -38,7 +38,8 @@ final class NativeDragMouseTests: XCTestCase {
         let deadline = testStarted + 150
         do {
             let configuredCase = ProcessInfo.processInfo.environment["LEMULIP_MOUSE_DRIVER_CASE"] ?? ""
-            try require(["quartz-first", "xctest-first", "xctest-second", "quartz-second"].contains(configuredCase),
+            try require(["quartz-first", "xctest-first", "xctest-second", "quartz-second",
+                         "quartz-sync-first", "quartz-deferred-first", "quartz-deferred-second", "quartz-sync-second"].contains(configuredCase),
                         "The mouse test requires one fixed comparison case")
             caseName = configuredCase
             let targetApplication = ReviewConfiguration.application.standardizedFileURL

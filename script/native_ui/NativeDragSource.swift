@@ -16,7 +16,8 @@ private func require(_ condition: Bool, _ message: String) throws {
 }
 
 private let heldAXCases = ["ax-read-first", "ax-quiet-first", "ax-quiet-second", "ax-read-second"]
-private let mouseDriverCases = ["quartz-first", "xctest-first", "xctest-second", "quartz-second"]
+private let receiverSyncCases = ["quartz-sync-first", "quartz-deferred-first", "quartz-deferred-second", "quartz-sync-second"]
+private let mouseDriverCases = ["quartz-first", "xctest-first", "xctest-second", "quartz-second"] + receiverSyncCases
 private let activationCases = ["raise-first", "no-raise-first", "no-raise-second", "raise-second"] + heldAXCases + mouseDriverCases
 
 private func pointJSON(_ point: NSPoint) -> [String: Double] {
@@ -83,6 +84,10 @@ private struct SourceConfiguration {
         if mouseDriverCases.contains(activationCase) {
             fields["mouseDriverCase"] = activationCase
             fields["mouseProducer"] = activationCase.hasPrefix("xctest-") ? "xctest" : "quartz"
+        }
+        if receiverSyncCases.contains(activationCase) {
+            fields["receiverSyncCase"] = activationCase
+            fields["receiverTraceSyncPolicy"] = activationCase.hasPrefix("quartz-deferred-") ? "lifecycle" : "per-record"
         }
         return fields
     }

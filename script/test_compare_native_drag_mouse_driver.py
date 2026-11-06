@@ -13,13 +13,14 @@ import compare_native_drag_sources as sources
 from test_compare_native_drag_sources import fixture as source_fixture
 
 
-def fixture(parent):
+def fixture(parent, *, case_plan=mouse.CASES):
+    case_plan = mouse.fixed_case_plan(case_plan)
     stage, context = source_fixture(parent)
     (stage / mouse.OBSERVER).write_bytes(b"Portable D13 observer fixture; never execute.\n")
     project = stage / mouse.PROJECT_RELATIVE
     project.mkdir(parents=True)
     (project / "project.pbxproj").write_text("Portable generated project fixture.\n")
-    for index, name in enumerate(mouse.CASES, 1):
+    for index, name in enumerate(case_plan, 1):
         directory = stage / "MouseControl" / name
         directory.mkdir(parents=True)
         capture.write_json(directory / "configuration.json", {"schema": 1, "case": name, "nonce": f"{index:032x}"})
@@ -38,16 +39,16 @@ def fixture(parent):
             "EnvironmentVariables": {"EXISTING_ENV": "preserved"}}]}]}
     (products / "QualityReview_macosx.xctestrun").write_bytes(plistlib.dumps(manifest))
     provenance = context["provenance"]
-    provenance.update(mouse.runner_metadata(stage), **mouse.manifest_metadata(stage, prepare=True),
-        mouseConfigurationsSHA256={name: capture.sha256(stage / "MouseControl" / name / "configuration.json") for name in mouse.CASES})
+    provenance.update(mouse.runner_metadata(stage), **mouse.manifest_metadata(stage, prepare=True, case_plan=case_plan),
+        mouseConfigurationsSHA256={name: capture.sha256(stage / "MouseControl" / name / "configuration.json") for name in case_plan})
     for key, path in {"observerMouseAppKitExecutableSHA256": stage / mouse.OBSERVER,
         "nativeDragMouseTestsSourceSHA256": capture.ROOT / "script/native_ui/NativeDragMouseTests.swift",
         "nativeDragMouseDriverSourceSHA256": capture.ROOT / "script/native_ui/NativeDragMouseDriver.swift",
         "mouseDriverComparatorSourceSHA256": Path(mouse.__file__)}.items():
         provenance[key] = capture.sha256(path)
     (stage / "provenance.json").write_text(json.dumps(provenance))
-    context["mouseConfigurations"] = {name: mouse.configuration_for(stage, name) for name in mouse.CASES}
-    context["inputs"] = mouse.input_snapshot(stage)
+    context["mouseConfigurations"] = {name: mouse.configuration_for(stage, name) for name in case_plan}
+    context["inputs"] = mouse.input_snapshot(stage, case_plan=case_plan)
     return stage, context
 
 

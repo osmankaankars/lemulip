@@ -68,7 +68,8 @@ final class MouseControlDriver {
         testRun = derivedData.appendingPathComponent("Build/Products/D13-" + caseName + ".xctestrun")
         try require(directory.isFileURL && self.directory.lastPathComponent == "lemulip-native-ui",
                     "Require the fixed mouse staging root")
-        try require(["quartz-first", "xctest-first", "xctest-second", "quartz-second"].contains(caseName),
+        try require(["quartz-first", "xctest-first", "xctest-second", "quartz-second",
+                     "quartz-sync-first", "quartz-deferred-first", "quartz-deferred-second", "quartz-sync-second"].contains(caseName),
                     "The mouse driver case is not in the fixed comparison")
         for url in [self.directory, control, project, derivedData, runnerBundle] {
             try checkPath(url, directory: true)
