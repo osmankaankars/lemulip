@@ -33,6 +33,8 @@ CANCEL_HOLD_SECONDS = 5.
 FRESH_HOLD_SECONDS = 1.
 ESCAPE_DELAY_SECONDS = 2.
 ESCAPE_DWELL_SECONDS = .15
+RELEASE_OBSERVATION_TIMEOUT_SECONDS = 1.
+RELEASE_OBSERVATION_POLL_SECONDS = .025
 
 
 def bindings(case_name):
@@ -315,6 +317,8 @@ def protocol_for(case_name):
         "nominalVelocityPointsPerSecond": VELOCITY, "cancelDestinationHoldSeconds": CANCEL_HOLD_SECONDS,
         "freshDestinationHoldSeconds": FRESH_HOLD_SECONDS, "escapeOffsetSeconds": ESCAPE_DELAY_SECONDS,
         "escapeDwellSeconds": ESCAPE_DWELL_SECONDS, "heldObserverAXPolicy": "omitted",
+        "releaseObservationTimeoutSeconds": RELEASE_OBSERVATION_TIMEOUT_SECONDS,
+        "releaseObservationPollSeconds": RELEASE_OBSERVATION_POLL_SECONDS,
         "runnerPresentInBothArms": True, "continuedMouseMotionDuringEscape": False,
         "productionAcceptanceCoverage": False}
 
@@ -410,6 +414,34 @@ def gesture_evidence(case, case_name, passed):
         started, released = interval(gesture, "startedSystemUptime", "releaseObservedSystemUptime")
         capture.require(started > previous_release, "mouse-gestures-overlap")
         previous_release = released
+        requested = clock(gesture, "releaseRequestCompletedSystemUptime")
+        acknowledgement = gesture.get("releaseAcknowledgement")
+        capture.require(isinstance(acknowledgement, dict) and set(acknowledgement) ==
+                        {"timeoutSeconds", "pollIntervalSeconds", "states"}, "mouse-release-acknowledgement-fields")
+        for key, value in (("timeoutSeconds", RELEASE_OBSERVATION_TIMEOUT_SECONDS),
+                           ("pollIntervalSeconds", RELEASE_OBSERVATION_POLL_SECONDS)):
+            capture.require(type(acknowledgement[key]) in (int, float) and acknowledgement[key] == value,
+                            "mouse-release-observation-protocol")
+        release_states = acknowledgement["states"]
+        maximum_states = math.floor(RELEASE_OBSERVATION_TIMEOUT_SECONDS / RELEASE_OBSERVATION_POLL_SECONDS) + 1
+        capture.require(isinstance(release_states, list) and 1 <= len(release_states) <= maximum_states,
+                        "mouse-release-observation-count")
+        previous_state = None
+        for index, state in enumerate(release_states):
+            capture.require(isinstance(state, dict) and set(state) == {"systemUptime", "leftButtonReportedDown"},
+                            "mouse-release-observation-fields")
+            when = clock(state, "systemUptime")
+            capture.require(requested <= when <= requested + RELEASE_OBSERVATION_TIMEOUT_SECONDS,
+                            "mouse-release-observation-deadline")
+            if previous_state is not None:
+                capture.require(when > previous_state
+                                and when - previous_state >= RELEASE_OBSERVATION_POLL_SECONDS - 1e-6,
+                                "mouse-release-observation-poll-order")
+            capture.fields_match(state, {"leftButtonReportedDown": index < len(release_states) - 1},
+                                 "mouse-release-observation-input-state")
+            previous_state = when
+        capture.require(started < requested <= released and released == previous_state,
+                        "mouse-release-observation-binding")
         source = sources.point(gesture.get("sourcePoint"), "mouse-gesture-source-point")
         target = sources.point(gesture.get("targetPoint"), "mouse-gesture-target-point")
         capture.require(source == case["sourceGeometry"]["sourcePoint"]
@@ -429,7 +461,7 @@ def gesture_evidence(case, case_name, passed):
                              "mouse-entry-held-and-owned")
         entry_time = clock(entry, "receiverEntrySystemUptime")
         observed = clock(entry, "observedSystemUptime")
-        capture.require(started <= entry_time <= observed < released, "mouse-entry-order")
+        capture.require(started <= entry_time <= observed < requested, "mouse-entry-order")
         integer(entry.get("sequenceNumber"), "mouse-entry-sequence")
         integer(entry.get("receiverRecordIndex"), "mouse-entry-record-index")
         cursor = sources.point(entry.get("cursorCG"), "mouse-entry-cursor")
@@ -536,6 +568,8 @@ def pointer_evidence(case, gestures, producer):
                         <= gesture["entryObservation"]["observedSystemUptime"], "mouse-quartz-motion-after-entry")
         capture.require(rows[-1]["systemUptimeBeforePost"] >= gesture["releaseScheduledSystemUptime"],
                         "mouse-quartz-release-too-early")
+        capture.require(rows[-1]["systemUptimeAfterPost"] <= gesture["releaseRequestCompletedSystemUptime"],
+                        "mouse-quartz-release-request-before-post-completed")
         releases[gesture["phase"]] = {"before": rows[-1]["systemUptimeBeforePost"], "after": rows[-1]["systemUptimeAfterPost"]}
         used.extend(rows)
     capture.require(used == events, "mouse-quartz-extra-pointer-posts")
@@ -722,7 +756,8 @@ def driver_evidence(stage, context, case_name, case, gestures, passed):
                         else sources.point(witness.get(actual_key), "mouse-marker-point")
                     capture.require(all(abs(actual[key] - request[expected_key][key]) <= 1 for key in actual), "mouse-marker-geometry")
             else:
-                capture.require(boundary.get("BEGIN", math.inf) < when <= gesture["releaseObservedSystemUptime"],
+                capture.require(boundary.get("BEGIN", math.inf) < when <= observed
+                                <= gesture["releaseRequestCompletedSystemUptime"],
                                 "mouse-public-api-end-order")
                 if request["phase"] == "cancel":
                     capture.require(when >= case["escapePostTiming"]["upCompletedSystemUptime"], "mouse-public-api-ended-before-escape")

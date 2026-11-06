@@ -547,6 +547,7 @@ private final class DragReview {
                     "initialHoldSeconds": 0.3, "nominalVelocityPointsPerSecond": 400.0,
                     "cancelDestinationHoldSeconds": 5.0, "freshDestinationHoldSeconds": 1.0,
                     "escapeOffsetSeconds": 2.0, "escapeDwellSeconds": 0.15,
+                    "releaseObservationTimeoutSeconds": 1.0, "releaseObservationPollSeconds": 0.025,
                     "heldObserverAXPolicy": "omitted", "runnerPresentInBothArms": true,
                     "continuedMouseMotionDuringEscape": false, "productionAcceptanceCoverage": false]
             }
@@ -1750,10 +1751,30 @@ private final class DragReview {
             try mouse(.leftMouseUp, at: destination)
             gesture["releaseMethod"] = "quartz-mouse-up"
         }
-        gesture["releaseObservedSystemUptime"] = ProcessInfo.processInfo.systemUptime
-        gesture["releaseButtonState"] = CGEventSource.buttonState(.combinedSessionState, button: .left)
-        try require(gesture["releaseButtonState"] as? Bool == false,
-                    "D13 gesture completion did not release its mouse button")
+        // Posting a CG mouse-up returns before WindowServer has necessarily
+        // consumed it. Observe the actual released state within a fixed bound;
+        // do not send another input or treat the post itself as release proof.
+        let releaseRequestCompleted = ProcessInfo.processInfo.systemUptime
+        gesture["releaseRequestCompletedSystemUptime"] = releaseRequestCompleted
+        let releaseDeadline = min(expiresAt, releaseRequestCompleted + 1.0)
+        var releaseStates: [[String: Any]] = []
+        var releaseObserved = false
+        repeat {
+            let held = CGEventSource.buttonState(.combinedSessionState, button: .left)
+            let observed = ProcessInfo.processInfo.systemUptime
+            releaseStates.append(["systemUptime": observed, "leftButtonReportedDown": held])
+            gesture["releaseAcknowledgement"] = ["timeoutSeconds": 1.0,
+                "pollIntervalSeconds": 0.025, "states": releaseStates]
+            gesture["releaseObservedSystemUptime"] = observed
+            gesture["releaseButtonState"] = held
+            if !held && observed <= releaseDeadline {
+                releaseObserved = true
+                break
+            }
+            if observed + 0.025 >= releaseDeadline { break }
+            try await pause(0.025)
+        } while ProcessInfo.processInfo.systemUptime < releaseDeadline
+        try require(releaseObserved, "D13 did not observe mouse release within its fixed one-second bound")
         gesture["completed"] = true
         return gesture
     }

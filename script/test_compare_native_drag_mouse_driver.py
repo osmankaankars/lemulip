@@ -155,10 +155,17 @@ def emit(stage, context, case_name, *, passed=False, none_after_release=False):
     for phase, start, sequence, record_index in [("cancel", 10., 11, 2)] + ([("fresh", 20., 12, 4)] if passed else []):
         hold = 5. if phase == "cancel" else 1.
         release = start + .9 + hold
+        request_completed = release + (.04 if producer == "xctest" else .012)
+        release_observed = release + (.05 if producer == "xctest" else .04)
+        release_states = ([] if producer == "xctest" else
+            [{"systemUptime": release + .015, "leftButtonReportedDown": True}])
+        release_states.append({"systemUptime": release_observed, "leftButtonReportedDown": False})
         gesture = {"phase": phase, "mouseProducer": producer, "startedSystemUptime": start,
             "sourcePoint": source_point, "targetPoint": target_point, "sourceFrame": source_frame, "targetFrame": target_frame,
             "destinationHoldSeconds": hold, "completed": True, "releaseButtonState": False,
-            "releaseObservedSystemUptime": release + (.05 if producer == "xctest" else .02),
+            "releaseRequestCompletedSystemUptime": request_completed,
+            "releaseObservedSystemUptime": release_observed,
+            "releaseAcknowledgement": {"timeoutSeconds": 1., "pollIntervalSeconds": .025, "states": release_states},
             "releaseMethod": "xctest-gesture-return" if producer == "xctest" else "quartz-mouse-up",
             "entryObservation": {"observedSystemUptime": start + .9, "receiverEntrySystemUptime": start + .82,
                 "sequenceNumber": sequence, "receiverRecordIndex": record_index, "cursorCG": target_point,
@@ -295,7 +302,7 @@ def emit(stage, context, case_name, *, passed=False, none_after_release=False):
         marker("BEGIN", gestures[index - 1]["startedSystemUptime"] + .1, {**extra,
             "sourceWindowFrame": source_frame, "targetWindowFrame": target_frame,
             "sourceScreenPoint": source_point, "targetScreenPoint": target_point})
-        marker("END", gestures[index - 1]["releaseObservedSystemUptime"] - .005, extra)
+        marker("END", gestures[index - 1]["releaseRequestCompletedSystemUptime"] - .02, extra)
     marker("FINISHED", 24.1, {"requestCount": count})
     (runtime / "xcodebuild.log").write_text("Portable diagnostic log\n" + "".join(r["line"] + "\n" for r in driver["markerReceipts"]))
     case["mouseControlDriver"] = driver
@@ -368,6 +375,69 @@ class MouseDriverComparisonTests(unittest.TestCase):
             self.assertTrue(all(r["sourceSession"]["sessions"]["cancel"]["noneCallbackAfterObservedRelease"] for r in report["cases"]))
             for key in ("releaseReady", "nativeAcceptanceXCTestExecuted", "physicalInputVerified"):
                 self.assertFalse(report[key])
+
+    def test_async_release_acknowledgement_preserves_failed_cancellation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            stage, context = fixture(Path(temporary))
+            report, commands = self.run_cases(stage, context, Path(temporary) / "out")
+            self.assertEqual(len(commands), 4)
+            self.assertTrue(report["comparisonComplete"], report["cases"])
+            self.assertFalse(report["allCasesPassed"])
+            for result in report["cases"]:
+                self.assertEqual(result["outcome"], "escape-cancellation-failed")
+                gesture = result["gestures"][0]
+                states = gesture["releaseAcknowledgement"]["states"]
+                expected = [True, False] if result["mouseProducer"] == "quartz" else [False]
+                self.assertEqual([state["leftButtonReportedDown"] for state in states], expected)
+                self.assertEqual(gesture["releaseObservedSystemUptime"], states[-1]["systemUptime"])
+                self.assertFalse(gesture["releaseButtonState"])
+                self.assertEqual(result["pointer"]["observerPointerPostCount"], 22 if expected[0] else 0)
+
+    def test_release_acknowledgement_requires_bounded_ordered_up_observation(self):
+        def replace_states(record, states):
+            gesture = record["mouseDriverGestures"][0]
+            gesture["releaseAcknowledgement"]["states"] = states
+            if states:
+                gesture["releaseObservedSystemUptime"] = states[-1]["systemUptime"]
+
+        self.assert_stopped_mutations({
+            "missing-ack": lambda r: r["mouseDriverGestures"][0].pop("releaseAcknowledgement"),
+            "missing-request-clock": lambda r: r["mouseDriverGestures"][0].pop("releaseRequestCompletedSystemUptime"),
+            "empty-observations": lambda r: replace_states(r, []),
+            "still-held": lambda r: r["mouseDriverGestures"][0]["releaseAcknowledgement"]["states"][-1].update(
+                leftButtonReportedDown=True),
+            "nonboolean-state": lambda r: r["mouseDriverGestures"][0]["releaseAcknowledgement"]["states"][-1].update(
+                leftButtonReportedDown=0),
+            "continued-after-first-up": lambda r: r["mouseDriverGestures"][0]["releaseAcknowledgement"]["states"][0].update(
+                leftButtonReportedDown=False),
+            "before-request": lambda r: r["mouseDriverGestures"][0]["releaseAcknowledgement"]["states"][0].update(
+                systemUptime=r["mouseDriverGestures"][0]["releaseRequestCompletedSystemUptime"] - .001),
+            "after-deadline": lambda r: replace_states(r, [{"systemUptime":
+                r["mouseDriverGestures"][0]["releaseRequestCompletedSystemUptime"] + 1.001, "leftButtonReportedDown": False}]),
+            "repeated-clock": lambda r: r["mouseDriverGestures"][0]["releaseAcknowledgement"]["states"][0].update(
+                systemUptime=r["mouseDriverGestures"][0]["releaseObservedSystemUptime"]),
+            "shortened-poll": lambda r: r["mouseDriverGestures"][0]["releaseAcknowledgement"]["states"][0].update(
+                systemUptime=r["mouseDriverGestures"][0]["releaseObservedSystemUptime"] - .001),
+            "unbound-final-clock": lambda r: r["mouseDriverGestures"][0].update(releaseObservedSystemUptime=16.0),
+            "changed-timeout": lambda r: r["mouseDriverGestures"][0]["releaseAcknowledgement"].update(timeoutSeconds=2.),
+            "changed-poll": lambda r: r["mouseDriverGestures"][0]["releaseAcknowledgement"].update(pollIntervalSeconds=.01),
+            "changed-protocol": lambda r: r["mouseDriverProtocol"].update(releaseObservationTimeoutSeconds=2.),
+        })
+        self.assert_stopped_mutations({
+            "xctest-missing-ack": lambda r: r["mouseDriverGestures"][0].pop("releaseAcknowledgement"),
+            "fresh-still-held": lambda r: r["mouseDriverGestures"][1]["releaseAcknowledgement"]["states"][-1].update(
+                leftButtonReportedDown=True),
+        }, passed=True, at="xctest-first")
+
+    def test_release_request_clock_must_follow_its_producer_completion(self):
+        self.assert_stopped_mutations({
+            "before-quartz-post-return": lambda r: r["mouseDriverGestures"][0].update(
+                releaseRequestCompletedSystemUptime=r["mouseEvents"][-1]["systemUptimeBeforePost"]),
+        })
+        self.assert_stopped_mutations({
+            "before-xctest-end-observed": lambda r: r["mouseDriverGestures"][0].update(
+                releaseRequestCompletedSystemUptime=r["mouseControlDriver"]["markerReceipts"][2]["observedSystemUptime"] - .001),
+        }, at="xctest-first")
 
     def assert_stopped_mutations(self, mutations, *, passed=False, at="quartz-first", snapshots=False):
         for label, mutation in mutations.items():
