@@ -64,6 +64,7 @@ def add_d14(stage, name, *, absent=False, pid=None):
 
 
 def fixture(parent, *, passed=("xctest-first",), absent=(), zero=()):
+    parent = parent.resolve()
     stage, context = d13.fixture(parent)
     context["provenance"].update(eventOriginDiagnostic=copy.deepcopy(origin.DIAGNOSTIC),
         eventOriginControlBuild=copy.deepcopy(origin.CONTROL_BUILD),
@@ -104,6 +105,19 @@ def run_analysis(stage, comparison, context):
 
 
 class EventOriginTests(unittest.TestCase):
+    def test_fixture_canonicalizes_a_symlinked_temporary_parent(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary).resolve()
+            real = parent / "real"
+            real.mkdir()
+            alias = parent / "alias"
+            alias.symlink_to(real, target_is_directory=True)
+            stage, comparison, context = fixture(alias)
+            report = run_analysis(stage, comparison, context)
+            self.assertEqual(report["status"], "complete", report.get("reasonCode"))
+            self.assertEqual(stage, real / "lemulip-native-ui")
+            self.assertEqual(comparison, real / "comparison")
+
     def test_pass_and_fail_remain_native_outcomes_and_pid_roles_are_bounded(self):
         with tempfile.TemporaryDirectory() as temporary:
             stage, comparison, context = fixture(Path(temporary))
