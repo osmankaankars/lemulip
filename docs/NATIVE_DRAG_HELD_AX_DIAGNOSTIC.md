@@ -5,6 +5,12 @@ necessary for the target activation and Escape cancellation failure. It uses
 the existing native AppKit source and plain `NSWindow` control destination.
 It does not change Lemulip or satisfy PR #45's production acceptance gate.
 
+**Executed on 2026-11-06:** the fixed four-case sequence completed on Apple
+Silicon and Intel. All eight cases failed Escape cancellation, including all
+four quiet cases with zero observer AX reads while the mouse was held. The
+failure therefore does not require those reads under D12's schedule. This is
+a diagnostic finding, not a repair. PR #45 remains **C12 HOLD**.
+
 ## Evidence and question
 
 [D11 R4](https://github.com/osmankaankars/lemulip/actions/runs/42119583755)
@@ -136,9 +142,105 @@ python3 script/privacy_check.py --staged
 git diff --check
 ```
 
-The local Linux executor cannot run AppKit. A native outcome must come from the
-retained macOS run and its verified case bindings. Until then, D12 is a prepared
-experiment. `diagnosticOnly` remains true; `releaseReady`,
+The local Linux executor cannot run AppKit. The native outcomes below come from
+the retained macOS run and its verified case bindings. `diagnosticOnly` remains
+true; `releaseReady`,
 `nativeAcceptanceXCTestExecuted` and `physicalInputVerified` remain false.
 PR #45 remains **C12 HOLD**. The owner's completed physical and v4 automated
 checks are preserved; this experiment requires no new owner repetition.
+
+## Executed results and retained evidence
+
+The sole D12 run is
+[42285379647](https://github.com/osmankaankars/lemulip/actions/runs/42285379647).
+It executed commit
+[`7c52f7b102ba7160622a8fba742c1d832b7e1af1`](https://github.com/osmankaankars/lemulip/commit/7c52f7b102ba7160622a8fba742c1d832b7e1af1),
+tree `e7abbe9793c313165ded360c64cd3179e1abc536`. Subsequent documentation commits
+are not the tested executable revision.
+
+Both jobs built the unchanged C12 application and the observer, native control
+and native source successfully. Their portable checks passed: 49 comparison
+tests, 12 release/coverage/staging checks and the privacy check. Each job failed
+only at the four-case native comparison step; source-preservation and evidence
+upload steps completed successfully. There were no replacement trials.
+
+| Fixed case order | Held AX reads, ARM / Intel | ARM cancellation | Intel cancellation |
+| --- | --- | --- | --- |
+| `ax-read-first` | 404 / 404 | Failed | Failed |
+| `ax-quiet-first` | 0 / 0 | Failed | Failed |
+| `ax-quiet-second` | 0 / 0 | Failed | Failed |
+| `ax-read-second` | 404 / 404 | Failed | Failed |
+
+All eight cases have `escape-cancellation-failed`, with the first source
+session classified as `accepted-after-release`. Each target became active
+while the drag was held, received Escape, and then accepted that same first
+session after mouse release. The source recorded `.copy`. The postrelease
+workspace contained `Existing` and `Single`, violating the requirement that
+only `Existing` remain. All four quiet cases have empty held-read journals,
+zero guard violations, and explicit omissions for held AX snapshots and focus
+observations. No case reached the separate fresh-drop stage, because its
+preceding cancellation assertion failed.
+
+Both reports have `comparisonComplete=true`, unchanged recorded input
+inventories and complete cleanup in all four cases. No case was incomplete,
+incomparable or skipped. Operation time remained within the declared 250 ms
+budget in all 48 slots. Actual scheduling overshoot was retained separately:
+
+| Timing measurement | Apple Silicon (`arm64`) | Intel (`x86_64`) |
+| --- | --- | --- |
+| Largest observation operation | 19.161 ms | 63.372 ms |
+| Actual slot duration range | 250.769–263.144 ms | 250.706–323.811 ms |
+| Largest wake overshoot beyond 250 ms | 13.144 ms | 73.811 ms |
+
+The nominal slot budget was common; actual elapsed timings were not identical.
+In particular, these results must not be presented as timing equivalence with
+D11 or as evidence for a particular hover threshold.
+
+### Artifact identity and replay
+
+| Architecture | Job | Artifact ID | ZIP bytes | Uncompressed files / bytes |
+| --- | --- | --- | --- | --- |
+| `arm64` | [128124716644](https://github.com/osmankaankars/lemulip/actions/runs/42285379647/job/128124716644) | `13537207194` | 181,125 | 56 / 1,878,089 |
+| `x86_64` | [128124716153](https://github.com/osmankaankars/lemulip/actions/runs/42285379647/job/128124716153) | `13537497128` | 188,563 | 56 / 2,010,370 |
+
+Downloaded ZIP SHA-256 values, verified against GitHub's artifact metadata:
+
+- `arm64`: `dd6a6e251449f8c8fd90fbf5cc5ab7efc492d5948197b592e92c05790a132455`
+- `x86_64`: `5e9a79ce732ff22920974e8308e6fcb3163d870c388881ad14de2560dd44e89d`
+
+A read-only local audit loaded the exact published classifiers from the tested
+commit and replayed all eight cases with exact classification-field equality.
+Aggregate interpretations also matched. For each architecture, the audit
+verified the three Swift source hashes and comparator hash, five recorded
+executable inventory links, 118 matching before/after inventory entries, and
+28 standalone snapshots against their embedded report copies. All 56 extracted
+files per architecture remained byte-for-byte unchanged during the audit.
+ZIP sizes, digests, CRCs and safe extraction paths were also checked.
+
+The archives retain binary and fixture hashes, not the corresponding binary
+and fixture bytes. Those preservation checks are therefore limited to the
+recorded inventory links and receipts. Replay did not rerun native input,
+permissions or the original live preflight. An audit pass means agreement with
+the retained evidence; it does not mean the native cancellation gate passed.
+
+### Decision and remaining question
+
+The four verified quiet-case failures falsify the claim that observer AX reads
+while the drag is held are necessary for the activation and cancellation
+failure **under D12's fixed schedule**. They do not establish that these reads
+had no effect at D11's original timing, nor do they identify the operating
+system's activation initiator. Pre-drag AX work, the common target raise,
+source/receiver instrumentation and the global synthetic input route remain
+part of this experiment.
+
+The unresolved question is why global synthetic Escape reaches the activated
+destination while the source drag remains live and is accepted on release.
+The receipts establish that sequence, not its internal cause. There is no
+supported product correction in D12, and no basis to waive the existing
+cancellation assertion, force focus, target Escape to a process, or retune the
+timing until a run passes.
+
+PR #45 stays draft/open at C12 commit
+`d821d7343675e2850705d141ef9b3b93a6aee945`; `main` remains
+`ade8b1673de0c2dff930430564c17f100f5e807b`. The unpublished C13 worktree was not
+modified. The completed owner tests remain valid evidence and need no repeat.
