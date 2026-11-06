@@ -1,17 +1,25 @@
 # Native Editor Review
 
-## Current Status — 1 November 2026
+## Current Improvement Cycle — 6 November 2026 UTC
+
+The current candidate's source identity, retained C12 visual review and open
+acceptance gate are recorded in [the task 08 review](STATE_ACCESSIBILITY_REVIEW_08.md).
+PR #45 remains on hold for the held-drag Escape failure. Its successful 58-case
+native suite and the separate diagnostic comparisons do not close that gate.
+
+## Historical Status — 1 November 2026
 
 PR #33 is merged, including real wheel-selection sound routing. Its 29 real-app
 cases passed on Apple Silicon and Intel; old synthetic diagnostic failures below
 are historical, not current product failures. A new **seven-case full-app visual
 review and genuine 2x capture pass** is recorded in [VISUAL_REVIEW.md](VISUAL_REVIEW.md).
 
-Kaan will assess audible sound/system mute and VoiceOver narration during routine
-use and report problems. Those physical observations are not claimed complete and
-are not a release blocker by the owner's explicit instruction. Final publication
-uses the exact v0.1.20 tagged archive verification; older candidates are not relabelled.
-Website delivery is tracked in [ROADMAP.md](ROADMAP.md). The promotional film is last.
+The daily-use follow-up was subsequently closed by the owner's 1 November
+acceptance, as recorded in [RELEASE_DELIVERY_0.1.20.md](RELEASE_DELIVERY_0.1.20.md#owner-acceptance).
+That acceptance does not claim separate automated acoustic, mute or VoiceOver
+certification. Final publication used the exact v0.1.20 tagged archive; older
+candidates are not relabelled. The older work-order and manual-check lists below
+are historical. Film work is outside the current task 07/08 acceptance scope.
 
 ## Historical Evidence
 
