@@ -34,6 +34,9 @@ final class MouseControlDriver {
     private let process = Process()
     private var logHandle: FileHandle?
     private var runner: NSRunningApplication?
+    // Freeze the positive PID while the owned instance is fully verified alive.
+    // NSRunningApplication metadata may become unavailable after termination.
+    private var boundRunnerPID: pid_t?
     private var nonce = ""
     private var started = false
     private var startedAt = 0.0
@@ -198,59 +201,79 @@ final class MouseControlDriver {
         guard let current = matches.first else { return nil }
         let bundleURL = current.bundleURL
         let executableURL = current.executableURL
+        let currentPID = current.processIdentifier
         let processNotTerminated = !current.isTerminated
+        let instanceMatches = runner.map { current.isEqual($0) } ?? false
+        let pidMatches = boundRunnerPID.map { currentPID == $0 } ?? false
         let observed = ProcessInfo.processInfo.systemUptime
         // Only stop may observe this terminal transition. FINISHED has already
-        // proved released input; a previously bound PID with both URLs absent
-        // is observed until exit, never returned as a signal target.
-        if let retirementDeadline, let runner, let finishedObservedAt,
+        // proved released input. The same owned instance and frozen positive PID
+        // may retire with terminated or missing metadata, never as a signal target.
+        if let retirementDeadline, let boundRunnerPID, let finishedObservedAt,
            started && ready && finishedAt != nil && finishedAcknowledged && !protocolFailed && !gestureRunning,
-           current.processIdentifier == runner.processIdentifier,
-           bundleURL == nil && executableURL == nil,
+           boundRunnerPID > 0 && instanceMatches && pidMatches,
+           (!processNotTerminated || (bundleURL == nil && executableURL == nil)),
            finishedObservedAt < observed && observed <= retirementDeadline {
             var observations = evidence["runnerRetirementObservations"] as? [[String: Any]] ?? []
             try require(observations.count < 161, "The terminal mouse runner observation exceeded its bound")
             observations.append([
-                "runnerPID": Int(current.processIdentifier), "observedSystemUptime": observed,
+                "runnerPID": Int(boundRunnerPID), "observedRunnerPID": Int(currentPID),
+                "observedSystemUptime": observed,
                 "finishedObservedSystemUptime": finishedObservedAt, "registryCount": matches.count,
-                "boundRunnerPIDMatches": true, "bundleURLMissing": true, "executableURLMissing": true,
+                "boundRunnerPIDMatches": pidMatches, "boundRunnerInstanceMatches": instanceMatches,
+                "bundleURLMissing": bundleURL == nil, "executableURLMissing": executableURL == nil,
                 "finishedAcknowledged": true, "finishedPublished": true, "gestureOutstanding": false,
-                "processNotTerminated": processNotTerminated
+                "processNotTerminated": processNotTerminated,
+                "retirementReason": processNotTerminated ? "identity-urls-unavailable" : "terminated"
             ])
             evidence["runnerRetirementObservations"] = observations
             retirementObserved = true
             return nil
         }
         let checks: [String: Bool] = [
-            "driverStarted": started, "processNotTerminated": processNotTerminated,
+            "driverStarted": started, "processNotTerminated": processNotTerminated, "currentPIDPositive": currentPID > 0,
             "bundlePathMatches": bundleURL?.standardizedFileURL.path == runnerBundle.path,
             "resolvedBundlePathMatches": bundleURL?.resolvingSymlinksInPath().path == runnerBundle.path,
             "executablePathMatches": executableURL?.standardizedFileURL.path == runnerExecutable.path,
             "resolvedExecutablePathMatches": executableURL?.resolvingSymlinksInPath().path == runnerExecutable.path
         ]
+        let recordedChecks = checks.merging([
+            "boundRunnerPresent": runner != nil, "boundRunnerPIDMatches": pidMatches,
+            "boundRunnerInstanceMatches": instanceMatches,
+            "bundleURLMissing": bundleURL == nil, "executableURLMissing": executableURL == nil
+        ]) { _, value in value }
         let identityMatches = checks.values.allSatisfy { $0 }
-        if !identityMatches { recordIdentityFailure("process-identity", checks: checks) }
+        if !identityMatches {
+            recordIdentityFailure("process-identity", checks: recordedChecks,
+                                  observedRunnerPID: currentPID, observedSystemUptime: observed)
+        }
         try require(identityMatches,
                     "The mouse runner process has an unexpected identity")
-        if let runner {
-            let samePID = current.processIdentifier == runner.processIdentifier
-            if !samePID { recordIdentityFailure("bound-pid", checks: ["boundRunnerPIDMatches": false]) }
-            try require(samePID, "The owned mouse runner PID changed")
+        if runner != nil {
+            if !pidMatches || !instanceMatches {
+                recordIdentityFailure("bound-runner", checks: recordedChecks,
+                                      observedRunnerPID: currentPID, observedSystemUptime: observed)
+            }
+            try require(pidMatches && instanceMatches, "The owned mouse runner instance or PID changed")
         } else {
+            try require(boundRunnerPID == nil, "The mouse runner PID was already bound")
             runner = current
-            evidence["runnerPID"] = Int(current.processIdentifier)
+            boundRunnerPID = currentPID
+            evidence["runnerPID"] = Int(currentPID)
         }
         return current
     }
 
-    private func recordIdentityFailure(_ check: String, checks: [String: Bool]) {
+    private func recordIdentityFailure(_ check: String, checks: [String: Bool],
+                                       observedRunnerPID: pid_t? = nil, observedSystemUptime: Double? = nil) {
         evidence["runnerIdentityFailureCount"] = (evidence["runnerIdentityFailureCount"] as? Int ?? 0) + 1
         var failures = evidence["runnerIdentityFailures"] as? [[String: Any]] ?? []
-        // Retain only bounded Boolean observations. Never print unexpected
-        // paths or identities, or reinterpret a failed check as a normal exit.
+        // Retain bounded PID/Boolean observations, never unexpected path strings.
         if failures.count < 8 {
             failures.append(["check": check, "checks": checks,
-                             "observedSystemUptime": ProcessInfo.processInfo.systemUptime])
+                "boundRunnerPID": boundRunnerPID.map { Int($0) as Any } ?? NSNull(),
+                "observedRunnerPID": observedRunnerPID.map { Int($0) as Any } ?? NSNull(),
+                "observedSystemUptime": observedSystemUptime ?? ProcessInfo.processInfo.systemUptime])
             evidence["runnerIdentityFailures"] = failures
         }
     }
@@ -314,8 +337,8 @@ final class MouseControlDriver {
                     && time <= ProcessInfo.processInfo.systemUptime
                     && (!finishedAcknowledged && !protocolFailed),
                     "A mouse marker has an invalid process, timestamp or terminal order")
-        if let runner {
-            try require(pid == Double(runner.processIdentifier), "A mouse witness belongs to another runner PID")
+        if let boundRunnerPID {
+            try require(pid == Double(boundRunnerPID), "A mouse witness belongs to another runner PID")
         }
         for key in ["leftButtonReportedDown", "hidLeftButtonReportedDown", "rightButtonReportedDown",
                     "centerButtonReportedDown", "escapeKeyReportedDown", "hidEscapeKeyReportedDown"] {
@@ -415,10 +438,12 @@ final class MouseControlDriver {
             let live = try currentRunner()
             try refreshMarkers()
             try require(process.isRunning, "The mouse driver exited before its READY handshake")
-            if ready, let live {
+            if ready, let live, let boundRunnerPID {
                 let receipts = evidence["markerReceipts"] as? [[String: Any]] ?? []
                 let witness = receipts.first?["witness"] as? [String: Any] ?? [:]
-                try require(try number(witness, "runnerPID") == Double(live.processIdentifier),
+                let witnessPID = try number(witness, "runnerPID")
+                try require(live.processIdentifier == boundRunnerPID
+                            && witnessPID == Double(boundRunnerPID),
                             "The READY witness has no matching live runner")
                 return
             }
@@ -504,7 +529,9 @@ final class MouseControlDriver {
                         phase: String, destinationHold: Double, expiresAt: Double) async throws {
         try require(started && ready && !gestureRunning && !protocolFailed && finishedAt == nil && process.isRunning,
                     "Require this case's live idle mouse runner")
-        guard let liveRunner = try currentRunner() else { throw issue("The mouse runner disappeared before its request") }
+        guard (try currentRunner()) != nil, let boundRunnerPID else {
+            throw issue("The mouse runner disappeared before its request")
+        }
         try refreshMarkers()
         let index = requests.count + 1
         try require(caseName.hasPrefix("xctest-") && index <= 2 && phase == (index == 1 ? "cancel" : "fresh")
@@ -524,7 +551,7 @@ final class MouseControlDriver {
         try require(expiresAt.isFinite && expires > created, "No bounded lifetime remains for the mouse request")
         let request: [String: Any] = [
             "schema": 1, "case": caseName, "nonce": nonce, "action": "click-drag-hold", "theme": "orchard",
-            "requestIndex": index, "phase": phase, "runnerPID": Int(liveRunner.processIdentifier),
+            "requestIndex": index, "phase": phase, "runnerPID": Int(boundRunnerPID),
             "sourceBundleIdentifier": sourceIdentifier, "sourceApplicationPath": application.standardizedFileURL.path,
             "sourceExecutablePath": application.appendingPathComponent("Contents/MacOS/NativeDragSource").standardizedFileURL.path,
             "sourceWindowTitle": "Native Drag Source", "sourcePID": Int(source.processIdentifier),

@@ -642,6 +642,10 @@ def driver_evidence(stage, context, case_name, case, gestures, passed):
         **{key: provenance[key] for key in ("mouseRunnerInfoSHA256", "mouseRunnerExecutableSHA256", "mouseTestsExecutableSHA256")}}
     capture.fields_match(driver, expected, "mouse-driver-identity-or-completion")
     runner_pid = integer(driver.get("runnerPID"), "mouse-runner-pid", minimum=1)
+    capture.require(runner_pid <= (1 << 31) - 1, "mouse-runner-pid-range")
+    capture.require(type(driver.get("runnerIdentityFailureCount", 0)) is int
+                    and driver.get("runnerIdentityFailureCount", 0) == 0
+                    and driver.get("runnerIdentityFailures", []) == [], "mouse-runner-retained-identity-failure")
     process_pid = integer(driver.get("processPID"), "mouse-process-pid", minimum=1)
     capture.require(len({runner_pid, process_pid, case["sourceApplicationPID"], case["targetApplicationPID"]}) == 4,
                     "mouse-driver-pid-collision")
@@ -769,17 +773,24 @@ def driver_evidence(stage, context, case_name, case, gestures, passed):
             capture.require(when >= finish_time, "mouse-finished-before-request")
     finished_observed = clock(receipts[-1], "observedSystemUptime")
     previous_retirement = finished_observed
-    retirement_fields = {"runnerPID", "observedSystemUptime", "finishedObservedSystemUptime", "registryCount",
-        "boundRunnerPIDMatches", "bundleURLMissing", "executableURLMissing", "finishedAcknowledged",
-        "finishedPublished", "gestureOutstanding", "processNotTerminated"}
+    retirement_fields = {"runnerPID", "observedRunnerPID", "observedSystemUptime", "finishedObservedSystemUptime", "registryCount",
+        "boundRunnerPIDMatches", "boundRunnerInstanceMatches", "bundleURLMissing", "executableURLMissing",
+        "finishedAcknowledged", "finishedPublished", "gestureOutstanding", "processNotTerminated", "retirementReason"}
     for retirement in retirements:
         capture.require(isinstance(retirement, dict) and set(retirement) == retirement_fields,
                         "mouse-runner-retirement-fields")
-        capture.fields_match(retirement, {"runnerPID": runner_pid, "registryCount": 1,
-            "boundRunnerPIDMatches": True, "bundleURLMissing": True, "executableURLMissing": True,
+        capture.fields_match(retirement, {"runnerPID": runner_pid, "observedRunnerPID": runner_pid, "registryCount": 1,
+            "boundRunnerPIDMatches": True, "boundRunnerInstanceMatches": True,
             "finishedAcknowledged": True, "finishedPublished": True, "gestureOutstanding": False},
             "mouse-runner-retirement-identity")
-        capture.require(type(retirement["processNotTerminated"]) is bool, "mouse-runner-retirement-process-state")
+        capture.require(all(type(retirement[key]) is bool for key in
+                        ("processNotTerminated", "bundleURLMissing", "executableURLMissing")),
+                        "mouse-runner-retirement-process-state")
+        if retirement["processNotTerminated"]:
+            capture.fields_match(retirement, {"retirementReason": "identity-urls-unavailable",
+                "bundleURLMissing": True, "executableURLMissing": True}, "mouse-runner-retirement-live-metadata")
+        else:
+            capture.fields_match(retirement, {"retirementReason": "terminated"}, "mouse-runner-retirement-terminal-reason")
         capture.require(clock(retirement, "finishedObservedSystemUptime") == finished_observed,
                         "mouse-runner-retirement-finished-binding")
         when = clock(retirement, "observedSystemUptime")

@@ -293,6 +293,9 @@ private final class ActivationJournal: @unchecked Sendable {
                     "Event-origin tracing requires a fixed mouse-driver case")
         fields["targetMouseEventIdentitySchema"] = 1
         #endif
+        #if LEMULIP_DISPATCH_STACK_TRACE
+        fields["targetDispatchStackSchema"] = 1
+        #endif
         fields.merge([
             "bundleIdentifier": "app.lemulip.NativeDragControl", "executableName": "NativeDragControl",
             "bundleName": "Native Drag Control.app", "targetBundlePath": bundle.path,
@@ -412,6 +415,85 @@ private final class ControlApplication: NSApplication {
     var activationJournal: ActivationJournal?
     weak var observedWindow: NSWindow?
     private var dispatchIndex = 0
+    #if LEMULIP_DISPATCH_STACK_TRACE
+    private struct DispatchStackCapture {
+        let targetPID: Int
+        let dispatchIndex: Int
+        let eventTimestamp: TimeInterval
+        let mainThread: Bool
+        let started: TimeInterval
+        let completed: TimeInterval
+        let capturedFrameCount: Int
+        let addresses: [UInt]
+    }
+    private var firstDispatchStack: DispatchStackCapture?
+    private var completedDispatchStack: [String: Any]?
+
+    private func captureFirstDispatchStack(_ event: NSEvent) {
+        guard event.type == .leftMouseDragged, firstDispatchStack == nil else { return }
+        let started = ProcessInfo.processInfo.systemUptime
+        let values = Thread.callStackReturnAddresses
+        let addresses = values.prefix(48).map(\.uintValue)
+        let completed = ProcessInfo.processInfo.systemUptime
+        firstDispatchStack = DispatchStackCapture(
+            targetPID: Int(ProcessInfo.processInfo.processIdentifier), dispatchIndex: dispatchIndex + 1,
+            eventTimestamp: event.timestamp, mainThread: Thread.isMainThread,
+            started: started, completed: completed, capturedFrameCount: values.count, addresses: addresses)
+    }
+
+    // Resolve the retained entry addresses only from the existing termination
+    // callback. No symbol lookup, journal write, or extra event occurs at entry.
+    func finishDispatchStackObservation() -> [String: Any] {
+        if let completedDispatchStack { return completedDispatchStack }
+        guard let captured = firstDispatchStack else {
+            let missing: [String: Any] = ["schema": 1, "status": "unavailable",
+                "reasonCode": "first-target-leftMouseDragged-not-observed"]
+            completedDispatchStack = missing
+            return missing
+        }
+        let started = ProcessInfo.processInfo.systemUptime
+        let pointers = captured.addresses.map { UnsafeMutableRawPointer(bitPattern: $0) }
+        let symbols = pointers.withUnsafeBufferPointer { buffer in
+            buffer.isEmpty ? nil : backtrace_symbols(buffer.baseAddress, Int32(buffer.count))
+        }
+        defer { if let symbols { free(symbols) } }
+        let hexAddresses = captured.addresses.map { "0x" + String($0, radix: 16) }
+        var frames: [[String: Any]] = []
+        for (index, address) in hexAddresses.enumerated() {
+            var rendered: String?
+            var truncated = false
+            if let symbol = symbols?[index] {
+                // Bound decoding as well as serialized characters. A rendered
+                // backtrace line can still contain an unavailable symbol name.
+                let byteCount = strnlen(symbol, 4_097)
+                let bytes = UnsafeRawPointer(symbol).assumingMemoryBound(to: UInt8.self)
+                let text = String(decoding: UnsafeBufferPointer(start: bytes, count: min(byteCount, 4_096)), as: UTF8.self)
+                truncated = byteCount > 4_096 || text.count > 512
+                if !text.isEmpty { rendered = String(text.prefix(512)) }
+            }
+            frames.append(["frameIndex": index, "returnAddress": address,
+                "symbolStatus": rendered == nil ? "unresolved" : "rendered",
+                "symbol": rendered.map { $0 as Any } ?? NSNull(), "symbolTruncated": truncated])
+        }
+        let complete = !frames.isEmpty && frames.allSatisfy { $0["symbolStatus"] as? String == "rendered" }
+        let receipt: [String: Any] = [
+            "schema": 1, "status": complete ? "complete" : "unavailable",
+            "reasonCode": complete ? NSNull() : (frames.isEmpty ? "empty-captured-stack" : "one-or-more-symbols-unresolved") as Any,
+            "targetPID": captured.targetPID, "dispatchIndex": captured.dispatchIndex, "eventType": 6,
+            "eventTimestamp": captured.eventTimestamp, "mainThread": captured.mainThread,
+            "captureStartedSystemUptime": captured.started, "captureCompletedSystemUptime": captured.completed,
+            "maximumFrames": 48, "capturedFrameCount": captured.capturedFrameCount,
+            "retainedFrameCount": captured.addresses.count, "returnAddresses": hexAddresses,
+            "framesTruncated": captured.capturedFrameCount > captured.addresses.count,
+            "symbolicationMethod": "backtrace_symbols", "maximumSymbolCharacters": 512,
+            "symbolicationStartedSystemUptime": started,
+            "symbolicationCompletedSystemUptime": ProcessInfo.processInfo.systemUptime,
+            "symbolicationMainThread": Thread.isMainThread, "frames": frames
+        ]
+        completedDispatchStack = receipt
+        return receipt
+    }
+    #endif
 
     override func sendEvent(_ event: NSEvent) {
         let entered = ProcessInfo.processInfo.systemUptime
@@ -430,6 +512,11 @@ private final class ControlApplication: NSApplication {
                 }
             } else if [.leftMouseDown, .leftMouseUp, .leftMouseDragged].contains(event.type) {
                 dispatchKind = "target-mouse"
+                #if LEMULIP_DISPATCH_STACK_TRACE
+                // This one-shot capture precedes both NSEvent.cgEvent and the
+                // normal super.sendEvent dispatch. Keep the original event.
+                captureFirstDispatchStack(event)
+                #endif
                 dispatchFields["locationInWindow"] = ["x": Double(event.locationInWindow.x),
                                                       "y": Double(event.locationInWindow.y)]
                 dispatchFields["modifierFlags"] = event.modifierFlags.rawValue
@@ -762,6 +849,9 @@ private final class ControlDelegate: NSObject, NSApplicationDelegate, NSWindowDe
             #if LEMULIP_EVENT_ORIGIN_TRACE
             fields["targetMouseEventIdentitySchema"] = 1
             #endif
+            #if LEMULIP_DISPATCH_STACK_TRACE
+            fields["targetDispatchStackSchema"] = 1
+            #endif
             activationJournal.record("activation-ready", fields)
         }
     }
@@ -825,6 +915,11 @@ private final class ControlDelegate: NSObject, NSApplicationDelegate, NSWindowDe
         if let activationJournal {
             var fields = activationState(window: window, received: received)
             fields.merge(originals) { _, value in value }
+            #if LEMULIP_DISPATCH_STACK_TRACE
+            if let application = NSApp as? ControlApplication {
+                fields["dispatchStackObservation"] = application.finishDispatchStackObservation()
+            }
+            #endif
             activationJournal.record("activation-terminating", fields)
             activationJournal.flush()
         }

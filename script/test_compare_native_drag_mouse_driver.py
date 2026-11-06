@@ -328,13 +328,16 @@ def alter_case(stage, name, action, *, snapshots=False):
             (directory / (snapshot["stage"] + ".json")).write_text(json.dumps(snapshot))
 
 
-def add_retirement(record):
+def add_retirement(record, *, terminated=False):
     driver = record["mouseControlDriver"]
     finished_observed = driver["markerReceipts"][-1]["observedSystemUptime"]
-    observation = {"runnerPID": driver["runnerPID"], "observedSystemUptime": finished_observed + .01,
+    observation = {"runnerPID": driver["runnerPID"], "observedRunnerPID": driver["runnerPID"],
+        "observedSystemUptime": finished_observed + .01,
         "finishedObservedSystemUptime": finished_observed, "registryCount": 1, "boundRunnerPIDMatches": True,
-        "bundleURLMissing": True, "executableURLMissing": True, "finishedAcknowledged": True,
-        "finishedPublished": True, "gestureOutstanding": False, "processNotTerminated": True}
+        "boundRunnerInstanceMatches": True, "bundleURLMissing": not terminated, "executableURLMissing": not terminated,
+        "finishedAcknowledged": True, "finishedPublished": True, "gestureOutstanding": False,
+        "processNotTerminated": not terminated,
+        "retirementReason": "terminated" if terminated else "identity-urls-unavailable"}
     driver["runnerRetirementObservations"] = [observation]
     driver["cleanup"]["runnerRetirementObserved"] = True
     return observation
@@ -468,13 +471,32 @@ class MouseDriverComparisonTests(unittest.TestCase):
                 self.assertEqual(len(driver["runnerRetirementObservations"]), 1)
                 self.assertEqual(driver["runnerRetirementObservations"][0]["runnerPID"], driver["runnerPID"])
 
-    def test_retirement_requires_finished_owned_nil_urls_and_bounded_clocks(self):
+    def test_finished_same_instance_terminated_with_present_urls_preserves_native_results(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            stage, context = fixture(Path(temporary))
+            def change(stage, name):
+                alter_case(stage, name, lambda record: add_retirement(record, terminated=True))
+            report, commands = self.run_cases(stage, context, Path(temporary) / "out",
+                lambda name: name.startswith("xctest"), change)
+            self.assertEqual(len(commands), 4)
+            self.assertTrue(report["comparisonComplete"], report["cases"])
+            self.assertEqual([row["passed"] for row in report["cases"]], [False, True, True, False])
+            for case in report["cases"]:
+                observation = case["mouseControlDriver"]["runnerRetirementObservations"][0]
+                self.assertEqual(observation["retirementReason"], "terminated")
+                self.assertFalse(observation["bundleURLMissing"])
+                self.assertFalse(observation["executableURLMissing"])
+
+    def test_retirement_requires_finished_owned_identity_state_and_bounded_clocks(self):
         def mutate_observation(action):
             return lambda record: action(add_retirement(record))
 
         self.assert_stopped_mutations({name: mutate_observation(action) for name, action in {
             "unknown-pid": lambda row: row.update(runnerPID=999),
+            "different-observed-pid": lambda row: row.update(observedRunnerPID=999),
+            "unavailable-observed-pid": lambda row: row.update(observedRunnerPID=-1),
             "unbound-pid": lambda row: row.update(boundRunnerPIDMatches=False),
+            "different-instance": lambda row: row.update(boundRunnerInstanceMatches=False),
             "ambiguous-registry": lambda row: row.update(registryCount=2),
             "bundle-url-present": lambda row: row.update(bundleURLMissing=False),
             "executable-url-present": lambda row: row.update(executableURLMissing=False),
@@ -485,6 +507,10 @@ class MouseDriverComparisonTests(unittest.TestCase):
             "wrong-finished-clock": lambda row: row.update(finishedObservedSystemUptime=row["finishedObservedSystemUptime"] - .01),
             "after-stop-completed": lambda row: row.update(observedSystemUptime=24.201),
             "invalid-process-state": lambda row: row.update(processNotTerminated=1),
+            "live-terminal-reason": lambda row: row.update(retirementReason="terminated"),
+            "terminated-live-reason": lambda row: row.update(processNotTerminated=False),
+            "untyped-url-state": lambda row: row.update(bundleURLMissing=1),
+            "missing-observed-pid": lambda row: row.pop("observedRunnerPID"),
         }.items()})
 
         def mutate_driver(action):
@@ -499,12 +525,26 @@ class MouseDriverComparisonTests(unittest.TestCase):
             "registry-remains": lambda driver: driver["cleanup"].update(runnerRegistryEmpty=False),
             "signal-sent": lambda driver: driver["cleanup"].update(terminationRequested=True),
             "retained-identity-error": lambda driver: driver["cleanup"].update(errors=["unexpected identity"]),
+            "retained-identity-failure-count": lambda driver: driver.update(runnerIdentityFailureCount=1),
+            "retained-identity-failure-receipt": lambda driver: driver.update(runnerIdentityFailures=[{"check": "process-identity"}]),
             "repeated-clock": lambda driver: driver["runnerRetirementObservations"].append(
                 copy.deepcopy(driver["runnerRetirementObservations"][0])),
             "too-many-observations": lambda driver: driver.update(runnerRetirementObservations=
                 driver["runnerRetirementObservations"] * 162),
             "beyond-eight-seconds": lambda driver: (driver["cleanup"].update(elapsedSeconds=9.),
                 driver["runnerRetirementObservations"][0].update(observedSystemUptime=32.001)),
+        }.items()}, at="xctest-first")
+
+    def test_terminated_metadata_cannot_bypass_pid_instance_or_finished_guards(self):
+        def mutate(action):
+            return lambda record: action(add_retirement(record, terminated=True))
+        self.assert_stopped_mutations({name: mutate(action) for name, action in {
+            "terminated-wrong-pid": lambda row: row.update(observedRunnerPID=999),
+            "terminated-wrong-instance": lambda row: row.update(boundRunnerInstanceMatches=False),
+            "terminated-no-finished": lambda row: row.update(finishedAcknowledged=False),
+            "terminated-outstanding-input": lambda row: row.update(gestureOutstanding=True),
+            "alive-present-wrong-urls": lambda row: row.update(processNotTerminated=True),
+            "terminated-outside-bound": lambda row: row.update(observedSystemUptime=32.001),
         }.items()}, at="xctest-first")
 
     def assert_stopped_mutations(self, mutations, *, passed=False, at="quartz-first", snapshots=False):

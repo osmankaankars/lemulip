@@ -1,4 +1,4 @@
-"""Portable D14 retained-evidence tests; no native process or input executes."""
+"""Portable event-identity/entry-stack tests; no native process or input executes."""
 import copy
 from datetime import datetime, timedelta, timezone
 import json
@@ -25,6 +25,20 @@ def identity(kind=6, pid=500, *, present=True, source=False):
     return value
 
 
+def stack_receipt(count=3):
+    addresses = [hex(0x1000 + index * 16) for index in range(min(count, 48))]
+    return {"schema": 1, "status": "complete", "reasonCode": None, "targetPID": 200,
+        "dispatchIndex": 1, "eventType": 6, "eventTimestamp": 10.94, "mainThread": True,
+        "captureStartedSystemUptime": 10.95001, "captureCompletedSystemUptime": 10.95002,
+        "maximumFrames": 48, "capturedFrameCount": count, "retainedFrameCount": len(addresses),
+        "returnAddresses": addresses, "framesTruncated": count > len(addresses),
+        "symbolicationMethod": "backtrace_symbols", "maximumSymbolCharacters": 512,
+        "symbolicationStartedSystemUptime": 25.041, "symbolicationCompletedSystemUptime": 25.042,
+        "symbolicationMainThread": True, "frames": [{"frameIndex": index, "returnAddress": address,
+            "symbolStatus": "rendered", "symbol": f"{index} fixture {address} test_frame_{index} + 4",
+            "symbolTruncated": False} for index, address in enumerate(addresses)]}
+
+
 def add_d14(stage, name, *, absent=False, pid=None):
     directory = mouse.evidence_for(stage, name) / "orchard"
     d13.alter_case(stage, name, lambda row: row.update(observerProcessID=500))
@@ -35,6 +49,10 @@ def add_d14(stage, name, *, absent=False, pid=None):
         for row in rows:
             if row["event"] in ("activation-start", "activation-ready"):
                 row["targetMouseEventIdentitySchema"] = 1
+                row["targetDispatchStackSchema"] = 1
+            if row["event"] == "activation-terminating":
+                row["callbackSystemUptime"] = 25.04
+                row["dispatchStackObservation"] = stack_receipt()
         for event, when in (("target-mouse-enter", 10.95), ("target-mouse-return", 10.96)):
             rows.append({"schema": 1, "pid": 200, **mouse.bindings(name),
                 "event": event, "systemUptime": when + .0001, "callbackSystemUptime": when,
@@ -68,6 +86,8 @@ def fixture(parent, *, passed=("xctest-first",), absent=(), zero=()):
     stage, context = d13.fixture(parent)
     context["provenance"].update(eventOriginDiagnostic=copy.deepcopy(origin.DIAGNOSTIC),
         eventOriginControlBuild=copy.deepcopy(origin.CONTROL_BUILD),
+        dispatchStackDiagnostic=copy.deepcopy(origin.DISPATCH_STACK_DIAGNOSTIC),
+        runnerRetirementProtocol=origin.RUNNER_RETIREMENT_PROTOCOL,
         **{key: capture.sha256(capture.ROOT / relative) for key, relative in origin.CODE_FILES.items()})
     (stage / "provenance.json").write_text(json.dumps(context["provenance"]))
     context["inputs"] = mouse.input_snapshot(stage)
@@ -127,6 +147,14 @@ class EventOriginTests(unittest.TestCase):
             self.assertEqual(report["collectorPIDs"], [200, 300, 400, 500])
             self.assertTrue(report["acceptanceUnchanged"])
             self.assertFalse(report["nativeInputExecuted"])
+            self.assertTrue(report["dispatchStackObservationsComplete"])
+            for row in report["cases"]:
+                stack = row["dispatchStackObservation"]
+                self.assertTrue(stack["receiptValidated"])
+                self.assertEqual(stack["dispatchIndex"], row["firstHeldTargetDrag"]["dispatchIndex"])
+                self.assertGreater(stack["symbolicationStartedSystemUptime"], stack["lastGestureReleaseObservedSystemUptime"])
+                self.assertGreater(stack["captureDurationSeconds"], 0)
+                self.assertFalse(stack["upstreamSenderIdentified"])
             q, x = report["cases"][:2]
             self.assertEqual(q["firstHeldTargetDrag"]["cgSourcePIDRelation"], "observer")
             self.assertEqual(x["firstHeldTargetDrag"]["cgSourcePIDRelation"], "unknown")
@@ -134,7 +162,7 @@ class EventOriginTests(unittest.TestCase):
             self.assertEqual(q["wallTimeRange"], {"start": "2026-11-06T00:00:02Z", "end": "2026-11-06T00:00:25Z", "precision": "seconds"})
             self.assertEqual(len(q["firstHeldTargetDrag"]["laterActivationDispatches"]), 1)
             self.assertEqual(x["firstHeldTargetDrag"]["laterActivationDispatches"], [])
-            self.assertEqual(capture.sha256(Path(mouse.__file__)), origin.D13_COMPARATOR_SHA256)
+            self.assertEqual(capture.sha256(Path(mouse.__file__)), origin.COMPARATOR_SOURCE_SHA256)
 
     def test_timestamp_joins_distinguish_post_overlap_from_later_event(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -149,6 +177,8 @@ class EventOriginTests(unittest.TestCase):
                     if row["event"].startswith("target-mouse-"):
                         row["eventTimestamp"] = 10.84
                         row["deliveredMouseEvent"]["cgTimestampNanoseconds"] = 10_840_000_000
+                    if row["event"] == "activation-terminating":
+                        row["dispatchStackObservation"]["eventTimestamp"] = 10.84
             d13.alter_trace(mouse.evidence_for(stage, name) / "orchard/activation.jsonl", pair)
             refresh_case(stage, comparison, context, name)
             report = run_analysis(stage, comparison, context)
@@ -225,6 +255,8 @@ class EventOriginTests(unittest.TestCase):
             changes = {
                 "protocol": lambda row: row["eventOriginDiagnostic"].update(inputProtocol="changed"),
                 "build": lambda row: row["eventOriginControlBuild"].update(swiftDefines=[]),
+                "stack-schema": lambda row: row["dispatchStackDiagnostic"].update(maximumFrames=49),
+                "retirement-protocol": lambda row: row.update(runnerRetirementProtocol="unbound"),
                 "hash": lambda row: row.update(eventOriginAnalyzerSourceSHA256="0" * 64),
                 "architecture": lambda row: row.update(architecture="unknown"),
                 "commit": lambda row: row.update(observerExperimentCommit="0" * 40),
@@ -243,6 +275,110 @@ class EventOriginTests(unittest.TestCase):
             value["provenance.json"]["sha256"] = "0" * 64
             after.write_text(json.dumps(value))
             self.assertEqual(run_analysis(stage, comparison, context)["status"], "invalid")
+
+    def test_missing_or_unbound_stack_is_unavailable_without_changing_native_result(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            stage, comparison, context = fixture(Path(temporary))
+            name = "quartz-first"
+            path = mouse.evidence_for(stage, name) / "orchard/activation.jsonl"
+            original = path.read_bytes()
+            baseline = run_analysis(stage, comparison, context)["cases"][0]["nativeComparison"]
+            def change_receipt(rows, mutate):
+                mutate(next(row for row in rows if row["event"] == "activation-terminating")["dispatchStackObservation"])
+            def missing(rows):
+                next(row for row in rows if row["event"] == "activation-terminating").pop("dispatchStackObservation")
+            def duplicate(rows):
+                rows[0]["dispatchStackObservation"] = copy.deepcopy(rows[-1]["dispatchStackObservation"])
+            def marker(rows):
+                next(row for row in rows if row["event"] == "activation-ready").pop("targetDispatchStackSchema")
+            changes = {"missing": missing, "duplicate": duplicate, "marker": marker,
+                "wrong-event": lambda rows: change_receipt(rows, lambda r: r.update(dispatchIndex=2)),
+                "wrong-pid": lambda rows: change_receipt(rows, lambda r: r.update(targetPID=300)),
+                "wrong-event-clock": lambda rows: change_receipt(rows, lambda r: r.update(eventTimestamp=10.93)),
+                "capture-before-entry": lambda rows: change_receipt(rows, lambda r: r.update(captureStartedSystemUptime=10.94)),
+                "capture-after-record": lambda rows: change_receipt(rows, lambda r: r.update(captureCompletedSystemUptime=10.96)),
+                "symbols-during-hold": lambda rows: change_receipt(rows, lambda r: r.update(symbolicationStartedSystemUptime=11.)),
+                "symbols-after-record": lambda rows: change_receipt(rows, lambda r: r.update(symbolicationCompletedSystemUptime=25.06))}
+            for label, mutate in changes.items():
+                with self.subTest(label=label):
+                    path.write_bytes(original)
+                    d13.alter_trace(path, mutate)
+                    refresh_case(stage, comparison, context, name)
+                    report = run_analysis(stage, comparison, context)
+                    self.assertTrue(report["analysisComplete"], report)
+                    self.assertFalse(report["dispatchStackObservationsComplete"])
+                    row = report["cases"][0]
+                    self.assertEqual(row["nativeComparison"], baseline)
+                    self.assertEqual(row["dispatchStackObservation"]["status"], "unavailable")
+                    self.assertFalse(row["dispatchStackObservation"]["receiptValidated"])
+                    self.assertNotIn("frames", row["dispatchStackObservation"])
+                    json.dumps(report, allow_nan=False)
+
+    def test_stack_frame_symbol_and_truncation_bounds(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            stage, comparison, context = fixture(Path(temporary))
+            name = "quartz-first"
+            path = mouse.evidence_for(stage, name) / "orchard/activation.jsonl"
+            rows = d13.read_trace(path)
+            event = next(row for row in rows if row["event"] == "target-mouse-enter")
+            raw = json.loads((path.parent / "report.json").read_text())
+            receipt = stack_receipt(49)
+            receipt["frames"][0].update(symbol="x" * 512, symbolTruncated=True)
+            rows[-1]["dispatchStackObservation"] = receipt
+            valid = origin.dispatch_stack_observation(rows, event, raw["mouseDriverGestures"], 200)
+            self.assertEqual(valid["status"], "complete", valid)
+            self.assertTrue(valid["framesTruncated"])
+            self.assertEqual(len(valid["frames"]), 48)
+            changes = {
+                "too-many-addresses": lambda r: r["returnAddresses"].append("0x2000"),
+                "count-mismatch": lambda r: r.update(retainedFrameCount=47),
+                "unbounded-count": lambda r: r.update(capturedFrameCount=4097),
+                "boolean-count": lambda r: r.update(capturedFrameCount=True),
+                "missing-frame": lambda r: r["frames"].pop(),
+                "changed-address": lambda r: r["frames"][0].update(returnAddress="0x1"),
+                "oversized-address": lambda r: r["returnAddresses"].__setitem__(0, "0x10000000000000000"),
+                "noncanonical-address": lambda r: r["returnAddresses"].__setitem__(0, "0x01000"),
+                "oversized-symbol": lambda r: r["frames"][0].update(symbol="x" * 513),
+                "embedded-nul": lambda r: r["frames"][0].update(symbol="x\x00y"),
+                "missing-truncation": lambda r: r.update(framesTruncated=False),
+                "wrong-frame-order": lambda r: r["frames"][0].update(frameIndex=1),
+                "unresolved-with-text": lambda r: r["frames"][0].update(symbolStatus="unresolved"),
+                "non-main-thread": lambda r: r.update(mainThread=False),
+                "nonfinite-clock": lambda r: r.update(captureStartedSystemUptime=float("nan")),
+                "unknown-field": lambda r: r.update(unknown=True),
+            }
+            for label, mutate in changes.items():
+                with self.subTest(label=label):
+                    changed = copy.deepcopy(receipt)
+                    mutate(changed)
+                    rows[-1]["dispatchStackObservation"] = changed
+                    result = origin.dispatch_stack_observation(rows, event, raw["mouseDriverGestures"], 200)
+                    self.assertEqual(result["status"], "unavailable")
+                    self.assertFalse(result["receiptValidated"])
+
+    def test_unresolved_symbols_and_empty_capture_remain_explicit(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            stage, comparison, context = fixture(Path(temporary))
+            path = mouse.evidence_for(stage, "xctest-first") / "orchard/activation.jsonl"
+            rows = d13.read_trace(path)
+            event = next(row for row in rows if row["event"] == "target-mouse-enter")
+            raw = json.loads((path.parent / "report.json").read_text())
+            value = rows[-1]["dispatchStackObservation"]
+            value["frames"][1].update(symbolStatus="unresolved", symbol=None)
+            value.update(status="unavailable", reasonCode="one-or-more-symbols-unresolved")
+            result = origin.dispatch_stack_observation(rows, event, raw["mouseDriverGestures"], 200)
+            self.assertEqual(result["status"], "unavailable")
+            self.assertTrue(result["receiptValidated"])
+            self.assertEqual(result["returnAddresses"], value["returnAddresses"])
+            self.assertIsNone(result["frames"][1]["symbol"])
+            self.assertGreater(result["lastGestureReleaseObservedSystemUptime"], raw["mouseDriverGestures"][0]["releaseObservedSystemUptime"])
+            value = stack_receipt(0)
+            value.update(status="unavailable", reasonCode="empty-captured-stack")
+            rows[-1]["dispatchStackObservation"] = value
+            result = origin.dispatch_stack_observation(rows, event, raw["mouseDriverGestures"], 200)
+            self.assertTrue(result["receiptValidated"])
+            self.assertEqual(result["status"], "unavailable")
+            self.assertEqual(result["returnAddresses"], [])
 
     def test_partial_notrun_and_missing_comparison_still_write_bounded_reports(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -279,6 +415,21 @@ class EventOriginTests(unittest.TestCase):
             self.assertEqual(before, {path: capture.sha256(Path(path)) for path in before})
             with self.assertRaises(FileExistsError):
                 origin.write_analysis(parent / "analysis", report)
+
+    def test_cli_success_requires_complete_native_replay_and_stack_observation(self):
+        args = ["analyze", "--staged", "/unused/stage", "--comparison", "/unused/comparison",
+                "--output", "/unused/output", "--experiment-commit", "a" * 40]
+        for native, stack in ((True, True), (True, False), (False, True), (False, False)):
+            with self.subTest(native=native, stack=stack):
+                value = {"status": "complete" if native else "incomplete", "analysisComplete": native,
+                         "dispatchStackObservationsComplete": stack}
+                with patch.object(origin, "analyze", return_value=value), \
+                     patch.object(origin, "write_analysis") as write, \
+                     patch.object(origin.sys, "argv", args), patch("builtins.print") as printed:
+                    self.assertEqual(origin.main(), 0 if native and stack else 1)
+                    write.assert_called_once()
+                    summary = json.loads(printed.call_args.args[0])
+                    self.assertEqual(summary["dispatchStackObservationsComplete"], stack)
 
 
 if __name__ == "__main__":

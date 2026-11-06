@@ -1,8 +1,9 @@
-"""Read retained D13 evidence and describe D14 target mouse-event identities.
+"""Read retained mouse-driver evidence and describe event identity/entry stacks.
 
 Never starts a runner, posts input, changes acceptance, or calls context_for or
-input_snapshot.  The existing D13 classifier is replayed only against retained
-files; its result must equal the already-recorded comparison case.
+input_snapshot. The pinned comparator, with its explicit terminal-runner
+extension, is replayed only against retained files; its result must equal the
+already-recorded comparison case. The D13-R3 gesture protocol remains fixed.
 """
 import argparse
 from datetime import datetime
@@ -19,11 +20,14 @@ import compare_native_drag_mouse_driver as mouse
 capture, sources, activation = mouse.capture, mouse.sources, mouse.activation
 OUTPUT_NAME = "event-origin-analysis.json"
 PROTOCOL_BASE_COMMIT = "d69f6b344a0dc069027f04061686a308dae79ba4"
-D13_COMPARATOR_SHA256 = "7bab775cdcb4884aba36fae21d1ddcef7635de02b8edf5da54a8ead2fa7b54f4"
+COMPARATOR_SOURCE_SHA256 = "ca5693963391c13658a35e9bb9d78dbb4805288c7330721b04c972d89abc826c"
 DIAGNOSTIC = {"schema": 1, "protocolBaseCommit": PROTOCOL_BASE_COMMIT,
               "inputProtocol": "D13-R3-unchanged", "targetMouseEventIdentitySchema": 1}
 CONTROL_BUILD = {"executable": "Native Drag Control.app/Contents/MacOS/NativeDragControl",
-                 "swiftDefines": ["LEMULIP_EVENT_ORIGIN_TRACE"]}
+                 "swiftDefines": ["LEMULIP_EVENT_ORIGIN_TRACE", "LEMULIP_DISPATCH_STACK_TRACE"]}
+DISPATCH_STACK_DIAGNOSTIC = {"schema": 1, "capture": "first-target-leftMouseDragged-before-cgEvent",
+    "maximumFrames": 48, "symbolication": "after-held-input"}
+RUNNER_RETIREMENT_PROTOCOL = "finished-owned-instance-v2"
 CODE_FILES = {
     "eventOriginAnalyzerSourceSHA256": "script/analyze_native_drag_event_origin.py",
     "eventOriginSystemLogCollectorSourceSHA256": "script/capture_native_drag_system_log.py",
@@ -36,6 +40,8 @@ LIMITATIONS = [
     "NSEvent.cgEvent can create a corresponding CG event or be unavailable. Its PID/state fields are observations, not proof of the upstream sender; PID zero does not identify WindowServer.",
     "Matching a coordinate, post interval, or the 0.25-second suppression interval does not establish event identity or causality.",
     "Receiver systemUptime is a retained record clock. Source moved callbacks do not retain the originating NSEvent timestamp; XCTest END and observed release are not exact physical button-up timestamps.",
+    "The one-shot entry stack observes the synchronous caller at capture time, before the corresponding CG-event getter and super.sendEvent. It cannot recover an earlier asynchronous event producer or establish the cause of later activation.",
+    "Return-address capture has measured cost. Symbols are rendered after the final held-input interval; rendered text may still lack a function name, and omitted frames or truncated text are explicit.",
 ]
 
 
@@ -60,7 +66,7 @@ def digest(value, label):
 
 
 def repository_identity(commit):
-    """Bind the running analyzer/collector and unchanged D13 code to Git bytes."""
+    """Bind the running analyzer/collector and pinned comparator to Git bytes."""
     capture.require(isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit) is not None,
                     "event-origin-experiment-commit")
     def git(*arguments):
@@ -73,8 +79,8 @@ def repository_identity(commit):
         published = hashlib.sha256(git("show", commit + ":" + relative)).hexdigest()
         capture.require(published == capture.sha256(capture.ROOT / relative), "event-origin-running-source-differs")
         hashes[key] = published
-    capture.require(hashes["mouseDriverComparatorSourceSHA256"] == D13_COMPARATOR_SHA256,
-                    "event-origin-d13-comparator-changed")
+    capture.require(hashes["mouseDriverComparatorSourceSHA256"] == COMPARATOR_SOURCE_SHA256,
+                    "event-origin-comparator-changed")
     return {"tree": tree, "hashes": hashes}
 
 
@@ -89,6 +95,8 @@ def context_for_retained(stage, comparison_directory, commit):
     capture.require(provenance.get("architecture") in ("arm64", "x86_64"), "event-origin-architecture")
     equal(provenance.get("eventOriginDiagnostic"), DIAGNOSTIC, "event-origin-diagnostic-schema")
     equal(provenance.get("eventOriginControlBuild"), CONTROL_BUILD, "event-origin-control-build")
+    equal(provenance.get("dispatchStackDiagnostic"), DISPATCH_STACK_DIAGNOSTIC, "dispatch-stack-provenance")
+    equal(provenance.get("runnerRetirementProtocol"), RUNNER_RETIREMENT_PROTOCOL, "dispatch-stack-retirement-protocol")
     equal(comparison.get("provenance"), provenance, "event-origin-comparison-provenance")
     capture.fields_match(comparison, {"schema": 1, "diagnosticOnly": True, "releaseReady": False,
         "C12": "HOLD", "nativeAcceptanceXCTestExecuted": False, "physicalInputVerified": False,
@@ -245,6 +253,80 @@ def receiver_relation(rows, gesture, event, point):
         "firstReceiverAtEventLocationMinusEventTimestampSeconds": final["systemUptime"] - event["eventTimestamp"] if final else None}
 
 
+def validated_dispatch_stack(rows, event, gestures, target_pid):
+    """Validate one retained entry capture, without reinterpreting native acceptance."""
+    for name in ("activation-start", "activation-ready"):
+        markers = [row for row in rows if row["event"] == name]
+        capture.require(len(markers) == 1, "dispatch-stack-marker-count")
+        capture.fields_match(markers[0], {"targetDispatchStackSchema": 1}, "dispatch-stack-marker-schema")
+    receipts = [row for row in rows if "dispatchStackObservation" in row]
+    capture.require(len(receipts) == 1 and receipts[0]["event"] == "activation-terminating",
+                    "dispatch-stack-termination-receipt-count")
+    termination = receipts[0]
+    value = termination["dispatchStackObservation"]
+    required = {"schema", "status", "reasonCode", "targetPID", "dispatchIndex", "eventType", "eventTimestamp",
+        "mainThread", "captureStartedSystemUptime", "captureCompletedSystemUptime", "maximumFrames",
+        "capturedFrameCount", "retainedFrameCount", "returnAddresses", "framesTruncated", "symbolicationMethod",
+        "maximumSymbolCharacters", "symbolicationStartedSystemUptime", "symbolicationCompletedSystemUptime",
+        "symbolicationMainThread", "frames"}
+    capture.require(isinstance(value, dict) and set(value) == required, "dispatch-stack-receipt-schema")
+    capture.fields_match(value, {"schema": 1, "targetPID": target_pid, "dispatchIndex": event["dispatchIndex"],
+        "eventType": 6, "eventTimestamp": event["eventTimestamp"], "mainThread": True, "maximumFrames": 48,
+        "symbolicationMethod": "backtrace_symbols", "maximumSymbolCharacters": 512,
+        "symbolicationMainThread": True}, "dispatch-stack-event-binding")
+    first_drag = next((row for row in rows if row["event"] == "target-mouse-enter" and row.get("eventType") == 6), None)
+    capture.require(first_drag is event, "dispatch-stack-not-first-target-drag")
+    start = number(value["captureStartedSystemUptime"], "dispatch-stack-capture-start")
+    end = number(value["captureCompletedSystemUptime"], "dispatch-stack-capture-end")
+    symbol_start = number(value["symbolicationStartedSystemUptime"], "dispatch-stack-symbolication-start")
+    symbol_end = number(value["symbolicationCompletedSystemUptime"], "dispatch-stack-symbolication-end")
+    last_release = max(gesture["releaseObservedSystemUptime"] for gesture in gestures)
+    capture.require(activation.event_clock(event) <= start <= end <= event["systemUptime"],
+                    "dispatch-stack-capture-clock-order")
+    capture.require(end <= gestures[0]["releaseObservedSystemUptime"] <= last_release
+                    <= activation.event_clock(termination) <= symbol_start <= symbol_end <= termination["systemUptime"],
+                    "dispatch-stack-symbolication-before-release-or-outside-termination")
+    count = integer(value["capturedFrameCount"], "dispatch-stack-captured-count", maximum=4096)
+    retained = integer(value["retainedFrameCount"], "dispatch-stack-retained-count", maximum=48)
+    addresses = value["returnAddresses"]
+    capture.require(isinstance(addresses, list) and len(addresses) == retained == min(count, 48),
+                    "dispatch-stack-address-count")
+    for address in addresses:
+        capture.require(isinstance(address, str) and re.fullmatch(r"0x(?:0|[1-9a-f][0-9a-f]{0,15})", address) is not None,
+                        "dispatch-stack-address-format")
+    capture.require(type(value["framesTruncated"]) is bool and value["framesTruncated"] == (count > retained),
+                    "dispatch-stack-frame-truncation")
+    frames = value["frames"]
+    capture.require(isinstance(frames, list) and len(frames) == retained, "dispatch-stack-symbol-count")
+    for index, (address, frame) in enumerate(zip(addresses, frames)):
+        capture.require(isinstance(frame, dict) and set(frame) == {
+            "frameIndex", "returnAddress", "symbolStatus", "symbol", "symbolTruncated"}, "dispatch-stack-symbol-schema")
+        capture.fields_match(frame, {"frameIndex": index, "returnAddress": address}, "dispatch-stack-symbol-binding")
+        capture.require(type(frame["symbolTruncated"]) is bool, "dispatch-stack-symbol-truncation-type")
+        if frame["symbolStatus"] == "rendered":
+            capture.require(isinstance(frame["symbol"], str) and 1 <= len(frame["symbol"]) <= 512
+                            and "\x00" not in frame["symbol"], "dispatch-stack-symbol-bound")
+        else:
+            capture.require(frame["symbolStatus"] == "unresolved" and frame["symbol"] is None
+                            and frame["symbolTruncated"] is False, "dispatch-stack-unresolved-symbol")
+    complete = bool(frames) and all(frame["symbolStatus"] == "rendered" for frame in frames)
+    reason = None if complete else "empty-captured-stack" if not frames else "one-or-more-symbols-unresolved"
+    capture.fields_match(value, {"status": "complete" if complete else "unavailable", "reasonCode": reason},
+                         "dispatch-stack-status")
+    return {**value, "receiptValidated": True, "receipt": reference(termination, callback=True),
+        "captureDurationSeconds": end - start, "symbolicationDurationSeconds": symbol_end - symbol_start,
+        "lastGestureReleaseObservedSystemUptime": last_release, "synchronousDispatchOnly": True,
+        "upstreamSenderIdentified": False, "acceptanceUnchanged": True}
+
+
+def dispatch_stack_observation(rows, event, gestures, target_pid):
+    try:
+        return validated_dispatch_stack(rows, event, gestures, target_pid)
+    except Exception as error:
+        return {"status": "unavailable", "reasonCode": error_code(error), "receiptValidated": False,
+                "synchronousDispatchOnly": True, "upstreamSenderIdentified": False, "acceptanceUnchanged": True}
+
+
 def analyze_case(stage, context, name, recorded):
     directory = mouse.evidence_for(stage, name) / "orchard"
     raw_path = directory / "report.json"
@@ -312,6 +394,8 @@ def analyze_case(stage, context, name, recorded):
         "baseClassificationReproduced": True, "caseReportPath": str(raw_path), "caseSHA256": raw_hash,
         **hashes, "ownedPIDs": pids, "wallTimeRange": wall_time_range(rows["receiver"]),
         "targetMousePairsValidated": len(mouse_pairs), "targetMouseEventIdentitySchema": 1,
+        "dispatchStackObservation": dispatch_stack_observation(rows["activation"], event,
+            raw["mouseDriverGestures"], pids["target"]),
         "inputSource": {key: raw["inputSource"][key] for key in ("kind", "sourceStateID",
             "localEventsSuppressionInterval", "previousSuppressionIntervalFilter", "previousRemoteMouseDragFilter",
             "suppressionIntervalFilter", "remoteMouseDragFilter")},
@@ -347,6 +431,7 @@ def analyze(stage, comparison_directory, commit):
         "protocolBaseCommit": PROTOCOL_BASE_COMMIT, "inputProtocol": DIAGNOSTIC["inputProtocol"],
         "acceptanceUnchanged": True, "nativeInputExecuted": False, "analysisComplete": False,
         "comparisonPath": str(comparison_directory / "comparison.json"), "collectorPIDs": [],
+        "dispatchStackDiagnostic": DISPATCH_STACK_DIAGNOSTIC, "dispatchStackObservationsComplete": False,
         "cases": [], "limitations": LIMITATIONS}
     try:
         context, comparison = context_for_retained(stage, comparison_directory, commit)
@@ -374,6 +459,8 @@ def analyze(stage, comparison_directory, commit):
         result["collectorPIDs"] = sorted({pid for row in result["cases"] if row["status"] == "analyzed"
                                           for pid in row["ownedPIDs"].values()})
         result["analysisComplete"] = all(row["status"] == "analyzed" for row in result["cases"])
+        result["dispatchStackObservationsComplete"] = result["analysisComplete"] and all(
+            row["dispatchStackObservation"]["status"] == "complete" for row in result["cases"])
         result["status"] = "complete" if result["analysisComplete"] else (
             "invalid" if any(row["status"] == "invalid" for row in result["cases"]) else "incomplete")
     except Exception as error:
@@ -403,8 +490,9 @@ def main():
     result = analyze(args.staged.absolute(), args.comparison.absolute(), args.experiment_commit)
     write_analysis(args.output.absolute(), result)
     print(json.dumps({"status": result["status"], "analysisComplete": result["analysisComplete"],
+                      "dispatchStackObservationsComplete": result["dispatchStackObservationsComplete"],
                       "report": str(args.output.absolute() / OUTPUT_NAME)}, sort_keys=True))
-    return 0 if result["analysisComplete"] else 1
+    return 0 if result["analysisComplete"] and result["dispatchStackObservationsComplete"] else 1
 
 
 if __name__ == "__main__":
