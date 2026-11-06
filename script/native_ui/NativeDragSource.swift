@@ -15,7 +15,8 @@ private func require(_ condition: Bool, _ message: String) throws {
     if !condition { throw SourceIssue.invalid(message) }
 }
 
-private let activationCases = ["raise-first", "no-raise-first", "no-raise-second", "raise-second"]
+private let heldAXCases = ["ax-read-first", "ax-quiet-first", "ax-quiet-second", "ax-read-second"]
+private let activationCases = ["raise-first", "no-raise-first", "no-raise-second", "raise-second"] + heldAXCases
 
 private func pointJSON(_ point: NSPoint) -> [String: Double] {
     ["x": Double(point.x), "y": Double(point.y)]
@@ -72,8 +73,13 @@ private struct SourceConfiguration {
 
     var activationBinding: [String: String] {
         guard let activationCase else { return [:] }
-        return ["activationCase": activationCase,
-                "targetRaisePolicy": activationCase.hasPrefix("no-raise-") ? "omitted" : "present"]
+        var fields = ["activationCase": activationCase,
+                      "targetRaisePolicy": activationCase.hasPrefix("no-raise-") ? "omitted" : "present"]
+        if heldAXCases.contains(activationCase) {
+            fields["heldAXCase"] = activationCase
+            fields["heldAXPolicy"] = activationCase.hasPrefix("ax-quiet-") ? "omitted" : "present"
+        }
+        return fields
     }
 
     init() throws {

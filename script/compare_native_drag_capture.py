@@ -19,6 +19,8 @@ TARGETS = {
     "production": ("Lemulip Native UI Review.app", "NativeDragEvidence", "production"),
 }
 CASES = [(target, policy) for target in TARGETS for policy in ("screenshots", "ax-only")]
+HELD_AX_SUFFIXES = tuple("-Lifecycle-appkit-Activation-" + name for name in
+    ("ax-read-first", "ax-quiet-first", "ax-quiet-second", "ax-read-second"))
 
 
 class ComparisonError(ValueError):
@@ -124,13 +126,20 @@ def cleanup_complete(cleanup):
         and all(cleanup.get(k) is True for k in ("applicationStopped", "fixtureFinderWindowClosed", "fixedBundleRegistryEmpty")))
 
 
-def classify(stage, context, target, policy, returncode, evidence_suffix=""):
+def classify(stage, context, target, policy, returncode, evidence_suffix="", *, held_ax_policy=None):
     bundle, evidence_name, kind = TARGETS[target]
+    held_ax = evidence_suffix in HELD_AX_SUFFIXES
+    if held_ax:
+        expected_policy = "omitted" if "-ax-quiet-" in evidence_suffix else "present"
+        require(target == "control" and policy == "ax-only" and held_ax_policy == expected_policy,
+                "held-ax-capture-policy")
+    else:
+        require(held_ax_policy is None, "unexpected-held-ax-policy")
     require(evidence_suffix in ("", "-Lifecycle-appkit",
         "-Lifecycle-appkit-Source-finder-first", "-Lifecycle-appkit-Source-appkit-first",
         "-Lifecycle-appkit-Source-appkit-second", "-Lifecycle-appkit-Source-finder-second",
         "-Lifecycle-appkit-Activation-raise-first", "-Lifecycle-appkit-Activation-no-raise-first",
-        "-Lifecycle-appkit-Activation-no-raise-second", "-Lifecycle-appkit-Activation-raise-second"),
+        "-Lifecycle-appkit-Activation-no-raise-second", "-Lifecycle-appkit-Activation-raise-second") + HELD_AX_SUFFIXES,
         "unknown-evidence-suffix")
     evidence = stage / (evidence_name + "-Capture-" + policy + evidence_suffix)
     aggregate = read_json(evidence / "report.json")
@@ -157,7 +166,11 @@ def classify(stage, context, target, policy, returncode, evidence_suffix=""):
     fields_match(theme, {"theme": "orchard", "report": "orchard/report.json", "reportRetained": True}, "case-report-not-retained")
     require(cleanup_complete(case.get("cleanup")) and theme.get("cleanup") == case["cleanup"], "cleanup-incomplete")
     existing, single = context["roles"]["Existing"], context["roles"]["Single"]
-    observations = [o.get("workspace", {}) for o in case.get("escapeObservations", []) if o.get("phase") == "before-key"]
+    # D12's quiet arm deliberately performs no held-drag AX observation. Its
+    # initial workspace must therefore be observed before the guarded mouse-down,
+    # never inferred or copied into an omitted before-key snapshot.
+    observations = ([case.get("heldAXInitialWorkspace", {}).get("workspace", {})] if held_ax else
+        [o.get("workspace", {}) for o in case.get("escapeObservations", []) if o.get("phase") == "before-key"])
     require(len(observations) == 1, "initial-workspace-missing")
     fields_match(observations[0], {"matchesExpectedWorkspace": True, "expectedFilenames": [existing],
         "observedFilenames": [existing], "selectedCountLabels": ["1 Selected"]}, "initial-workspace-incorrect")
@@ -193,8 +206,19 @@ def classify(stage, context, target, policy, returncode, evidence_suffix=""):
     require(any(c.get("stage") == "diagnostic-after-escape-held" for c in captures), "held-observation-missing")
     durations = {}
     for capture in captures:
-        fields_match(capture, {"captureKind": "screen-and-target-ax" if policy == "screenshots" else "target-ax-only",
+        omitted = held_ax_policy == "omitted" and capture.get("stage") in (
+            "01-enter-top-padding", "02-leave-file-area", "03-reenter-top-padding",
+            "diagnostic-after-escape-held", "05-before-accepted-drop")
+        capture_kind = "held-ax-omitted" if omitted else (
+            "screen-and-target-ax" if policy == "screenshots" else "target-ax-only")
+        fields_match(capture, {"captureKind": capture_kind,
                               "imagesCaptured": policy == "screenshots"}, "capture-policy-mismatch")
+        if omitted:
+            require("workspaceAXLabels" not in capture, "omitted-capture-fabricates-ax")
+        elif held_ax:
+            require(isinstance(capture.get("workspaceAXLabels"), list)
+                    and all(isinstance(value, str) for value in capture["workspaceAXLabels"]),
+                    "observed-capture-labels-missing")
         started, finished = capture.get("captureStartedSystemUptime"), capture.get("captureCompletedSystemUptime")
         require(type(started) in (int, float) and type(finished) in (int, float)
                 and math.isfinite(started) and math.isfinite(finished) and finished >= started, "capture-clock")

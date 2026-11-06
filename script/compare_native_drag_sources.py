@@ -13,6 +13,7 @@ import compare_native_drag_lifecycle as lifecycle
 
 CASES = ("finder-first", "appkit-first", "appkit-second", "finder-second")
 ACTIVATION_CASES = ("raise-first", "no-raise-first", "no-raise-second", "raise-second")
+HELD_AX_CASES = ("ax-read-first", "ax-quiet-first", "ax-quiet-second", "ax-read-second")
 POLICY = "ax-only"
 SOURCE_BUNDLE = "Native Drag Source.app"
 SOURCE_ID = "app.lemulip.NativeDragSource"
@@ -30,7 +31,7 @@ ACTIVATION_SOURCE_EVENTS = {"window-became-key", "window-resigned-key", "window-
 
 def source_kind(case_name, *, comparison="source"):
     if comparison == "activation":
-        capture.require(case_name in ACTIVATION_CASES, "unknown-activation-case")
+        capture.require(case_name in ACTIVATION_CASES + HELD_AX_CASES, "unknown-activation-case")
         return "native-appkit"
     capture.require(comparison == "source", "unknown-comparison-family")
     capture.require(case_name in CASES, "unknown-source-case")
@@ -40,6 +41,10 @@ def source_kind(case_name, *, comparison="source"):
 def experiment_bindings(case_name, *, comparison="source"):
     source_kind(case_name, comparison=comparison)
     if comparison == "activation":
+        if case_name in HELD_AX_CASES:
+            return {"activationCase": case_name, "targetRaisePolicy": "present",
+                    "heldAXCase": case_name,
+                    "heldAXPolicy": "omitted" if case_name.startswith("ax-quiet-") else "present"}
         return {"activationCase": case_name, "targetRaisePolicy": "omitted" if case_name.startswith("no-raise-") else "present"}
     return {}
 
@@ -398,7 +403,8 @@ def classify(stage, context, case_name, returncode, *, comparison="source"):
         capture.fields_match(record, expected, "source-comparison-binding")
         startup[label] = lifecycle.lifecycle_context(record.get("observerLifecycleAtStart"), "appkit")
     result = capture.classify(stage, context, "control", POLICY, returncode,
-                             evidence_suffix=evidence_suffix(case_name, comparison=comparison))
+                             evidence_suffix=evidence_suffix(case_name, comparison=comparison),
+                             held_ax_policy=expected.get("heldAXPolicy"))
     capture.fields_match(case["cleanup"], {"sourceApplicationStopped": True, "sourceBundleRegistryEmpty": True},
                          "source-cleanup-incomplete")
     signature = geometry_signature(case, kind)

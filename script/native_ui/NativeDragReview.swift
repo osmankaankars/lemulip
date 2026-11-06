@@ -37,13 +37,28 @@ private enum DragCaptureComparison: String {
 // The source experiment keeps the AppKit observer and reference destination
 // fixed. The separate activation experiment uses only the native source and
 // omits all observer-owned target AXRaise requests in its two no-raise cases.
+// D12 uses the same activation receipts with target raises present in all four
+// cases, varying only explicit observer AX reads during held observation slots.
 private enum DragSourceComparison: String, CaseIterable {
     case finderFirst = "finder-first", appkitFirst = "appkit-first"
     case appkitSecond = "appkit-second", finderSecond = "finder-second"
     case raiseFirst = "raise-first", noRaiseFirst = "no-raise-first"
     case noRaiseSecond = "no-raise-second", raiseSecond = "raise-second"
+    case axReadFirst = "ax-read-first", axQuietFirst = "ax-quiet-first"
+    case axQuietSecond = "ax-quiet-second", axReadSecond = "ax-read-second"
+
+    var isHeldAXComparison: Bool {
+        switch self {
+        case .axReadFirst, .axQuietFirst, .axQuietSecond, .axReadSecond: return true
+        default: return false
+        }
+    }
+    var heldAXPolicy: String {
+        self == .axQuietFirst || self == .axQuietSecond ? "omitted" : "present"
+    }
 
     var isActivationComparison: Bool {
+        if isHeldAXComparison { return true }
         switch self {
         case .raiseFirst, .noRaiseFirst, .noRaiseSecond, .raiseSecond: return true
         default: return false
@@ -60,7 +75,13 @@ private enum DragSourceComparison: String, CaseIterable {
          isActivationComparison ? "--compare-activation" : "--compare-source", rawValue]
     }
     var activationBinding: [String: Any] {
-        isActivationComparison ? ["activationCase": rawValue, "targetRaisePolicy": targetRaisePolicy] : [:]
+        guard isActivationComparison else { return [:] }
+        var fields: [String: Any] = ["activationCase": rawValue, "targetRaisePolicy": targetRaisePolicy]
+        if isHeldAXComparison {
+            fields["heldAXCase"] = rawValue
+            fields["heldAXPolicy"] = heldAXPolicy
+        }
+        return fields
     }
 }
 
@@ -433,6 +454,14 @@ private final class DragReview {
     private var events: [[String: Any]] = []
     private var mouseEventRecords: [[String: Any]] = []
     private var pauseRecords: [[String: Any]] = []
+    private var heldAXReads: [[String: Any]] = []
+    private var heldAXSlots: [[String: Any]] = []
+    private var heldAXReadGuardViolations: [[String: Any]] = []
+    private var heldAXPolicy: String? {
+        guard let comparison = sourceComparison, comparison.isHeldAXComparison else { return nil }
+        return comparison.heldAXPolicy
+    }
+    private var omitsHeldAX: Bool { mouseDown && heldAXPolicy == "omitted" }
     private let relevantModifiers: CGEventFlags = [.maskCommand, .maskShift, .maskAlternate, .maskControl]
     private var diagnosticSnapshots: [[String: Any]] = []
     private let expiresAt = ProcessInfo.processInfo.systemUptime + 110
@@ -477,6 +506,10 @@ private final class DragReview {
                 record["targetRaiseRequests"] = [[String: Any]]()
                 record["scope"] = "Fixed native source and reference destination; observer target AXRaise present versus omitted before input. No production or physical-input acceptance claim."
             }
+            if sourceComparison.isHeldAXComparison {
+                record["heldAXSlotSeconds"] = 0.25
+                record["scope"] = "Fixed native source and plain target with 0.25-second observation slots; explicit observer AX reads during held gestures are present or omitted. Final cancellation and fresh-drop checks remain required. Diagnostic only."
+            }
         }
     }
 
@@ -491,8 +524,23 @@ private final class DragReview {
 
     private func read(_ node: AXUIElement, _ key: String) throws -> CFTypeRef? {
         try require(ProcessInfo.processInfo.systemUptime < expiresAt, "The bounded native drag review timed out")
+        if omitsHeldAX {
+            heldAXReadGuardViolations.append(["attribute": key,
+                "systemUptime": ProcessInfo.processInfo.systemUptime])
+            throw DragReviewIssue.failed("The held-AX quiet policy forbids an observer AX attribute read while its mouse button is held")
+        }
+        let traceHeldRead = mouseDown && heldAXPolicy != nil
+        if traceHeldRead {
+            try require(heldAXReads.count < 8_192, "The held AX read journal exceeded its bounded size")
+        }
+        let started = ProcessInfo.processInfo.systemUptime
         var value: CFTypeRef?
         let error = AXUIElementCopyAttributeValue(node, key as CFString, &value)
+        if traceHeldRead {
+            heldAXReads.append(["readIndex": heldAXReads.count, "attribute": key,
+                "startedSystemUptime": started, "completedSystemUptime": ProcessInfo.processInfo.systemUptime,
+                "status": error.rawValue])
+        }
         switch error {
         case .success: return value
         case .attributeUnsupported, .noValue: return nil
@@ -578,6 +626,28 @@ private final class DragReview {
                 record["pauseTimings"] = pauseRecords
             } else { record["pauseTimingLimitReached"] = true }
         }
+    }
+
+    // D12 holds a fixed nominal observation slot in both arms. Omissions are
+    // explicit evidence, never reconstructed labels. A slow read fails the
+    // experiment rather than borrowing time from a later gesture phase.
+    private func finishHeldAXSlot(_ stage: String, started: Double) async throws {
+        guard mouseDown, let policy = heldAXPolicy else { return }
+        let duration = 0.25
+        let operationCompleted = ProcessInfo.processInfo.systemUptime
+        let scheduledEnd = started + duration
+        var slot: [String: Any] = ["slotIndex": heldAXSlots.count, "stage": stage, "policy": policy,
+            "startedSystemUptime": started, "operationCompletedSystemUptime": operationCompleted,
+            "scheduledEndSystemUptime": scheduledEnd, "requestedSeconds": duration,
+            "operationWithinBudget": operationCompleted <= scheduledEnd]
+        if operationCompleted > scheduledEnd {
+            slot["completedSystemUptime"] = operationCompleted
+            heldAXSlots.append(slot)
+            throw DragReviewIssue.failed("The held AX observation exceeded its fixed 0.25-second slot: " + stage)
+        }
+        try await pause(scheduledEnd - operationCompleted)
+        slot["completedSystemUptime"] = ProcessInfo.processInfo.systemUptime
+        heldAXSlots.append(slot)
     }
 
     private func wait(_ message: String, seconds: Double = 8, retryWindowReadiness: Bool = false,
@@ -881,19 +951,30 @@ private final class DragReview {
         return observation
     }
 
-    private func recordEscapeObservation(_ phase: String, expected: Set<String>) throws {
-        var observation: [String: Any] = ["phase": phase, "startedSystemUptime": ProcessInfo.processInfo.systemUptime]
+    private func recordEscapeObservation(_ phase: String, expected: Set<String>) async throws {
+        let started = ProcessInfo.processInfo.systemUptime
+        var observation: [String: Any] = ["phase": phase, "startedSystemUptime": started]
+        if let heldAXPolicy { observation["heldAXPolicy"] = heldAXPolicy }
         defer {
-            observation["completedSystemUptime"] = ProcessInfo.processInfo.systemUptime
+            if observation["completedSystemUptime"] == nil {
+                observation["completedSystemUptime"] = ProcessInfo.processInfo.systemUptime
+            }
             var observations = record["escapeObservations"] as? [[String: Any]] ?? []
             observations.append(observation)
             record["escapeObservations"] = observations
         }
         do {
             try assertTargets()
-            observation["workspace"] = try workspaceObservation(expected).evidence
-            observation["focusedUIElement"] = try focusedReviewElementObservation()
-            observation["status"] = "observed"
+            if omitsHeldAX {
+                observation["status"] = "omitted"
+                observation["reason"] = "D12 deliberately omits observer AX reads while its mouse button is held"
+            } else {
+                observation["workspace"] = try workspaceObservation(expected).evidence
+                observation["focusedUIElement"] = try focusedReviewElementObservation()
+                observation["status"] = "observed"
+            }
+            observation["completedSystemUptime"] = ProcessInfo.processInfo.systemUptime
+            try await finishHeldAXSlot("escape-observation:" + phase, started: started)
         } catch {
             observation["status"] = "failed"
             observation["reason"] = String(describing: error)
@@ -1327,27 +1408,33 @@ private final class DragReview {
         guard let output else { throw DragReviewIssue.failed("Evidence destination is not ready") }
         try assertTargets()
         if captureComparison == .axOnly {
-            let list = try appNodes()
-            let labels = try list.compactMap { node -> String? in
-                let role = try text(node, kAXRoleAttribute)
-                guard role == kAXButtonRole || role == kAXStaticTextRole else { return nil }
-                return try names(node).sorted().joined(separator: " | ")
+            var labels: [String]?
+            if !omitsHeldAX {
+                let list = try appNodes()
+                labels = try list.compactMap { node -> String? in
+                    let role = try text(node, kAXRoleAttribute)
+                    guard role == kAXButtonRole || role == kAXStaticTextRole else { return nil }
+                    return try names(node).sorted().joined(separator: " | ")
+                }
             }
-            let event: [String: Any] = [
-                "stage": name, "captureKind": "target-ax-only", "imagesCaptured": false,
+            var event: [String: Any] = [
+                "stage": name, "captureKind": omitsHeldAX ? "held-ax-omitted" : "target-ax-only", "imagesCaptured": false,
                 "pointer": ["x": pointer.x, "y": pointer.y], "mouseDownSent": mouseDown,
                 "leftButtonReportedDown": CGEventSource.buttonState(.combinedSessionState, button: .left),
                 "displayPreferences": observedDisplayPreferences,
                 "captureStartedSystemUptime": started,
                 "captureCompletedSystemUptime": ProcessInfo.processInfo.systemUptime,
-                "time": ISO8601DateFormatter().string(from: Date()), "workspaceAXLabels": labels,
+                "time": ISO8601DateFormatter().string(from: Date()),
                 "foregroundBundleIdentifier": NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "none"
             ]
+            if let labels { event["workspaceAXLabels"] = labels }
+            if let heldAXPolicy { event["heldAXPolicy"] = heldAXPolicy }
             if setup { record["setupSnapshot"] = event }
             else if diagnostic { diagnosticSnapshots.append(event) }
             else { events.append(event) }
             try JSONSerialization.data(withJSONObject: event, options: [.prettyPrinted, .sortedKeys])
                 .write(to: output.appendingPathComponent(name + ".json"), options: .atomic)
+            try await finishHeldAXSlot("capture:" + name, started: started)
             return
         }
         let image = output.appendingPathComponent(name + ".png")
@@ -1554,6 +1641,13 @@ private final class DragReview {
         try requireHit(outside, owner: app.processIdentifier, stage: "cancel-outside")
         try requireHit(escapeMotionPoint, owner: app.processIdentifier, stage: "cancel-held-motion")
         try await capture("00-before-drag")
+        if heldAXPolicy != nil {
+            let started = ProcessInfo.processInfo.systemUptime
+            let initial = try workspaceObservation([existing.lastPathComponent])
+            record["heldAXInitialWorkspace"] = ["startedSystemUptime": started,
+                "completedSystemUptime": ProcessInfo.processInfo.systemUptime, "workspace": initial.evidence]
+            try require(initial.matches, "The D12 initial workspace must contain exactly Existing before input")
+        }
         try mouse(.leftMouseDown, at: source)
         try await pause(0.3)
         try await moveHeld(to: enter)
@@ -1562,7 +1656,7 @@ private final class DragReview {
         try await capture("02-leave-file-area")
         try await moveHeld(to: enter)
         try await capture("03-reenter-top-padding")
-        try recordEscapeObservation("before-key", expected: [existing.lastPathComponent])
+        try await recordEscapeObservation("before-key", expected: [existing.lastPathComponent])
         recordEscapeInputState(target == .keyboardControl ? "before-xctest-request" : "before-key-post")
         if target == .keyboardControl { try await escapeWithKeyboardDriver() }
         else { try await escapeWithDwell(movingTo: escapeMotionPoint) } // Escape while the same drag is still held.
@@ -1571,7 +1665,7 @@ private final class DragReview {
         let diagnosticStarted = ProcessInfo.processInfo.systemUptime
         recordEscapeInputState("before-held-observation")
         do {
-            try recordEscapeObservation("after-key-held", expected: [existing.lastPathComponent])
+            try await recordEscapeObservation("after-key-held", expected: [existing.lastPathComponent])
             try await capture("diagnostic-after-escape-held", diagnostic: true)
             let completed = ProcessInfo.processInfo.systemUptime
             record["escapeHeldDiagnostic"] = [
@@ -1799,6 +1893,12 @@ private final class DragReview {
     func finish() throws {
         guard let output else { throw DragReviewIssue.failed("The per-theme evidence destination was not created") }
         if let driver = keyboardDriver { record["keyboardDriver"] = driver.evidence }
+        if heldAXPolicy != nil {
+            record["heldAXReads"] = heldAXReads
+            record["heldAXReadCount"] = heldAXReads.count
+            record["heldAXSlots"] = heldAXSlots
+            record["heldAXReadGuardViolations"] = heldAXReadGuardViolations
+        }
         let data = try JSONSerialization.data(withJSONObject: record, options: [.prettyPrinted, .sortedKeys])
         try data.write(to: output.appendingPathComponent("report.json"), options: .atomic)
     }
@@ -1867,6 +1967,10 @@ private struct NativeDragReview {
             if sourceComparison.isActivationComparison {
                 aggregate.merge(sourceComparison.activationBinding) { _, fixed in fixed }
                 aggregate["scope"] = "One fixed native-source case with observer target AXRaise present or omitted. Activation receipts are separate from strict cancellation and fresh-drop acceptance."
+            }
+            if sourceComparison.isHeldAXComparison {
+                aggregate["heldAXSlotSeconds"] = 0.25
+                aggregate["scope"] = "One fixed native-source case with present target raises and 0.25-second held observation slots; observer AX reads are explicitly present or omitted. Strict final cancellation and fresh-drop acceptance remain required."
             }
         }
         do {

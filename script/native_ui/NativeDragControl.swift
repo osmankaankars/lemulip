@@ -17,7 +17,8 @@ private func require(_ condition: Bool, _ message: String) throws {
     if !condition { throw ControlIssue.invalid(message) }
 }
 
-private let activationCases = ["raise-first", "no-raise-first", "no-raise-second", "raise-second"]
+private let heldAXCases = ["ax-read-first", "ax-quiet-first", "ax-quiet-second", "ax-read-second"]
+private let activationCases = ["raise-first", "no-raise-first", "no-raise-second", "raise-second"] + heldAXCases
 
 private struct ControlConfiguration {
     let theme: String
@@ -51,6 +52,10 @@ private struct ControlConfiguration {
         if let activationCase, let targetRaisePolicy {
             fields["activationCase"] = activationCase
             fields["targetRaisePolicy"] = targetRaisePolicy
+            if heldAXCases.contains(activationCase) {
+                fields["heldAXCase"] = activationCase
+                fields["heldAXPolicy"] = activationCase.hasPrefix("ax-quiet-") ? "omitted" : "present"
+            }
         }
         return fields
     }
@@ -94,7 +99,8 @@ private struct ControlConfiguration {
         case "source-finder-first", "source-appkit-first", "source-appkit-second", "source-finder-second":
             evidenceName = "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-Source-"
                 + String(evidenceKind.dropFirst("source-".count))
-        case "activation-raise-first", "activation-no-raise-first", "activation-no-raise-second", "activation-raise-second":
+        case "activation-raise-first", "activation-no-raise-first", "activation-no-raise-second", "activation-raise-second",
+             "activation-ax-read-first", "activation-ax-quiet-first", "activation-ax-quiet-second", "activation-ax-read-second":
             evidenceName = "NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-Activation-"
                 + String(evidenceKind.dropFirst("activation-".count))
         default: evidenceName = "NativeDragControlEvidence"

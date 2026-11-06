@@ -1,0 +1,175 @@
+name: Native Drag Held AX Observation Comparison
+
+on:
+  push:
+    branches: ['codex/drag-held-ax-comparison-07']
+    paths:
+      - '.github/workflows/native-drag-held-ax-comparison.yml'
+      - 'script/compare_native_drag_held_ax.py'
+      - 'script/test_compare_native_drag_held_ax.py'
+      - 'script/compare_native_drag_activation.py'
+      - 'script/test_compare_native_drag_activation.py'
+      - 'script/compare_native_drag_sources.py'
+      - 'script/test_compare_native_drag_sources.py'
+      - 'script/compare_native_drag_lifecycle.py'
+      - 'script/test_compare_native_drag_lifecycle.py'
+      - 'script/compare_native_drag_capture.py'
+      - 'script/test_compare_native_drag_capture.py'
+      - 'script/native_ui/NativeDragReview.swift'
+      - 'script/native_ui/NativeDragControl.swift'
+      - 'script/native_ui/NativeDragSource.swift'
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+  CANDIDATE_COMMIT: d821d7343675e2850705d141ef9b3b93a6aee945
+  CANDIDATE_TREE: 425baa28f00ec24551dd70c0cc874a75fa3be0c1
+  OBSERVER_BASE: 4f894c73979a3edab0ea067064cf1f2988f32b6f
+
+concurrency:
+  group: native-drag-held-ax-${{ github.ref }}
+  cancel-in-progress: true
+
+# Diagnostic only: fixed native source/control; observer held-drag AX reads present or omitted.
+# Both arms keep target AXRaise and the same bounded 0.25-second observation slots.
+# Existing permissions are read, never granted. C12 is built only for staging.
+jobs:
+  compare:
+    name: Orchard Held AX Comparison (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - name: Check Out Observer Experiment
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Check Exact Observer Source And Existing Gates
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+          test "$(uname -m)" = '${{ matrix.arch }}'
+          git merge-base --is-ancestor "$OBSERVER_BASE" HEAD
+          python3 script/privacy_check.py
+          python3 script/test_compare_native_drag_held_ax.py
+          python3 script/test_compare_native_drag_activation.py
+          python3 script/test_compare_native_drag_sources.py
+          python3 script/test_compare_native_drag_lifecycle.py
+          python3 script/test_compare_native_drag_capture.py
+          python3 script/test_native_release_gate.py
+          python3 script/test_native_coverage.py
+          python3 script/test_prepare_native_ui.py
+      - name: Check Out Exact C12 Application
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ env.CANDIDATE_COMMIT }}
+          path: candidate-source
+          persist-credentials: false
+      - name: Check Application Pins
+        working-directory: candidate-source
+        run: |
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_COMMIT"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$CANDIDATE_TREE"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+      - name: Build Unchanged C12 Application
+        working-directory: candidate-source
+        env:
+          CONFIGURATION: debug
+          LEMULIP_ENGINE_PACKS: ''
+        run: ./script/build_app.sh
+      - name: Stage One Application And Fixture Set
+        working-directory: candidate-source
+        run: >-
+          python3 script/prepare_native_ui.py --app dist/Lemulip.app
+          --output "$RUNNER_TEMP/lemulip-native-ui"
+      - name: Build Fixed AppKit Observer And Native Control And Source
+        run: |
+          xcrun swiftc -parse-as-library script/native_ui/NativeDragReview.swift \
+            -o "$RUNNER_TEMP/lemulip-native-ui/NativeDragReview"
+          xcrun swiftc -D LEMULIP_APPKIT_OBSERVER -parse-as-library script/native_ui/NativeDragReview.swift \
+            -o "$RUNNER_TEMP/lemulip-native-ui/NativeDragReviewAppKit"
+          python3 - <<'PYCODE'
+          import os, pathlib, plistlib
+          root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'lemulip-native-ui'
+          for role in ('Control', 'Source'):
+              name = 'Native Drag ' + role
+              executable = 'NativeDrag' + role
+              contents = root / (name + '.app') / 'Contents'
+              (contents / 'MacOS').mkdir(parents=True, exist_ok=False)
+              info = {'CFBundleIdentifier': 'app.lemulip.' + executable,
+                      'CFBundleExecutable': executable, 'CFBundleName': name,
+                      'CFBundleDisplayName': name, 'CFBundlePackageType': 'APPL',
+                      'CFBundleShortVersionString': '0.0.0', 'CFBundleVersion': '1',
+                      'NSPrincipalClass': executable + 'Application',
+                      'NSHighResolutionCapable': True, 'LSMinimumSystemVersion': '13.0'}
+              (contents / 'Info.plist').write_bytes(plistlib.dumps(info))
+          PYCODE
+          xcrun swiftc -parse-as-library -module-name NativeDragControl \
+            script/native_ui/NativeDragControl.swift \
+            -o "$RUNNER_TEMP/lemulip-native-ui/Native Drag Control.app/Contents/MacOS/NativeDragControl"
+          xcrun swiftc -parse-as-library -module-name NativeDragSource \
+            script/native_ui/NativeDragSource.swift \
+            -o "$RUNNER_TEMP/lemulip-native-ui/Native Drag Source.app/Contents/MacOS/NativeDragSource"
+          codesign --force --sign - "$RUNNER_TEMP/lemulip-native-ui/Native Drag Control.app"
+          codesign --verify --strict "$RUNNER_TEMP/lemulip-native-ui/Native Drag Control.app"
+          codesign --force --sign - "$RUNNER_TEMP/lemulip-native-ui/Native Drag Source.app"
+          codesign --verify --strict "$RUNNER_TEMP/lemulip-native-ui/Native Drag Source.app"
+      - name: Record Observer And Source Builds And Unchanged Application Provenance
+        run: |
+          python3 - <<'PYCODE'
+          import hashlib, json, os, pathlib, subprocess
+          root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'lemulip-native-ui'
+          path = root / 'provenance.json'
+          record = json.loads(path.read_text())
+          assert record['sourceCommit'] == os.environ['CANDIDATE_COMMIT']
+          assert record['sourceTree'] == os.environ['CANDIDATE_TREE']
+          digest = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+          record.update(observerExperimentCommit=os.environ['GITHUB_SHA'],
+                        observerExperimentTree=subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], text=True).strip(),
+                        nativeDragReviewSourceSHA256=digest(pathlib.Path('script/native_ui/NativeDragReview.swift')),
+                        heldAXComparatorSourceSHA256=digest(pathlib.Path('script/compare_native_drag_held_ax.py')),
+                        nativeDragControlSourceSHA256=digest(pathlib.Path('script/native_ui/NativeDragControl.swift')),
+                        nativeDragSourceSourceSHA256=digest(pathlib.Path('script/native_ui/NativeDragSource.swift')),
+                        observerExecutableSHA256=digest(root / 'NativeDragReview'),
+                        observerAppKitExecutableSHA256=digest(root / 'NativeDragReviewAppKit'),
+                        observerBuildModes={
+                          'swift-async': {'executable': 'NativeDragReview', 'swiftDefines': []},
+                          'appkit': {'executable': 'NativeDragReviewAppKit', 'swiftDefines': ['LEMULIP_APPKIT_OBSERVER']}},
+                        controlGUI_SHA256=digest(root / 'Native Drag Control.app/Contents/MacOS/NativeDragControl'),
+                        sourceGUI_SHA256=digest(root / 'Native Drag Source.app/Contents/MacOS/NativeDragSource'),
+                        diagnosticOnly=True, nativeAcceptanceXCTestExecuted=False,
+                        scope='Four same-path Orchard native-source control cases with observer AX reads during held drag present or omitted; both arms retain target AXRaise, bounded 0.25-second observation slots, and strict postrelease acceptance. Actual slot completion times are reported separately. C12 HOLD and native acceptance remain unchanged.')
+          path.write_text(json.dumps(record, indent=2) + '\n')
+          PYCODE
+      - name: Compare Four Serial Held AX Cases In One Existing CI Session
+        run: >-
+          python3 script/compare_native_drag_held_ax.py
+          --staged "$RUNNER_TEMP/lemulip-native-ui"
+          --output "$RUNNER_TEMP/drag-held-ax-comparison"
+          --experiment-commit "$GITHUB_SHA"
+      - name: Confirm Source Remains Unchanged
+        if: always()
+        run: |
+          git diff --exit-code HEAD --
+          if test -d candidate-source/.git; then git -C candidate-source diff --exit-code HEAD --; fi
+      - name: Retain Every Comparison Result
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Drag-Held-AX-${{ matrix.arch }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/lemulip-native-ui/provenance.json
+            ${{ runner.temp }}/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-Activation-ax-*
+            ${{ runner.temp }}/drag-held-ax-comparison
+          if-no-files-found: error
+          retention-days: 14
