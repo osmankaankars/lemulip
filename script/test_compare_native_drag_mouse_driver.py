@@ -266,8 +266,9 @@ def emit(stage, context, case_name, *, passed=False, none_after_release=False):
         "runnerPID": 400, "processPID": 401, "startedSystemUptime": 1., "expiresSystemUptime": 110., "processExitStatus": 0,
         "cleanup": {"stopConfirmed": True, "processStopped": True, "runnerRegistryEmpty": True,
             "finishedPublished": True, "finishedAcknowledged": True, "normalCompletion": True, "terminationRequested": False,
-            "forceTerminationRequested": False, "gestureOutstanding": False, "timeoutSeconds": 8, "elapsedSeconds": .2, "errors": []},
-        "requests": [], "requestPublications": [], "markerReceipts": []}
+            "forceTerminationRequested": False, "gestureOutstanding": False, "runnerRetirementObserved": False,
+            "timeoutSeconds": 8, "elapsedSeconds": .2, "errors": []},
+        "requests": [], "requestPublications": [], "markerReceipts": [], "runnerRetirementObservations": []}
     if producer == "xctest":
         for index, gesture in enumerate(gestures, 1):
             request = {"schema": 1, "case": case_name, "nonce": config["nonce"], "action": "click-drag-hold", "theme": "orchard",
@@ -325,6 +326,18 @@ def alter_case(stage, name, action, *, snapshots=False):
     if snapshots:
         for snapshot in [record["setupSnapshot"], *record["stages"]]:
             (directory / (snapshot["stage"] + ".json")).write_text(json.dumps(snapshot))
+
+
+def add_retirement(record):
+    driver = record["mouseControlDriver"]
+    finished_observed = driver["markerReceipts"][-1]["observedSystemUptime"]
+    observation = {"runnerPID": driver["runnerPID"], "observedSystemUptime": finished_observed + .01,
+        "finishedObservedSystemUptime": finished_observed, "registryCount": 1, "boundRunnerPIDMatches": True,
+        "bundleURLMissing": True, "executableURLMissing": True, "finishedAcknowledged": True,
+        "finishedPublished": True, "gestureOutstanding": False, "processNotTerminated": True}
+    driver["runnerRetirementObservations"] = [observation]
+    driver["cleanup"]["runnerRetirementObserved"] = True
+    return observation
 
 
 class MouseDriverComparisonTests(unittest.TestCase):
@@ -438,6 +451,61 @@ class MouseDriverComparisonTests(unittest.TestCase):
             "before-xctest-end-observed": lambda r: r["mouseDriverGestures"][0].update(
                 releaseRequestCompletedSystemUptime=r["mouseControlDriver"]["markerReceipts"][2]["observedSystemUptime"] - .001),
         }, at="xctest-first")
+
+    def test_finished_owned_runner_retirement_preserves_strict_gesture_outcomes(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            stage, context = fixture(Path(temporary))
+            def change(stage, name):
+                alter_case(stage, name, add_retirement)
+            report, commands = self.run_cases(stage, context, Path(temporary) / "out",
+                lambda name: name.startswith("xctest"), change)
+            self.assertEqual(len(commands), 4)
+            self.assertTrue(report["comparisonComplete"], report["cases"])
+            self.assertEqual([row["passed"] for row in report["cases"]], [False, True, True, False])
+            for row in report["cases"]:
+                driver = row["mouseControlDriver"]
+                self.assertTrue(driver["normalCompletion"])
+                self.assertEqual(len(driver["runnerRetirementObservations"]), 1)
+                self.assertEqual(driver["runnerRetirementObservations"][0]["runnerPID"], driver["runnerPID"])
+
+    def test_retirement_requires_finished_owned_nil_urls_and_bounded_clocks(self):
+        def mutate_observation(action):
+            return lambda record: action(add_retirement(record))
+
+        self.assert_stopped_mutations({name: mutate_observation(action) for name, action in {
+            "unknown-pid": lambda row: row.update(runnerPID=999),
+            "unbound-pid": lambda row: row.update(boundRunnerPIDMatches=False),
+            "ambiguous-registry": lambda row: row.update(registryCount=2),
+            "bundle-url-present": lambda row: row.update(bundleURLMissing=False),
+            "executable-url-present": lambda row: row.update(executableURLMissing=False),
+            "finished-not-published": lambda row: row.update(finishedPublished=False),
+            "finished-not-validated": lambda row: row.update(finishedAcknowledged=False),
+            "gesture-running": lambda row: row.update(gestureOutstanding=True),
+            "before-finished-observed": lambda row: row.update(observedSystemUptime=row["finishedObservedSystemUptime"] - .001),
+            "wrong-finished-clock": lambda row: row.update(finishedObservedSystemUptime=row["finishedObservedSystemUptime"] - .01),
+            "after-stop-completed": lambda row: row.update(observedSystemUptime=24.201),
+            "invalid-process-state": lambda row: row.update(processNotTerminated=1),
+        }.items()})
+
+        def mutate_driver(action):
+            def change(record):
+                add_retirement(record)
+                action(record["mouseControlDriver"])
+            return change
+
+        self.assert_stopped_mutations({name: mutate_driver(action) for name, action in {
+            "retirement-flag-missing": lambda driver: driver["cleanup"].update(runnerRetirementObserved=False),
+            "abnormal-exit": lambda driver: driver.update(processExitStatus=1),
+            "registry-remains": lambda driver: driver["cleanup"].update(runnerRegistryEmpty=False),
+            "signal-sent": lambda driver: driver["cleanup"].update(terminationRequested=True),
+            "retained-identity-error": lambda driver: driver["cleanup"].update(errors=["unexpected identity"]),
+            "repeated-clock": lambda driver: driver["runnerRetirementObservations"].append(
+                copy.deepcopy(driver["runnerRetirementObservations"][0])),
+            "too-many-observations": lambda driver: driver.update(runnerRetirementObservations=
+                driver["runnerRetirementObservations"] * 162),
+            "beyond-eight-seconds": lambda driver: (driver["cleanup"].update(elapsedSeconds=9.),
+                driver["runnerRetirementObservations"][0].update(observedSystemUptime=32.001)),
+        }.items()}, at="xctest-first")
 
     def assert_stopped_mutations(self, mutations, *, passed=False, at="quartz-first", snapshots=False):
         for label, mutation in mutations.items():

@@ -44,6 +44,8 @@ final class MouseControlDriver {
     private var ready = false
     private var finishedAt: Double?
     private var finishedAcknowledged = false
+    private var finishedObservedAt: Double?
+    private var retirementObserved = false
     private var protocolFailed = false
     private var lastMarkerTime = 0.0
     private(set) var completedNormally = false
@@ -103,7 +105,8 @@ final class MouseControlDriver {
             "mouseConfigurationSHA256": digest(configurationData), "mouseXCTestRunSHA256": digest(testRunData),
             "readyTimeoutSeconds": 60, "gestureTimeoutSeconds": 20, "lifetimeSeconds": 150,
             "stopTimeoutSeconds": 8, "publishedRequestCount": 0, "completedRequestCount": 0,
-            "requests": [[String: Any]](), "markerReceipts": [[String: Any]]()
+            "requests": [[String: Any]](), "markerReceipts": [[String: Any]](),
+            "runnerRetirementObservations": [[String: Any]]()
         ]
     }
 
@@ -185,7 +188,7 @@ final class MouseControlDriver {
                     "Could not publish the exclusive mouse protocol file")
     }
 
-    private func currentRunner() throws -> NSRunningApplication? {
+    private func currentRunner(allowRetirementUntil retirementDeadline: Double? = nil) throws -> NSRunningApplication? {
         let matches = NSRunningApplication.runningApplications(withBundleIdentifier: runnerIdentifier)
         if matches.count > 1 {
             recordIdentityFailure("registry", checks: ["registryUnique": false, "driverStarted": started,
@@ -193,12 +196,37 @@ final class MouseControlDriver {
         }
         try require(matches.count <= 1, "The fixed mouse runner is ambiguous")
         guard let current = matches.first else { return nil }
+        let bundleURL = current.bundleURL
+        let executableURL = current.executableURL
+        let processNotTerminated = !current.isTerminated
+        let observed = ProcessInfo.processInfo.systemUptime
+        // Only stop may observe this terminal transition. FINISHED has already
+        // proved released input; a previously bound PID with both URLs absent
+        // is observed until exit, never returned as a signal target.
+        if let retirementDeadline, let runner, let finishedObservedAt,
+           started && ready && finishedAt != nil && finishedAcknowledged && !protocolFailed && !gestureRunning,
+           current.processIdentifier == runner.processIdentifier,
+           bundleURL == nil && executableURL == nil,
+           finishedObservedAt < observed && observed <= retirementDeadline {
+            var observations = evidence["runnerRetirementObservations"] as? [[String: Any]] ?? []
+            try require(observations.count < 161, "The terminal mouse runner observation exceeded its bound")
+            observations.append([
+                "runnerPID": Int(current.processIdentifier), "observedSystemUptime": observed,
+                "finishedObservedSystemUptime": finishedObservedAt, "registryCount": matches.count,
+                "boundRunnerPIDMatches": true, "bundleURLMissing": true, "executableURLMissing": true,
+                "finishedAcknowledged": true, "finishedPublished": true, "gestureOutstanding": false,
+                "processNotTerminated": processNotTerminated
+            ])
+            evidence["runnerRetirementObservations"] = observations
+            retirementObserved = true
+            return nil
+        }
         let checks: [String: Bool] = [
-            "driverStarted": started, "processNotTerminated": !current.isTerminated,
-            "bundlePathMatches": current.bundleURL?.standardizedFileURL.path == runnerBundle.path,
-            "resolvedBundlePathMatches": current.bundleURL?.resolvingSymlinksInPath().path == runnerBundle.path,
-            "executablePathMatches": current.executableURL?.standardizedFileURL.path == runnerExecutable.path,
-            "resolvedExecutablePathMatches": current.executableURL?.resolvingSymlinksInPath().path == runnerExecutable.path
+            "driverStarted": started, "processNotTerminated": processNotTerminated,
+            "bundlePathMatches": bundleURL?.standardizedFileURL.path == runnerBundle.path,
+            "resolvedBundlePathMatches": bundleURL?.resolvingSymlinksInPath().path == runnerBundle.path,
+            "executablePathMatches": executableURL?.standardizedFileURL.path == runnerExecutable.path,
+            "resolvedExecutablePathMatches": executableURL?.resolvingSymlinksInPath().path == runnerExecutable.path
         ]
         let identityMatches = checks.values.allSatisfy { $0 }
         if !identityMatches { recordIdentityFailure("process-identity", checks: checks) }
@@ -251,9 +279,11 @@ final class MouseControlDriver {
             try validateMarker(marker, witness: witness)
             markerLines.append(line)
             var receipts = evidence["markerReceipts"] as? [[String: Any]] ?? []
+            let observed = ProcessInfo.processInfo.systemUptime
             receipts.append(["marker": marker, "line": line, "witness": witness,
-                             "observedSystemUptime": ProcessInfo.processInfo.systemUptime])
+                             "observedSystemUptime": observed])
             evidence["markerReceipts"] = receipts
+            if marker == "FINISHED" { finishedObservedAt = observed }
         }
         try require(!protocolFailed, "The public XCTest mouse driver reported failure")
     }
@@ -576,16 +606,25 @@ final class MouseControlDriver {
         repeat {
             let now = ProcessInfo.processInfo.systemUptime
             var verifiedRunner: NSRunningApplication?
-            do { verifiedRunner = try currentRunner() }
+            // Read the terminal handshake before inspecting transient process
+            // metadata. A partial or invalid marker still fails closed.
+            if started {
+                do { try refreshMarkers() }
+                catch { if errors.isEmpty { errors.append(String(describing: error)) } }
+            }
+            do {
+                verifiedRunner = try currentRunner(
+                    allowRetirementUntil: finishPublished && errors.isEmpty ? deadline : nil)
+            }
             catch { if errors.isEmpty { errors.append(String(describing: error)) } }
             let registryEmpty = NSRunningApplication.runningApplications(withBundleIdentifier: runnerIdentifier).isEmpty
             if !process.isRunning && registryEmpty { break }
-            if !terminated && (!finishPublished || now >= began + 6) {
+            if !retirementObserved && !terminated && (!finishPublished || now >= began + 6) {
                 if started && process.isRunning { process.terminate() }
                 if let verifiedRunner { _ = verifiedRunner.terminate() }
                 terminated = true
             }
-            if !forced && now >= deadline - 1 {
+            if !retirementObserved && !forced && now >= deadline - 1 {
                 if started && process.isRunning { Darwin.kill(process.processIdentifier, SIGKILL) }
                 if let verifiedRunner { _ = verifiedRunner.forceTerminate() }
                 forced = true
@@ -606,7 +645,7 @@ final class MouseControlDriver {
             "stopConfirmed": stopped, "processStopped": processStopped, "runnerRegistryEmpty": registryEmpty,
             "finishedPublished": finishPublished, "finishedAcknowledged": finishedAcknowledged,
             "normalCompletion": completedNormally, "terminationRequested": terminated, "forceTerminationRequested": forced,
-            "gestureOutstanding": gestureRunning, "timeoutSeconds": 8,
+            "gestureOutstanding": gestureRunning, "runnerRetirementObserved": retirementObserved, "timeoutSeconds": 8,
             "elapsedSeconds": ProcessInfo.processInfo.systemUptime - began, "errors": errors
         ]
         evidence["status"] = completedNormally ? "completed" : (stopped ? "stopped" : "stop-failed")
