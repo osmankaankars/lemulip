@@ -1,0 +1,271 @@
+"""Portable D14 retained-evidence tests; no native process or input executes."""
+import copy
+from datetime import datetime, timedelta, timezone
+import json
+from pathlib import Path
+import shutil
+import tempfile
+import unittest
+from unittest.mock import patch
+
+import analyze_native_drag_event_origin as origin
+import test_compare_native_drag_mouse_driver as d13
+
+mouse, capture = origin.mouse, origin.capture
+
+
+def identity(kind=6, pid=500, *, present=True, source=False):
+    value = {"eventType": kind, "eventNumber": 42, "buttonNumber": 0,
+        "clickCount": None if kind == 6 else 1, "pressure": 1., "modifierFlags": 0}
+    if not source:
+        value["cgEventPresent"] = present
+    if present:
+        value.update(cgSourceStateID=1, cgSourcePID=pid, cgMouseEventNumber=42,
+                     cgMousePressure=1., cgTimestampNanoseconds=10_940_000_000 if kind == 6 else 10_011_000_000)
+    return value
+
+
+def add_d14(stage, name, *, absent=False, pid=None):
+    directory = mouse.evidence_for(stage, name) / "orchard"
+    d13.alter_case(stage, name, lambda row: row.update(observerProcessID=500))
+    producer_pid = 600 if name.startswith("xctest") else 500
+    if pid is None:
+        pid = producer_pid
+    def activation(rows):
+        for row in rows:
+            if row["event"] in ("activation-start", "activation-ready"):
+                row["targetMouseEventIdentitySchema"] = 1
+        for event, when in (("target-mouse-enter", 10.95), ("target-mouse-return", 10.96)):
+            rows.append({"schema": 1, "pid": 200, **mouse.bindings(name),
+                "event": event, "systemUptime": when + .0001, "callbackSystemUptime": when,
+                **d13.window_state(False, 7), "dispatchIndex": 1, "eventType": 6, "eventTimestamp": 10.94,
+                "eventWindowNumber": 7, "eventMatchesOwnedWindow": True, "modifierFlags": 0,
+                "locationInWindow": {"x": 84., "y": 492.}, "deliveredMouseEvent": identity(pid=pid, present=not absent)})
+        if any(row["event"] == "application-became-active" for row in rows):
+            for event, when, active in (("appkit-defined-enter", 10.99, False), ("appkit-defined-return", 11.02, True)):
+                rows.append({"schema": 1, "pid": 200, **mouse.bindings(name),
+                    "event": event, "systemUptime": when + .0001, "callbackSystemUptime": when,
+                    **d13.window_state(active, 7), "dispatchIndex": 2, "eventType": 13, "eventTimestamp": 10.985,
+                    "eventWindowNumber": 0, "eventSubtype": 1, "eventSubtypeName": "applicationActivated"})
+        rows.sort(key=lambda row: row["systemUptime"])
+    d13.alter_trace(directory / "activation.jsonl", activation)
+    def source(rows):
+        rows.append({"schema": 1, "pid": 300, **mouse.bindings(name),
+            "event": "source-mouse-down", "systemUptime": 10.02, "eventTimestamp": 10.011,
+            "sessionIndex": 0, **d13.window_state(True, 4), "deliveredMouseEvent": identity(1, producer_pid, source=True)})
+        rows.sort(key=lambda row: row["systemUptime"])
+    d13.alter_trace(directory / "source.jsonl", source)
+    def receiver(rows):
+        for row in rows:
+            row["time"] = (datetime(2026, 11, 6, tzinfo=timezone.utc) + timedelta(seconds=row["systemUptime"])).strftime("%Y-%m-%dT%H:%M:%SZ")
+            if "sequenceNumber" in row:
+                row["draggingLocationInWindow"] = {"x": 84., "y": 492.}
+    d13.alter_trace(directory / "receiver.jsonl", receiver)
+
+
+def fixture(parent, *, passed=("xctest-first",), absent=(), zero=()):
+    stage, context = d13.fixture(parent)
+    context["provenance"].update(eventOriginDiagnostic=copy.deepcopy(origin.DIAGNOSTIC),
+        eventOriginControlBuild=copy.deepcopy(origin.CONTROL_BUILD),
+        **{key: capture.sha256(capture.ROOT / relative) for key, relative in origin.CODE_FILES.items()})
+    (stage / "provenance.json").write_text(json.dumps(context["provenance"]))
+    context["inputs"] = mouse.input_snapshot(stage)
+    comparison = parent / "comparison"
+    def runner(command, log):
+        name = command[-1]
+        code = d13.emit(stage, context, name, passed=name in passed)
+        add_d14(stage, name, absent=name in absent, pid=0 if name in zero else None)
+        return code
+    report = mouse.compare(stage, comparison, context, runner=runner)
+    assert report["comparisonComplete"], [(r.get("sourceCase"), r.get("reasonCode")) for r in report["cases"]]
+    return stage, comparison, context
+
+
+def refresh_case(stage, comparison, context, name):
+    path = comparison / "comparison.json"
+    report = json.loads(path.read_text())
+    index = mouse.CASES.index(name)
+    row = mouse.classify(stage, context, name, report["cases"][index]["returnCode"])
+    assert row["comparability"] == "comparable", row.get("reasonCode")
+    row["inputsUnchanged"] = True
+    report["cases"][index] = row
+    path.write_text(json.dumps(report))
+
+
+def run_analysis(stage, comparison, context):
+    provenance = context["provenance"]
+    repository = {"tree": provenance["observerExperimentTree"], "hashes": {
+        key: provenance[key] for key in (*origin.CODE_FILES, "mouseDriverComparatorSourceSHA256")}}
+    with patch.object(origin, "repository_identity", return_value=repository), \
+         patch.object(mouse, "compare", side_effect=AssertionError("No runner orchestration")), \
+         patch.object(mouse, "context_for", side_effect=AssertionError("No live context")), \
+         patch.object(mouse, "input_snapshot", side_effect=AssertionError("No input inventory execution")):
+        return origin.analyze(stage, comparison, provenance["observerExperimentCommit"])
+
+
+class EventOriginTests(unittest.TestCase):
+    def test_pass_and_fail_remain_native_outcomes_and_pid_roles_are_bounded(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            stage, comparison, context = fixture(Path(temporary))
+            report = run_analysis(stage, comparison, context)
+            self.assertEqual(report["status"], "complete", report)
+            self.assertEqual([r["nativeComparison"]["passed"] for r in report["cases"]], [False, True, False, False])
+            self.assertEqual(report["collectorPIDs"], [200, 300, 400, 500])
+            self.assertTrue(report["acceptanceUnchanged"])
+            self.assertFalse(report["nativeInputExecuted"])
+            q, x = report["cases"][:2]
+            self.assertEqual(q["firstHeldTargetDrag"]["cgSourcePIDRelation"], "observer")
+            self.assertEqual(x["firstHeldTargetDrag"]["cgSourcePIDRelation"], "unknown")
+            self.assertTrue(x["firstHeldTargetDrag"]["cgSourcePIDMatchesSourceInitialDown"])
+            self.assertEqual(q["wallTimeRange"], {"start": "2026-11-06T00:00:02Z", "end": "2026-11-06T00:00:25Z", "precision": "seconds"})
+            self.assertEqual(len(q["firstHeldTargetDrag"]["laterActivationDispatches"]), 1)
+            self.assertEqual(x["firstHeldTargetDrag"]["laterActivationDispatches"], [])
+            self.assertEqual(capture.sha256(Path(mouse.__file__)), origin.D13_COMPARATOR_SHA256)
+
+    def test_timestamp_joins_distinguish_post_overlap_from_later_event(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            stage, comparison, context = fixture(Path(temporary))
+            name = "quartz-first"
+            def raw(row):
+                row["mouseEvents"][20]["systemUptimeAfterPost"] = 10.85
+                row["mouseDriverGestures"][0]["lastMovementPostCompletedSystemUptime"] = 10.851
+            d13.alter_case(stage, name, raw)
+            def pair(rows):
+                for row in rows:
+                    if row["event"].startswith("target-mouse-"):
+                        row["eventTimestamp"] = 10.84
+                        row["deliveredMouseEvent"]["cgTimestampNanoseconds"] = 10_840_000_000
+            d13.alter_trace(mouse.evidence_for(stage, name) / "orchard/activation.jsonl", pair)
+            refresh_case(stage, comparison, context, name)
+            report = run_analysis(stage, comparison, context)
+            self.assertTrue(report["analysisComplete"], report)
+            first = report["cases"][0]["firstHeldTargetDrag"]["quartzPostRelations"]
+            self.assertEqual(first["postIntervalsContainingEventTimestamp"], [20])
+            self.assertTrue(first["matchingLocationPosts"][0]["timestampInsidePostInterval"])
+            last = report["cases"][-1]["firstHeldTargetDrag"]["quartzPostRelations"]
+            self.assertEqual(last["postIntervalsContainingEventTimestamp"], [])
+            self.assertGreater(last["eventTimestampMinusLastPostedDragSeconds"], 0)
+
+    def test_nil_corresponding_event_and_pid_zero_make_no_sender_claim(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            stage, comparison, context = fixture(Path(temporary), absent=("quartz-first",), zero=("quartz-second",))
+            report = run_analysis(stage, comparison, context)
+            self.assertTrue(report["analysisComplete"], report)
+            first = report["cases"][0]["firstHeldTargetDrag"]
+            self.assertEqual(first["cgSourcePIDRelation"], "cg-event-unavailable")
+            self.assertIsNone(first["cgSourcePIDMatchesSourceInitialDown"])
+            self.assertEqual(report["cases"][-1]["firstHeldTargetDrag"]["cgSourcePIDRelation"], "unknown")
+            self.assertNotIn(0, report["collectorPIDs"])
+
+    def test_delivery_schema_rejects_wrong_types_partial_cg_fields_and_invalid_click_count(self):
+        mutations = {
+            "partial-cg": lambda row: row.pop("cgSourcePID"),
+            "false-with-fields": lambda row: row.update(cgEventPresent=False),
+            "nonboolean-presence": lambda row: row.update(cgEventPresent=1),
+            "boolean-event-number": lambda row: row.update(eventNumber=True),
+            "drag-click-count": lambda row: row.update(clickCount=1),
+            "nan-pressure": lambda row: row.update(pressure=float("nan")),
+            "negative-pid": lambda row: row.update(cgSourcePID=-1),
+            "unknown-field": lambda row: row.update(unknown=True),
+        }
+        for name, mutate in mutations.items():
+            with self.subTest(name=name):
+                value = identity()
+                mutate(value)
+                with self.assertRaises(capture.ComparisonError):
+                    origin.delivered_mouse(value, 6)
+
+    def test_marker_pair_and_case_hash_failures_do_not_export_pids(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            stage, comparison, context = fixture(Path(temporary))
+            name = "quartz-first"
+            directory = mouse.evidence_for(stage, name) / "orchard"
+            original_trace = (directory / "activation.jsonl").read_bytes()
+            original_case = (directory / "report.json").read_bytes()
+            original_comparison = (comparison / "comparison.json").read_bytes()
+            def marker(rows):
+                next(row for row in rows if row["event"] == "activation-ready").pop("targetMouseEventIdentitySchema")
+            def pair(rows):
+                next(row for row in rows if row["event"] == "target-mouse-return")["deliveredMouseEvent"]["cgSourcePID"] = 777
+            def absent(rows):
+                rows[:] = [row for row in rows if not row["event"].startswith("target-mouse-")]
+            for label, change in (("missing-marker", marker), ("changed-pair", pair), ("missing-drag", absent), ("raw-hash", None)):
+                with self.subTest(label=label):
+                    (directory / "activation.jsonl").write_bytes(original_trace)
+                    (directory / "report.json").write_bytes(original_case)
+                    (comparison / "comparison.json").write_bytes(original_comparison)
+                    if change:
+                        d13.alter_trace(directory / "activation.jsonl", change)
+                        refresh_case(stage, comparison, context, name)
+                    else:
+                        d13.alter_case(stage, name, lambda row: row.update(observerProcessID=501))
+                    report = run_analysis(stage, comparison, context)
+                    self.assertEqual(report["cases"][0]["status"], "invalid", report)
+                    self.assertNotIn("ownedPIDs", report["cases"][0])
+
+    def test_provenance_build_architecture_and_inventory_changes_are_rejected(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            stage, comparison, context = fixture(Path(temporary))
+            path = stage / "provenance.json"
+            original = path.read_bytes()
+            changes = {
+                "protocol": lambda row: row["eventOriginDiagnostic"].update(inputProtocol="changed"),
+                "build": lambda row: row["eventOriginControlBuild"].update(swiftDefines=[]),
+                "hash": lambda row: row.update(eventOriginAnalyzerSourceSHA256="0" * 64),
+                "architecture": lambda row: row.update(architecture="unknown"),
+                "commit": lambda row: row.update(observerExperimentCommit="0" * 40),
+            }
+            for label, change in changes.items():
+                with self.subTest(label=label):
+                    value = json.loads(original)
+                    change(value)
+                    path.write_text(json.dumps(value))
+                    report = run_analysis(stage, comparison, context)
+                    self.assertEqual(report["status"], "invalid", report)
+                    self.assertEqual(report["collectorPIDs"], [])
+            path.write_bytes(original)
+            after = comparison / "inputs-after.json"
+            value = json.loads(after.read_text())
+            value["provenance.json"]["sha256"] = "0" * 64
+            after.write_text(json.dumps(value))
+            self.assertEqual(run_analysis(stage, comparison, context)["status"], "invalid")
+
+    def test_partial_notrun_and_missing_comparison_still_write_bounded_reports(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary)
+            stage, comparison, context = fixture(parent)
+            path = comparison / "comparison.json"
+            value = json.loads(path.read_text())
+            value["comparisonComplete"] = False
+            value["cases"][0] = {**mouse.bindings(mouse.CASES[0]), "comparability": "not-comparable",
+                                  "outcome": "not-comparable", "reasonCode": "mouse-cleanup-incomplete"}
+            for index, name in enumerate(mouse.CASES[1:], 1):
+                value["cases"][index] = {**mouse.bindings(name), "comparability": "not-run", "outcome": "not-run"}
+                shutil.rmtree(mouse.evidence_for(stage, name))
+            path.write_text(json.dumps(value))
+            report = run_analysis(stage, comparison, context)
+            self.assertEqual([row["status"] for row in report["cases"]], ["incomplete", "not-run", "not-run", "not-run"])
+            self.assertEqual(report["collectorPIDs"], [])
+            origin.write_analysis(parent / "partial", report)
+            self.assertLess((parent / "partial" / origin.OUTPUT_NAME).stat().st_size, 1_048_576)
+            path.unlink()
+            report = run_analysis(stage, comparison, context)
+            self.assertEqual(report["status"], "incomplete")
+            origin.write_analysis(parent / "missing", report)
+            self.assertEqual(len(json.loads((parent / "missing" / origin.OUTPUT_NAME).read_text())["cases"]), 4)
+
+    def test_analysis_preserves_inputs_and_refuses_output_overwrite(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            parent = Path(temporary)
+            stage, comparison, context = fixture(parent)
+            before = {str(path): capture.sha256(path) for root in (stage, comparison)
+                      for path in root.rglob("*") if path.is_file()}
+            report = run_analysis(stage, comparison, context)
+            origin.write_analysis(parent / "analysis", report)
+            self.assertEqual(before, {path: capture.sha256(Path(path)) for path in before})
+            with self.assertRaises(FileExistsError):
+                origin.write_analysis(parent / "analysis", report)
+
+
+if __name__ == "__main__":
+    unittest.main()

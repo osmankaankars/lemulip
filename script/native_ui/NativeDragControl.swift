@@ -288,6 +288,11 @@ private final class ActivationJournal: @unchecked Sendable {
                     "The activation control executable does not match its staged digest")
         binding = configuration.sourceBinding
         var fields: [String: Any] = provenance.mapValues { $0 as Any }
+        #if LEMULIP_EVENT_ORIGIN_TRACE
+        try require(mouseDriverCases.contains(configuration.sourceCase ?? ""),
+                    "Event-origin tracing requires a fixed mouse-driver case")
+        fields["targetMouseEventIdentitySchema"] = 1
+        #endif
         fields.merge([
             "bundleIdentifier": "app.lemulip.NativeDragControl", "executableName": "NativeDragControl",
             "bundleName": "Native Drag Control.app", "targetBundlePath": bundle.path,
@@ -429,6 +434,27 @@ private final class ControlApplication: NSApplication {
                                                       "y": Double(event.locationInWindow.y)]
                 dispatchFields["modifierFlags"] = event.modifierFlags.rawValue
                 dispatchFields["eventMatchesOwnedWindow"] = event.windowNumber == observedWindow?.windowNumber
+                #if LEMULIP_EVENT_ORIGIN_TRACE
+                // Observe the event already being dispatched. Do not alter
+                // or post input, and preserve these values for the return
+                // receipt instead of resampling a possibly different event.
+                var delivered: [String: Any] = [
+                    "eventType": event.type.rawValue, "eventNumber": event.eventNumber,
+                    "buttonNumber": event.buttonNumber,
+                    "clickCount": event.type == .leftMouseDragged ? NSNull() : event.clickCount as Any,
+                    "pressure": event.pressure, "modifierFlags": event.modifierFlags.rawValue,
+                    "cgEventPresent": false
+                ]
+                if let cg = event.cgEvent {
+                    delivered["cgEventPresent"] = true
+                    delivered["cgSourceStateID"] = cg.getIntegerValueField(.eventSourceStateID)
+                    delivered["cgSourcePID"] = cg.getIntegerValueField(.eventSourceUnixProcessID)
+                    delivered["cgMouseEventNumber"] = cg.getIntegerValueField(.mouseEventNumber)
+                    delivered["cgMousePressure"] = cg.getDoubleValueField(.mouseEventPressure)
+                    delivered["cgTimestampNanoseconds"] = cg.timestamp
+                }
+                dispatchFields["deliveredMouseEvent"] = delivered
+                #endif
             }
             if let dispatchKind {
                 dispatchIndex += 1
@@ -733,6 +759,9 @@ private final class ControlDelegate: NSObject, NSApplicationDelegate, NSWindowDe
             fields["targetRaiseObservation"] = "observer-request-ledger-only"
             fields["styleMask"] = window.styleMask.rawValue
             fields["windowLevel"] = window.level.rawValue
+            #if LEMULIP_EVENT_ORIGIN_TRACE
+            fields["targetMouseEventIdentitySchema"] = 1
+            #endif
             activationJournal.record("activation-ready", fields)
         }
     }

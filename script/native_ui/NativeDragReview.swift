@@ -1830,6 +1830,11 @@ private final class DragReview {
         if captureComparison != nil {
             record["observerLifecycleAtStart"] = DragObserverLifecycle.observation
         }
+        #if LEMULIP_MOUSE_DRIVER_OBSERVER
+        // Bind passive delivered-event identity to this actual observer process.
+        // This adds provenance only; it does not change the input protocol.
+        record["observerProcessID"] = Int(ProcessInfo.processInfo.processIdentifier)
+        #endif
         #if LEMULIP_APPKIT_OBSERVER
         guard captureComparison == .axOnly, target != .keyboardControl,
               DragObserverLifecycle.didFinishLaunching,
