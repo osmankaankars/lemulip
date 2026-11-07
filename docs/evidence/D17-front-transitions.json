@@ -1,0 +1,4392 @@
+{
+  "analysis": "D17-front-transitions-public-projection",
+  "architectures": [
+    {
+      "allFrontRecordsInCancelWindows": [
+        {
+          "emittingPID": 122,
+          "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+          "message": "SETFRONT: pid=7959 asn=0x-0x3a03a foreground=1 oldFrontPid=7967 oldFrontASN=0x-0x245820",
+          "phases": [
+            {
+              "case": "xctest-first",
+              "phase": "cancel-entered-before-escape"
+            }
+          ],
+          "processImagePath": "/System/Library/CoreServices/launchservicesd",
+          "sourceRecordIndex": 132,
+          "uptimeInterval": [
+            463.85375808333333,
+            463.85376116666674
+          ]
+        },
+        {
+          "emittingPID": 122,
+          "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+          "message": "SETFRONT: pid=8514 asn=0x-0x40040 foreground=1 oldFrontPid=8617 oldFrontASN=0x-0x270402",
+          "phases": [
+            {
+              "case": "xctest-second",
+              "phase": "cancel-entered-before-escape"
+            }
+          ],
+          "processImagePath": "/System/Library/CoreServices/launchservicesd",
+          "sourceRecordIndex": 187,
+          "uptimeInterval": [
+            479.14240975,
+            479.14241283333337
+          ]
+        }
+      ],
+      "allUppercaseSetFrontEmitters": [
+        [
+          122,
+          "/System/Library/CoreServices/launchservicesd"
+        ]
+      ],
+      "analysisSHA256": "eaecf9fe59f400eac441f265bb0e62c8dd5bd095d5dfc62519bd0c28de712a00",
+      "architecture": "arm64",
+      "archive": {
+        "bytes": 544892,
+        "id": 13568960184,
+        "name": "Lemulip-Drag-Activation-Request-Log-arm64-42357652748",
+        "sha256": "e2c44b86be6515c4a23b9e0c526a959330f6cc6649575a233286bff3e404f343"
+      },
+      "caseSummaries": [
+        {
+          "case": "quartz-first",
+          "nativePassed": true,
+          "noAbsenceOfRequestConclusion": true,
+          "retainedCancelEnteredBeforeEscapeIndices": [],
+          "retainedFreshCallIntervalIndices": [
+            77
+          ],
+          "sourcePID": 7396,
+          "targetPID": 7377
+        },
+        {
+          "case": "xctest-first",
+          "nativePassed": false,
+          "noAbsenceOfRequestConclusion": true,
+          "retainedCancelEnteredBeforeEscapeIndices": [
+            132
+          ],
+          "retainedFreshCallIntervalIndices": [],
+          "sourcePID": 7967,
+          "targetPID": 7959
+        },
+        {
+          "case": "xctest-second",
+          "nativePassed": false,
+          "noAbsenceOfRequestConclusion": true,
+          "retainedCancelEnteredBeforeEscapeIndices": [
+            187
+          ],
+          "retainedFreshCallIntervalIndices": [],
+          "sourcePID": 8617,
+          "targetPID": 8514
+        },
+        {
+          "case": "quartz-second",
+          "nativePassed": true,
+          "noAbsenceOfRequestConclusion": true,
+          "retainedCancelEnteredBeforeEscapeIndices": [],
+          "retainedFreshCallIntervalIndices": [
+            242
+          ],
+          "sourcePID": 9519,
+          "targetPID": 9448
+        }
+      ],
+      "clockAlignment": {
+        "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+        "clockKindAmbiguous": true,
+        "markers": {
+          "after": {
+            "candidateRecordIndices": [
+              250
+            ],
+            "identityMatchedRecordIndices": [
+              250
+            ],
+            "machTimestamp": 12115008035,
+            "sourceRecordIndex": 250
+          },
+          "before": {
+            "candidateRecordIndices": [
+              0
+            ],
+            "identityMatchedRecordIndices": [
+              0
+            ],
+            "machTimestamp": 10046721988,
+            "sourceRecordIndex": 0
+          }
+        },
+        "modelPolicy": "Union of compatible model intervals; no nearest-model selection or extrapolation.",
+        "models": [
+          {
+            "clockKind": "absolute",
+            "machTimebaseDenom": 3,
+            "machTimebaseNumer": 125,
+            "offsetIntervalSeconds": [
+              -4.166661516622602e-08,
+              3.0416666895641055e-06
+            ],
+            "secondsPerTick": 4.166666666666667e-08
+          },
+          {
+            "clockKind": "continuous",
+            "machTimebaseDenom": 3,
+            "machTimebaseNumer": 125,
+            "offsetIntervalSeconds": [
+              -4.166661516622602e-08,
+              2.9166666895641055e-06
+            ],
+            "secondsPerTick": 4.166666666666667e-08
+          }
+        ],
+        "reasonCode": null,
+        "snapshotErrors": [],
+        "status": "aligned"
+      },
+      "collection": {
+        "analysisSHA256": "eaecf9fe59f400eac441f265bb0e62c8dd5bd095d5dfc62519bd0c28de712a00",
+        "clockInputsSHA256": "c77791f64c45fc286bac086e7fcf533ade46144bf5b6a283bd37098ba80d8a28",
+        "collectionCompleted": true,
+        "comparisonSHA256": "4476bb5b41ac2936289ee715cba558096daf7205f8bcd2f0975da50ce4272d7f",
+        "contextSHA256": "384199bb063ac555e75c0444883abffe9850bc9502d71bb7ca3a1f2f719b356d",
+        "elapsedSeconds": 1.427270166000028,
+        "provenanceSHA256": "bbdc5dbf2139310c33332a3ebc363cb2bb5e0ecadd9609bf456ce9e505d2ba41",
+        "queryCount": 1,
+        "recordCount": 251,
+        "recordsSHA256": "f9bbab9313bb7dc1d23532d1a5e86705c1feebca7658734acde8dfde9fe9e174",
+        "status": "completed-records",
+        "stderrBytes": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutBytes": 302113,
+        "stdoutSHA256": "6a285c894277c7b497657a7ddab7aa8940e30c7a90fef6e7a8285156e7b94029"
+      },
+      "contextSHA256": "384199bb063ac555e75c0444883abffe9850bc9502d71bb7ca3a1f2f719b356d",
+      "formatCounts": {
+        "BringForward: pid=%ld asn=0x%x-0x%x": 8,
+        "BringForward: pid=%ld asn=0x%x-0x%x bringForward=%d foreground=%d uiElement=%d launchedByLS=%d modifiersCount=%ld allDisabled=%d": 9,
+        "BringFrontModifier: pid=%ld asn=0x%x-0x%x Modifier %ld hideAfter=%d hideOthers=%d dontMakeFrontmost=%d mouseDown=%d/%d seed=%ld/%ld": 8,
+        "CHECKEDIN: pid=%d asn=0x%llx-0x%llx foreground=%d": 29,
+        "CHECKIN: pid=%d": 29,
+        "FRONTLOGGING: version 1": 29,
+        "LAUNCH: 0x%{public}x-0x%{public}x %{public}@ starting stopped process.": 8,
+        "QUITTING: pid=%d asn=0x-0x%llx foreground=%d wasFront=%d": 24,
+        "Registered, pid=%ld ASN=0x%x,0x%x": 29,
+        "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u": 20,
+        "SIGNAL: pid=%d asn=0x%dx-0x%x": 24,
+        "SetFrontProcess: asn=0x%x-0x%x options=%lx": 8,
+        "SignalReady: pid=%ld asn=0x%x-0x%x": 24
+      },
+      "frontRecordCount": 249,
+      "nativeCaseInputHashes": [
+        {
+          "case": "quartz-first",
+          "files": {
+            "activation.jsonl": "b7156166dc189bae349373cdbc960a13f886918a5b789c3b529d68d55442fe40",
+            "receiver.jsonl": "91ab7d669d501c081795ebb2209367cb3c41bdc14379d7c27bf571aa54e86915",
+            "report.json": "7880819ba4ecfef4e181abdcec79a1da29475381651e48f0ad5935934db6ddf4",
+            "source.jsonl": "009afce4ef6b1f420bbab109e4ae497ac9b5bbb449f48a2cf659ff7e3ed993db"
+          }
+        },
+        {
+          "case": "xctest-first",
+          "files": {
+            "activation.jsonl": "2dd741b62eb265e0c40ec85d8d9fecdd7b04a03f22b74e1c7069414bcc6f7858",
+            "receiver.jsonl": "43b4b841196fb72f171ce5b42ed2218f28f0660b9328c5e693c2023b0ce7cb61",
+            "report.json": "e9d8a85717b83b5542e32b84bf9845512feefed4df93aab5c4962c6d636e49d2",
+            "source.jsonl": "0fb73bd6354ce6185310b2eebaea7f945df55f775a3f23396da8a2fd7a0a3832"
+          }
+        },
+        {
+          "case": "xctest-second",
+          "files": {
+            "activation.jsonl": "c2f4511c70f175fdea190d7323a1b475ee42108463da0864b3fbc305dd10b584",
+            "receiver.jsonl": "227c28c50432e84fcc5741709853fc02129549b3a1393263ff6188a49c313bf8",
+            "report.json": "a9f675a6f0c4430b3a5dfeb321ce895b001d265122d809547b1af28048e2f8d7",
+            "source.jsonl": "b665b28e2cdf7475d9d0499fe401e54c0b2bfac53ec7ded906ce4698987f1570"
+          }
+        },
+        {
+          "case": "quartz-second",
+          "files": {
+            "activation.jsonl": "f6d7716f29e1cebaced06a95de6e1899ac177840eeca1475f809c2dee39baa8d",
+            "receiver.jsonl": "32278071f9267c16ee8852254b6da1e30f357294e596bd2397d6cd4b13415626",
+            "report.json": "8b086410a7b4933e56b949a9c0309c2ac018254daa0686b5c724464eda9f274e",
+            "source.jsonl": "a5adb1c274bb72aed9718c318d8dd92ac82417594f9e7659a215a72af0b0e065"
+          }
+        }
+      ],
+      "nativeResults": [
+        {
+          "case": "quartz-first",
+          "comparability": "comparable",
+          "mayContinue": true,
+          "outcome": "captured",
+          "passed": true,
+          "strictNativeOutcome": {
+            "axOutcome": "captured",
+            "outcome": "captured",
+            "passed": true,
+            "returnCode": 0
+          }
+        },
+        {
+          "case": "xctest-first",
+          "comparability": "comparable",
+          "mayContinue": true,
+          "outcome": "escape-cancellation-failed",
+          "passed": false,
+          "strictNativeOutcome": {
+            "axOutcome": "escape-cancellation-failed",
+            "outcome": "escape-cancellation-failed",
+            "passed": false,
+            "returnCode": 1
+          }
+        },
+        {
+          "case": "xctest-second",
+          "comparability": "comparable",
+          "mayContinue": true,
+          "outcome": "escape-cancellation-failed",
+          "passed": false,
+          "strictNativeOutcome": {
+            "axOutcome": "escape-cancellation-failed",
+            "outcome": "escape-cancellation-failed",
+            "passed": false,
+            "returnCode": 1
+          }
+        },
+        {
+          "case": "quartz-second",
+          "comparability": "comparable",
+          "mayContinue": true,
+          "outcome": "captured",
+          "passed": true,
+          "strictNativeOutcome": {
+            "axOutcome": "captured",
+            "outcome": "captured",
+            "passed": true,
+            "returnCode": 0
+          }
+        }
+      ],
+      "oldCollectorSHA256": "ccc23050210516a9a8ed2d5074af656f0306f318bab720e6144878ca6f921827",
+      "oldEmitterAllowlist": [
+        "WindowServer",
+        "lsd",
+        "runningboardd",
+        "loginwindow"
+      ],
+      "priorAuditSHA256": "364fc92f777b19052c4efb7e64d8a5f750f8d3f745b077953cf33e147f465c0b",
+      "rawStdoutSHA256": "6a285c894277c7b497657a7ddab7aa8940e30c7a90fef6e7a8285156e7b94029",
+      "uppercaseSetFrontCount": 20,
+      "uppercaseSetFrontRecords": [
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=7377 asn=0x-0x32032 foreground=1 oldFrontPid=339 oldFrontASN=0x-0x49164",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 10421602154,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 25454,
+            "timestamp": "2026-11-07 09:01:54.602005+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [
+              34
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x32032"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 7377,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-first",
+                "pid": 7377,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 204850,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-first",
+              "pid": 7377,
+              "role": "target"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [],
+          "previousFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 339,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 49164,
+            "uniqueOwnedIdentity": null
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 37,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            434.2334230416667,
+            434.23342612500005
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=339 asn=0x-0xc00c foreground=1 oldFrontPid=7377 oldFrontASN=0x-0x204850",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 10461314277,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 25454,
+            "timestamp": "2026-11-07 09:01:56.256676+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 339,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 49164,
+            "uniqueOwnedIdentity": null
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": false,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [
+            {
+              "case": "quartz-first",
+              "phase": "setup-observed"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [
+              34
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x32032"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 7377,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-first",
+                "pid": 7377,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 204850,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-first",
+              "pid": 7377,
+              "role": "target"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 52,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            435.88809483333335,
+            435.8880979166667
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=7396 asn=0x-0x36036 foreground=1 oldFrontPid=339 oldFrontASN=0x-0x49164",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 10537271751,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 25650,
+            "timestamp": "2026-11-07 09:01:59.421571+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [
+              65
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x36036"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 7396,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-first",
+                "pid": 7396,
+                "role": "source"
+              }
+            ],
+            "parsedLowComponent": 221238,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-first",
+              "pid": 7396,
+              "role": "source"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [
+            {
+              "case": "quartz-first",
+              "phase": "setup-observed"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 339,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 49164,
+            "uniqueOwnedIdentity": null
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 68,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            439.05298958333333,
+            439.05299266666674
+          ]
+        },
+        {
+          "case": "quartz-first",
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=7377 asn=0x-0x32032 foreground=1 oldFrontPid=7396 oldFrontASN=0x-0x221238",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 10779927546,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 25453,
+            "timestamp": "2026-11-07 09:02:09.532229+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "escapeDownStartedSystemUptime": 443.4135375,
+          "escapeStartAfterLogSeconds": [
+            -5.7501132916667075,
+            -5.7501102083333535
+          ],
+          "eventTimestampUsedForCalibrationOrDelta": false,
+          "firstApplicationBecameActiveCallback": {
+            "callbackAfterLogMilliseconds": [
+              49.089333333313334,
+              49.092416666667305
+            ],
+            "callbackSystemUptime": 449.21274012500004,
+            "dispatchIndex": null,
+            "event": "application-became-active",
+            "journalAfterLogMilliseconds": [
+              49.132291666637684,
+              49.135374999991654
+            ],
+            "journalSystemUptime": 449.21278308333336,
+            "recordIndex": 19
+          },
+          "firstType13Subtype1Dispatch": {
+            "callbackAfterLogMilliseconds": [
+              24.83387499995615,
+              24.836958333310122
+            ],
+            "callbackSystemUptime": 449.1884846666667,
+            "dispatchIndex": 5,
+            "event": "appkit-defined-enter",
+            "journalAfterLogMilliseconds": [
+              24.93329166662761,
+              24.93637499998158
+            ],
+            "journalSystemUptime": 449.18858408333335,
+            "recordIndex": 16
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "insideBothOwnedObservedLifetimes": true,
+          "nativePassed": true,
+          "newFront": {
+            "anchorRecordIndices": [
+              34
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x32032"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 7377,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-first",
+                "pid": 7377,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 204850,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-first",
+              "pid": 7377,
+              "role": "target"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phase": "fresh-call-interval",
+          "phaseMatches": [
+            {
+              "case": "quartz-first",
+              "phase": "fresh-call-interval"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [
+              65
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x36036"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 7396,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-first",
+                "pid": 7396,
+                "role": "source"
+              }
+            ],
+            "parsedLowComponent": 221238,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-first",
+              "pid": 7396,
+              "role": "source"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": true,
+          "sourceRecordIndex": 77,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            449.1636477083334,
+            449.1636507916667
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=339 asn=0x-0xc00c foreground=1 oldFrontPid=7377 oldFrontASN=0x-0x204850",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 10837457371,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 25097,
+            "timestamp": "2026-11-07 09:02:11.929305+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 339,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 49164,
+            "uniqueOwnedIdentity": null
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": false,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [],
+          "previousFront": {
+            "anchorRecordIndices": [
+              34
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x32032"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 7377,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-first",
+                "pid": 7377,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 204850,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-first",
+              "pid": 7377,
+              "role": "target"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 79,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            451.56072375,
+            451.5607268333334
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=7959 asn=0x-0x3a03a foreground=1 oldFrontPid=339 oldFrontASN=0x-0x49164",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 10987945261,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 25453,
+            "timestamp": "2026-11-07 09:02:18.199634+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [
+              101
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x3a03a"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 7959,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-first",
+                "pid": 7959,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 237626,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-first",
+              "pid": 7959,
+              "role": "target"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [],
+          "previousFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 339,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 49164,
+            "uniqueOwnedIdentity": null
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 104,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            457.8310525,
+            457.8310555833334
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=339 asn=0x-0xc00c foreground=1 oldFrontPid=7959 oldFrontASN=0x-0x237626",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 11003749082,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 26661,
+            "timestamp": "2026-11-07 09:02:18.858127+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 339,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 49164,
+            "uniqueOwnedIdentity": null
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": false,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [
+            {
+              "case": "xctest-first",
+              "phase": "setup-observed"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [
+              101
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x3a03a"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 7959,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-first",
+                "pid": 7959,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 237626,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-first",
+              "pid": 7959,
+              "role": "target"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 113,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            458.4895450416667,
+            458.48954812500006
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=7967 asn=0x-0x3c03c foreground=1 oldFrontPid=339 oldFrontASN=0x-0x49164",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 11038549571,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 27448,
+            "timestamp": "2026-11-07 09:02:20.308147+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [
+              120
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x3c03c"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 7967,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-first",
+                "pid": 7967,
+                "role": "source"
+              }
+            ],
+            "parsedLowComponent": 245820,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-first",
+              "pid": 7967,
+              "role": "source"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [
+            {
+              "case": "xctest-first",
+              "phase": "setup-observed"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 339,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 49164,
+            "uniqueOwnedIdentity": null
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 123,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            459.9395654166667,
+            459.93956850000006
+          ]
+        },
+        {
+          "case": "xctest-first",
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=7959 asn=0x-0x3a03a foreground=1 oldFrontPid=7967 oldFrontASN=0x-0x245820",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 11132490195,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 27449,
+            "timestamp": "2026-11-07 09:02:24.222340+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "escapeDownStartedSystemUptime": 465.37762333333336,
+          "escapeStartAfterLogSeconds": [
+            1.5238621666666177,
+            1.5238652500000285
+          ],
+          "eventTimestampUsedForCalibrationOrDelta": false,
+          "firstApplicationBecameActiveCallback": {
+            "callbackAfterLogMilliseconds": [
+              57.35166666659097,
+              57.354750000001786
+            ],
+            "callbackSystemUptime": 463.91111283333333,
+            "dispatchIndex": null,
+            "event": "application-became-active",
+            "journalAfterLogMilliseconds": [
+              57.455958333264334,
+              57.45904166667515
+            ],
+            "journalSystemUptime": 463.911217125,
+            "recordIndex": 17
+          },
+          "firstType13Subtype1Dispatch": {
+            "callbackAfterLogMilliseconds": [
+              42.37891666662108,
+              42.382000000031894
+            ],
+            "callbackSystemUptime": 463.89614008333336,
+            "dispatchIndex": 4,
+            "event": "appkit-defined-enter",
+            "journalAfterLogMilliseconds": [
+              42.434999999954925,
+              42.43808333336574
+            ],
+            "journalSystemUptime": 463.8961961666667,
+            "recordIndex": 14
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "insideBothOwnedObservedLifetimes": true,
+          "nativePassed": false,
+          "newFront": {
+            "anchorRecordIndices": [
+              101
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x3a03a"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 7959,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-first",
+                "pid": 7959,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 237626,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-first",
+              "pid": 7959,
+              "role": "target"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phase": "cancel-entered-before-escape",
+          "phaseMatches": [
+            {
+              "case": "xctest-first",
+              "phase": "cancel-entered-before-escape"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [
+              120
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x3c03c"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 7967,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-first",
+                "pid": 7967,
+                "role": "source"
+              }
+            ],
+            "parsedLowComponent": 245820,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-first",
+              "pid": 7967,
+              "role": "source"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": true,
+          "sourceRecordIndex": 132,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            463.85375808333333,
+            463.85376116666674
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=339 asn=0x-0xc00c foreground=1 oldFrontPid=7959 oldFrontASN=0x-0x237626",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 11251438694,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 26661,
+            "timestamp": "2026-11-07 09:02:29.178527+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 339,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 49164,
+            "uniqueOwnedIdentity": null
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": false,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [],
+          "previousFront": {
+            "anchorRecordIndices": [
+              101
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x3a03a"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 7959,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-first",
+                "pid": 7959,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 237626,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-first",
+              "pid": 7959,
+              "role": "target"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 134,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            468.8099455416667,
+            468.80994862500006
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=8514 asn=0x-0x40040 foreground=1 oldFrontPid=339 oldFrontASN=0x-0x49164",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 11380164435,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 26661,
+            "timestamp": "2026-11-07 09:02:34.542100+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [
+              156
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x40040"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 8514,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-second",
+                "pid": 8514,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 262208,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-second",
+              "pid": 8514,
+              "role": "target"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [],
+          "previousFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 339,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 49164,
+            "uniqueOwnedIdentity": null
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 159,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            474.17351808333336,
+            474.1735211666667
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=339 asn=0x-0xc00c foreground=1 oldFrontPid=8514 oldFrontASN=0x-0x262208",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 11389059875,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 26661,
+            "timestamp": "2026-11-07 09:02:34.912743+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 339,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 49164,
+            "uniqueOwnedIdentity": null
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": false,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [
+            {
+              "case": "xctest-second",
+              "phase": "setup-observed"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [
+              156
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x40040"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 8514,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-second",
+                "pid": 8514,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 262208,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-second",
+              "pid": 8514,
+              "role": "target"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 162,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            474.54416141666667,
+            474.5441645000001
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=8617 asn=0x-0x42042 foreground=1 oldFrontPid=339 oldFrontASN=0x-0x49164",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 11429343694,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 28491,
+            "timestamp": "2026-11-07 09:02:36.591235+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [
+              175
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x42042"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 8617,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-second",
+                "pid": 8617,
+                "role": "source"
+              }
+            ],
+            "parsedLowComponent": 270402,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-second",
+              "pid": 8617,
+              "role": "source"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [
+            {
+              "case": "xctest-second",
+              "phase": "setup-observed"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 339,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 49164,
+            "uniqueOwnedIdentity": null
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 178,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            476.22265387500005,
+            476.2226569583334
+          ]
+        },
+        {
+          "case": "xctest-second",
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=8514 asn=0x-0x40040 foreground=1 oldFrontPid=8617 oldFrontASN=0x-0x270402",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 11499417835,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 28492,
+            "timestamp": "2026-11-07 09:02:39.510991+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "escapeDownStartedSystemUptime": 480.73933700000003,
+          "escapeStartAfterLogSeconds": [
+            1.5969241666666676,
+            1.5969272500000216
+          ],
+          "eventTimestampUsedForCalibrationOrDelta": false,
+          "firstApplicationBecameActiveCallback": {
+            "callbackAfterLogMilliseconds": [
+              22.814458333300536,
+              22.817541666654506
+            ],
+            "callbackSystemUptime": 479.16522729166667,
+            "dispatchIndex": null,
+            "event": "application-became-active",
+            "journalAfterLogMilliseconds": [
+              22.842625000009775,
+              22.845708333363746
+            ],
+            "journalSystemUptime": 479.1652554583334,
+            "recordIndex": 17
+          },
+          "firstType13Subtype1Dispatch": {
+            "callbackAfterLogMilliseconds": [
+              18.619166666667297,
+              18.622250000021268
+            ],
+            "callbackSystemUptime": 479.16103200000003,
+            "dispatchIndex": 4,
+            "event": "appkit-defined-enter",
+            "journalAfterLogMilliseconds": [
+              18.69162499997401,
+              18.69470833332798
+            ],
+            "journalSystemUptime": 479.16110445833334,
+            "recordIndex": 14
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "insideBothOwnedObservedLifetimes": true,
+          "nativePassed": false,
+          "newFront": {
+            "anchorRecordIndices": [
+              156
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x40040"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 8514,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-second",
+                "pid": 8514,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 262208,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-second",
+              "pid": 8514,
+              "role": "target"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phase": "cancel-entered-before-escape",
+          "phaseMatches": [
+            {
+              "case": "xctest-second",
+              "phase": "cancel-entered-before-escape"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [
+              175
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x42042"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 8617,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-second",
+                "pid": 8617,
+                "role": "source"
+              }
+            ],
+            "parsedLowComponent": 270402,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-second",
+              "pid": 8617,
+              "role": "source"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": true,
+          "sourceRecordIndex": 187,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            479.14240975,
+            479.14241283333337
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=339 asn=0x-0xc00c foreground=1 oldFrontPid=8514 oldFrontASN=0x-0x262208",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 11644140057,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 28491,
+            "timestamp": "2026-11-07 09:02:45.541084+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 339,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 49164,
+            "uniqueOwnedIdentity": null
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": false,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [],
+          "previousFront": {
+            "anchorRecordIndices": [
+              156
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x40040"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 8514,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-second",
+                "pid": 8514,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 262208,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-second",
+              "pid": 8514,
+              "role": "target"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 189,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            485.17250233333334,
+            485.1725054166667
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=9448 asn=0x-0x46046 foreground=1 oldFrontPid=339 oldFrontASN=0x-0x49164",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 11761742954,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 28491,
+            "timestamp": "2026-11-07 09:02:50.441205+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [
+              211
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x46046"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 9448,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-second",
+                "pid": 9448,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 286790,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-second",
+              "pid": 9448,
+              "role": "target"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [],
+          "previousFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 339,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 49164,
+            "uniqueOwnedIdentity": null
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 214,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            490.0726230416667,
+            490.07262612500006
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=339 asn=0x-0xc00c foreground=1 oldFrontPid=9448 oldFrontASN=0x-0x286790",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 11771494932,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 26793,
+            "timestamp": "2026-11-07 09:02:50.847537+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 339,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 49164,
+            "uniqueOwnedIdentity": null
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": false,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [
+            {
+              "case": "quartz-second",
+              "phase": "setup-observed"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [
+              211
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x46046"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 9448,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-second",
+                "pid": 9448,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 286790,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-second",
+              "pid": 9448,
+              "role": "target"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 217,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            490.47895545833336,
+            490.4789585416667
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=9519 asn=0x-0x48048 foreground=1 oldFrontPid=339 oldFrontASN=0x-0x49164",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 11806600148,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 28491,
+            "timestamp": "2026-11-07 09:02:52.310254+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [
+              230
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x48048"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 9519,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-second",
+                "pid": 9519,
+                "role": "source"
+              }
+            ],
+            "parsedLowComponent": 294984,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-second",
+              "pid": 9519,
+              "role": "source"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [
+            {
+              "case": "quartz-second",
+              "phase": "setup-observed"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 339,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 49164,
+            "uniqueOwnedIdentity": null
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 233,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            491.9416727916667,
+            491.94167587500004
+          ]
+        },
+        {
+          "case": "quartz-second",
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=9448 asn=0x-0x46046 foreground=1 oldFrontPid=9519 oldFrontASN=0x-0x294984",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 12033360526,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 28491,
+            "timestamp": "2026-11-07 09:03:01.758603+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "escapeDownStartedSystemUptime": 495.681565125,
+          "escapeStartAfterLogSeconds": [
+            -5.708459833333393,
+            -5.708456749999982
+          ],
+          "eventTimestampUsedForCalibrationOrDelta": false,
+          "firstApplicationBecameActiveCallback": {
+            "callbackAfterLogMilliseconds": [
+              11.191624999923988,
+              11.194708333334802
+            ],
+            "callbackSystemUptime": 501.40121658333334,
+            "dispatchIndex": null,
+            "event": "application-became-active",
+            "journalAfterLogMilliseconds": [
+              11.228541666639558,
+              11.231625000050371
+            ],
+            "journalSystemUptime": 501.40125350000005,
+            "recordIndex": 19
+          },
+          "firstType13Subtype1Dispatch": {
+            "callbackAfterLogMilliseconds": [
+              8.702333333303613,
+              8.705416666714427
+            ],
+            "callbackSystemUptime": 501.3987272916667,
+            "dispatchIndex": 5,
+            "event": "appkit-defined-enter",
+            "journalAfterLogMilliseconds": [
+              8.75429166660524,
+              8.757375000016054
+            ],
+            "journalSystemUptime": 501.39877925,
+            "recordIndex": 16
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "insideBothOwnedObservedLifetimes": true,
+          "nativePassed": true,
+          "newFront": {
+            "anchorRecordIndices": [
+              211
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x46046"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 9448,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-second",
+                "pid": 9448,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 286790,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-second",
+              "pid": 9448,
+              "role": "target"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phase": "fresh-call-interval",
+          "phaseMatches": [
+            {
+              "case": "quartz-second",
+              "phase": "fresh-call-interval"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [
+              230
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x48048"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 9519,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-second",
+                "pid": 9519,
+                "role": "source"
+              }
+            ],
+            "parsedLowComponent": 294984,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-second",
+              "pid": 9519,
+              "role": "source"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": true,
+          "sourceRecordIndex": 242,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            501.390021875,
+            501.3900249583334
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 155508,
+                  "imageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8"
+                }
+              ]
+            },
+            "bootUUID": "0B8730A0-1CC7-4DF6-AB36-3D4AF9E596F0",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=339 asn=0x-0xc00c foreground=1 oldFrontPid=9448 oldFrontASN=0x-0x286790",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 12088631135,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 122,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "7782E63F-C170-3B4A-994F-B43B5B4CBDB8",
+            "senderProgramCounter": 155508,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 28492,
+            "timestamp": "2026-11-07 09:03:04.061546+0000",
+            "timezoneName": "",
+            "traceID": 1448142746812420,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 339,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 49164,
+            "uniqueOwnedIdentity": null
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": false,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [],
+          "previousFront": {
+            "anchorRecordIndices": [
+              211
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x46046"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 9448,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-second",
+                "pid": 9448,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 286790,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-second",
+              "pid": 9448,
+              "role": "target"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 244,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            503.6929639166667,
+            503.69296700000007
+          ]
+        }
+      ]
+    },
+    {
+      "allFrontRecordsInCancelWindows": [
+        {
+          "emittingPID": 124,
+          "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+          "message": "SETFRONT: pid=10522 asn=0x-0x32032 foreground=1 oldFrontPid=10538 oldFrontASN=0x-0x213044",
+          "phases": [
+            {
+              "case": "xctest-first",
+              "phase": "cancel-entered-before-escape"
+            }
+          ],
+          "processImagePath": "/System/Library/CoreServices/launchservicesd",
+          "sourceRecordIndex": 131,
+          "uptimeInterval": [
+            777.76491606,
+            777.764919303
+          ]
+        },
+        {
+          "emittingPID": 124,
+          "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+          "message": "SETFRONT: pid=10783 asn=0x-0x38038 foreground=1 oldFrontPid=10949 oldFrontASN=0x-0x237626",
+          "phases": [
+            {
+              "case": "xctest-second",
+              "phase": "cancel-entered-before-escape"
+            }
+          ],
+          "processImagePath": "/System/Library/CoreServices/launchservicesd",
+          "sourceRecordIndex": 186,
+          "uptimeInterval": [
+            793.999512178,
+            793.9995154210001
+          ]
+        },
+        {
+          "emittingPID": 124,
+          "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+          "message": "SETFRONT: pid=11199 asn=0x-0x3e03e foreground=1 oldFrontPid=11215 oldFrontASN=0x-0x262208",
+          "phases": [
+            {
+              "case": "quartz-second",
+              "phase": "cancel-entered-before-escape"
+            }
+          ],
+          "processImagePath": "/System/Library/CoreServices/launchservicesd",
+          "sourceRecordIndex": 241,
+          "uptimeInterval": [
+            809.293720452,
+            809.2937236950002
+          ]
+        }
+      ],
+      "allUppercaseSetFrontEmitters": [
+        [
+          124,
+          "/System/Library/CoreServices/launchservicesd"
+        ]
+      ],
+      "analysisSHA256": "3cefd0b9b8a5e62fa8843bb908904d97ea950e0adfee56ccebfe88643cfc159d",
+      "architecture": "x86_64",
+      "archive": {
+        "bytes": 545049,
+        "id": 13568149451,
+        "name": "Lemulip-Drag-Activation-Request-Log-x86_64-42357652748",
+        "sha256": "4267aed58c11dc0d64ff27e3d8de10ddbd89f2318d1d3d4f87a2b649c7d30e7e"
+      },
+      "caseSummaries": [
+        {
+          "case": "quartz-first",
+          "nativePassed": true,
+          "noAbsenceOfRequestConclusion": true,
+          "retainedCancelEnteredBeforeEscapeIndices": [],
+          "retainedFreshCallIntervalIndices": [],
+          "sourcePID": 9640,
+          "targetPID": 9550
+        },
+        {
+          "case": "xctest-first",
+          "nativePassed": false,
+          "noAbsenceOfRequestConclusion": true,
+          "retainedCancelEnteredBeforeEscapeIndices": [
+            131
+          ],
+          "retainedFreshCallIntervalIndices": [],
+          "sourcePID": 10538,
+          "targetPID": 10522
+        },
+        {
+          "case": "xctest-second",
+          "nativePassed": false,
+          "noAbsenceOfRequestConclusion": true,
+          "retainedCancelEnteredBeforeEscapeIndices": [
+            186
+          ],
+          "retainedFreshCallIntervalIndices": [],
+          "sourcePID": 10949,
+          "targetPID": 10783
+        },
+        {
+          "case": "quartz-second",
+          "nativePassed": false,
+          "noAbsenceOfRequestConclusion": true,
+          "retainedCancelEnteredBeforeEscapeIndices": [
+            241
+          ],
+          "retainedFreshCallIntervalIndices": [],
+          "sourcePID": 11215,
+          "targetPID": 11199
+        }
+      ],
+      "clockAlignment": {
+        "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+        "clockKindAmbiguous": true,
+        "markers": {
+          "after": {
+            "candidateRecordIndices": [
+              249
+            ],
+            "identityMatchedRecordIndices": [
+              249
+            ],
+            "machTimestamp": 816526115289,
+            "sourceRecordIndex": 249
+          },
+          "before": {
+            "candidateRecordIndices": [
+              0
+            ],
+            "identityMatchedRecordIndices": [
+              0
+            ],
+            "machTimestamp": 727791907600,
+            "sourceRecordIndex": 0
+          }
+        },
+        "modelPolicy": "Union of compatible model intervals; no nearest-model selection or extrapolation.",
+        "models": [
+          {
+            "clockKind": "absolute",
+            "machTimebaseDenom": 1,
+            "machTimebaseNumer": 1,
+            "offsetIntervalSeconds": [
+              -2.699999547942425e-07,
+              2.9730000452057577e-06
+            ],
+            "secondsPerTick": 1e-09
+          },
+          {
+            "clockKind": "continuous",
+            "machTimebaseDenom": 1,
+            "machTimebaseNumer": 1,
+            "offsetIntervalSeconds": [
+              -2.4299995479424256e-07,
+              2.8420000452057576e-06
+            ],
+            "secondsPerTick": 1e-09
+          }
+        ],
+        "reasonCode": null,
+        "snapshotErrors": [],
+        "status": "aligned"
+      },
+      "collection": {
+        "analysisSHA256": "3cefd0b9b8a5e62fa8843bb908904d97ea950e0adfee56ccebfe88643cfc159d",
+        "clockInputsSHA256": "247717387394f4eefa33769fa1018234c831dbcf3c77e0e308d03fdfff99df3f",
+        "collectionCompleted": true,
+        "comparisonSHA256": "b47973955d7e8387516b117fe0318a45247ef26cd61ae0e861bfa1854a440aee",
+        "contextSHA256": "8d81075eecd311d2e98eac6cdcb63e915d18a0e427335d5181a003bdbf17c2dc",
+        "elapsedSeconds": 2.1757313939999676,
+        "provenanceSHA256": "69df26a7ac32daeb9ba78d860bb5dc81aa8dc2ade3af883b79f0c9b2c6813352",
+        "queryCount": 1,
+        "recordCount": 250,
+        "recordsSHA256": "bba26249aad84e4c10aaf9c385d04b80d8ec3fdc5fab0defa1412e37ead85d43",
+        "status": "completed-records",
+        "stderrBytes": 0,
+        "stderrSHA256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutBytes": 301573,
+        "stdoutSHA256": "3b6b864ed85687fde5290e8522cd922528db591e2d1298744357fdfc419ebaa1"
+      },
+      "contextSHA256": "8d81075eecd311d2e98eac6cdcb63e915d18a0e427335d5181a003bdbf17c2dc",
+      "formatCounts": {
+        "BringForward: pid=%ld asn=0x%x-0x%x": 8,
+        "BringForward: pid=%ld asn=0x%x-0x%x bringForward=%d foreground=%d uiElement=%d launchedByLS=%d modifiersCount=%ld allDisabled=%d": 9,
+        "BringFrontModifier: pid=%ld asn=0x%x-0x%x Modifier %ld hideAfter=%d hideOthers=%d dontMakeFrontmost=%d mouseDown=%d/%d seed=%ld/%ld": 8,
+        "CHECKEDIN: pid=%d asn=0x%llx-0x%llx foreground=%d": 29,
+        "CHECKIN: pid=%d": 29,
+        "FRONTLOGGING: version 1": 29,
+        "LAUNCH: 0x%{public}x-0x%{public}x %{public}@ starting stopped process.": 8,
+        "QUITTING: pid=%d asn=0x-0x%llx foreground=%d wasFront=%d": 24,
+        "Registered, pid=%ld ASN=0x%x,0x%x": 29,
+        "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u": 19,
+        "SIGNAL: pid=%d asn=0x%dx-0x%x": 24,
+        "SetFrontProcess: asn=0x%x-0x%x options=%lx": 8,
+        "SignalReady: pid=%ld asn=0x%x-0x%x": 24
+      },
+      "frontRecordCount": 248,
+      "nativeCaseInputHashes": [
+        {
+          "case": "quartz-first",
+          "files": {
+            "activation.jsonl": "40eddf4e771b8a77a5a81f67c940a068a7c9a27b27d93746122bc6c8a3a8462e",
+            "receiver.jsonl": "636b4fab44aaaecca5cd988cd61fc8c474584362c3fcb1317c0b3563552c8e67",
+            "report.json": "0226cc62d588b65fffedb55a81ebe5f23e64f28e2673a2a098393f4195b75506",
+            "source.jsonl": "26668ec779f507ea1e758227fcd7531d2410e35c741b0264b3c822e94a77e692"
+          }
+        },
+        {
+          "case": "xctest-first",
+          "files": {
+            "activation.jsonl": "b380469c4d7174c793e1b9d93a9ebb61fbb54744c1f86e2d048abf2140e5d916",
+            "receiver.jsonl": "6549b69b42b59525b44511f7e94959ba818fe1d31176d62ded14348ab00048e6",
+            "report.json": "fdd9283167749e37ebb5d25ca14f1c7fb60767809e043b8aa3af6e7f05787da4",
+            "source.jsonl": "98264bd064501283c62b47892d7444a4d233c1b5dd6f35da1321ab0a45a59683"
+          }
+        },
+        {
+          "case": "xctest-second",
+          "files": {
+            "activation.jsonl": "95cdc7abaa76d336be35bf350b055bd7a1c83c9cb1148b3aeff217ba5dc85e0c",
+            "receiver.jsonl": "cebd8ad7556bcf62b4fcf23d8fb6026352b7e5c980204357754bceb7f2108b8b",
+            "report.json": "1ec21e64747aa4b6025df58fe654094b47c0902734ac2a8414edc269b9aa684f",
+            "source.jsonl": "fbbbe340d9987c9409f7cff06ba385dbc88c9a064ee06b2e58176761055a0d7f"
+          }
+        },
+        {
+          "case": "quartz-second",
+          "files": {
+            "activation.jsonl": "3706b2c60c6c2afd956f067e5335a4d49c503bf7e9c882393d07c7e2cf8ffd23",
+            "receiver.jsonl": "91487f93583db4bb86486907f738a6f0855f23f6ff052cc91a0417d5f3687ccf",
+            "report.json": "ac3c81c4844e6ac8bd76305e6d15c80af2662f3a5034b0288a895f5edb98dba9",
+            "source.jsonl": "3ae1d4392a75587e7c650eba5f0cfaae3ed9fd258f4070c8b135cdaa044c818e"
+          }
+        }
+      ],
+      "nativeResults": [
+        {
+          "case": "quartz-first",
+          "comparability": "comparable",
+          "mayContinue": true,
+          "outcome": "captured",
+          "passed": true,
+          "strictNativeOutcome": {
+            "axOutcome": "captured",
+            "outcome": "captured",
+            "passed": true,
+            "returnCode": 0
+          }
+        },
+        {
+          "case": "xctest-first",
+          "comparability": "comparable",
+          "mayContinue": true,
+          "outcome": "escape-cancellation-failed",
+          "passed": false,
+          "strictNativeOutcome": {
+            "axOutcome": "escape-cancellation-failed",
+            "outcome": "escape-cancellation-failed",
+            "passed": false,
+            "returnCode": 1
+          }
+        },
+        {
+          "case": "xctest-second",
+          "comparability": "comparable",
+          "mayContinue": true,
+          "outcome": "escape-cancellation-failed",
+          "passed": false,
+          "strictNativeOutcome": {
+            "axOutcome": "escape-cancellation-failed",
+            "outcome": "escape-cancellation-failed",
+            "passed": false,
+            "returnCode": 1
+          }
+        },
+        {
+          "case": "quartz-second",
+          "comparability": "comparable",
+          "mayContinue": true,
+          "outcome": "escape-cancellation-failed",
+          "passed": false,
+          "strictNativeOutcome": {
+            "axOutcome": "escape-cancellation-failed",
+            "outcome": "escape-cancellation-failed",
+            "passed": false,
+            "returnCode": 1
+          }
+        }
+      ],
+      "oldCollectorSHA256": "ccc23050210516a9a8ed2d5074af656f0306f318bab720e6144878ca6f921827",
+      "oldEmitterAllowlist": [
+        "WindowServer",
+        "lsd",
+        "runningboardd",
+        "loginwindow"
+      ],
+      "priorAuditSHA256": "119853ae4806e702a7719112a8cd912ee03a8a280fe5a832f2c816c208c828cc",
+      "rawStdoutSHA256": "3b6b864ed85687fde5290e8522cd922528db591e2d1298744357fdfc419ebaa1",
+      "uppercaseSetFrontCount": 19,
+      "uppercaseSetFrontRecords": [
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=9550 asn=0x-0x2a02a foreground=1 oldFrontPid=411 oldFrontASN=0x-0x61455",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 743236530745,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 28850,
+            "timestamp": "2026-11-07 09:03:07.232133+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [
+              34
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x2a02a"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 9550,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-first",
+                "pid": 9550,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 172074,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-first",
+              "pid": 9550,
+              "role": "target"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [],
+          "previousFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 411,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 61455,
+            "uniqueOwnedIdentity": null
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 37,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            743.236530475,
+            743.2365337180001
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=411 asn=0x-0xf00f foreground=1 oldFrontPid=9550 oldFrontASN=0x-0x172074",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 745365401723,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 29430,
+            "timestamp": "2026-11-07 09:03:09.361004+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 411,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 61455,
+            "uniqueOwnedIdentity": null
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": false,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [
+            {
+              "case": "quartz-first",
+              "phase": "setup-observed"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [
+              34
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x2a02a"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 9550,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-first",
+                "pid": 9550,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 172074,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-first",
+              "pid": 9550,
+              "role": "target"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 46,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            745.365401453,
+            745.3654046960002
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=9640 asn=0x-0x2e02e foreground=1 oldFrontPid=411 oldFrontASN=0x-0x61455",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 750894255795,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 29430,
+            "timestamp": "2026-11-07 09:03:14.889858+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [
+              65
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x2e02e"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 9640,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-first",
+                "pid": 9640,
+                "role": "source"
+              }
+            ],
+            "parsedLowComponent": 188462,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-first",
+              "pid": 9640,
+              "role": "source"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [
+            {
+              "case": "quartz-first",
+              "phase": "setup-observed"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 411,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 61455,
+            "uniqueOwnedIdentity": null
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 68,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            750.894255525,
+            750.8942587680001
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=411 asn=0x-0xf00f foreground=1 oldFrontPid=9640 oldFrontASN=0x-0x188462",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 765703088295,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 29430,
+            "timestamp": "2026-11-07 09:03:29.698690+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 411,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 61455,
+            "uniqueOwnedIdentity": null
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": false,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [],
+          "previousFront": {
+            "anchorRecordIndices": [
+              65
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x2e02e"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 9640,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-first",
+                "pid": 9640,
+                "role": "source"
+              }
+            ],
+            "parsedLowComponent": 188462,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-first",
+              "pid": 9640,
+              "role": "source"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 78,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            765.7030880249999,
+            765.7030912680001
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=10522 asn=0x-0x32032 foreground=1 oldFrontPid=411 oldFrontASN=0x-0x61455",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 772313501481,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 29430,
+            "timestamp": "2026-11-07 09:03:36.309104+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [
+              100
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x32032"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 10522,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-first",
+                "pid": 10522,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 204850,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-first",
+              "pid": 10522,
+              "role": "target"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [],
+          "previousFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 411,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 61455,
+            "uniqueOwnedIdentity": null
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 103,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            772.313501211,
+            772.313504454
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=411 asn=0x-0xf00f foreground=1 oldFrontPid=10522 oldFrontASN=0x-0x204850",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 772876237648,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 31822,
+            "timestamp": "2026-11-07 09:03:36.871840+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 411,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 61455,
+            "uniqueOwnedIdentity": null
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": false,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [
+            {
+              "case": "xctest-first",
+              "phase": "setup-observed"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [
+              100
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x32032"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 10522,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-first",
+                "pid": 10522,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 204850,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-first",
+              "pid": 10522,
+              "role": "target"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 110,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            772.876237378,
+            772.8762406210001
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=10538 asn=0x-0x34034 foreground=1 oldFrontPid=411 oldFrontASN=0x-0x61455",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 774592546717,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 32764,
+            "timestamp": "2026-11-07 09:03:38.588149+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [
+              119
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x34034"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 10538,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-first",
+                "pid": 10538,
+                "role": "source"
+              }
+            ],
+            "parsedLowComponent": 213044,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-first",
+              "pid": 10538,
+              "role": "source"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [
+            {
+              "case": "xctest-first",
+              "phase": "setup-observed"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 411,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 61455,
+            "uniqueOwnedIdentity": null
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 122,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            774.592546447,
+            774.59254969
+          ]
+        },
+        {
+          "case": "xctest-first",
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=10522 asn=0x-0x32032 foreground=1 oldFrontPid=10538 oldFrontASN=0x-0x213044",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 777764916330,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 32764,
+            "timestamp": "2026-11-07 09:03:41.760519+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "escapeDownStartedSystemUptime": 779.332898877,
+          "escapeStartAfterLogSeconds": [
+            1.5679795739999918,
+            1.5679828170000292
+          ],
+          "eventTimestampUsedForCalibrationOrDelta": false,
+          "firstApplicationBecameActiveCallback": {
+            "callbackAfterLogMilliseconds": [
+              15.719106999995347,
+              15.722350000032748
+            ],
+            "callbackSystemUptime": 777.78063841,
+            "dispatchIndex": null,
+            "event": "application-became-active",
+            "journalAfterLogMilliseconds": [
+              15.775947999941309,
+              15.77919099997871
+            ],
+            "journalSystemUptime": 777.780695251,
+            "recordIndex": 17
+          },
+          "firstType13Subtype1Dispatch": {
+            "callbackAfterLogMilliseconds": [
+              12.240451000025132,
+              12.243694000062533
+            ],
+            "callbackSystemUptime": 777.7771597540001,
+            "dispatchIndex": 4,
+            "event": "appkit-defined-enter",
+            "journalAfterLogMilliseconds": [
+              12.300840999955653,
+              12.304083999993054
+            ],
+            "journalSystemUptime": 777.777220144,
+            "recordIndex": 14
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "insideBothOwnedObservedLifetimes": true,
+          "nativePassed": false,
+          "newFront": {
+            "anchorRecordIndices": [
+              100
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x32032"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 10522,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-first",
+                "pid": 10522,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 204850,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-first",
+              "pid": 10522,
+              "role": "target"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phase": "cancel-entered-before-escape",
+          "phaseMatches": [
+            {
+              "case": "xctest-first",
+              "phase": "cancel-entered-before-escape"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [
+              119
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x34034"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 10538,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-first",
+                "pid": 10538,
+                "role": "source"
+              }
+            ],
+            "parsedLowComponent": 213044,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-first",
+              "pid": 10538,
+              "role": "source"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": true,
+          "sourceRecordIndex": 131,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            777.76491606,
+            777.764919303
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=411 asn=0x-0xf00f foreground=1 oldFrontPid=10522 oldFrontASN=0x-0x204850",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 783818669185,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 31822,
+            "timestamp": "2026-11-07 09:03:47.814271+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 411,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 61455,
+            "uniqueOwnedIdentity": null
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": false,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [],
+          "previousFront": {
+            "anchorRecordIndices": [
+              100
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x32032"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 10522,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-first",
+                "pid": 10522,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 204850,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-first",
+              "pid": 10522,
+              "role": "target"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 133,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            783.818668915,
+            783.8186721580001
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=10783 asn=0x-0x38038 foreground=1 oldFrontPid=411 oldFrontASN=0x-0x61455",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 788499406547,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 31830,
+            "timestamp": "2026-11-07 09:03:52.495009+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [
+              155
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x38038"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 10783,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-second",
+                "pid": 10783,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 229432,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-second",
+              "pid": 10783,
+              "role": "target"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [],
+          "previousFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 411,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 61455,
+            "uniqueOwnedIdentity": null
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 158,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            788.4994062769999,
+            788.4994095200001
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=411 asn=0x-0xf00f foreground=1 oldFrontPid=10783 oldFrontASN=0x-0x229432",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 789001427878,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 32764,
+            "timestamp": "2026-11-07 09:03:52.997030+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 411,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 61455,
+            "uniqueOwnedIdentity": null
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": false,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [
+            {
+              "case": "xctest-second",
+              "phase": "setup-observed"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [
+              155
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x38038"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 10783,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-second",
+                "pid": 10783,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 229432,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-second",
+              "pid": 10783,
+              "role": "target"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 163,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            789.001427608,
+            789.0014308510001
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=10949 asn=0x-0x3a03a foreground=1 oldFrontPid=411 oldFrontASN=0x-0x61455",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 790882140183,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 33484,
+            "timestamp": "2026-11-07 09:03:54.877742+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [
+              174
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x3a03a"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 10949,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-second",
+                "pid": 10949,
+                "role": "source"
+              }
+            ],
+            "parsedLowComponent": 237626,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-second",
+              "pid": 10949,
+              "role": "source"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [
+            {
+              "case": "xctest-second",
+              "phase": "setup-observed"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 411,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 61455,
+            "uniqueOwnedIdentity": null
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 177,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            790.882139913,
+            790.8821431560001
+          ]
+        },
+        {
+          "case": "xctest-second",
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=10783 asn=0x-0x38038 foreground=1 oldFrontPid=10949 oldFrontASN=0x-0x237626",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 793999512448,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 31830,
+            "timestamp": "2026-11-07 09:03:57.995115+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "escapeDownStartedSystemUptime": 795.598324367,
+          "escapeStartAfterLogSeconds": [
+            1.5988089459999628,
+            1.5988121890000002
+          ],
+          "eventTimestampUsedForCalibrationOrDelta": false,
+          "firstApplicationBecameActiveCallback": {
+            "callbackAfterLogMilliseconds": [
+              11.969238000006044,
+              11.972481000043445
+            ],
+            "callbackSystemUptime": 794.0114846590001,
+            "dispatchIndex": null,
+            "event": "application-became-active",
+            "journalAfterLogMilliseconds": [
+              12.022397999999157,
+              12.025641000036558
+            ],
+            "journalSystemUptime": 794.0115378190001,
+            "recordIndex": 17
+          },
+          "firstType13Subtype1Dispatch": {
+            "callbackAfterLogMilliseconds": [
+              7.392496999955256,
+              7.3957399999926565
+            ],
+            "callbackSystemUptime": 794.006907918,
+            "dispatchIndex": 4,
+            "event": "appkit-defined-enter",
+            "journalAfterLogMilliseconds": [
+              7.440444999929241,
+              7.443687999966642
+            ],
+            "journalSystemUptime": 794.006955866,
+            "recordIndex": 14
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "insideBothOwnedObservedLifetimes": true,
+          "nativePassed": false,
+          "newFront": {
+            "anchorRecordIndices": [
+              155
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x38038"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 10783,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-second",
+                "pid": 10783,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 229432,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-second",
+              "pid": 10783,
+              "role": "target"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phase": "cancel-entered-before-escape",
+          "phaseMatches": [
+            {
+              "case": "xctest-second",
+              "phase": "cancel-entered-before-escape"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [
+              174
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x3a03a"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 10949,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-second",
+                "pid": 10949,
+                "role": "source"
+              }
+            ],
+            "parsedLowComponent": 237626,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-second",
+              "pid": 10949,
+              "role": "source"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": true,
+          "sourceRecordIndex": 186,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            793.999512178,
+            793.9995154210001
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=411 asn=0x-0xf00f foreground=1 oldFrontPid=10783 oldFrontASN=0x-0x229432",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 799950061341,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 33486,
+            "timestamp": "2026-11-07 09:04:03.945664+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 411,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 61455,
+            "uniqueOwnedIdentity": null
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": false,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [],
+          "previousFront": {
+            "anchorRecordIndices": [
+              155
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x38038"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 10783,
+            "ownedPIDMatches": [
+              {
+                "case": "xctest-second",
+                "pid": 10783,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 229432,
+            "uniqueOwnedIdentity": {
+              "case": "xctest-second",
+              "pid": 10783,
+              "role": "target"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 188,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            799.9500610709999,
+            799.9500643140001
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=11199 asn=0x-0x3e03e foreground=1 oldFrontPid=411 oldFrontASN=0x-0x61455",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 804693546699,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 29401,
+            "timestamp": "2026-11-07 09:04:08.689149+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [
+              210
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x3e03e"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 11199,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-second",
+                "pid": 11199,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 254014,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-second",
+              "pid": 11199,
+              "role": "target"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [],
+          "previousFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 411,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 61455,
+            "uniqueOwnedIdentity": null
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 213,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            804.693546429,
+            804.6935496720001
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=411 asn=0x-0xf00f foreground=1 oldFrontPid=11199 oldFrontASN=0x-0x254014",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 805118602630,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 34816,
+            "timestamp": "2026-11-07 09:04:09.114205+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 411,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 61455,
+            "uniqueOwnedIdentity": null
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": false,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [
+            {
+              "case": "quartz-second",
+              "phase": "setup-observed"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [
+              210
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x3e03e"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 11199,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-second",
+                "pid": 11199,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 254014,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-second",
+              "pid": 11199,
+              "role": "target"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 216,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            805.11860236,
+            805.1186056030001
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=11215 asn=0x-0x40040 foreground=1 oldFrontPid=411 oldFrontASN=0x-0x61455",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 806897145132,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 34328,
+            "timestamp": "2026-11-07 09:04:10.892747+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [
+              229
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x40040"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 11215,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-second",
+                "pid": 11215,
+                "role": "source"
+              }
+            ],
+            "parsedLowComponent": 262208,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-second",
+              "pid": 11215,
+              "role": "source"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [
+            {
+              "case": "quartz-second",
+              "phase": "setup-observed"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 411,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 61455,
+            "uniqueOwnedIdentity": null
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 232,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            806.897144862,
+            806.8971481050002
+          ]
+        },
+        {
+          "case": "quartz-second",
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=11199 asn=0x-0x3e03e foreground=1 oldFrontPid=11215 oldFrontASN=0x-0x262208",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 809293720722,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 34328,
+            "timestamp": "2026-11-07 09:04:13.289323+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "escapeDownStartedSystemUptime": 810.749097515,
+          "escapeStartAfterLogSeconds": [
+            1.4553738199998634,
+            1.4553770630000145
+          ],
+          "eventTimestampUsedForCalibrationOrDelta": false,
+          "firstApplicationBecameActiveCallback": {
+            "callbackAfterLogMilliseconds": [
+              11.363755999923342,
+              11.36699900007443
+            ],
+            "callbackSystemUptime": 809.3050874510001,
+            "dispatchIndex": null,
+            "event": "application-became-active",
+            "journalAfterLogMilliseconds": [
+              11.411586999884094,
+              11.414830000035181
+            ],
+            "journalSystemUptime": 809.305135282,
+            "recordIndex": 17
+          },
+          "firstType13Subtype1Dispatch": {
+            "callbackAfterLogMilliseconds": [
+              5.115788999887627,
+              5.119032000038715
+            ],
+            "callbackSystemUptime": 809.298839484,
+            "dispatchIndex": 4,
+            "event": "appkit-defined-enter",
+            "journalAfterLogMilliseconds": [
+              5.193213999859836,
+              5.196457000010923
+            ],
+            "journalSystemUptime": 809.298916909,
+            "recordIndex": 14
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "insideBothOwnedObservedLifetimes": true,
+          "nativePassed": false,
+          "newFront": {
+            "anchorRecordIndices": [
+              210
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x3e03e"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 11199,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-second",
+                "pid": 11199,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 254014,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-second",
+              "pid": 11199,
+              "role": "target"
+            }
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": true,
+          "oldSharedEmitterAllowlisted": false,
+          "phase": "cancel-entered-before-escape",
+          "phaseMatches": [
+            {
+              "case": "quartz-second",
+              "phase": "cancel-entered-before-escape"
+            }
+          ],
+          "previousFront": {
+            "anchorRecordIndices": [
+              229
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x40040"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 11215,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-second",
+                "pid": 11215,
+                "role": "source"
+              }
+            ],
+            "parsedLowComponent": 262208,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-second",
+              "pid": 11215,
+              "role": "source"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": true,
+          "sourceRecordIndex": 241,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            809.293720452,
+            809.2937236950002
+          ]
+        },
+        {
+          "entry": {
+            "activityIdentifier": 0,
+            "backtrace": {
+              "frames": [
+                {
+                  "imageOffset": 145594,
+                  "imageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5"
+                }
+              ]
+            },
+            "bootUUID": "BBBE349B-936A-4F11-894F-460CBF50D4C4",
+            "category": "front-35286506",
+            "eventMessage": "SETFRONT: pid=411 asn=0x-0xf00f foreground=1 oldFrontPid=11199 oldFrontASN=0x-0x254014",
+            "eventType": "logEvent",
+            "formatString": "SETFRONT: pid=%d asn=0x-0x%x foreground=%d oldFrontPid=%d oldFrontASN=0x-0x%u",
+            "machTimestamp": 815541917197,
+            "messageType": "Default",
+            "parentActivityIdentifier": 0,
+            "processID": 124,
+            "processImagePath": "/System/Library/CoreServices/launchservicesd",
+            "processImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderImagePath": "/System/Library/CoreServices/launchservicesd",
+            "senderImageUUID": "5B0D0405-EE54-3E78-B2EE-8ECFDE1FBDF5",
+            "senderProgramCounter": 145594,
+            "source": null,
+            "subsystem": "com.apple.processmanager",
+            "threadID": 34817,
+            "timestamp": "2026-11-07 09:04:19.537519+0000",
+            "timezoneName": "",
+            "traceID": 1413216072761348,
+            "userID": 0
+          },
+          "foregroundValue": 1,
+          "formatDecoding": {
+            "newASNLow": "hexadecimal (%x)",
+            "oldASNLow": "decimal (%u), despite literal 0x prefix",
+            "omittedHighComponents": "not reconstructed; explicit PID plus existing full ASN anchor used"
+          },
+          "newFront": {
+            "anchorRecordIndices": [],
+            "fullAnchoredASNs": [],
+            "lowComponentCorroboratesUniqueAnchor": false,
+            "messagePID": 411,
+            "ownedPIDMatches": [],
+            "parsedLowComponent": 61455,
+            "uniqueOwnedIdentity": null
+          },
+          "oldCollectorRejectedCount": 1,
+          "oldCollectorSelected": false,
+          "oldOwnedMessageReferenceMatches": false,
+          "oldSharedEmitterAllowlisted": false,
+          "phaseMatches": [],
+          "previousFront": {
+            "anchorRecordIndices": [
+              210
+            ],
+            "fullAnchoredASNs": [
+              "0x0-0x3e03e"
+            ],
+            "lowComponentCorroboratesUniqueAnchor": true,
+            "messagePID": 11199,
+            "ownedPIDMatches": [
+              {
+                "case": "quartz-second",
+                "pid": 11199,
+                "role": "target"
+              }
+            ],
+            "parsedLowComponent": 254014,
+            "uniqueOwnedIdentity": {
+              "case": "quartz-second",
+              "pid": 11199,
+              "role": "target"
+            }
+          },
+          "sameCaseOwnedSourceToTarget": false,
+          "sourceRecordIndex": 243,
+          "ultimateRequesterEstablished": false,
+          "uptimeInterval": [
+            815.541916927,
+            815.5419201700001
+          ]
+        }
+      ]
+    }
+  ],
+  "artifactBytesModified": false,
+  "auditScriptSHA256": "b76f7519a602954d5b14538960173693775b8be73bb55cd7f61676d4d3dca1a8",
+  "interpretation": "Observed launchservicesd-emitted front-transition context with direct PID and format-correct ASN-component corroboration. This does not identify the upstream caller, input origin, or native Escape consumer. No matching retained row does not establish no request. CallbackSystemUptime and journal systemUptime remain distinct; NSEvent.eventTimestamp is not used for calibrated deltas.",
+  "nativeClassifierExecuted": false,
+  "nativeInputExecuted": false,
+  "projection": {
+    "description": "Full original SETFRONT log entries are retained. Only local archive locations and derived owned-process executable paths are omitted. Source/target PID, role, full anchored ASN, raw indices, calibration bounds and callback observations are preserved.",
+    "omittedDerivedFields": [
+      "absolute artifactDirectory",
+      "owned-process executablePath"
+    ],
+    "rawSETFRONTEntriesUnchanged": true,
+    "sourceAnalysis": "D17-uppercase-SETFRONT-retained-context",
+    "sourceAnalysisSHA256": "ec7e5635c7f9dd2a9227189ea1102f2a585c553f21ca746de64e655bef4da7e5"
+  },
+  "run": {
+    "attempt": 1,
+    "candidateCommit": "d821d7343675e2850705d141ef9b3b93a6aee945",
+    "candidateTree": "425baa28f00ec24551dd70c0cc874a75fa3be0c1",
+    "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+    "conclusion": "failure",
+    "id": 42357652748,
+    "tree": "460878bd1e11b3c17c830b9c34d767add856fa5c",
+    "url": "https://github.com/osmankaankars/lemulip/actions/runs/42357652748"
+  },
+  "schema": 1,
+  "systemLogQueryExecuted": false
+}

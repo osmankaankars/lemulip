@@ -22,6 +22,25 @@ probe was also assessed and not run: it could provide positive retrieval
 evidence, but its coverage of AppKit's native tracking path is undocumented and
 its absence would not resolve the current uncertainty.
 
+### Subsequent D17 evidence
+
+The later [D17 run and retained transition analysis](NATIVE_DRAG_ACTIVATION_REQUEST_LOG_DIAGNOSTIC.md#r1-completed-run-and-new-server-side-transition-evidence)
+completed on 7 November 2026 at tested commit
+`a17259046aed8ef62c0bd5273e530847b9c78b3c`. Its new category-wide query
+closed a demonstrated selection gap: the old shared-process list contained
+`lsd`, but excluded the observed `launchservicesd` emitter. Both bounded queries
+and their empirical clock calibrations completed.
+
+All five D17 FAIL cases contain a `launchservicesd` `SETFRONT` row naming the
+owned source as previous front process and the owned target as new front process,
+after receiver entry and before Escape. The rows precede target dispatch callbacks
+by roughly 5–42 milliseconds. Their original fields and exact timing bounds are
+in the [retained transition JSON](evidence/D17-front-transitions.json).
+The message's previous-front PID is not the caller identity, and its single
+daemon frame supplies no upstream request stack. The cause and original acceptance
+gate therefore remain open. D17's three PASS/five FAIL cases are not added to the
+historical 29-case analysis below; that analysis and its source files remain unchanged.
+
 ## Symptom and impact
 
 The original C12 [run 41803346911](https://github.com/osmankaankars/lemulip/actions/runs/41803346911)

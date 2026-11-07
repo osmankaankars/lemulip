@@ -40,7 +40,7 @@ The C12 production diff against main
 
 The independent source review found no additional concrete blocker in that
 production diff. It is separate from native execution and from the still-open
-drag observer failure. D13 through D16 change only diagnostic infrastructure and leave
+drag observer failure. D13 through D17 change only diagnostic infrastructure and leave
 these production sources byte-for-byte equal to C12.
 
 ## Selected visual observations
@@ -79,8 +79,9 @@ drag`. The 58 successful XCTest cases do not override that separate failure.
 The [D12 held AX comparison](NATIVE_DRAG_HELD_AX_DIAGNOSTIC.md),
 [D13 mouse producer comparison](NATIVE_DRAG_MOUSE_DRIVER_DIAGNOSTIC.md),
 [D14 event-origin observations](NATIVE_DRAG_EVENT_ORIGIN_DIAGNOSTIC.md),
-[D15 dispatch-stack observations](NATIVE_DRAG_DISPATCH_STACK_DIAGNOSTIC.md), and
-[D16 receiver synchronization comparison](NATIVE_DRAG_RECEIVER_SYNC_DIAGNOSTIC.md) are
+[D15 dispatch-stack observations](NATIVE_DRAG_DISPATCH_STACK_DIAGNOSTIC.md),
+[D16 receiver synchronization comparison](NATIVE_DRAG_RECEIVER_SYNC_DIAGNOSTIC.md), and
+[D17 activation request log observations](NATIVE_DRAG_ACTIVATION_REQUEST_LOG_DIAGNOSTIC.md) are
 diagnostic work. Their scope and results must remain separate from the original
 enter, exit, reenter, Escape, release and fresh-drop acceptance sequence.
 
@@ -120,6 +121,22 @@ The investigation now requires evidence across that native boundary; another
 timing, synchronization, or application-associated key variant is not a
 supported repair. This read-only result adds no production change and does not
 close either task.
+
+D17 R1 completed another eight comparable diagnostic cases in
+[run 42357652748](https://github.com/osmankaankars/lemulip/actions/runs/42357652748),
+tested commit `a17259046aed8ef62c0bd5273e530847b9c78b3c`: ARM PASS/FAIL/FAIL/PASS,
+Intel PASS/FAIL/FAIL/FAIL. All 143 portable checks and native builds passed on
+each architecture, as did both owned clock markers and each single bounded
+system-log query. Native outcomes remained unchanged and were independently
+reproduced from the original artifacts.
+
+The new category-wide query recovered `launchservicesd` `SETFRONT` rows that
+the old emitter list excluded. All five failing cases contain a source-to-target
+front transition after receiver entry and before Escape, approximately 5–42 ms
+before the target's activation dispatch callback. These records identify a
+server-side transition and its exact source/target context, not the upstream
+requester or Escape consumer. This is new diagnostic evidence; production C12
+and the original full acceptance requirement remain unchanged.
 
 To complete task 08, close or explicitly resolve task 07's remaining CI gate on
 the final candidate, review any resulting production changes, and retain the
