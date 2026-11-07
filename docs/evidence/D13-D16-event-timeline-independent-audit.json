@@ -1,0 +1,572 @@
+{
+  "all29NativeStateAndIntervalsMatch": true,
+  "archiveHashes": {
+    "D13-R3-arm64.zip": "3e4f6738797850cdc9bd9b0c856262a7e683fc9568b8323843479e833ced06cc",
+    "D13-R3-x86_64.zip": "03dd5a902fed6623f5f0099a0bd0aed65220069b9bfd0d8e45f9b03af567eec0",
+    "D14-R2-arm64.zip": "6a6593ebeeb072400434ad9401586e708c674d048818c1628ea520822e766720",
+    "D14-R2-x86_64.zip": "114f7878ed674a10517586bfbf778c96d11c81a7e5f7431eb60e22ccf65a193a",
+    "D15-R1-arm64.zip": "faffc905f90429499c54521838ae9aaf7f1a5875afa43c1a0c1c4a71b6ab3dc5",
+    "D15-R1-x86_64.zip": "4c80ada8696e59d07796599354ee4478fcaa650e374835459329d7ac35831f38",
+    "D16-R1-arm64.zip": "a5c28d9d5c849631af2a043d2d9fb14cc4933ecaa550e578a0e80f4aecf3ad0b",
+    "D16-R1-x86_64.zip": "6c33fa80f1a6c2f41c668645fd1a19aaeced17fda2367d81fc1602ca1c30bd2b"
+  },
+  "classifierExecuted": false,
+  "comparable": 29,
+  "excluded": [
+    [
+      "D14-R2",
+      "x86_64",
+      "xctest-first",
+      "not-comparable"
+    ],
+    [
+      "D14-R2",
+      "x86_64",
+      "xctest-second",
+      "not-run"
+    ],
+    [
+      "D14-R2",
+      "x86_64",
+      "quartz-second",
+      "not-run"
+    ]
+  ],
+  "fail": 22,
+  "failEntryToActivationMilliseconds": [
+    761.3096249999671,
+    1698.3738750000157
+  ],
+  "first6ClusterMilliseconds": [
+    402.75766900003873,
+    438.2184583333526
+  ],
+  "first6OutliersMilliseconds": [
+    693.4290416666613,
+    809.2322500000364,
+    841.9039583333188,
+    1243.1870833333107,
+    1352.6865000000043
+  ],
+  "nativeExecuted": false,
+  "pass": 7,
+  "passTerminalWitnessToEscapeMilliseconds": [
+    2199.7260480000023,
+    2245.5147240000315
+  ],
+  "rawFilesChecked": 124,
+  "rawHashes": {
+    "D13-R3-arm64/drag-mouse-driver-comparison/comparison.json": "7aae8e061933594505b9bb7b2867bc00f94b270346fd0859cd355eb8202ea941",
+    "D13-R3-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/activation.jsonl": "ae576a709e55b852c81a62f1b1f51a19d42215ab1331cd0a50ac1a10f5de001c",
+    "D13-R3-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/receiver.jsonl": "508bdf6d1b0e93db960fcb73cce0db086e773dea3d7d3c12916549199ec2345c",
+    "D13-R3-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/report.json": "0e2e80595527056eeb10e4ce484b5970c83484fe94f6d459c3b4f9f5d792d73e",
+    "D13-R3-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/source.jsonl": "df07671479565991182010814e3ac821b2a270a76dd0f3cc6d3334627bd490bb",
+    "D13-R3-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/activation.jsonl": "f0aed4e0f965919780513dbd7f7ef837efbcd8667ff9f350ae40695c8620e042",
+    "D13-R3-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/receiver.jsonl": "992f5e761720ed5289b2fc4f677c6cbadb4f4a5738f31a2f65851a781c809e02",
+    "D13-R3-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/report.json": "d117198e48739421a6372797e6617e1ef8aa4c974286a360d6ed751da4cf6ece",
+    "D13-R3-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/source.jsonl": "9df4648f328b31be59ac9fc02c3839683745fc40fc35352257d20c6593cd71b1",
+    "D13-R3-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/activation.jsonl": "3c342faefa4af3fa05787c41f5056eacc0de321a8d3a2c4b96a66c73299f0542",
+    "D13-R3-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/receiver.jsonl": "2e25f9801ef9cc98ffc07ac303a3bc4d4e23c2143dca2dcc67f49081ded8efda",
+    "D13-R3-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/report.json": "b51c6bfe7883dda78001f87f9819e2ee1260e156b370b03623104dd0c8921f57",
+    "D13-R3-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/source.jsonl": "328bee8ffff201a7baf27ae9a692f481a30300b4225a4505458ae3f0411edec0",
+    "D13-R3-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/activation.jsonl": "047ac2c676a108e32cbe86a618cd89a3c275100d60cca5ee243f351da7893173",
+    "D13-R3-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/receiver.jsonl": "bf2dae7e86c4989b56863296fc1423869ef335de3c71c20b3afd138de4750293",
+    "D13-R3-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/report.json": "c1cadb2b1cf675a89e003ebb67c8015d601aebb7d8f78cb4ed770d8904a338ff",
+    "D13-R3-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/source.jsonl": "bbb9ef5c60bb10a2633169bdff01639e1cbe93cb173a4581d2fddc3f98c65bd0",
+    "D13-R3-x86_64/drag-mouse-driver-comparison/comparison.json": "a86d06cde4d0cbcab813382829c7869efcbe85fdbd18eee722de0393afabbbd9",
+    "D13-R3-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/activation.jsonl": "ecac1b5269b4d3074ea439f1a144e59fdaeac74e985a4b08028da7dbde891778",
+    "D13-R3-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/receiver.jsonl": "eb105cb212c35ae2e68be35a4c8857228571bb8a0db066f92e05245633a417c5",
+    "D13-R3-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/report.json": "af896e3fb1737f6faa307e89ce3d56d2e31a05e4a2512cc107cdd0948fdc15d0",
+    "D13-R3-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/source.jsonl": "78db821b7c1fea1f78c0b950757c7539a2631ffb20ef911e75e1859050b23edf",
+    "D13-R3-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/activation.jsonl": "6ff026d89550885257223a9cef45a0e5f260f7ca6657db3cc54dbc8037fa55a6",
+    "D13-R3-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/receiver.jsonl": "62e61eca7cce0963c977ce0f0cdb4fa3488676e7e1f560727d633a818779303f",
+    "D13-R3-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/report.json": "cf71a0cb4fadd291c8e7149ef50708fcea6365a9591d897c0100dcbed71251ec",
+    "D13-R3-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/source.jsonl": "30d4af0db0af00d8de8c889f5f479c78e2fcf2801a6338921dee9196026d0a99",
+    "D13-R3-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/activation.jsonl": "9cc9293fde4d92ff4cdae21fc09038943d6908e899fc3cbc1bfb5ed1d60550de",
+    "D13-R3-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/receiver.jsonl": "c3e091e13cb900f5b7a543f81c57fa422a87415fbfc08b12f962e983b5c8a811",
+    "D13-R3-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/report.json": "d4d1d6ccf744bb578759618cbc2063e8e9bc77da803ab940739bddeadb19a443",
+    "D13-R3-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/source.jsonl": "d7841b706dedc592648a9b5732e1555dedf44ff95310d51c1ce9a83f8bed18c7",
+    "D13-R3-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/activation.jsonl": "e0654320fde19784a62ec24554f3b28e4a67e1209409c7f091dad677e490d4a5",
+    "D13-R3-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/receiver.jsonl": "c43f382ef13a3e0e34887f39dddecbd9db978ac7a925a9dd70ce18a7c2ba4760",
+    "D13-R3-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/report.json": "db9ca0dbf558ae459bd5eb07e3ab9e3cfbb042427f3d83f5e0bd510b9f93d679",
+    "D13-R3-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/source.jsonl": "ccb8913ee2fd8bafe23e4aa6ddc80d7ce38fad96c25d2ea4de29f6d42e1785bc",
+    "D14-R2-arm64/drag-mouse-driver-comparison/comparison.json": "67c00c7a00c982bf7ee3a9a9251ebaf994b97c8d8888e8706efdbb8ee7783ba3",
+    "D14-R2-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/activation.jsonl": "96ff57b658b50facd8009fe8f7b4a8e83c9d6e4b1958261604dcb693c2696730",
+    "D14-R2-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/receiver.jsonl": "bc731dd3070b2f406e6d5c9b731d6085f8b3d3c32342f2649678236b33db78e4",
+    "D14-R2-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/report.json": "8a25e1d8d68c963d039de9f24feb204858cd53bbab666478608c39163e5680f7",
+    "D14-R2-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/source.jsonl": "73c4b3e7179fc9ef162b6e8495cff77afc46c3dc478021632a2f36f4e700d873",
+    "D14-R2-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/activation.jsonl": "3c0b76efb98867c2265729f0a88bc8c54db69dd3b3ef975241dbb12a3bb1bff6",
+    "D14-R2-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/receiver.jsonl": "110443ef16aa571125e0cc5cbc4dc8e1fa8112481cb9a828a3bfda37437ede42",
+    "D14-R2-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/report.json": "31457fd1f96dc4dd475b43656a66b77af040e4fa53d39214ee1217a84acb4197",
+    "D14-R2-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/source.jsonl": "eb445de124ed5cf574809f1349aa852263f13d16efba35ee38c7f3a77cf5cd61",
+    "D14-R2-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/activation.jsonl": "bd23d678b97ac95d4a89abb26bd80d5e566886dcc419bbfcefe32b497b5a1ad6",
+    "D14-R2-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/receiver.jsonl": "e87beab6233688d5c6a9e774222c7f13d712fd8f7df0cd87dd11d0a076e19770",
+    "D14-R2-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/report.json": "615b1a846712eb552c5e68dcd0c0d3149b0435bff0ec795524e84b04f6512a42",
+    "D14-R2-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/source.jsonl": "248c022558d50dbcf72d620d23d8b42a3b05ee012010712bdfec2c91da0fd3e3",
+    "D14-R2-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/activation.jsonl": "29e880b640a5072eb900b2af8336324784914ae9929a10e07e6c277cf1f30abc",
+    "D14-R2-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/receiver.jsonl": "b7a6beb4eaa23c6e9f4351d5ccd40e78dd48bde9b2cce2d8c55d6c1446f0dba5",
+    "D14-R2-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/report.json": "2a0f343e62ee6561e5d505c7178c22c11af661d6778a35d6a256b3821dccf417",
+    "D14-R2-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/source.jsonl": "8a7aba6dbfc21c2195778b2a27deca618f206038f02c8eec7af534f87ae1a6df",
+    "D14-R2-x86_64/drag-mouse-driver-comparison/comparison.json": "803de30f061d8ef3e81e651a50fb697a96a84c8383a192a0f4f672b7aa8ccfd8",
+    "D14-R2-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/activation.jsonl": "ea3f390e2ffbb79a31ccb8ffb5443d1f67696eb0a81bdb3eb113f7636568dcfc",
+    "D14-R2-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/receiver.jsonl": "a02d74bee92f297dfda84b3b8ec4b3d85cb9907e63c4ea03c0fdb43ae014f220",
+    "D14-R2-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/report.json": "2bbf3c3df9c7fec6d95c8a77a8c63149da44b2935298056e9c8cff90ed9efb24",
+    "D14-R2-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/source.jsonl": "c26996622e42379e680640937544374b91df215cae2ea7929eafafada4afffec",
+    "D15-R1-arm64/drag-mouse-driver-comparison/comparison.json": "39fe32eb966be2468b7a87d12ffa46e6237072c6cb0ef04a331553e0175e2be3",
+    "D15-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/activation.jsonl": "715393abdf8f1a111708707350bf9a1a900d149903442c81c012469f928bf73f",
+    "D15-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/receiver.jsonl": "a4a76106ad7cd484ac17017a529d2e7db748c543473d35c59ea66eec09768815",
+    "D15-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/report.json": "b9834b9e84600123da0d434744ee09f1385d6c4a6778d345465059fa507f5f5a",
+    "D15-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/source.jsonl": "166b1ff67a77cace15b6909d5a12faf0218eb7e62e0f0c11cb963414cd49ea1c",
+    "D15-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/activation.jsonl": "2a8293315640266cfe9bc6a252ca89c913b14aea05b6c280054e3ad3b18bcfa6",
+    "D15-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/receiver.jsonl": "13db79b50b35c187e7cfddeb6a7ec805485136f0660850dee5824c3ad802be3b",
+    "D15-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/report.json": "6317e7fcf59cec4a32c1437e3c2d13816c2133ecc82fe0996ce8d424486aee79",
+    "D15-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/source.jsonl": "635d53075a07fa4509f93045c4ea158bca9ae155d395ce85bfe065ff5a00caee",
+    "D15-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/activation.jsonl": "db3b53469c30275df484481f666dc75d41584aa80d28eb2c35d502679b53426a",
+    "D15-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/receiver.jsonl": "d518b46442289540c3ec60fd319b7a1e470f54b10e8b759d2f5f78bb8b595b98",
+    "D15-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/report.json": "07708a38e49e928685869c3643e4a4cc410ca9a544d117599734f3d80dafe46e",
+    "D15-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/source.jsonl": "35a225263a0d0423ab76ce748daf8eb4212d3e888a5f5412eea6b59c1162d2b4",
+    "D15-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/activation.jsonl": "2969ab5b00f510321d5eb90e4b5d51126d75025e4386fe263ffab971823d44e5",
+    "D15-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/receiver.jsonl": "62e8b8eec51e648bb99b5c4143bca7d1aca106df16297888c6ea0496e86c49d0",
+    "D15-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/report.json": "aca127c00dc7183941a2dfe36953c116ddfa0c445635417f47a5b72bc955fcb2",
+    "D15-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/source.jsonl": "fb9231e0ccb987611f47c84dbaad3f8c2a8d6aee3ec4d7029450a6707a930ae2",
+    "D15-R1-x86_64/drag-mouse-driver-comparison/comparison.json": "fd9f44723b82af76c66f5c72ef57fa86ceb1314c64e55c1ba9fff0276a6e78f4",
+    "D15-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/activation.jsonl": "efd9652f7572ff764370359a6dd6f8b0442f13946dabde5a699d1eb31f4e2076",
+    "D15-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/receiver.jsonl": "d5d8aea1b588b6d228126440a6f13975e46d73b02ad4d818dad33544b6e8dd1a",
+    "D15-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/report.json": "833145ac118b7c80a5f62ff2722ab674789d5fd463632e1a0e95569a208c1100",
+    "D15-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first/orchard/source.jsonl": "c042682cb452fc52a8410ed9727cde366f9dee04bbb4b8d6d9c0ed0a114a389d",
+    "D15-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/activation.jsonl": "2a5c5beb2bfdbc926881d0026e5adad5b7f76e877e14ee399f14af6cab3df7c4",
+    "D15-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/receiver.jsonl": "639b0a307c4d109b76ff6262e0835872f5bd9e8a21f1a9f28968c1231cb7aca6",
+    "D15-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/report.json": "38966184cb07cadf018ee277fac76c82d0d21ee352f4c47a20c3c79fe227d03b",
+    "D15-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-second/orchard/source.jsonl": "c72ce599fd06d67a51cabe7632bd1d8d35fdbdfd3cb207ebf4b4de651fa9b1f5",
+    "D15-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/activation.jsonl": "3d5d017215ed00139b7cfe9dc947a3a8c4659ac5a50ab5733a25bb5e0cde952b",
+    "D15-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/receiver.jsonl": "25970958c9560d986c39ce71cc7390279b2584ac24d2cf98d8c41c031078e0fa",
+    "D15-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/report.json": "3fd12550a7f53312ad6dc6e2dd857fa5f29905503a214cab9183cf648894e1e7",
+    "D15-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-first/orchard/source.jsonl": "9f8ad6c8a05937a01c185187ce330cc96d37ee79c5268226f07b0ee334a6d4e1",
+    "D15-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/activation.jsonl": "039b3619c5177788a2cee4aa6d92a4788aabfa74e8a916d77d613930913669fe",
+    "D15-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/receiver.jsonl": "ac0caaffff87842b94a23815622f39d31126fa0a31052c5dab0ec8c31b664d1b",
+    "D15-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/report.json": "c918d52f00f5e995e2c47c46a1a7ae7a003b12b0a9a835dfedb8351a8c2014e0",
+    "D15-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-xctest-second/orchard/source.jsonl": "f1e7e172e1e82cea29eb269814aabddc2919087c4adf42eea8b71666647cdb64",
+    "D16-R1-arm64/drag-receiver-sync-comparison/comparison.json": "b0a055129c0988cc01328d6dc1c90201da7bee35ef12d94fcaaac666aea23f73",
+    "D16-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-deferred-first/orchard/activation.jsonl": "32bf1d47c1ed72ea55af315c9bedf7c1c5e0034c5e14b588d8d0c60fc6ff0eae",
+    "D16-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-deferred-first/orchard/receiver.jsonl": "333848b8bd6ca2ff989147562a97acd365c4fd699cbc23f609f3a5cf4e7a1412",
+    "D16-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-deferred-first/orchard/report.json": "f1e206705faef227a3658cab99fd2534f6fe33e460526c3f7baa30b15ecd6939",
+    "D16-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-deferred-first/orchard/source.jsonl": "433c3a1c9826cc78af8b1430399fc080dedb6acbf631b8ed3c5d337523f94737",
+    "D16-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-deferred-second/orchard/activation.jsonl": "de9a733d655b97223e1386ec058b9446ddd7d6529570aba5aef82d130043f9cd",
+    "D16-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-deferred-second/orchard/receiver.jsonl": "a121be33b975313e0d6f2c7109e514e4fb6596f80f28a50ab61d8f9153082123",
+    "D16-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-deferred-second/orchard/report.json": "2bc9ff2ea7f5a233a4f516467b71b31f0d37dd4dad1c159452541d406bd92186",
+    "D16-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-deferred-second/orchard/source.jsonl": "155a2e6d95d18c0ea2836f56a84d077744c78151b5f8b3eb43823a840c741ea8",
+    "D16-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-sync-first/orchard/activation.jsonl": "18a416fc722c7e46263c131005324f7ff5e4ff8a51c7ee686aa165c5435fc814",
+    "D16-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-sync-first/orchard/receiver.jsonl": "b1922d2a1617b99cdb98cecddf55de6843306e42260efb4cadfefabc56c4ab67",
+    "D16-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-sync-first/orchard/report.json": "c36c103a3e150c8c6b39a58387661f7abd79a82e818eb98aef9815b6cfe6e3c2",
+    "D16-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-sync-first/orchard/source.jsonl": "a3f87f1a316000a78b516c685114f6e37c0ab07bb6b8b341e2db2fd45ea9d777",
+    "D16-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-sync-second/orchard/activation.jsonl": "d908caa8b99a9523faccf42746037f62ff4681d19b2b5216f41f9beed65e33eb",
+    "D16-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-sync-second/orchard/receiver.jsonl": "3084fabc62929c92eda4aaa5f44332b27252a36f0cb6e83caf496d3bfd16ef0e",
+    "D16-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-sync-second/orchard/report.json": "cada73f49f7f44510a40051a13d0422c357349885486feb2e4d4cc6498d30bba",
+    "D16-R1-arm64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-sync-second/orchard/source.jsonl": "f6d24a1d02145f645770b50c17d38dd420cb43659716103bf6dd9d9e0e6236ec",
+    "D16-R1-x86_64/drag-receiver-sync-comparison/comparison.json": "56dd7b014c5452078136640148f183fb88ee2375a3398ba53e895d0236b6677c",
+    "D16-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-deferred-first/orchard/activation.jsonl": "f297900faf5855baa1273e68f7ac2170d3fff16c3b388655e6c29813b8223347",
+    "D16-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-deferred-first/orchard/receiver.jsonl": "fbd7e6c24c0598f4baaa2ca42061da81caa209f231182421462ba8844bd2a8ad",
+    "D16-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-deferred-first/orchard/report.json": "1341301bfe54ce964374b7ed6ded48b234cba1c04b398feb21e32ae95d01dbf0",
+    "D16-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-deferred-first/orchard/source.jsonl": "bde8b06a2744f860ad0cd07398b45a3fc70e2b372519b62154ce48aae16fb8bf",
+    "D16-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-deferred-second/orchard/activation.jsonl": "17ce3c6a87d678f16db3305ebff0220cce6f3b3c2393d501db54dd47ac92fc88",
+    "D16-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-deferred-second/orchard/receiver.jsonl": "050545f35f2049f8b884433ca1dc8afd7b784131338ff6c347f29d3de5b8c5ee",
+    "D16-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-deferred-second/orchard/report.json": "e9bcd22c196cb4186b35c088048d74e46bcae8ea0c7d22a189d153baf7393d91",
+    "D16-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-deferred-second/orchard/source.jsonl": "8bb2cbdb06ce1872efdb6baa1f744940b08a7ddc923c3ce07b942d8640e86f7f",
+    "D16-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-sync-first/orchard/activation.jsonl": "a494a11cfbcde538d57035e38e7830bb69e04988db6469d8b760fc0ff5367991",
+    "D16-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-sync-first/orchard/receiver.jsonl": "9182efa3a198873247ea96cf91ab88b0b6ad7c206901f50b1b0472ed845a9989",
+    "D16-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-sync-first/orchard/report.json": "73927c9673126cd016f54050b4c11a75e961256141609df57feca72cab110e28",
+    "D16-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-sync-first/orchard/source.jsonl": "8f0b9e15d26e0c315eb908b139912a460f370d99a2304535048ae77c33902c25",
+    "D16-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-sync-second/orchard/activation.jsonl": "e0d65350efe775e5df852b8f4236a5dace71e7aa10c2a13196470700ac57d959",
+    "D16-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-sync-second/orchard/receiver.jsonl": "9f6bb6865a12d4b0504d09b1c23291f0d25695ff5d91a59f26f00116e40d894f",
+    "D16-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-sync-second/orchard/report.json": "e25e976fe88e09a20a4deb45cbb4e26e54826346ae181f922cc474cc8a0e0d1f",
+    "D16-R1-x86_64/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-sync-second/orchard/source.jsonl": "7bd1f1964a223150d815ec6d696553ae541223790101b9cdeaab2a68e3a39ec0"
+  },
+  "rows": [
+    {
+      "architecture": "arm64",
+      "case": "quartz-first",
+      "diagnostic": "D13-R3",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 3398.496166666689,
+        "createdToWillBegin": 1.0755000000131076,
+        "entryToActivation": null,
+        "firstTarget6ToActivation": null,
+        "terminalWitnessToEscape": 2214.848125000003
+      },
+      "outcome": "PASS"
+    },
+    {
+      "architecture": "arm64",
+      "case": "xctest-first",
+      "diagnostic": "D13-R3",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 3440.303583333332,
+        "createdToWillBegin": 0.4549583333073315,
+        "entryToActivation": null,
+        "firstTarget6ToActivation": null,
+        "terminalWitnessToEscape": 2200.8081666666612
+      },
+      "outcome": "PASS"
+    },
+    {
+      "architecture": "arm64",
+      "case": "xctest-second",
+      "diagnostic": "D13-R3",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5693.730333333349,
+        "createdToWillBegin": 1.0015833333341106,
+        "entryToActivation": 982.7167083333279,
+        "firstTarget6ToActivation": 412.7797916666509,
+        "terminalWitnessToEscape": 2215.824624999982
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "arm64",
+      "case": "quartz-second",
+      "diagnostic": "D13-R3",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5882.254500000045,
+        "createdToWillBegin": 0.9177500000419059,
+        "entryToActivation": 1012.5920416666645,
+        "firstTarget6ToActivation": 429.9797499999727,
+        "terminalWitnessToEscape": 2218.166750000023
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "x86_64",
+      "case": "quartz-first",
+      "diagnostic": "D13-R3",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5906.715200999997,
+        "createdToWillBegin": 0.5006350000940074,
+        "entryToActivation": 1015.3979909999862,
+        "firstTarget6ToActivation": 429.3394779999744,
+        "terminalWitnessToEscape": 2194.9807130000636
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "x86_64",
+      "case": "xctest-first",
+      "diagnostic": "D13-R3",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5630.798729000048,
+        "createdToWillBegin": 0.836006999975325,
+        "entryToActivation": 972.4397969999927,
+        "firstTarget6ToActivation": 402.75766900003873,
+        "terminalWitnessToEscape": 2259.594154999945
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "x86_64",
+      "case": "xctest-second",
+      "diagnostic": "D13-R3",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5660.730926999918,
+        "createdToWillBegin": 0.7815230000005613,
+        "entryToActivation": 997.2323050000114,
+        "firstTarget6ToActivation": 418.70615200002703,
+        "terminalWitnessToEscape": 2221.7008489999444
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "x86_64",
+      "case": "quartz-second",
+      "diagnostic": "D13-R3",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5891.340395999919,
+        "createdToWillBegin": 0.6134599999541024,
+        "entryToActivation": 910.6862559999627,
+        "firstTarget6ToActivation": 428.4000540000079,
+        "terminalWitnessToEscape": 2202.762643000028
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "arm64",
+      "case": "quartz-first",
+      "diagnostic": "D14-R2",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5868.332458333356,
+        "createdToWillBegin": 0.49795833334087547,
+        "entryToActivation": 1035.8904166666605,
+        "firstTarget6ToActivation": 438.2184583333526,
+        "terminalWitnessToEscape": 2243.912916666687
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "arm64",
+      "case": "xctest-first",
+      "diagnostic": "D14-R2",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5578.182249999969,
+        "createdToWillBegin": 0.401708333328088,
+        "entryToActivation": 1642.080083333326,
+        "firstTarget6ToActivation": 1243.1870833333107,
+        "terminalWitnessToEscape": 2217.67245833334
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "arm64",
+      "case": "xctest-second",
+      "diagnostic": "D14-R2",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5640.409999999974,
+        "createdToWillBegin": 0.33562499999106876,
+        "entryToActivation": 761.3096249999671,
+        "firstTarget6ToActivation": 417.38895833333345,
+        "terminalWitnessToEscape": 2197.9002083332944
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "arm64",
+      "case": "quartz-second",
+      "diagnostic": "D14-R2",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5852.413624999997,
+        "createdToWillBegin": 0.6985416666793753,
+        "entryToActivation": 987.4467500000037,
+        "firstTarget6ToActivation": 421.89658333330726,
+        "terminalWitnessToEscape": 2199.635999999998
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "x86_64",
+      "case": "quartz-first",
+      "diagnostic": "D14-R2",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 3229.5249410000224,
+        "createdToWillBegin": 2.105212000060419,
+        "entryToActivation": null,
+        "firstTarget6ToActivation": null,
+        "terminalWitnessToEscape": 2245.5147240000315
+      },
+      "outcome": "PASS"
+    },
+    {
+      "architecture": "arm64",
+      "case": "quartz-first",
+      "diagnostic": "D15-R1",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5958.16662499999,
+        "createdToWillBegin": 0.9936666666590099,
+        "entryToActivation": 1073.5437916666797,
+        "firstTarget6ToActivation": 809.2322500000364,
+        "terminalWitnessToEscape": 2203.738208333334
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "arm64",
+      "case": "xctest-first",
+      "diagnostic": "D15-R1",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5638.157750000005,
+        "createdToWillBegin": 0.38245833331984613,
+        "entryToActivation": 982.8324166666675,
+        "firstTarget6ToActivation": 427.1925416666704,
+        "terminalWitnessToEscape": 2250.277624999967
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "arm64",
+      "case": "xctest-second",
+      "diagnostic": "D15-R1",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5664.130333333333,
+        "createdToWillBegin": 0.3508333333002156,
+        "entryToActivation": 993.8919583333359,
+        "firstTarget6ToActivation": 427.29179166667564,
+        "terminalWitnessToEscape": 2256.5830416666586
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "arm64",
+      "case": "quartz-second",
+      "diagnostic": "D15-R1",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 6630.7155000000075,
+        "createdToWillBegin": 0.8026666666296478,
+        "entryToActivation": 1698.3738750000157,
+        "firstTarget6ToActivation": 1352.6865000000043,
+        "terminalWitnessToEscape": 2291.9313333333093
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "x86_64",
+      "case": "quartz-first",
+      "diagnostic": "D15-R1",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 3374.757458999966,
+        "createdToWillBegin": 0.7750239999495534,
+        "entryToActivation": null,
+        "firstTarget6ToActivation": null,
+        "terminalWitnessToEscape": 2202.783294000028
+      },
+      "outcome": "PASS"
+    },
+    {
+      "architecture": "x86_64",
+      "case": "xctest-first",
+      "diagnostic": "D15-R1",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5640.2244210000845,
+        "createdToWillBegin": 0.6907469999077875,
+        "entryToActivation": 1000.1329239998995,
+        "firstTarget6ToActivation": 415.70299399995747,
+        "terminalWitnessToEscape": 2246.317526999974
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "x86_64",
+      "case": "xctest-second",
+      "diagnostic": "D15-R1",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5704.851944000211,
+        "createdToWillBegin": 0.7227530002182903,
+        "entryToActivation": 1007.013139000037,
+        "firstTarget6ToActivation": 415.5341230000431,
+        "terminalWitnessToEscape": 2288.440697999931
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "x86_64",
+      "case": "quartz-second",
+      "diagnostic": "D15-R1",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5855.3105429998595,
+        "createdToWillBegin": 0.5083999999442312,
+        "entryToActivation": 967.4919540000246,
+        "firstTarget6ToActivation": 428.7375740000243,
+        "terminalWitnessToEscape": 2185.5511389999265
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "arm64",
+      "case": "quartz-sync-first",
+      "diagnostic": "D16-R1",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5925.912125000024,
+        "createdToWillBegin": 0.9812499999952706,
+        "entryToActivation": 1145.8852083333113,
+        "firstTarget6ToActivation": 841.9039583333188,
+        "terminalWitnessToEscape": 2203.7412500000073
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "arm64",
+      "case": "quartz-deferred-first",
+      "diagnostic": "D16-R1",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 3302.07925000002,
+        "createdToWillBegin": 0.7662916666504316,
+        "entryToActivation": null,
+        "firstTarget6ToActivation": null,
+        "terminalWitnessToEscape": 2203.93358333331
+      },
+      "outcome": "PASS"
+    },
+    {
+      "architecture": "arm64",
+      "case": "quartz-deferred-second",
+      "diagnostic": "D16-R1",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 6003.668333333337,
+        "createdToWillBegin": 0.44404166669664846,
+        "entryToActivation": 1025.76375000001,
+        "firstTarget6ToActivation": 430.3771666666876,
+        "terminalWitnessToEscape": 2210.094125000012
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "arm64",
+      "case": "quartz-sync-second",
+      "diagnostic": "D16-R1",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5901.262958333347,
+        "createdToWillBegin": 0.3857500000208347,
+        "entryToActivation": 1051.5735000000177,
+        "firstTarget6ToActivation": 693.4290416666613,
+        "terminalWitnessToEscape": 2225.367333333338
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "x86_64",
+      "case": "quartz-sync-first",
+      "diagnostic": "D16-R1",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 3377.5712490000274,
+        "createdToWillBegin": 0.5918740000083744,
+        "entryToActivation": null,
+        "firstTarget6ToActivation": null,
+        "terminalWitnessToEscape": 2199.7260480000023
+      },
+      "outcome": "PASS"
+    },
+    {
+      "architecture": "x86_64",
+      "case": "quartz-deferred-first",
+      "diagnostic": "D16-R1",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 3206.498167999996,
+        "createdToWillBegin": 0.61059000000796,
+        "entryToActivation": null,
+        "firstTarget6ToActivation": null,
+        "terminalWitnessToEscape": 2203.579708999996
+      },
+      "outcome": "PASS"
+    },
+    {
+      "architecture": "x86_64",
+      "case": "quartz-deferred-second",
+      "diagnostic": "D16-R1",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5848.5428700000175,
+        "createdToWillBegin": 0.550932000010107,
+        "entryToActivation": 924.5710609999946,
+        "firstTarget6ToActivation": 423.1500109999615,
+        "terminalWitnessToEscape": 2203.1627360000243
+      },
+      "outcome": "FAIL"
+    },
+    {
+      "architecture": "x86_64",
+      "case": "quartz-sync-second",
+      "diagnostic": "D16-R1",
+      "intervalsMilliseconds": {
+        "createdToSourceEnd": 5888.589560000014,
+        "createdToWillBegin": 0.3669089999789321,
+        "entryToActivation": 963.9361210000175,
+        "firstTarget6ToActivation": 420.0073690000181,
+        "terminalWitnessToEscape": 2202.415530000053
+      },
+      "outcome": "FAIL"
+    }
+  ],
+  "schema": 1,
+  "sourceCreatedToEndedMilliseconds": [
+    3206.498167999996,
+    6630.7155000000075
+  ],
+  "sourceCreatedToWillBeginMilliseconds": [
+    0.33562499999106876,
+    2.105212000060419
+  ]
+}

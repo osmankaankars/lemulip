@@ -111,6 +111,16 @@ and normal cleanup. All 121 portable checks and native builds passed on each
 architecture; the overall CI result remains failure because the strict native
 outcomes did not all pass. D16 ends with mixed results and no production change.
 
+The subsequent [held-drag routing evidence review](NATIVE_DRAG_ROUTING_EVIDENCE.md)
+examines 29 retained comparable cases without another native run. Every PASS
+retains the source active before Escape and every FAIL retains the receiver
+active, but the code, API contracts, and timing counterexamples do not establish
+the activation requester or the drag-tracking consumer's handling of Escape.
+The investigation now requires evidence across that native boundary; another
+timing, synchronization, or application-associated key variant is not a
+supported repair. This read-only result adds no production change and does not
+close either task.
+
 To complete task 08, close or explicitly resolve task 07's remaining CI gate on
 the final candidate, review any resulting production changes, and retain the
 final source/run/artifact identity. The candidate is still on hold.
