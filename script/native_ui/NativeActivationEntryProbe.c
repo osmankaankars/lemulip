@@ -14,7 +14,6 @@
 #include <limits.h>
 #include <mach/mach_time.h>
 #include <mach-o/dyld.h>
-#include <mach-o/dyld-interposing.h>
 #include <mach-o/loader.h>
 #include <pthread.h>
 #include <stdarg.h>
@@ -156,8 +155,22 @@ _Static_assert(__builtin_types_compatible_p(
                    __typeof__(&SetFrontProcessWithOptions)),
                "SetFrontProcessWithOptions SDK signature changed");
 
-DYLD_INTERPOSE(probe_set_front_process, SetFrontProcess)
-DYLD_INTERPOSE(probe_set_front_process_with_options, SetFrontProcessWithOptions)
+// The SDK does not ship dyld-interposing.h. Use the two-pointer section ABI
+// published in Apple's dyld source instead of depending on that helper macro.
+typedef struct {
+    const void *replacement;
+    const void *replacee;
+} ProbeInterposeEntry;
+_Static_assert(sizeof(ProbeInterposeEntry) == 2 * sizeof(void *),
+               "Unexpected dyld interpose-entry layout");
+
+__attribute__((used, section("__DATA,__interpose,interposing")))
+static const ProbeInterposeEntry g_interpose_entries[2] = {
+    {(const void *)(unsigned long)&probe_set_front_process,
+     (const void *)(unsigned long)&SetFrontProcess},
+    {(const void *)(unsigned long)&probe_set_front_process_with_options,
+     (const void *)(unsigned long)&SetFrontProcessWithOptions}
+};
 
 // No lock is held across stack collection or the original activation call.
 // Raw addresses are collected here; dladdr and all output happen at atexit.

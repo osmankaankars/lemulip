@@ -4,7 +4,7 @@
 
 D18 is a **startup-only prerequisite measurement** for the missing request-side evidence in [D17](NATIVE_DRAG_ACTIVATION_REQUEST_LOG_DIAGNOSTIC.md). It asks whether the existing startup of each owned native source/control application actually crosses an observable binding to either public C function `SetFrontProcess` or `SetFrontProcessWithOptions`, on the existing ARM64 and Intel CI runners.
 
-**Prepared; not yet run.** This document fixes the scope and stop conditions before the first execution. D18 does not perform a drag, post mouse/keyboard input, query accessibility, or test cancellation. A successful calibration would justify considering a narrowly scoped request-entry trace; it would not identify the D17 requester or complete task 07.
+**R1 stopped at compilation before calibration; the SDK-header correction is prepared for R2.** The protocol below fixed the scope and stop conditions before execution. D18 does not perform a drag, post mouse/keyboard input, query accessibility, or test cancellation. A successful calibration would justify considering a narrowly scoped request-entry trace; it would not identify the D17 requester or complete task 07.
 
 ## Why this is the next evidence boundary
 
@@ -49,6 +49,12 @@ The analyzer's nonzero exit for either nonpositive outcome is a calibration gate
 ## Pre-run validation
 
 Twenty-two focused portable tests passed. They cover complete zero-call receipts, positive startup witnesses, malformed identity and clock data, incomplete/overflow capture, misleading symbol text, calls after native readiness but before a later poll, and a full artifact-loader/CLI replay with ARM's fractional timebase. The YAML, ten shell blocks, and embedded Python parse. Original production/native source, gesture, comparator, and staging paths have an empty diff against the parent. Independent code review checked the probe ABI/forwarding, bounded launch/cleanup, final-file publication, and post-signing identities. Actual SDK compilation, natural entry coverage, and native lifecycle behavior remain unrun at this point.
+
+## R1: compile-only failure and narrow correction
+
+[Run 42419305466](https://github.com/osmankaankars/lemulip/actions/runs/42419305466), attempt 1, executed commit `181b3db6f0438762ebbefbee0bfbc2b503356c2d`, tree `241d5f538b7cabbdd0b8f8813208fbb54e0791a1`. Both architectures passed the 22 portable tests, C12 build, and original staging. Both then stopped at the probe's include of `mach-o/dyld-interposing.h`: that header is present in Apple's published dyld source but absent from these installed SDKs. No source/control calibration startup ran, so R1 has no natural-call coverage result. The output directory was empty and artifact upload also failed; the CI job logs remain the evidence for this build-only result.
+
+R2 removes only that unavailable include and expresses the same two-pointer Mach-O interposition-table layout locally, with two entries for the existing wrapper/original pairs and a table-layout assertion. Actual ApplicationServices SDK declarations still enforce both function signatures and return/argument widths. Forwarding, capture, helper behavior, input scope, and classification remain unchanged. A pre-build commit marker also ensures a compile-stopped run has an artifact to retain. This is a build correction, not a rerun of a previously completed calibration or a changed behavioral hypothesis.
 
 ## Disposition
 

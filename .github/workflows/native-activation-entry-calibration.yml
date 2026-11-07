@@ -87,6 +87,7 @@ jobs:
       - name: Build Normally Linked Owned Probe And Original Apps
         run: |
           mkdir -p "$RUNNER_TEMP/drag-activation-entry-calibration/build"
+          printf '%s\n' "$GITHUB_SHA" > "$RUNNER_TEMP/drag-activation-entry-calibration/build/experiment-commit.txt"
           xcrun clang -dynamiclib -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations \
             -g -fno-omit-frame-pointer -framework ApplicationServices \
             -install_name '@rpath/libNativeActivationEntryProbe.dylib' \
