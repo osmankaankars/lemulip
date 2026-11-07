@@ -1,0 +1,290 @@
+name: Native Activation Entry Calibration
+
+on:
+  push:
+    branches: ['codex/drag-activation-entry-calibration-07']
+    paths:
+      - '.github/workflows/native-activation-entry-calibration.yml'
+      - 'script/native_ui/NativeActivationEntryProbe.c'
+      - 'script/native_ui/NativeActivationEntryCalibration.swift'
+      - 'script/analyze_native_activation_entry_calibration.py'
+      - 'script/test_analyze_native_activation_entry_calibration.py'
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+  CANDIDATE_COMMIT: d821d7343675e2850705d141ef9b3b93a6aee945
+  CANDIDATE_TREE: 425baa28f00ec24551dd70c0cc874a75fa3be0c1
+  OBSERVER_BASE: 9a3916f806e860b4f7181d26379c0d1711fceea5
+
+concurrency:
+  group: native-activation-entry-calibration-${{ github.ref }}
+  cancel-in-progress: true
+
+# D18 is a prerequisite measurement, not a drag experiment or acceptance run.
+# Original source/control startup calls remain byte-identical. A normally linked
+# owned dylib observes two public C exports. No input, AX, debugger, DYLD injection,
+# system-log query, synthetic activation call, permission change, or retry.
+jobs:
+  calibrate:
+    name: Startup Activation Entry Calibration (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - name: Check Out Calibration Experiment
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Check Pins And Portable Evidence Gates
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+          test "$(uname -m)" = '${{ matrix.arch }}'
+          git merge-base --is-ancestor "$OBSERVER_BASE" HEAD
+          git diff --exit-code "$OBSERVER_BASE" -- \
+            Sources Resources Package.swift script/build_app.sh script/prepare_native_ui.py \
+            script/native_ui/NativeDragControl.swift script/native_ui/NativeDragSource.swift \
+            script/native_ui/NativeDragReview.swift script/native_ui/NativeDragMouseDriver.swift \
+            script/native_ui/NativeDragMouseTests.swift script/compare_native_drag_mouse_driver.py \
+            script/compare_native_drag_capture.py script/compare_native_drag_lifecycle.py \
+            script/compare_native_drag_sources.py script/compare_native_drag_activation.py
+          python3 script/privacy_check.py
+          python3 script/test_analyze_native_activation_entry_calibration.py
+      - name: Check Out Exact C12 Application
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ env.CANDIDATE_COMMIT }}
+          path: candidate-source
+          persist-credentials: false
+      - name: Check Application Pins
+        working-directory: candidate-source
+        run: |
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_COMMIT"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$CANDIDATE_TREE"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+      - name: Build Unchanged C12 Application For Staging
+        working-directory: candidate-source
+        env:
+          CONFIGURATION: debug
+          LEMULIP_ENGINE_PACKS: ''
+        run: ./script/build_app.sh
+      - name: Stage Existing Application And Fixture Set
+        working-directory: candidate-source
+        run: >-
+          python3 script/prepare_native_ui.py --app dist/Lemulip.app
+          --output "$RUNNER_TEMP/lemulip-native-ui"
+      - name: Build Normally Linked Owned Probe And Original Apps
+        run: |
+          mkdir -p "$RUNNER_TEMP/drag-activation-entry-calibration/build"
+          xcrun clang -dynamiclib -std=c11 -Wall -Wextra -Werror -Wno-deprecated-declarations \
+            -g -fno-omit-frame-pointer -framework ApplicationServices \
+            -install_name '@rpath/libNativeActivationEntryProbe.dylib' \
+            script/native_ui/NativeActivationEntryProbe.c \
+            -o "$RUNNER_TEMP/drag-activation-entry-calibration/build/libNativeActivationEntryProbe.dylib"
+          codesign --force --sign - "$RUNNER_TEMP/drag-activation-entry-calibration/build/libNativeActivationEntryProbe.dylib"
+          python3 - <<'PYCODE'
+          import os, pathlib, plistlib, shutil
+          root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'lemulip-native-ui'
+          library = pathlib.Path(os.environ['RUNNER_TEMP']) / 'drag-activation-entry-calibration/build/libNativeActivationEntryProbe.dylib'
+          for role in ('Control', 'Source'):
+              name = 'Native Drag ' + role
+              executable = 'NativeDrag' + role
+              contents = root / (name + '.app') / 'Contents'
+              (contents / 'MacOS').mkdir(parents=True, exist_ok=False)
+              (contents / 'Frameworks').mkdir(exist_ok=False)
+              shutil.copyfile(library, contents / 'Frameworks' / library.name)
+              info = {'CFBundleIdentifier': 'app.lemulip.' + executable,
+                      'CFBundleExecutable': executable, 'CFBundleName': name,
+                      'CFBundleDisplayName': name, 'CFBundlePackageType': 'APPL',
+                      'CFBundleShortVersionString': '0.0.0', 'CFBundleVersion': '1',
+                      'NSPrincipalClass': executable + 'Application',
+                      'NSHighResolutionCapable': True, 'LSMinimumSystemVersion': '13.0'}
+              (contents / 'Info.plist').write_bytes(plistlib.dumps(info))
+          PYCODE
+          for role in Control Source; do
+            xcrun swiftc -parse-as-library -g -module-name "NativeDrag$role" \
+              "script/native_ui/NativeDrag$role.swift" \
+              -Xlinker -needed_library -Xlinker "$RUNNER_TEMP/lemulip-native-ui/Native Drag $role.app/Contents/Frameworks/libNativeActivationEntryProbe.dylib" \
+              -Xlinker -rpath -Xlinker '@executable_path/../Frameworks' \
+              -o "$RUNNER_TEMP/drag-activation-entry-calibration/build/NativeDrag$role"
+            cp "$RUNNER_TEMP/drag-activation-entry-calibration/build/NativeDrag$role" \
+              "$RUNNER_TEMP/lemulip-native-ui/Native Drag $role.app/Contents/MacOS/NativeDrag$role"
+            codesign --force --sign - "$RUNNER_TEMP/lemulip-native-ui/Native Drag $role.app"
+            codesign --verify --strict "$RUNNER_TEMP/lemulip-native-ui/Native Drag $role.app"
+          done
+          xcrun swiftc -parse-as-library script/native_ui/NativeActivationEntryCalibration.swift \
+            -o "$RUNNER_TEMP/drag-activation-entry-calibration/build/NativeActivationEntryCalibration"
+      - name: Preserve Build Identities And Immutable Inputs
+        id: provenance
+        run: |
+          python3 - <<'PYCODE'
+          import ctypes, errno, hashlib, json, os, pathlib, platform, shutil, stat, subprocess
+          root = (pathlib.Path(os.environ['RUNNER_TEMP']) / 'lemulip-native-ui').resolve(strict=True)
+          out = (pathlib.Path(os.environ['RUNNER_TEMP']) / 'drag-activation-entry-calibration').resolve(strict=True)
+          digest = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+          path = root / 'provenance.json'
+          record = json.loads(path.read_text())
+          assert record['sourceCommit'] == os.environ['CANDIDATE_COMMIT']
+          assert record['sourceTree'] == os.environ['CANDIDATE_TREE']
+          assert record['architecture'] == platform.machine() == '${{ matrix.arch }}'
+          record.update(observerExperimentCommit=os.environ['GITHUB_SHA'],
+                        observerExperimentTree=subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], text=True).strip(),
+                        nativeDragControlSourceSHA256=digest(pathlib.Path('script/native_ui/NativeDragControl.swift')),
+                        nativeDragSourceSourceSHA256=digest(pathlib.Path('script/native_ui/NativeDragSource.swift')),
+                        controlGUI_SHA256=digest(root / 'Native Drag Control.app/Contents/MacOS/NativeDragControl'),
+                        sourceGUI_SHA256=digest(root / 'Native Drag Source.app/Contents/MacOS/NativeDragSource'),
+                        diagnosticOnly=True, releaseReady=False, nativeAcceptanceXCTestExecuted=False,
+                        physicalInputVerified=False, nativeInputExecuted=False, startupCalibrationOnly=True,
+                        scope='D18 startup-only calibration of two public C entries in original source/control apps; no native drag or acceptance run.')
+          libc = ctypes.CDLL(None, use_errno=True)
+          probe = libc.sysctlbyname
+          probe.argtypes = [ctypes.c_char_p, ctypes.c_void_p, ctypes.POINTER(ctypes.c_size_t), ctypes.c_void_p, ctypes.c_size_t]
+          probe.restype = ctypes.c_int
+          translated = ctypes.c_int(-1)
+          length = ctypes.c_size_t(ctypes.sizeof(translated))
+          ctypes.set_errno(0)
+          rc = probe(b'sysctl.proc_translated', ctypes.byref(translated), ctypes.byref(length), None, 0)
+          err = ctypes.get_errno()
+          assert (rc == 0 and err == 0 and length.value == ctypes.sizeof(translated) and translated.value == 0) or (rc == -1 and err == errno.ENOENT)
+          record['translationProbe'] = {'returnCode': rc, 'errno': err, 'value': translated.value if rc == 0 else None}
+          binaries = {
+              'probe': out / 'build/libNativeActivationEntryProbe.dylib',
+              'helper': out / 'build/NativeActivationEntryCalibration',
+              'control': root / 'Native Drag Control.app/Contents/MacOS/NativeDragControl',
+              'source': root / 'Native Drag Source.app/Contents/MacOS/NativeDragSource'}
+          builds = {}
+          for role, binary in binaries.items():
+              archs = subprocess.check_output(['xcrun', 'lipo', '-archs', str(binary)], text=True).strip().split()
+              assert archs == [record['architecture']]
+              identity = subprocess.check_output(['xcrun', 'dwarfdump', '--uuid', str(binary)], text=True)
+              loads = subprocess.check_output(['xcrun', 'otool', '-l', str(binary)], text=True)
+              deps = subprocess.check_output(['xcrun', 'otool', '-L', str(binary)], text=True)
+              (out / 'build' / (role + '-load-commands.txt')).write_text(loads)
+              (out / 'build' / (role + '-dependencies.txt')).write_text(deps)
+              (out / 'build' / (role + '-uuid.txt')).write_text(identity)
+              if role in ('control', 'source'):
+                  assert '@rpath/libNativeActivationEntryProbe.dylib' in deps
+                  assert '@executable_path/../Frameworks' in loads
+              if role == 'probe':
+                  assert '__interpose' in loads
+              builds[role] = {'path': str(binary), 'sha256': digest(binary), 'architectures': archs, 'uuidOutput': identity}
+          record['activationEntryCalibrationBuilds'] = builds
+          sources = out / 'sources'
+          sources.mkdir(exist_ok=False)
+          names = ['script/native_ui/NativeActivationEntryProbe.c',
+                   'script/native_ui/NativeActivationEntryCalibration.swift',
+                   'script/native_ui/NativeDragControl.swift', 'script/native_ui/NativeDragSource.swift',
+                   'script/analyze_native_activation_entry_calibration.py',
+                   'script/test_analyze_native_activation_entry_calibration.py',
+                   '.github/workflows/native-activation-entry-calibration.yml',
+                   'docs/NATIVE_ACTIVATION_ENTRY_CALIBRATION.md']
+          for name in names:
+              shutil.copyfile(name, sources / pathlib.Path(name).name)
+          record['retainedDiagnosticSourcesSHA256'] = {p.name: digest(p) for p in sorted(sources.iterdir())}
+          path.write_text(json.dumps(record, indent=2) + '\n')
+          inventory = {}
+          for p in sorted(root.rglob('*')):
+              if p.name == '.DS_Store':
+                  continue
+              mode = p.lstat().st_mode
+              assert not stat.S_ISLNK(mode)
+              relative = p.relative_to(root).as_posix()
+              if stat.S_ISDIR(mode):
+                  inventory[relative] = {'kind': 'directory'}
+              else:
+                  assert stat.S_ISREG(mode)
+                  inventory[relative] = {'kind': 'file', 'bytes': p.stat().st_size, 'sha256': digest(p)}
+          (out / 'inputs-before.json').write_text(json.dumps(inventory, indent=2) + '\n')
+          PYCODE
+      - name: Observe One Natural Startup Per Owned App
+        id: calibration
+        run: >-
+          "$RUNNER_TEMP/drag-activation-entry-calibration/build/NativeActivationEntryCalibration"
+          --staged "$RUNNER_TEMP/lemulip-native-ui"
+          --output "$RUNNER_TEMP/drag-activation-entry-calibration"
+      - name: Verify Input Preservation And Classify Coverage
+        if: always() && steps.calibration.outcome != 'skipped'
+        run: |
+          python3 - <<'PYCODE'
+          import hashlib, json, os, pathlib, stat
+          root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'lemulip-native-ui'
+          out = pathlib.Path(os.environ['RUNNER_TEMP']) / 'drag-activation-entry-calibration'
+          before = json.loads((out / 'inputs-before.json').read_text())
+          after = {}
+          output = 'NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-quartz-first'
+          for p in sorted(root.rglob('*')):
+              relative = p.relative_to(root).as_posix()
+              if p.name == '.DS_Store' or relative == output or relative.startswith(output + '/'):
+                  continue
+              mode = p.lstat().st_mode
+              assert not stat.S_ISLNK(mode)
+              if stat.S_ISDIR(mode):
+                  after[relative] = {'kind': 'directory'}
+              else:
+                  assert stat.S_ISREG(mode)
+                  after[relative] = {'kind': 'file', 'bytes': p.stat().st_size,
+                                     'sha256': hashlib.sha256(p.read_bytes()).hexdigest()}
+          (out / 'inputs-after.json').write_text(json.dumps(after, indent=2) + '\n')
+          (out / 'input-preservation.json').write_text(json.dumps({
+              'schema': 1, 'inputsUnchanged': before == after,
+              'beforeEntries': len(before), 'afterEntries': len(after)}, indent=2) + '\n')
+          assert before == after
+          PYCODE
+          python3 script/analyze_native_activation_entry_calibration.py \
+            --staged "$RUNNER_TEMP/lemulip-native-ui" \
+            --output "$RUNNER_TEMP/drag-activation-entry-calibration"
+      - name: Preserve Complete Staged Evidence Including Empty Directories
+        if: always() && steps.provenance.outcome == 'success'
+        run: |
+          python3 - <<'PYCODE'
+          import hashlib, json, os, pathlib, stat, zipfile
+          root = (pathlib.Path(os.environ['RUNNER_TEMP']) / 'lemulip-native-ui').resolve(strict=True)
+          out = pathlib.Path(os.environ['RUNNER_TEMP']) / 'drag-activation-entry-calibration'
+          archive = out / 'staged-evidence.zip'
+          entries = []
+          expanded = 0
+          with zipfile.ZipFile(archive, mode='x', compression=zipfile.ZIP_DEFLATED, compresslevel=6) as zipped:
+              for p in [root, *sorted(root.rglob('*'))]:
+                  mode = p.lstat().st_mode
+                  assert stat.S_ISDIR(mode) or stat.S_ISREG(mode)
+                  assert not stat.S_ISLNK(mode)
+                  name = p.relative_to(root.parent).as_posix()
+                  if stat.S_ISREG(mode):
+                      size = p.stat().st_size
+                      assert size <= 64 * 1024 * 1024
+                      expanded += size
+                  assert expanded <= 256 * 1024 * 1024 and len(entries) < 16384
+                  zipped.write(p, arcname=name)
+                  entries.append(name)
+          with zipfile.ZipFile(archive) as zipped:
+              assert zipped.testzip() is None
+          (out / 'staged-archive.json').write_text(json.dumps({
+              'schema': 1, 'name': archive.name, 'bytes': archive.stat().st_size,
+              'sha256': hashlib.sha256(archive.read_bytes()).hexdigest(),
+              'entryCount': len(entries), 'expandedFileBytes': expanded}, indent=2) + '\n')
+          PYCODE
+      - name: Confirm Source Remains Unchanged
+        if: always()
+        run: |
+          git diff --exit-code HEAD --
+          if test -d candidate-source/.git; then git -C candidate-source diff --exit-code HEAD --; fi
+      - name: Retain Calibration And Exact Diagnostic Binaries
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Activation-Entry-Calibration-${{ matrix.arch }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/drag-activation-entry-calibration
+          if-no-files-found: error
+          retention-days: 14
