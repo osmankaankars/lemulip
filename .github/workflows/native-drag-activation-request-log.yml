@@ -1,0 +1,367 @@
+name: Native Drag Activation Request Log Diagnostic
+
+on:
+  push:
+    branches: ['codex/drag-activation-request-log-07']
+    paths:
+      - '.github/workflows/native-drag-activation-request-log.yml'
+      - 'script/capture_native_drag_activation_requests.py'
+      - 'script/test_capture_native_drag_activation_requests.py'
+      - 'script/native_ui/NativeTraceClock.swift'
+      - 'script/compare_native_drag_receiver_sync.py'
+      - 'script/test_compare_native_drag_receiver_sync.py'
+      - 'script/analyze_native_drag_event_origin.py'
+      - 'script/test_analyze_native_drag_event_origin.py'
+      - 'script/capture_native_drag_system_log.py'
+      - 'script/test_capture_native_drag_system_log.py'
+      - 'script/compare_native_drag_mouse_driver.py'
+      - 'script/test_compare_native_drag_mouse_driver.py'
+      - 'script/test_native_coverage.py'
+      - 'script/compare_native_drag_held_ax.py'
+      - 'script/test_compare_native_drag_held_ax.py'
+      - 'script/compare_native_drag_activation.py'
+      - 'script/test_compare_native_drag_activation.py'
+      - 'script/compare_native_drag_sources.py'
+      - 'script/test_compare_native_drag_sources.py'
+      - 'script/compare_native_drag_lifecycle.py'
+      - 'script/test_compare_native_drag_lifecycle.py'
+      - 'script/compare_native_drag_capture.py'
+      - 'script/test_compare_native_drag_capture.py'
+      - 'script/native_ui/NativeDragReview.swift'
+      - 'script/native_ui/NativeDragControl.swift'
+      - 'script/native_ui/NativeDragSource.swift'
+      - 'script/native_ui/NativeDragMouseDriver.swift'
+      - 'script/native_ui/NativeDragMouseTests.swift'
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+  CANDIDATE_COMMIT: d821d7343675e2850705d141ef9b3b93a6aee945
+  CANDIDATE_TREE: 425baa28f00ec24551dd70c0cc874a75fa3be0c1
+  OBSERVER_BASE: 3cb160df4b029005f59cc0d1e0eb46cb574612df
+
+concurrency:
+  group: native-drag-activation-request-log-${{ github.ref }}
+  cancel-in-progress: true
+
+# D17 observes front-process ASN messages across all emitters after fixed input.
+# The source, receiver, gesture, classifier and C12 candidate are unchanged.
+# Two small owned clock markers run outside the four-case input interval.
+# One bounded log query retains raw bytes on success or failure; no retry.
+# C12 remains staging only; the original full acceptance gate is unchanged.
+jobs:
+  compare:
+    name: Orchard Activation Request Log Diagnostic (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - name: Check Out Observer Experiment
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Check Exact Observer Source And Existing Gates
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+          test "$(uname -m)" = '${{ matrix.arch }}'
+          git merge-base --is-ancestor "$OBSERVER_BASE" HEAD
+          git diff --exit-code "$OBSERVER_BASE" -- \
+            script/native_ui/NativeDragReview.swift script/native_ui/NativeDragControl.swift \
+            script/native_ui/NativeDragSource.swift script/native_ui/NativeDragMouseDriver.swift \
+            script/native_ui/NativeDragMouseTests.swift script/compare_native_drag_mouse_driver.py \
+            script/compare_native_drag_capture.py script/compare_native_drag_lifecycle.py \
+            script/compare_native_drag_sources.py script/compare_native_drag_activation.py
+          python3 script/privacy_check.py
+          python3 script/test_analyze_native_drag_event_origin.py
+          python3 script/test_capture_native_drag_system_log.py
+          python3 script/test_capture_native_drag_activation_requests.py
+          python3 script/test_compare_native_drag_mouse_driver.py
+          python3 script/test_compare_native_drag_receiver_sync.py
+          python3 script/test_compare_native_drag_held_ax.py
+          python3 script/test_compare_native_drag_activation.py
+          python3 script/test_compare_native_drag_sources.py
+          python3 script/test_compare_native_drag_lifecycle.py
+          python3 script/test_compare_native_drag_capture.py
+          python3 script/test_native_release_gate.py
+          python3 script/test_native_coverage.py
+          python3 script/test_prepare_native_ui.py
+      - name: Check Out Exact C12 Application
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ env.CANDIDATE_COMMIT }}
+          path: candidate-source
+          persist-credentials: false
+      - name: Check Application Pins
+        working-directory: candidate-source
+        run: |
+          test "$(git rev-parse HEAD)" = "$CANDIDATE_COMMIT"
+          test "$(git rev-parse 'HEAD^{tree}')" = "$CANDIDATE_TREE"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+      - name: Build Unchanged C12 Application
+        working-directory: candidate-source
+        env:
+          CONFIGURATION: debug
+          LEMULIP_ENGINE_PACKS: ''
+        run: ./script/build_app.sh
+      - name: Stage One Application And Fixture Set
+        working-directory: candidate-source
+        run: >-
+          python3 script/prepare_native_ui.py --app dist/Lemulip.app
+          --output "$RUNNER_TEMP/lemulip-native-ui"
+      - name: Build Fixed Observers And Native Control And Source
+        run: |
+          xcrun swiftc -parse-as-library script/native_ui/NativeDragReview.swift \
+            -o "$RUNNER_TEMP/lemulip-native-ui/NativeDragReview"
+          xcrun swiftc -D LEMULIP_APPKIT_OBSERVER -parse-as-library script/native_ui/NativeDragReview.swift \
+            -o "$RUNNER_TEMP/lemulip-native-ui/NativeDragReviewAppKit"
+          xcrun swiftc -D LEMULIP_APPKIT_OBSERVER -D LEMULIP_MOUSE_DRIVER_OBSERVER -parse-as-library \
+            script/native_ui/NativeDragReview.swift script/native_ui/NativeDragMouseDriver.swift \
+            -o "$RUNNER_TEMP/lemulip-native-ui/NativeDragReviewMouseAppKit"
+          python3 - <<'PYCODE'
+          import os, pathlib, plistlib
+          root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'lemulip-native-ui'
+          for role in ('Control', 'Source'):
+              name = 'Native Drag ' + role
+              executable = 'NativeDrag' + role
+              contents = root / (name + '.app') / 'Contents'
+              (contents / 'MacOS').mkdir(parents=True, exist_ok=False)
+              info = {'CFBundleIdentifier': 'app.lemulip.' + executable,
+                      'CFBundleExecutable': executable, 'CFBundleName': name,
+                      'CFBundleDisplayName': name, 'CFBundlePackageType': 'APPL',
+                      'CFBundleShortVersionString': '0.0.0', 'CFBundleVersion': '1',
+                      'NSPrincipalClass': executable + 'Application',
+                      'NSHighResolutionCapable': True, 'LSMinimumSystemVersion': '13.0'}
+              (contents / 'Info.plist').write_bytes(plistlib.dumps(info))
+          PYCODE
+          xcrun swiftc -parse-as-library -module-name NativeDragControl \
+            script/native_ui/NativeDragControl.swift \
+            -o "$RUNNER_TEMP/lemulip-native-ui/Native Drag Control.app/Contents/MacOS/NativeDragControl"
+          xcrun swiftc -parse-as-library -module-name NativeDragSource \
+            script/native_ui/NativeDragSource.swift \
+            -o "$RUNNER_TEMP/lemulip-native-ui/Native Drag Source.app/Contents/MacOS/NativeDragSource"
+          codesign --force --sign - "$RUNNER_TEMP/lemulip-native-ui/Native Drag Control.app"
+          codesign --verify --strict "$RUNNER_TEMP/lemulip-native-ui/Native Drag Control.app"
+          codesign --force --sign - "$RUNNER_TEMP/lemulip-native-ui/Native Drag Source.app"
+          codesign --verify --strict "$RUNNER_TEMP/lemulip-native-ui/Native Drag Source.app"
+      - name: Build Input-Free Clock Helper Outside Staged Inventory
+        run: |
+          mkdir "$RUNNER_TEMP/drag-activation-request-clock"
+          xcrun swiftc -parse-as-library script/native_ui/NativeTraceClock.swift \
+            -o "$RUNNER_TEMP/drag-activation-request-clock/NativeTraceClock"
+      - name: Build Public XCTest Mouse Runner Once
+        run: |
+          python3 script/compare_native_drag_mouse_driver.py \
+            --staged "$RUNNER_TEMP/lemulip-native-ui" --prepare-driver \
+            > "$RUNNER_TEMP/lemulip-native-ui/mouse-driver-build.json"
+      - name: Record Observer And Source Builds And Unchanged Application Provenance
+        run: |
+          python3 - <<'PYCODE'
+          import ctypes, errno, hashlib, json, os, pathlib, platform, shutil, subprocess, sys, uuid
+          sys.path.insert(0, 'script')
+          import capture_native_drag_activation_requests as activation_requests
+          root = pathlib.Path(os.environ['RUNNER_TEMP']) / 'lemulip-native-ui'
+          clock = (pathlib.Path(os.environ['RUNNER_TEMP']) / 'drag-activation-request-clock').resolve(strict=True)
+          path = root / 'provenance.json'
+          record = json.loads(path.read_text())
+          assert record['sourceCommit'] == os.environ['CANDIDATE_COMMIT']
+          assert record['sourceTree'] == os.environ['CANDIDATE_TREE']
+          digest = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+          record.update(observerExperimentCommit=os.environ['GITHUB_SHA'],
+                        observerExperimentTree=subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], text=True).strip(),
+                        nativeDragReviewSourceSHA256=digest(pathlib.Path('script/native_ui/NativeDragReview.swift')),
+                        mouseDriverComparatorSourceSHA256=digest(pathlib.Path('script/compare_native_drag_mouse_driver.py')),
+                        nativeDragControlSourceSHA256=digest(pathlib.Path('script/native_ui/NativeDragControl.swift')),
+                        nativeDragSourceSourceSHA256=digest(pathlib.Path('script/native_ui/NativeDragSource.swift')),
+                        observerExecutableSHA256=digest(root / 'NativeDragReview'),
+                        observerAppKitExecutableSHA256=digest(root / 'NativeDragReviewAppKit'),
+                        observerMouseAppKitExecutableSHA256=digest(root / 'NativeDragReviewMouseAppKit'),
+                        observerMouseAppKitBuild={'executable': 'NativeDragReviewMouseAppKit',
+                          'swiftDefines': ['LEMULIP_APPKIT_OBSERVER', 'LEMULIP_MOUSE_DRIVER_OBSERVER']},
+                        observerBuildModes={
+                          'swift-async': {'executable': 'NativeDragReview', 'swiftDefines': []},
+                          'appkit': {'executable': 'NativeDragReviewAppKit', 'swiftDefines': ['LEMULIP_APPKIT_OBSERVER']}},
+                        controlGUI_SHA256=digest(root / 'Native Drag Control.app/Contents/MacOS/NativeDragControl'),
+                        sourceGUI_SHA256=digest(root / 'Native Drag Source.app/Contents/MacOS/NativeDragSource'),
+                        runnerRetirementProtocol='finished-owned-instance-v2',
+                        diagnosticOnly=True, nativeAcceptanceXCTestExecuted=False,
+                        scope='D17 observes front-process ASN log records across all emitters after four fixed Quartz/XCTest/XCTest/Quartz cases. Two owned clock markers run outside input. Native source, receiver, gesture and strict classification are unchanged; supplementary log validity cannot replace native results. C12 and the original full gate remain HOLD.')
+          record.update(activation_requests.diagnostic_metadata())
+          clock_executable = clock / 'NativeTraceClock'
+          architecture = platform.machine()
+          helper_architectures = subprocess.check_output(
+              ['xcrun', 'lipo', '-archs', str(clock_executable)], text=True).strip().split()
+          assert architecture == '${{ matrix.arch }}' == record['architecture']
+          assert helper_architectures == [architecture]
+          libc = ctypes.CDLL(None, use_errno=True)
+          probe = libc.sysctlbyname
+          probe.argtypes = [ctypes.c_char_p, ctypes.c_void_p, ctypes.POINTER(ctypes.c_size_t),
+                            ctypes.c_void_p, ctypes.c_size_t]
+          probe.restype = ctypes.c_int
+          translated = ctypes.c_int(-1)
+          length = ctypes.c_size_t(ctypes.sizeof(translated))
+          ctypes.set_errno(0)
+          code = probe(b'sysctl.proc_translated', ctypes.byref(translated), ctypes.byref(length), None, 0)
+          error = ctypes.get_errno()
+          if code == 0:
+              assert error == 0 and length.value == ctypes.sizeof(translated) and translated.value == 0
+              translation = {'returnCode': 0, 'errno': 0, 'value': 0, 'status': 'native'}
+          else:
+              assert code == -1 and error == errno.ENOENT == 2
+              translation = {'returnCode': -1, 'errno': 2, 'value': None, 'status': 'not-exposed'}
+          record['activationRequestClockEnvironment'] = {
+              'schema': 1, 'hostArchitecture': architecture, 'helperArchitectures': helper_architectures,
+              'translationProbe': translation}
+          config = {'schema': 1, 'nonce': uuid.uuid4().hex, 'executablePath': str(clock_executable),
+                    'sourceSHA256': digest(pathlib.Path('script/native_ui/NativeTraceClock.swift')),
+                    'executableSHA256': digest(clock_executable),
+                    'experimentCommit': os.environ['GITHUB_SHA'],
+                    'experimentTree': record['observerExperimentTree'], 'architecture': architecture}
+          config_path = clock / 'clock-config.json'
+          config_path.write_text(json.dumps(config, indent=2) + '\n')
+          record['activationRequestClockBuild'] = config
+          record['activationRequestClockConfigSHA256'] = digest(config_path)
+          driver = json.loads((root / 'mouse-driver-build.json').read_text())
+          for key, value in driver.items():
+              assert key not in record or record[key] == value, key
+          record.update(driver)
+          retained = root / 'DiagnosticSources'
+          retained.mkdir(exist_ok=False)
+          for name in ('NativeDragReview.swift', 'NativeDragControl.swift', 'NativeDragSource.swift',
+                       'NativeDragMouseDriver.swift', 'NativeDragMouseTests.swift', 'NativeTraceClock.swift'):
+              shutil.copyfile(pathlib.Path('script/native_ui') / name, retained / name)
+          scripts = pathlib.Path('script')
+          python_sources = sorted({*scripts.glob('compare_native_drag_*.py'),
+                                   *scripts.glob('test_compare_native_drag_*.py'),
+                                   *(scripts / name for name in (
+                                     'analyze_native_drag_event_origin.py', 'test_analyze_native_drag_event_origin.py',
+                                     'capture_native_drag_system_log.py', 'test_capture_native_drag_system_log.py',
+                                     'capture_native_drag_activation_requests.py', 'test_capture_native_drag_activation_requests.py',
+                                     'prepare_native_ui.py', 'test_prepare_native_ui.py', 'privacy_check.py',
+                                     'test_native_release_gate.py', 'test_native_coverage.py'))})
+          for source in python_sources:
+              shutil.copyfile(source, retained / source.name)
+          shutil.copyfile(pathlib.Path('.github/workflows/native-drag-activation-request-log.yml'),
+                          retained / 'native-drag-activation-request-log.yml')
+          shutil.copyfile(pathlib.Path('docs/NATIVE_DRAG_ACTIVATION_REQUEST_LOG_DIAGNOSTIC.md'),
+                          retained / 'NATIVE_DRAG_ACTIVATION_REQUEST_LOG_DIAGNOSTIC.md')
+          candidate_sources = retained / 'CandidateSources'
+          candidate_sources.mkdir(exist_ok=False)
+          for name in ('prepare_native_ui.py', 'ui_review_fixtures.swift', 'make_icon.swift'):
+              shutil.copyfile(pathlib.Path('candidate-source/script') / name, candidate_sources / name)
+          record['retainedDiagnosticSourcesSHA256'] = {
+              source.relative_to(retained).as_posix(): digest(source)
+              for source in sorted(retained.rglob('*')) if source.is_file()}
+          path.write_text(json.dumps(record, indent=2) + '\n')
+          PYCODE
+      - name: Capture Owned Clock Marker Before Input
+        id: clock-before
+        env:
+          TRACE_PHASE: before
+        run: |
+          python3 - <<'PYCODE'
+          import hashlib, json, os, pathlib, subprocess
+          root = (pathlib.Path(os.environ['RUNNER_TEMP']) / 'drag-activation-request-clock').resolve(strict=True)
+          phase = os.environ['TRACE_PHASE']
+          assert phase in ('before', 'after')
+          config = json.loads((root / 'clock-config.json').read_text())
+          command = [str(root / 'NativeTraceClock'), '--phase', phase, '--nonce', config['nonce']]
+          timed_out = False
+          try:
+              result = subprocess.run(command, capture_output=True, timeout=5, check=False)
+              stdout, stderr, returncode = result.stdout, result.stderr, result.returncode
+          except subprocess.TimeoutExpired as error:
+              stdout, stderr, returncode = error.stdout or b'', error.stderr or b'', None
+              timed_out = True
+          (root / (phase + '.json')).write_bytes(stdout)
+          (root / (phase + '.stderr')).write_bytes(stderr)
+          receipt = {'schema': 1, 'phase': phase, 'returncode': returncode, 'timedOut': timed_out,
+                     'stdoutSHA256': hashlib.sha256(stdout).hexdigest(),
+                     'stderrSHA256': hashlib.sha256(stderr).hexdigest()}
+          (root / (phase + '-execution.json')).write_text(json.dumps(receipt, indent=2) + '\n')
+          assert not timed_out and returncode == 0
+          value = json.loads(stdout)
+          assert value['phase'] == phase and value['nonce'] == config['nonce']
+          assert value['executablePath'] == config['executablePath']
+          PYCODE
+      - name: Compare Four Fixed Mouse Driver Cases
+        run: >-
+          python3 script/compare_native_drag_mouse_driver.py
+          --staged "$RUNNER_TEMP/lemulip-native-ui"
+          --output "$RUNNER_TEMP/drag-mouse-driver-comparison"
+          --experiment-commit "$GITHUB_SHA"
+      - name: Capture Owned Clock Marker After Input
+        id: clock-after
+        if: always() && steps.clock-before.outcome == 'success'
+        env:
+          TRACE_PHASE: after
+        run: |
+          python3 - <<'PYCODE'
+          import hashlib, json, os, pathlib, subprocess
+          root = (pathlib.Path(os.environ['RUNNER_TEMP']) / 'drag-activation-request-clock').resolve(strict=True)
+          phase = os.environ['TRACE_PHASE']
+          assert phase in ('before', 'after')
+          config = json.loads((root / 'clock-config.json').read_text())
+          command = [str(root / 'NativeTraceClock'), '--phase', phase, '--nonce', config['nonce']]
+          timed_out = False
+          try:
+              result = subprocess.run(command, capture_output=True, timeout=5, check=False)
+              stdout, stderr, returncode = result.stdout, result.stderr, result.returncode
+          except subprocess.TimeoutExpired as error:
+              stdout, stderr, returncode = error.stdout or b'', error.stderr or b'', None
+              timed_out = True
+          (root / (phase + '.json')).write_bytes(stdout)
+          (root / (phase + '.stderr')).write_bytes(stderr)
+          receipt = {'schema': 1, 'phase': phase, 'returncode': returncode, 'timedOut': timed_out,
+                     'stdoutSHA256': hashlib.sha256(stdout).hexdigest(),
+                     'stderrSHA256': hashlib.sha256(stderr).hexdigest()}
+          (root / (phase + '-execution.json')).write_text(json.dumps(receipt, indent=2) + '\n')
+          assert not timed_out and returncode == 0
+          value = json.loads(stdout)
+          assert value['phase'] == phase and value['nonce'] == config['nonce']
+          assert value['executablePath'] == config['executablePath']
+          PYCODE
+      - name: Collect One Bounded Front-Process Log Query
+        if: always() && steps.clock-before.outcome == 'success' && steps.clock-after.outcome == 'success'
+        run: >-
+          python3 script/capture_native_drag_activation_requests.py
+          --staged "$RUNNER_TEMP/lemulip-native-ui"
+          --comparison "$RUNNER_TEMP/drag-mouse-driver-comparison"
+          --clock-dir "$RUNNER_TEMP/drag-activation-request-clock"
+          --output "$RUNNER_TEMP/drag-activation-request-log"
+          --experiment-commit "$GITHUB_SHA"
+      - name: Confirm Source Remains Unchanged
+        if: always()
+        run: |
+          git diff --exit-code HEAD --
+          if test -d candidate-source/.git; then git -C candidate-source diff --exit-code HEAD --; fi
+      - name: Retain Every Comparison Result
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: Lemulip-Drag-Activation-Request-Log-${{ matrix.arch }}-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/lemulip-native-ui/provenance.json
+            ${{ runner.temp }}/lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-*
+            ${{ runner.temp }}/lemulip-native-ui/DiagnosticSources
+            ${{ runner.temp }}/lemulip-native-ui/MouseControl
+            ${{ runner.temp }}/lemulip-native-ui/MouseRunner
+            ${{ runner.temp }}/lemulip-native-ui/MouseDerivedData/Build/Products/*.xctestrun
+            ${{ runner.temp }}/lemulip-native-ui/MouseDerivedData/Logs/Test
+            ${{ runner.temp }}/lemulip-native-ui/mouse-build.log
+            ${{ runner.temp }}/lemulip-native-ui/mouse-driver-build.json
+            ${{ runner.temp }}/drag-mouse-driver-comparison
+            ${{ runner.temp }}/drag-activation-request-clock
+            ${{ runner.temp }}/drag-activation-request-log
+          if-no-files-found: error
+          retention-days: 14
