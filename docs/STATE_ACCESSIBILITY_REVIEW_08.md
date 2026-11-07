@@ -138,6 +138,17 @@ server-side transition and its exact source/target context, not the upstream
 requester or Escape consumer. This is new diagnostic evidence; production C12
 and the original full acceptance requirement remain unchanged.
 
+D18 R2 subsequently completed a startup-only prerequisite measurement in
+[run 42419686902](https://github.com/osmankaankars/lemulip/actions/runs/42419686902)
+at `80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d`. All four owned app lifecycles
+completed normally, with valid loaded-probe receipts and zero captured public C
+activation entries. Both architectures correctly returned `coverage-unproven`;
+no held-drag experiment followed. All 22 portable checks and native builds passed.
+The [D18 result](NATIVE_ACTIVATION_ENTRY_CALIBRATION.md) and
+[upstream investigation packet](NATIVE_DRAG_UPSTREAM_INVESTIGATION.md) preserve
+that observation and its limits. This adds no acceptance result or product fix;
+the completed source/screenshot review and the owner's physical/v4 results remain valid.
+
 To complete task 08, close or explicitly resolve task 07's remaining CI gate on
 the final candidate, review any resulting production changes, and retain the
 final source/run/artifact identity. The candidate is still on hold.

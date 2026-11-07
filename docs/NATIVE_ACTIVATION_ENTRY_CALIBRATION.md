@@ -4,7 +4,7 @@
 
 D18 is a **startup-only prerequisite measurement** for the missing request-side evidence in [D17](NATIVE_DRAG_ACTIVATION_REQUEST_LOG_DIAGNOSTIC.md). It asks whether the existing startup of each owned native source/control application actually crosses an observable binding to either public C function `SetFrontProcess` or `SetFrontProcessWithOptions`, on the existing ARM64 and Intel CI runners.
 
-**R1 stopped at compilation before calibration; the SDK-header correction is prepared for R2.** The protocol below fixed the scope and stop conditions before execution. D18 does not perform a drag, post mouse/keyboard input, query accessibility, or test cancellation. A successful calibration would justify considering a narrowly scoped request-entry trace; it would not identify the D17 requester or complete task 07.
+**R2 is complete: both architectures produced `coverage-unproven`.** All four native startup lifecycles completed normally and all four loaded probes published valid zero-call receipts. The selected C-entry route therefore has no natural-path calibration witness and is not extended into a held drag. R1 had stopped at a missing SDK header before calibration. The protocol below fixed the scope and stop conditions before execution. D18 performed no drag, posted no mouse/keyboard input, queried no accessibility, and did not test cancellation.
 
 ## Why this is the next evidence boundary
 
@@ -54,10 +54,50 @@ Twenty-two focused portable tests passed. They cover complete zero-call receipts
 
 [Run 42419305466](https://github.com/osmankaankars/lemulip/actions/runs/42419305466), attempt 1, executed commit `181b3db6f0438762ebbefbee0bfbc2b503356c2d`, tree `241d5f538b7cabbdd0b8f8813208fbb54e0791a1`. Both architectures passed the 22 portable tests, C12 build, and original staging. Both then stopped at the probe's include of `mach-o/dyld-interposing.h`: that header is present in Apple's published dyld source but absent from these installed SDKs. No source/control calibration startup ran, so R1 has no natural-call coverage result. The output directory was empty and artifact upload also failed; the CI job logs remain the evidence for this build-only result.
 
-R2 removes only that unavailable include and expresses the same two-pointer Mach-O interposition-table layout locally, with two entries for the existing wrapper/original pairs and a table-layout assertion. Actual ApplicationServices SDK declarations still enforce both function signatures and return/argument widths. Forwarding, capture, helper behavior, input scope, and classification remain unchanged. A pre-build commit marker also ensures a compile-stopped run has an artifact to retain. This is a build correction, not a rerun of a previously completed calibration or a changed behavioral hypothesis.
+R2 removed only that unavailable include and expressed the same two-pointer Mach-O interposition-table layout locally, with two entries for the existing wrapper/original pairs and a table-layout assertion. Actual ApplicationServices SDK declarations still enforce both function signatures and return/argument widths. Forwarding, capture, helper behavior, input scope, and classification remained unchanged. A pre-build commit marker also ensures a compile-stopped run has an artifact to retain. This was a build correction, not a rerun of a previously completed calibration or a changed behavioral hypothesis.
+
+## R2: completed startup calibration
+
+[Run 42419686902](https://github.com/osmankaankars/lemulip/actions/runs/42419686902), attempt 1, executed commit **`80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d`**, tree **`e159ad30d8ad0ef0443a0ee04dc74b515f739ddb`**. It ran on 7 November 2026 at 22:14:41–22:16:40 UTC, or **8 November 01:14:41–01:16:40 Europe/Istanbul**. ARM job `128545233709` and Intel job `128545233926` passed all 22 portable checks, the C ABI assertions, native builds, identity/input preparation, startup/cleanup, and complete evidence retention. Each job failed only the deliberately nonpositive coverage gate.
+
+| Architecture / process | PID | Native ready and active witness | Captured C entries | Cleanup |
+| --- | ---: | --- | ---: | --- |
+| ARM control | 3878 | Complete | 0 | Normal, no fallback |
+| ARM source | 3890 | Complete | 0 | Normal, no fallback |
+| Intel control | 5267 | Complete | 0 | Normal, no fallback |
+| Intel source | 5274 | Complete | 0 | Normal, no fallback |
+
+ARM ran macOS 15.8.2 build `24H232`; Intel ran macOS 15.7.9 build `24G830`, using the pinned Xcode 26.3 developer directory. The startup helper elapsed times were 2.023760 and 2.103771 seconds, respectively. Both helpers already had prohibited activation policy and did not change it. Both sources terminated with zero sessions and no active drag. No input, accessibility call, launch retry, signal fallback, outstanding launch completion, or helper error was recorded.
+
+Each C receipt records successful initialization and warmup, matching executable/library/boot identities, `atexitInvoked=true`, and closed capture. All ten counters are zero, including dropped, unfinished, overflow, before-ready, and active-at-flush counts. All four `calls` arrays are empty. Final receipts exist and no `.pending` files remain. These are complete zero-call observations, not empty or missing output interpreted as zero. The [machine-readable evidence](evidence/D18-startup-calibration.json) retains both complete analyses, all probe fields except two explicitly identified local paths, lifecycle projections, and the unmodified original-file hashes.
+
+Normal termination is supported by accepted termination requests, verified process identities, observed termination, original lifecycle records, and probe `atexit`. The helper did not receive a child wait status from NSWorkspace; **no child exit-code-zero claim is made**.
+
+### Static binary inspection
+
+Independent read-only inspection found the expected 32-byte, two-pair `__interpose` table in both retained dylibs. Chained fixups bind the two own replacement functions to strong `SetFrontProcess` and `SetFrontProcessWithOptions` imports from ApplicationServices. All four apps have the ordinary library dependency and expected relative Frameworks search path. Loaded library copies, UUIDs, executable hashes, and receipt identities agree.
+
+The linker placed the table in `__DATA_CONST` with section flags zero. Apple's inspected [section-discovery implementation](https://github.com/apple-oss-distributions/dyld/blob/dyld-1285.19/mach_o/Header.cpp) also recognizes the section name in `__DATA`-prefixed segments, so this is not an identified construction defect. Stored CodeDirectory flags are ad hoc (`0x2`), without the hardened-runtime/library-validation bits. These static observations **do not show dyld's runtime patching decision or AMFI's `allowInterposing` value**.
+
+### Integrity and exact replay
+
+| Architecture | Outer artifact ID | Bytes | SHA-256 |
+| --- | --- | ---: | --- |
+| ARM64 | `13592893180` | 8,183,349 | `b8ca44b0dcfb8335e729fc5b8bcc5a61530454fd7b2e4bff0b8f5408a293e87d` |
+| Intel | `13592938122` | 8,259,242 | `5c856aabac18829b43d5fe313db9bc32d0065bdd57f4f93463349285bd631df7` |
+
+Outer archives each contain 43 files. The nested staged archives each contain 134 entries: 80 files and 54 directories, including the original empty directories. Nested SHA-256 values are ARM `b1f7444f82ec1047e14dc3e20e099df938fb521c40ee60b4c9a8d9791b264969` (5,815,712 bytes) and Intel `89bd4ff2147bb8c927f373edce7ec5696cc23f8b36e3e372f57e74579a4938f9` (5,877,246 bytes). Size, hash, CRC, path/type and expansion bounds passed, and every extracted file equals its archived bytes.
+
+Each architecture preserves **128 unchanged input entries: 77 files and 51 directories**. All eight retained source copies match the exact executed Git blobs. The read-only loader rehashed the staged inputs and exact native executables/libraries/helper, parsed their Mach-O identities, and bound the native journal bytes to helper receipts. The pure analyzer then reproduced each CI `analysis.json` field-for-field, independently twice, without new native input, system queries, or artifact writes. ARM analysis SHA-256 is `73c21421928131881cf9662e42715d3f052e208387b2b12998132a8f43437929`; Intel is `ddc3df162c86e5739213b8ba3761268a411dc943bde963b70f92147159338c8d`.
+
+### Decision and remaining boundary
+
+The installed library contains the intended table and completed its lifecycle, but the natural startup path produced no positive C-entry witness. **Close this proposed tracing route as uncalibrated.** Do not interpret the result as no activation request, as proof that either public API was unused, or as proof that AMFI blocked the hook. D18 does not identify the D17 requester or an OS defect.
+
+No held-drag extension, synthetic direct-C calibration, selector expansion, or parameter sweep follows from this result. The [platform investigation packet](NATIVE_DRAG_UPSTREAM_INVESTIGATION.md) and its [44-source integrity index](evidence/D17-D18-investigation-manifest.json) collect the actual earlier positive evidence, this coverage result, the exact recorded reproduction, and the question a verified upstream tracing mechanism must answer. No external submission has been made.
 
 ## Disposition
 
 PR #45 remains draft/unmerged and C12 remains HOLD. Task 07's original Finder enter/exit/reenter → Escape → release → distinct fresh-drop gate across three themes and two architectures is unchanged. Task 08's source and screenshot review remains complete, with final acceptance waiting on 07. The owner's physical check and v4 automatic results are complete and are not requested again.
 
-No focus repair, directed Escape, security/preference change, protected-process attachment, timing sweep, or repeated gesture is part of D18. Results will be appended against the exact executed commit and artifact identities.
+No focus repair, directed Escape, security/preference change, protected-process attachment, timing sweep, or repeated gesture is part of D18. The completed results above are bound to the exact executed commit and artifact identities.

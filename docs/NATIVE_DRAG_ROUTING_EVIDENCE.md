@@ -41,6 +41,24 @@ daemon frame supplies no upstream request stack. The cause and original acceptan
 gate therefore remain open. D17's three PASS/five FAIL cases are not added to the
 historical 29-case analysis below; that analysis and its source files remain unchanged.
 
+### Subsequent D18 calibration
+
+[D18 R2](NATIVE_ACTIVATION_ENTRY_CALIBRATION.md#r2-completed-startup-calibration)
+completed on 8 November 2026 Europe/Istanbul at tested commit
+`80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d`. Both original source/control
+startups and normal cleanups completed on ARM and Intel, and all four linked
+probes produced valid zero-call receipts for the selected public C activation
+entries. Both architecture results are `coverage-unproven`. Library loading and
+the correctly constructed table do not establish effective natural-path coverage;
+zero captured calls do not prove activation-request absence.
+
+This prerequisite measurement sent no drag or keyboard input and adds no native
+PASS/FAIL case to D17 or the historical population below. Its held-drag extension
+was stopped at the predeclared calibration gate. The
+[upstream investigation packet](NATIVE_DRAG_UPSTREAM_INVESTIGATION.md) now indexes
+the retained evidence and the missing requester/consumer boundary; production and
+acceptance remain unchanged.
+
 ## Symptom and impact
 
 The original C12 [run 41803346911](https://github.com/osmankaankars/lemulip/actions/runs/41803346911)

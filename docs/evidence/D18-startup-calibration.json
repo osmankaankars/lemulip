@@ -1,0 +1,816 @@
+{
+  "architectures": [
+    {
+      "afterInventorySHA256": "7fe7a2dcd177a39b38860278328de70f936720f5e868ea8cf6acb788f8e6be81",
+      "analysis": {
+        "C12": "HOLD",
+        "absoluteToUptimeOffsetSeconds": [
+          -4.166666900831236e-08,
+          1.2500004254373683e-07
+        ],
+        "architecture": "arm64",
+        "calibrationGatePassed": false,
+        "diagnostic": "native-activation-entry-startup-calibration",
+        "heldRouteCoverageEstablished": false,
+        "limitations": [
+          "Calibration observes one natural startup per original owned application; it generates no drag or keyboard input.",
+          "A positive result establishes only an observed public C entry with an AppKit frame before native readiness in that process.",
+          "A complete zero-call receipt or a call without the required frame/timing leaves route coverage unproven; it is not proof that activation requests were absent.",
+          "The PSN arguments are retained opaque public-API values. They are not equated with a log ASN or used to infer a requester.",
+          "An entry stack cannot establish the ultimate upstream cross-process requester or guaranteed coverage of private/framework/system paths.",
+          "API return status and an independently observed active application are separate observations, not a causal request/transition join.",
+          "No outcome changes PR #45, the original Finder drag gate, task 08 acceptance, or the completed physical/v4 checks."
+        ],
+        "nativeInputExecuted": false,
+        "releaseReady": false,
+        "roles": [
+          {
+            "callCount": 0,
+            "calls": [],
+            "evidenceComplete": true,
+            "heldRouteCoverageEstablished": false,
+            "nativeReadyEvent": "application-ready",
+            "nativeReadySystemUptime": 254.70650600000002,
+            "naturalCEntryObserved": false,
+            "pid": 3878,
+            "qualifyingCallIDs": [],
+            "role": "control",
+            "startupComplete": true,
+            "status": "coverage-unproven",
+            "ultimateRequesterEstablished": false,
+            "unresolvedFrameCount": 0
+          },
+          {
+            "callCount": 0,
+            "calls": [],
+            "evidenceComplete": true,
+            "heldRouteCoverageEstablished": false,
+            "nativeReadyEvent": "source-ready",
+            "nativeReadySystemUptime": 255.18868691666668,
+            "naturalCEntryObserved": false,
+            "pid": 3890,
+            "qualifyingCallIDs": [],
+            "role": "source",
+            "startupComplete": true,
+            "status": "coverage-unproven",
+            "ultimateRequesterEstablished": false,
+            "unresolvedFrameCount": 0
+          }
+        ],
+        "schema": 1,
+        "scope": "startup-calibration-only",
+        "startupComplete": true,
+        "status": "coverage-unproven",
+        "ultimateRequesterEstablished": false
+      },
+      "analysisSHA256": "73c21421928131881cf9662e42715d3f052e208387b2b12998132a8f43437929",
+      "architecture": "arm64",
+      "beforeInventorySHA256": "7fe7a2dcd177a39b38860278328de70f936720f5e868ea8cf6acb788f8e6be81",
+      "helperActivationPolicySetup": {
+        "finalPolicy": 2,
+        "initialPolicy": 2,
+        "setAccepted": null,
+        "setAttempted": false
+      },
+      "helperElapsedSeconds": 2.0237597916666914,
+      "helperErrors": [],
+      "helperReportSHA256": "5c181217ad2226159c5a04c7141c0add2778eca39caff522e5f68ff99da9c10c",
+      "inputInventoryFiles": 77,
+      "inputPreservation": {
+        "afterEntries": 128,
+        "beforeEntries": 128,
+        "inputsUnchanged": true,
+        "schema": 1
+      },
+      "nativeLogRecordCounts": {
+        "activation": 13,
+        "receiver": 5,
+        "source": 5
+      },
+      "nativeLogsSHA256": {
+        "activation": "354c1de3a26d892d15506560f103f02ab4f35d74cf454207c0eade015f78ff01",
+        "receiver": "cd352bb9c004f5575241cfe6f3f689cd9981ae59564c1cc5be9baac29e0d2867",
+        "source": "64d972cfc3f3bd4a33dc9d4d430a5c193d12a7c77978e1cea405abf0f97e2344"
+      },
+      "osVersion": "Version 15.8.2 (Build 24H232)",
+      "outerArtifact": {
+        "bytes": 8183349,
+        "id": 13592893180,
+        "sha256": "b8ca44b0dcfb8335e729fc5b8bcc5a61530454fd7b2e4bff0b8f5408a293e87d"
+      },
+      "processes": [
+        {
+          "helperProjection": {
+            "activeWitness": {
+              "clock": {
+                "machAbsoluteAfter": 6115106623,
+                "machAbsoluteBefore": 6115106584,
+                "machContinuousAfter": 6115106622,
+                "machContinuousBefore": 6115106586,
+                "systemUptime": 254.79610920833335,
+                "wallTimeUTC": "2026-11-07T22:16:17Z"
+              },
+              "isActive": true,
+              "isTerminated": false
+            },
+            "cleanup": {
+              "completedClock": {
+                "machAbsoluteAfter": 6146893418,
+                "machAbsoluteBefore": 6146893381,
+                "machContinuousAfter": 6146893417,
+                "machContinuousBefore": 6146893383,
+                "systemUptime": 256.120559,
+                "wallTimeUTC": "2026-11-07T22:16:18Z"
+              },
+              "completedNormally": true,
+              "exitStatus": null,
+              "exitStatusAvailable": false,
+              "exitStatusReason": "NSWorkspace launched the process; NSRunningApplication does not expose its wait status.",
+              "fallbackUsed": false,
+              "identityObservedClock": {
+                "machAbsoluteAfter": 6144505036,
+                "machAbsoluteBefore": 6144504989,
+                "machContinuousAfter": 6144505035,
+                "machContinuousBefore": 6144504992,
+                "systemUptime": 256.0210430833333,
+                "wallTimeUTC": "2026-11-07T22:16:18Z"
+              },
+              "identityVerified": true,
+              "normalTerminationRequested": true,
+              "normalTerminationSeconds": 8,
+              "outstandingLaunchCompletion": false,
+              "pendingLaunchCleanupWaitUsed": false,
+              "signals": [],
+              "startedClock": {
+                "machAbsoluteAfter": 6144481892,
+                "machAbsoluteBefore": 6144481865,
+                "machContinuousAfter": 6144481891,
+                "machContinuousBefore": 6144481867,
+                "systemUptime": 256.02007875000004,
+                "wallTimeUTC": "2026-11-07T22:16:18Z"
+              },
+              "terminateReturn": true,
+              "terminated": true,
+              "terminatedObservedClock": {
+                "machAbsoluteAfter": 6146878656,
+                "machAbsoluteBefore": 6146878531,
+                "machContinuousAfter": 6146878655,
+                "machContinuousBefore": 6146878533,
+                "systemUptime": 256.11994383333337,
+                "wallTimeUTC": "2026-11-07T22:16:18Z"
+              },
+              "terminationRequestedClock": {
+                "machAbsoluteAfter": 6144512509,
+                "machAbsoluteBefore": 6144512498,
+                "machContinuousAfter": 6144512509,
+                "machContinuousBefore": 6144512499,
+                "systemUptime": 256.02135450000003,
+                "wallTimeUTC": "2026-11-07T22:16:18Z"
+              }
+            },
+            "executableSHA256": "13a036a534d10062c16d483f906f611372e0f986979b20bce74f178a2bfe11d2",
+            "pid": 3878,
+            "probeLibrarySHA256": "0e087fad2c5310ddeab9d5e24914508d6d3d1af465866e7a285889552bb825b2",
+            "ready": true,
+            "readyEvent": "application-ready",
+            "readySystemUptime": 254.70650600000002,
+            "role": "control"
+          },
+          "probeReceiptProjection": {
+            "architecture": "arm64",
+            "atexitInvoked": true,
+            "bootUUID": "561B5F5B-10F4-429E-8715-3DD399E574D5",
+            "calls": [],
+            "captureClosed": true,
+            "clockReadOrder": {
+              "afterOriginal": [
+                "continuous",
+                "absolute"
+              ],
+              "entry": [
+                "absolute",
+                "continuous"
+              ],
+              "preOriginal": [
+                "absolute",
+                "continuous"
+              ]
+            },
+            "constructorMachAbsolute": 6105335660,
+            "constructorMachContinuous": 6105335662,
+            "counts": {
+              "activeCallsAtFlush": 0,
+              "afterCaptureClosedCalls": 0,
+              "beforeReadyCalls": 0,
+              "completedCalls": 0,
+              "droppedCalls": 0,
+              "incompleteCalls": 0,
+              "nestedCalls": 0,
+              "overflowCalls": 0,
+              "recordedCalls": 0,
+              "totalCalls": 0
+            },
+            "countsAsOf": "capture-close",
+            "executableImageUUID": "BCFCC65F-5C6B-3972-825D-9CA9A0AE151F",
+            "flushMachAbsolute": 6144778419,
+            "flushMachContinuous": 6144778422,
+            "frameCapacity": 48,
+            "initializationError": null,
+            "initialized": true,
+            "library": {
+              "imageBase": "0x102944000",
+              "imageUUID": "1DBA6219-2514-3306-8648-EADAAFCACDB2"
+            },
+            "machTimebaseDenom": 3,
+            "machTimebaseNumer": 125,
+            "pid": 3878,
+            "probe": "NativeActivationEntryProbe",
+            "readyMachAbsolute": 6105337761,
+            "readyMachContinuous": 6105337762,
+            "recordCapacity": 128,
+            "schemaVersion": 1,
+            "scope": "startup-calibration-only",
+            "warmupCompleted": true
+          },
+          "rawProbeReceiptSHA256": "6a3094be9397fd881720726a73bfd815a057a152ac2e4ad696aa25d02719a6cc",
+          "role": "control"
+        },
+        {
+          "helperProjection": {
+            "activeSession": false,
+            "activeWitness": {
+              "clock": {
+                "machAbsoluteAfter": 6126548659,
+                "machAbsoluteBefore": 6126548612,
+                "machContinuousAfter": 6126548659,
+                "machContinuousBefore": 6126548616,
+                "systemUptime": 255.27286070833335,
+                "wallTimeUTC": "2026-11-07T22:16:17Z"
+              },
+              "isActive": true,
+              "isTerminated": false
+            },
+            "cleanup": {
+              "completedClock": {
+                "machAbsoluteAfter": 6144472361,
+                "machAbsoluteBefore": 6144472332,
+                "machContinuousAfter": 6144472360,
+                "machContinuousBefore": 6144472336,
+                "systemUptime": 256.01968158333335,
+                "wallTimeUTC": "2026-11-07T22:16:18Z"
+              },
+              "completedNormally": true,
+              "exitStatus": null,
+              "exitStatusAvailable": false,
+              "exitStatusReason": "NSWorkspace launched the process; NSRunningApplication does not expose its wait status.",
+              "fallbackUsed": false,
+              "identityObservedClock": {
+                "machAbsoluteAfter": 6126576227,
+                "machAbsoluteBefore": 6126576220,
+                "machContinuousAfter": 6126576227,
+                "machContinuousBefore": 6126576222,
+                "systemUptime": 255.27400941666667,
+                "wallTimeUTC": "2026-11-07T22:16:17Z"
+              },
+              "identityVerified": true,
+              "normalTerminationRequested": true,
+              "normalTerminationSeconds": 8,
+              "outstandingLaunchCompletion": false,
+              "pendingLaunchCleanupWaitUsed": false,
+              "signals": [],
+              "startedClock": {
+                "machAbsoluteAfter": 6126571847,
+                "machAbsoluteBefore": 6126571833,
+                "machContinuousAfter": 6126571847,
+                "machContinuousBefore": 6126571835,
+                "systemUptime": 255.27382691666668,
+                "wallTimeUTC": "2026-11-07T22:16:17Z"
+              },
+              "terminateReturn": true,
+              "terminated": true,
+              "terminatedObservedClock": {
+                "machAbsoluteAfter": 6144452736,
+                "machAbsoluteBefore": 6144452591,
+                "machContinuousAfter": 6144452735,
+                "machContinuousBefore": 6144452594,
+                "systemUptime": 256.018863875,
+                "wallTimeUTC": "2026-11-07T22:16:18Z"
+              },
+              "terminationRequestedClock": {
+                "machAbsoluteAfter": 6126578745,
+                "machAbsoluteBefore": 6126578736,
+                "machContinuousAfter": 6126578745,
+                "machContinuousBefore": 6126578738,
+                "systemUptime": 255.27411433333336,
+                "wallTimeUTC": "2026-11-07T22:16:17Z"
+              }
+            },
+            "executableSHA256": "7c8fadec8f97063cb5cd0dd6fb2f877e0b3ca4371984c888db0105c2618a8ecd",
+            "pid": 3890,
+            "probeLibrarySHA256": "0e087fad2c5310ddeab9d5e24914508d6d3d1af465866e7a285889552bb825b2",
+            "ready": true,
+            "readyEvent": "source-ready",
+            "readySystemUptime": 255.18868691666668,
+            "role": "source",
+            "sessionCount": 0
+          },
+          "probeReceiptProjection": {
+            "architecture": "arm64",
+            "atexitInvoked": true,
+            "bootUUID": "561B5F5B-10F4-429E-8715-3DD399E574D5",
+            "calls": [],
+            "captureClosed": true,
+            "clockReadOrder": {
+              "afterOriginal": [
+                "continuous",
+                "absolute"
+              ],
+              "entry": [
+                "absolute",
+                "continuous"
+              ],
+              "preOriginal": [
+                "absolute",
+                "continuous"
+              ]
+            },
+            "constructorMachAbsolute": 6118925107,
+            "constructorMachContinuous": 6118925113,
+            "counts": {
+              "activeCallsAtFlush": 0,
+              "afterCaptureClosedCalls": 0,
+              "beforeReadyCalls": 0,
+              "completedCalls": 0,
+              "droppedCalls": 0,
+              "incompleteCalls": 0,
+              "nestedCalls": 0,
+              "overflowCalls": 0,
+              "recordedCalls": 0,
+              "totalCalls": 0
+            },
+            "countsAsOf": "capture-close",
+            "executableImageUUID": "E8EA5C19-D8BC-3B02-BE10-CD1E289A4BAB",
+            "flushMachAbsolute": 6143495020,
+            "flushMachContinuous": 6143495022,
+            "frameCapacity": 48,
+            "initializationError": null,
+            "initialized": true,
+            "library": {
+              "imageBase": "0x102f98000",
+              "imageUUID": "1DBA6219-2514-3306-8648-EADAAFCACDB2"
+            },
+            "machTimebaseDenom": 3,
+            "machTimebaseNumer": 125,
+            "pid": 3890,
+            "probe": "NativeActivationEntryProbe",
+            "readyMachAbsolute": 6118932414,
+            "readyMachContinuous": 6118932416,
+            "recordCapacity": 128,
+            "schemaVersion": 1,
+            "scope": "startup-calibration-only",
+            "warmupCompleted": true
+          },
+          "rawProbeReceiptSHA256": "91b86205da6c3135aa00d5d7984c8d2cc0cf98ab1e34d00cf4f71f2ca007861a",
+          "role": "source"
+        }
+      ],
+      "retainedDiagnosticSourcesSHA256": {
+        "NATIVE_ACTIVATION_ENTRY_CALIBRATION.md": "43c7b3fdfe58ee7df5b02ef83d02b01a1a0d47eb557e4351d1e2bbd621c026a0",
+        "NativeActivationEntryCalibration.swift": "5265e3c8b273657542112e991913cb6459ebb5373aeeb3e6e99f7a0a8e846e7e",
+        "NativeActivationEntryProbe.c": "59bda5aad7daf50fec8b2c157c88eddad0ffab2981a5ff520a0255cbde1df6a3",
+        "NativeDragControl.swift": "6709c7513559b02020ece0992930e48689f73be875bba3494a8e523359fa02e1",
+        "NativeDragSource.swift": "d009e5f20207845cb6b6bdb476d8e511b7e6e146f773b8512b4d1b2045f6dc31",
+        "analyze_native_activation_entry_calibration.py": "1b717ffd90f014ef2e8cfde3a2e2748235cbd25c30c1d685000ecdeb2276f166",
+        "native-activation-entry-calibration.yml": "2f291532beaeb9b0e0cbe8c155587e7144b2027367ba0c2789438a98208e471d",
+        "test_analyze_native_activation_entry_calibration.py": "9a03523e03304559d81c28f827639453206df74f658eaeae19b78b8b1fa84c6a"
+      },
+      "stagedArchive": {
+        "bytes": 5815712,
+        "entryCount": 134,
+        "expandedFileBytes": 16225363,
+        "name": "staged-evidence.zip",
+        "schema": 1,
+        "sha256": "b1f7444f82ec1047e14dc3e20e099df938fb521c40ee60b4c9a8d9791b264969"
+      },
+      "translationProbe": {
+        "errno": 0,
+        "returnCode": 0,
+        "value": 0
+      }
+    },
+    {
+      "afterInventorySHA256": "fa424e048d6e0b24ae3b54990d7f0dc90bce6d0e9855977373c114be2a2a8f96",
+      "analysis": {
+        "C12": "HOLD",
+        "absoluteToUptimeOffsetSeconds": [
+          -5.900000734519563e-08,
+          1.900001063416421e-07
+        ],
+        "architecture": "x86_64",
+        "calibrationGatePassed": false,
+        "diagnostic": "native-activation-entry-startup-calibration",
+        "heldRouteCoverageEstablished": false,
+        "limitations": [
+          "Calibration observes one natural startup per original owned application; it generates no drag or keyboard input.",
+          "A positive result establishes only an observed public C entry with an AppKit frame before native readiness in that process.",
+          "A complete zero-call receipt or a call without the required frame/timing leaves route coverage unproven; it is not proof that activation requests were absent.",
+          "The PSN arguments are retained opaque public-API values. They are not equated with a log ASN or used to infer a requester.",
+          "An entry stack cannot establish the ultimate upstream cross-process requester or guaranteed coverage of private/framework/system paths.",
+          "API return status and an independently observed active application are separate observations, not a causal request/transition join.",
+          "No outcome changes PR #45, the original Finder drag gate, task 08 acceptance, or the completed physical/v4 checks."
+        ],
+        "nativeInputExecuted": false,
+        "releaseReady": false,
+        "roles": [
+          {
+            "callCount": 0,
+            "calls": [],
+            "evidenceComplete": true,
+            "heldRouteCoverageEstablished": false,
+            "nativeReadyEvent": "application-ready",
+            "nativeReadySystemUptime": 510.94487992700004,
+            "naturalCEntryObserved": false,
+            "pid": 5267,
+            "qualifyingCallIDs": [],
+            "role": "control",
+            "startupComplete": true,
+            "status": "coverage-unproven",
+            "ultimateRequesterEstablished": false,
+            "unresolvedFrameCount": 0
+          },
+          {
+            "callCount": 0,
+            "calls": [],
+            "evidenceComplete": true,
+            "heldRouteCoverageEstablished": false,
+            "nativeReadyEvent": "source-ready",
+            "nativeReadySystemUptime": 511.31272896,
+            "naturalCEntryObserved": false,
+            "pid": 5274,
+            "qualifyingCallIDs": [],
+            "role": "source",
+            "startupComplete": true,
+            "status": "coverage-unproven",
+            "ultimateRequesterEstablished": false,
+            "unresolvedFrameCount": 0
+          }
+        ],
+        "schema": 1,
+        "scope": "startup-calibration-only",
+        "startupComplete": true,
+        "status": "coverage-unproven",
+        "ultimateRequesterEstablished": false
+      },
+      "analysisSHA256": "ddc3df162c86e5739213b8ba3761268a411dc943bde963b70f92147159338c8d",
+      "architecture": "x86_64",
+      "beforeInventorySHA256": "fa424e048d6e0b24ae3b54990d7f0dc90bce6d0e9855977373c114be2a2a8f96",
+      "helperActivationPolicySetup": {
+        "finalPolicy": 2,
+        "initialPolicy": 2,
+        "setAccepted": null,
+        "setAttempted": false
+      },
+      "helperElapsedSeconds": 2.103770613999984,
+      "helperErrors": [],
+      "helperReportSHA256": "b619b5cc8f0aaf464033c1886fb79d055d90bfb2d4dc50dd56ec4111ec02ba96",
+      "inputInventoryFiles": 77,
+      "inputPreservation": {
+        "afterEntries": 128,
+        "beforeEntries": 128,
+        "inputsUnchanged": true,
+        "schema": 1
+      },
+      "nativeLogRecordCounts": {
+        "activation": 13,
+        "receiver": 5,
+        "source": 5
+      },
+      "nativeLogsSHA256": {
+        "activation": "687564cf5fdbe22d9202e76127e2e47d3c19a1e4a72174cc05918b29a44f0995",
+        "receiver": "61dee3aeeffe93e2734a4dc73f83ecb8bbd9a871f4f84f76223fbe4280d4bc3e",
+        "source": "85bc6406af86253f222289001da13668ec2e0a143a399c462f29ebcf1b6d770a"
+      },
+      "osVersion": "Version 15.7.9 (Build 24G830)",
+      "outerArtifact": {
+        "bytes": 8259242,
+        "id": 13592938122,
+        "sha256": "5c856aabac18829b43d5fe313db9bc32d0065bdd57f4f93463349285bd631df7"
+      },
+      "processes": [
+        {
+          "helperProjection": {
+            "activeWitness": {
+              "clock": {
+                "machAbsoluteAfter": 510994159803,
+                "machAbsoluteBefore": 510994159204,
+                "machContinuousAfter": 510994159782,
+                "machContinuousBefore": 510994159294,
+                "systemUptime": 510.99415971700006,
+                "wallTimeUTC": "2026-11-07T22:16:31Z"
+              },
+              "isActive": true,
+              "isTerminated": false
+            },
+            "cleanup": {
+              "completedClock": {
+                "machAbsoluteAfter": 512171575902,
+                "machAbsoluteBefore": 512171575280,
+                "machContinuousAfter": 512171575880,
+                "machContinuousBefore": 512171575366,
+                "systemUptime": 512.171575737,
+                "wallTimeUTC": "2026-11-07T22:16:32Z"
+              },
+              "completedNormally": true,
+              "exitStatus": null,
+              "exitStatusAvailable": false,
+              "exitStatusReason": "NSWorkspace launched the process; NSRunningApplication does not expose its wait status.",
+              "fallbackUsed": false,
+              "identityObservedClock": {
+                "machAbsoluteAfter": 512021467422,
+                "machAbsoluteBefore": 512021465902,
+                "machContinuousAfter": 512021467401,
+                "machContinuousBefore": 512021465991,
+                "systemUptime": 512.021466531,
+                "wallTimeUTC": "2026-11-07T22:16:32Z"
+              },
+              "identityVerified": true,
+              "normalTerminationRequested": true,
+              "normalTerminationSeconds": 8,
+              "outstandingLaunchCompletion": false,
+              "pendingLaunchCleanupWaitUsed": false,
+              "signals": [],
+              "startedClock": {
+                "machAbsoluteAfter": 512020577829,
+                "machAbsoluteBefore": 512020577306,
+                "machContinuousAfter": 512020577808,
+                "machContinuousBefore": 512020577368,
+                "systemUptime": 512.02057775,
+                "wallTimeUTC": "2026-11-07T22:16:32Z"
+              },
+              "terminateReturn": true,
+              "terminated": true,
+              "terminatedObservedClock": {
+                "machAbsoluteAfter": 512171220024,
+                "machAbsoluteBefore": 512171218330,
+                "machContinuousAfter": 512171220002,
+                "machContinuousBefore": 512171218402,
+                "systemUptime": 512.171219728,
+                "wallTimeUTC": "2026-11-07T22:16:32Z"
+              },
+              "terminationRequestedClock": {
+                "machAbsoluteAfter": 512021686755,
+                "machAbsoluteBefore": 512021686162,
+                "machContinuousAfter": 512021686733,
+                "machContinuousBefore": 512021686243,
+                "systemUptime": 512.021686608,
+                "wallTimeUTC": "2026-11-07T22:16:32Z"
+              }
+            },
+            "executableSHA256": "5c65416832db51993f65beb026c38b20613b8f671fae1206f4b2b7e53a8e0aa7",
+            "pid": 5267,
+            "probeLibrarySHA256": "31b5dd21ee0f98949d9009e244460de6ef8d12bfcd755754e48705cf3aeaa07b",
+            "ready": true,
+            "readyEvent": "application-ready",
+            "readySystemUptime": 510.94487992700004,
+            "role": "control"
+          },
+          "probeReceiptProjection": {
+            "architecture": "x86_64",
+            "atexitInvoked": true,
+            "bootUUID": "F3CBD0B9-D324-445F-B882-AED8C16EC02B",
+            "calls": [],
+            "captureClosed": true,
+            "clockReadOrder": {
+              "afterOriginal": [
+                "continuous",
+                "absolute"
+              ],
+              "entry": [
+                "absolute",
+                "continuous"
+              ],
+              "preOriginal": [
+                "absolute",
+                "continuous"
+              ]
+            },
+            "constructorMachAbsolute": 510217352462,
+            "constructorMachContinuous": 510217352567,
+            "counts": {
+              "activeCallsAtFlush": 0,
+              "afterCaptureClosedCalls": 0,
+              "beforeReadyCalls": 0,
+              "completedCalls": 0,
+              "droppedCalls": 0,
+              "incompleteCalls": 0,
+              "nestedCalls": 0,
+              "overflowCalls": 0,
+              "recordedCalls": 0,
+              "totalCalls": 0
+            },
+            "countsAsOf": "capture-close",
+            "executableImageUUID": "CADB041F-7A40-3D14-B223-8FC3F0E14783",
+            "flushMachAbsolute": 512028948177,
+            "flushMachContinuous": 512028948236,
+            "frameCapacity": 48,
+            "initializationError": null,
+            "initialized": true,
+            "library": {
+              "imageBase": "0x105a8e000",
+              "imageUUID": "894507AA-73AE-30AF-BC0B-CEAC0B198402"
+            },
+            "machTimebaseDenom": 1,
+            "machTimebaseNumer": 1,
+            "pid": 5267,
+            "probe": "NativeActivationEntryProbe",
+            "readyMachAbsolute": 510217438165,
+            "readyMachContinuous": 510217438220,
+            "recordCapacity": 128,
+            "schemaVersion": 1,
+            "scope": "startup-calibration-only",
+            "warmupCompleted": true
+          },
+          "rawProbeReceiptSHA256": "16a0afd633288801fab89351b556e758b556343fa673a9b89765094ebb1e0825",
+          "role": "control"
+        },
+        {
+          "helperProjection": {
+            "activeSession": false,
+            "activeWitness": {
+              "clock": {
+                "machAbsoluteAfter": 511368608039,
+                "machAbsoluteBefore": 511368607242,
+                "machContinuousAfter": 511368608018,
+                "machContinuousBefore": 511368607325,
+                "systemUptime": 511.36860788300004,
+                "wallTimeUTC": "2026-11-07T22:16:31Z"
+              },
+              "isActive": true,
+              "isTerminated": false
+            },
+            "cleanup": {
+              "completedClock": {
+                "machAbsoluteAfter": 512020377314,
+                "machAbsoluteBefore": 512020376225,
+                "machContinuousAfter": 512020377293,
+                "machContinuousBefore": 512020376279,
+                "systemUptime": 512.020377183,
+                "wallTimeUTC": "2026-11-07T22:16:32Z"
+              },
+              "completedNormally": true,
+              "exitStatus": null,
+              "exitStatusAvailable": false,
+              "exitStatusReason": "NSWorkspace launched the process; NSRunningApplication does not expose its wait status.",
+              "fallbackUsed": false,
+              "identityObservedClock": {
+                "machAbsoluteAfter": 511370542695,
+                "machAbsoluteBefore": 511370541964,
+                "machContinuousAfter": 511370542673,
+                "machContinuousBefore": 511370542051,
+                "systemUptime": 511.37054250700004,
+                "wallTimeUTC": "2026-11-07T22:16:31Z"
+              },
+              "identityVerified": true,
+              "normalTerminationRequested": true,
+              "normalTerminationSeconds": 8,
+              "outstandingLaunchCompletion": false,
+              "pendingLaunchCleanupWaitUsed": false,
+              "signals": [],
+              "startedClock": {
+                "machAbsoluteAfter": 511370100090,
+                "machAbsoluteBefore": 511370098639,
+                "machContinuousAfter": 511370100063,
+                "machContinuousBefore": 511370098721,
+                "systemUptime": 511.370099539,
+                "wallTimeUTC": "2026-11-07T22:16:31Z"
+              },
+              "terminateReturn": true,
+              "terminated": true,
+              "terminatedObservedClock": {
+                "machAbsoluteAfter": 512020033369,
+                "machAbsoluteBefore": 512020031395,
+                "machContinuousAfter": 512020033341,
+                "machContinuousBefore": 512020031503,
+                "systemUptime": 512.02003304,
+                "wallTimeUTC": "2026-11-07T22:16:32Z"
+              },
+              "terminationRequestedClock": {
+                "machAbsoluteAfter": 511370754168,
+                "machAbsoluteBefore": 511370753560,
+                "machContinuousAfter": 511370754147,
+                "machContinuousBefore": 511370753653,
+                "systemUptime": 511.37075403700004,
+                "wallTimeUTC": "2026-11-07T22:16:31Z"
+              }
+            },
+            "executableSHA256": "b3b393793e62a27d0d5a7713ec318ac3afafb3e16a0d2f844e28ff9c4ac59a78",
+            "pid": 5274,
+            "probeLibrarySHA256": "31b5dd21ee0f98949d9009e244460de6ef8d12bfcd755754e48705cf3aeaa07b",
+            "ready": true,
+            "readyEvent": "source-ready",
+            "readySystemUptime": 511.31272896,
+            "role": "source",
+            "sessionCount": 0
+          },
+          "probeReceiptProjection": {
+            "architecture": "x86_64",
+            "atexitInvoked": true,
+            "bootUUID": "F3CBD0B9-D324-445F-B882-AED8C16EC02B",
+            "calls": [],
+            "captureClosed": true,
+            "clockReadOrder": {
+              "afterOriginal": [
+                "continuous",
+                "absolute"
+              ],
+              "entry": [
+                "absolute",
+                "continuous"
+              ],
+              "preOriginal": [
+                "absolute",
+                "continuous"
+              ]
+            },
+            "constructorMachAbsolute": 511096515542,
+            "constructorMachContinuous": 511096515716,
+            "counts": {
+              "activeCallsAtFlush": 0,
+              "afterCaptureClosedCalls": 0,
+              "beforeReadyCalls": 0,
+              "completedCalls": 0,
+              "droppedCalls": 0,
+              "incompleteCalls": 0,
+              "nestedCalls": 0,
+              "overflowCalls": 0,
+              "recordedCalls": 0,
+              "totalCalls": 0
+            },
+            "countsAsOf": "capture-close",
+            "executableImageUUID": "9E72105F-4636-381E-82AD-D5C36F1C1D78",
+            "flushMachAbsolute": 511848286110,
+            "flushMachContinuous": 511848286152,
+            "frameCapacity": 48,
+            "initializationError": null,
+            "initialized": true,
+            "library": {
+              "imageBase": "0x1040ef000",
+              "imageUUID": "894507AA-73AE-30AF-BC0B-CEAC0B198402"
+            },
+            "machTimebaseDenom": 1,
+            "machTimebaseNumer": 1,
+            "pid": 5274,
+            "probe": "NativeActivationEntryProbe",
+            "readyMachAbsolute": 511096640726,
+            "readyMachContinuous": 511096640794,
+            "recordCapacity": 128,
+            "schemaVersion": 1,
+            "scope": "startup-calibration-only",
+            "warmupCompleted": true
+          },
+          "rawProbeReceiptSHA256": "15ffa2f3a07caf0bf07be17fff6c4c245f14d1215307752e22003caea2c7bff3",
+          "role": "source"
+        }
+      ],
+      "retainedDiagnosticSourcesSHA256": {
+        "NATIVE_ACTIVATION_ENTRY_CALIBRATION.md": "43c7b3fdfe58ee7df5b02ef83d02b01a1a0d47eb557e4351d1e2bbd621c026a0",
+        "NativeActivationEntryCalibration.swift": "5265e3c8b273657542112e991913cb6459ebb5373aeeb3e6e99f7a0a8e846e7e",
+        "NativeActivationEntryProbe.c": "59bda5aad7daf50fec8b2c157c88eddad0ffab2981a5ff520a0255cbde1df6a3",
+        "NativeDragControl.swift": "6709c7513559b02020ece0992930e48689f73be875bba3494a8e523359fa02e1",
+        "NativeDragSource.swift": "d009e5f20207845cb6b6bdb476d8e511b7e6e146f773b8512b4d1b2045f6dc31",
+        "analyze_native_activation_entry_calibration.py": "1b717ffd90f014ef2e8cfde3a2e2748235cbd25c30c1d685000ecdeb2276f166",
+        "native-activation-entry-calibration.yml": "2f291532beaeb9b0e0cbe8c155587e7144b2027367ba0c2789438a98208e471d",
+        "test_analyze_native_activation_entry_calibration.py": "9a03523e03304559d81c28f827639453206df74f658eaeae19b78b8b1fa84c6a"
+      },
+      "stagedArchive": {
+        "bytes": 5877246,
+        "entryCount": 134,
+        "expandedFileBytes": 16765169,
+        "name": "staged-evidence.zip",
+        "schema": 1,
+        "sha256": "89bd4ff2147bb8c927f373edce7ec5696cc23f8b36e3e372f57e74579a4938f9"
+      },
+      "translationProbe": {
+        "errno": 2,
+        "returnCode": -1,
+        "value": null
+      }
+    }
+  ],
+  "diagnostic": "D18",
+  "executedCommit": "80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d",
+  "executedTree": "e159ad30d8ad0ef0443a0ee04dc74b515f739ddb",
+  "heldDragExperimentExecuted": false,
+  "projection": {
+    "analyses": "Both complete CI analysis objects are unchanged.",
+    "helper": "Selected identity, environment, lifecycle, input, and cleanup fields; original helper report hash retained. No missing field is reconstructed.",
+    "probeReceipts": "All original fields retained except executablePath and library.path; raw receipt hashes identify the unmodified originals in CI artifacts."
+  },
+  "releaseReady": false,
+  "result": "coverage-unproven",
+  "runAttempt": 1,
+  "runID": 42419686902,
+  "runURL": "https://github.com/osmankaankars/lemulip/actions/runs/42419686902",
+  "schema": 1,
+  "scope": "startup-calibration-only"
+}

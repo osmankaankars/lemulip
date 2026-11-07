@@ -1,0 +1,372 @@
+{
+  "candidate": {
+    "commit": "d821d7343675e2850705d141ef9b3b93a6aee945",
+    "prURL": "https://github.com/osmankaankars/lemulip/pull/45",
+    "status": "HOLD",
+    "tree": "425baa28f00ec24551dd70c0cc874a75fa3be0c1"
+  },
+  "experiments": [
+    {
+      "artifacts": [
+        {
+          "architecture": "arm64",
+          "bytes": 544892,
+          "id": 13568960184,
+          "sha256": "e2c44b86be6515c4a23b9e0c526a959330f6cc6649575a233286bff3e404f343"
+        },
+        {
+          "architecture": "x86_64",
+          "bytes": 545049,
+          "id": 13568149451,
+          "sha256": "4267aed58c11dc0d64ff27e3d8de10ddbd89f2318d1d3d4f87a2b649c7d30e7e"
+        }
+      ],
+      "attempt": 1,
+      "diagnostic": "D17",
+      "executedCommit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+      "executedTree": "460878bd1e11b3c17c830b9c34d767add856fa5c",
+      "resultScope": "Eight comparable gestures: 3 PASS / 5 FAIL; full original Finder acceptance remains untested by this single-entry diagnostic.",
+      "retainedSources": [
+        {
+          "commit": "d821d7343675e2850705d141ef9b3b93a6aee945",
+          "repositoryPath": "script/make_icon.swift",
+          "retainedName": "CandidateSources/make_icon.swift",
+          "sha256": "67a31e22e1f9e0234b19a3dd5be9395e498b341b8f7ef5dd307e49fb31da3df4",
+          "url": "https://github.com/osmankaankars/lemulip/blob/d821d7343675e2850705d141ef9b3b93a6aee945/script/make_icon.swift"
+        },
+        {
+          "commit": "d821d7343675e2850705d141ef9b3b93a6aee945",
+          "repositoryPath": "script/prepare_native_ui.py",
+          "retainedName": "CandidateSources/prepare_native_ui.py",
+          "sha256": "5f6f442c7ec641f726d05c3377eb187b8b12db15c0d7c42c95e87d06038ade16",
+          "url": "https://github.com/osmankaankars/lemulip/blob/d821d7343675e2850705d141ef9b3b93a6aee945/script/prepare_native_ui.py"
+        },
+        {
+          "commit": "d821d7343675e2850705d141ef9b3b93a6aee945",
+          "repositoryPath": "script/ui_review_fixtures.swift",
+          "retainedName": "CandidateSources/ui_review_fixtures.swift",
+          "sha256": "d1191609f08574baa080072b4237f4f41f6de109544cb72fafa17a2bbafe8808",
+          "url": "https://github.com/osmankaankars/lemulip/blob/d821d7343675e2850705d141ef9b3b93a6aee945/script/ui_review_fixtures.swift"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "docs/NATIVE_DRAG_ACTIVATION_REQUEST_LOG_DIAGNOSTIC.md",
+          "retainedName": "NATIVE_DRAG_ACTIVATION_REQUEST_LOG_DIAGNOSTIC.md",
+          "sha256": "4e1c4c2659d89f8a8bb576d70ccb528210db44701ecee1d073b2c4b46004eb4f",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/docs/NATIVE_DRAG_ACTIVATION_REQUEST_LOG_DIAGNOSTIC.md"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/native_ui/NativeDragControl.swift",
+          "retainedName": "NativeDragControl.swift",
+          "sha256": "6709c7513559b02020ece0992930e48689f73be875bba3494a8e523359fa02e1",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/native_ui/NativeDragControl.swift"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/native_ui/NativeDragMouseDriver.swift",
+          "retainedName": "NativeDragMouseDriver.swift",
+          "sha256": "b78f3583efd35a54b0930bc33daa836dd64118efdd4f09205e89b0a0ed569e27",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/native_ui/NativeDragMouseDriver.swift"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/native_ui/NativeDragMouseTests.swift",
+          "retainedName": "NativeDragMouseTests.swift",
+          "sha256": "5a7753d6e21a84644546c51c5c342fa03ddd9f81a708a79834c785c5d7741e6a",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/native_ui/NativeDragMouseTests.swift"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/native_ui/NativeDragReview.swift",
+          "retainedName": "NativeDragReview.swift",
+          "sha256": "7f636ca5002a16cf48d7e770f375bef3561418be0072ec2e1475f4e5a5702445",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/native_ui/NativeDragReview.swift"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/native_ui/NativeDragSource.swift",
+          "retainedName": "NativeDragSource.swift",
+          "sha256": "d009e5f20207845cb6b6bdb476d8e511b7e6e146f773b8512b4d1b2045f6dc31",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/native_ui/NativeDragSource.swift"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/native_ui/NativeTraceClock.swift",
+          "retainedName": "NativeTraceClock.swift",
+          "sha256": "84cc27db5650a7b455bbfbb94a8c19ae906e5b42286cc689cc56777103c1bb78",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/native_ui/NativeTraceClock.swift"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/analyze_native_drag_event_origin.py",
+          "retainedName": "analyze_native_drag_event_origin.py",
+          "sha256": "988fe283243eab4c0e898e93bc491d213bdbaaf1f346209fd2299c4feb913465",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/analyze_native_drag_event_origin.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/capture_native_drag_activation_requests.py",
+          "retainedName": "capture_native_drag_activation_requests.py",
+          "sha256": "1397dc2f2176a4c7ad77744077de3c72778941d682f372d6ddaf17815783f912",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/capture_native_drag_activation_requests.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/capture_native_drag_system_log.py",
+          "retainedName": "capture_native_drag_system_log.py",
+          "sha256": "ccc23050210516a9a8ed2d5074af656f0306f318bab720e6144878ca6f921827",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/capture_native_drag_system_log.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/compare_native_drag_activation.py",
+          "retainedName": "compare_native_drag_activation.py",
+          "sha256": "1a45c85bd34cc458647040b6e198d3f789ae89b69bba4174d4c2df06118bbdc2",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/compare_native_drag_activation.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/compare_native_drag_capture.py",
+          "retainedName": "compare_native_drag_capture.py",
+          "sha256": "fa2f3d8d04c38670673ec2ee29cd71abf8e7df3ba95482eb98e93c19002b01a6",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/compare_native_drag_capture.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/compare_native_drag_held_ax.py",
+          "retainedName": "compare_native_drag_held_ax.py",
+          "sha256": "f15024d4c74f7ae04b36b4d70f395ab81704b0ef41eb0e4dcd3e5ac0fe977aef",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/compare_native_drag_held_ax.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/compare_native_drag_lifecycle.py",
+          "retainedName": "compare_native_drag_lifecycle.py",
+          "sha256": "4a6d5ac54fc8ab9d0abf690d125e0ef5e55c69f8c5b7cad294a02b4f3696547d",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/compare_native_drag_lifecycle.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/compare_native_drag_mouse_driver.py",
+          "retainedName": "compare_native_drag_mouse_driver.py",
+          "sha256": "44839f19f4eff2b23246bd3919658d8880d234db1c9c31629503ed586b2ebabc",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/compare_native_drag_mouse_driver.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/compare_native_drag_receiver_sync.py",
+          "retainedName": "compare_native_drag_receiver_sync.py",
+          "sha256": "7ab0b4f271c82a3dfa49878936317cf8a5f8bf933fe66306392f971b1d81842f",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/compare_native_drag_receiver_sync.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/compare_native_drag_sources.py",
+          "retainedName": "compare_native_drag_sources.py",
+          "sha256": "cc5349f2271c2ccb895ce1ac9d2a5651c30fb48545edd652ec22a8e9fa348b3f",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/compare_native_drag_sources.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": ".github/workflows/native-drag-activation-request-log.yml",
+          "retainedName": "native-drag-activation-request-log.yml",
+          "sha256": "315725b823592a57c5e58a77df06e707aa37ab2c4808368a67d25db83b50f31b",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/.github/workflows/native-drag-activation-request-log.yml"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/prepare_native_ui.py",
+          "retainedName": "prepare_native_ui.py",
+          "sha256": "5f6f442c7ec641f726d05c3377eb187b8b12db15c0d7c42c95e87d06038ade16",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/prepare_native_ui.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/privacy_check.py",
+          "retainedName": "privacy_check.py",
+          "sha256": "1bf638ba0132f8dcc2bed00e81172e4cc367a3d2168e3f053f967229de026019",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/privacy_check.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/test_analyze_native_drag_event_origin.py",
+          "retainedName": "test_analyze_native_drag_event_origin.py",
+          "sha256": "df635ea79488fe23e46f4581af5b7d88d338229fd25a876b59d70a46eb93a3da",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/test_analyze_native_drag_event_origin.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/test_capture_native_drag_activation_requests.py",
+          "retainedName": "test_capture_native_drag_activation_requests.py",
+          "sha256": "f5d2fcb3a260ee53f3997dcc9ce2754bbc120dedff1d90bfe5ab9b480dce1d1d",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/test_capture_native_drag_activation_requests.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/test_capture_native_drag_system_log.py",
+          "retainedName": "test_capture_native_drag_system_log.py",
+          "sha256": "47376e35069b44896db548d4c6e4ef4dc368cf360e171b0e859dbd1c6f50dfff",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/test_capture_native_drag_system_log.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/test_compare_native_drag_activation.py",
+          "retainedName": "test_compare_native_drag_activation.py",
+          "sha256": "04ba7c76d348e616456b7c4e11a5bfaa12c2bf055244e89e58c234b07ce11e25",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/test_compare_native_drag_activation.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/test_compare_native_drag_capture.py",
+          "retainedName": "test_compare_native_drag_capture.py",
+          "sha256": "8edcb8fa8ae30b4cf9dfbf9522559d861c6d6f577a77df4a2579ad5e2fa871ad",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/test_compare_native_drag_capture.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/test_compare_native_drag_held_ax.py",
+          "retainedName": "test_compare_native_drag_held_ax.py",
+          "sha256": "f79c1519fbea9ebe53723568486c1252d927df4b494c4e586c18ad80e8472f72",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/test_compare_native_drag_held_ax.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/test_compare_native_drag_lifecycle.py",
+          "retainedName": "test_compare_native_drag_lifecycle.py",
+          "sha256": "ba36cdeeb11f994dc70aa1a49a9b495cb82fb9bbd91774edeca8e54cf361fdeb",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/test_compare_native_drag_lifecycle.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/test_compare_native_drag_mouse_driver.py",
+          "retainedName": "test_compare_native_drag_mouse_driver.py",
+          "sha256": "d27397f489f8578d089bd889595c0107ffdb5f91384280ffbefd33adf1216d27",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/test_compare_native_drag_mouse_driver.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/test_compare_native_drag_receiver_sync.py",
+          "retainedName": "test_compare_native_drag_receiver_sync.py",
+          "sha256": "a4426dfe3a36f420903b76ade81c269522ceba9e8b15bb839fa791e941c6497a",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/test_compare_native_drag_receiver_sync.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/test_compare_native_drag_sources.py",
+          "retainedName": "test_compare_native_drag_sources.py",
+          "sha256": "08588c6c1a6e9ae5d3baafc31baf154a3c0e086c9179d8cae7caef4f3b955924",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/test_compare_native_drag_sources.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/test_native_coverage.py",
+          "retainedName": "test_native_coverage.py",
+          "sha256": "1974f4a5777e7588b1bfe6be86d2b82d23d6b39f7d5734253b9374975c627bd1",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/test_native_coverage.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/test_native_release_gate.py",
+          "retainedName": "test_native_release_gate.py",
+          "sha256": "1ceda292bdbb4b81de792a44ff77c09dfa86539481093e1c3ddd8e57ed78e875",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/test_native_release_gate.py"
+        },
+        {
+          "commit": "a17259046aed8ef62c0bd5273e530847b9c78b3c",
+          "repositoryPath": "script/test_prepare_native_ui.py",
+          "retainedName": "test_prepare_native_ui.py",
+          "sha256": "cd7774dfe4671ea145be9b0042b3c33456fff2a3a972fc97b093f867b17a905c",
+          "url": "https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/script/test_prepare_native_ui.py"
+        }
+      ],
+      "runID": 42357652748,
+      "runURL": "https://github.com/osmankaankars/lemulip/actions/runs/42357652748",
+      "verificationScope": "36 retained source copies and available input bytes verified. The source/control/observer executables are hash-linked in provenance, not archived; only the clock helper executable is archived."
+    },
+    {
+      "artifacts": [
+        {
+          "architecture": "arm64",
+          "bytes": 8183349,
+          "id": 13592893180,
+          "sha256": "b8ca44b0dcfb8335e729fc5b8bcc5a61530454fd7b2e4bff0b8f5408a293e87d"
+        },
+        {
+          "architecture": "x86_64",
+          "bytes": 8259242,
+          "id": 13592938122,
+          "sha256": "5c856aabac18829b43d5fe313db9bc32d0065bdd57f4f93463349285bd631df7"
+        }
+      ],
+      "attempt": 1,
+      "diagnostic": "D18",
+      "executedCommit": "80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d",
+      "executedTree": "e159ad30d8ad0ef0443a0ee04dc74b515f739ddb",
+      "resultScope": "Four completed startup lifecycles, four complete zero-call probe receipts; coverage-unproven. No drag input.",
+      "retainedSources": [
+        {
+          "commit": "80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d",
+          "repositoryPath": "docs/NATIVE_ACTIVATION_ENTRY_CALIBRATION.md",
+          "retainedName": "NATIVE_ACTIVATION_ENTRY_CALIBRATION.md",
+          "sha256": "43c7b3fdfe58ee7df5b02ef83d02b01a1a0d47eb557e4351d1e2bbd621c026a0",
+          "url": "https://github.com/osmankaankars/lemulip/blob/80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d/docs/NATIVE_ACTIVATION_ENTRY_CALIBRATION.md"
+        },
+        {
+          "commit": "80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d",
+          "repositoryPath": "script/native_ui/NativeActivationEntryCalibration.swift",
+          "retainedName": "NativeActivationEntryCalibration.swift",
+          "sha256": "5265e3c8b273657542112e991913cb6459ebb5373aeeb3e6e99f7a0a8e846e7e",
+          "url": "https://github.com/osmankaankars/lemulip/blob/80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d/script/native_ui/NativeActivationEntryCalibration.swift"
+        },
+        {
+          "commit": "80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d",
+          "repositoryPath": "script/native_ui/NativeActivationEntryProbe.c",
+          "retainedName": "NativeActivationEntryProbe.c",
+          "sha256": "59bda5aad7daf50fec8b2c157c88eddad0ffab2981a5ff520a0255cbde1df6a3",
+          "url": "https://github.com/osmankaankars/lemulip/blob/80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d/script/native_ui/NativeActivationEntryProbe.c"
+        },
+        {
+          "commit": "80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d",
+          "repositoryPath": "script/native_ui/NativeDragControl.swift",
+          "retainedName": "NativeDragControl.swift",
+          "sha256": "6709c7513559b02020ece0992930e48689f73be875bba3494a8e523359fa02e1",
+          "url": "https://github.com/osmankaankars/lemulip/blob/80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d/script/native_ui/NativeDragControl.swift"
+        },
+        {
+          "commit": "80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d",
+          "repositoryPath": "script/native_ui/NativeDragSource.swift",
+          "retainedName": "NativeDragSource.swift",
+          "sha256": "d009e5f20207845cb6b6bdb476d8e511b7e6e146f773b8512b4d1b2045f6dc31",
+          "url": "https://github.com/osmankaankars/lemulip/blob/80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d/script/native_ui/NativeDragSource.swift"
+        },
+        {
+          "commit": "80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d",
+          "repositoryPath": "script/analyze_native_activation_entry_calibration.py",
+          "retainedName": "analyze_native_activation_entry_calibration.py",
+          "sha256": "1b717ffd90f014ef2e8cfde3a2e2748235cbd25c30c1d685000ecdeb2276f166",
+          "url": "https://github.com/osmankaankars/lemulip/blob/80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d/script/analyze_native_activation_entry_calibration.py"
+        },
+        {
+          "commit": "80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d",
+          "repositoryPath": ".github/workflows/native-activation-entry-calibration.yml",
+          "retainedName": "native-activation-entry-calibration.yml",
+          "sha256": "2f291532beaeb9b0e0cbe8c155587e7144b2027367ba0c2789438a98208e471d",
+          "url": "https://github.com/osmankaankars/lemulip/blob/80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d/.github/workflows/native-activation-entry-calibration.yml"
+        },
+        {
+          "commit": "80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d",
+          "repositoryPath": "script/test_analyze_native_activation_entry_calibration.py",
+          "retainedName": "test_analyze_native_activation_entry_calibration.py",
+          "sha256": "9a03523e03304559d81c28f827639453206df74f658eaeae19b78b8b1fa84c6a",
+          "url": "https://github.com/osmankaankars/lemulip/blob/80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d/script/test_analyze_native_activation_entry_calibration.py"
+        }
+      ],
+      "runID": 42419686902,
+      "runURL": "https://github.com/osmankaankars/lemulip/actions/runs/42419686902",
+      "verificationScope": "All 128 staged input entries (77 files), exact app/library/helper binaries, all eight source copies and native journals verified; both analyses replay field-for-field."
+    }
+  ],
+  "purpose": "Immutable evidence index for the unresolved automated held-drag cancellation boundary; no external submission or new native run.",
+  "schema": 1
+}

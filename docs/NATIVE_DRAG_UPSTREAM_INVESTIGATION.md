@@ -1,0 +1,118 @@
+# Held-drag activation: platform investigation packet
+
+## Issue card
+
+**Status, 8 November 2026 Europe/Istanbul:** automated drag cancellation remains unresolved. PR #45 is open, draft and unmerged; C12 and task 07 remain HOLD. This packet assembles existing reproducible code and retained evidence for investigation across the AppKit/system request boundary. It records no new drag, production change, gate exception, or external submission.
+
+**Expected behavior:** Escape cancels the first held drag, release leaves only Existing in the destination, and a distinct fresh drag accepts Single exactly once. **Observed failure:** after injected Escape and release, the destination accepts Single from the first session and the native source ends that session with COPY. The original product candidate passed its general/native XCTest suite but failed the separate held-Finder acceptance step. The [routing report](NATIVE_DRAG_ROUTING_EVIDENCE.md#symptom-and-impact) preserves that distinction.
+
+**Strongest positive evidence:** five D17 failures retain a `launchservicesd SETFRONT` transition from the owned source to the owned target after receiver entry and before Escape. The daemon record precedes the target's activation dispatch by approximately 5–42 ms. **Missing evidence:** the earlier request/client context, or the actual source drag-tracking consumer's receipt and disposition of Escape. An OS/AppKit defect, a CI-host defect, and a Lemulip product regression have not been established.
+
+| Identity | Exact value |
+| --- | --- |
+| Repository / PR | [osmankaankars/lemulip, PR #45](https://github.com/osmankaankars/lemulip/pull/45) |
+| C12 candidate | `d821d7343675e2850705d141ef9b3b93a6aee945` |
+| C12 tree | `425baa28f00ec24551dd70c0cc874a75fa3be0c1` |
+| Main | `ade8b1673de0c2dff930430564c17f100f5e807b` |
+| D17 executed code / tree | `a17259046aed8ef62c0bd5273e530847b9c78b3c` / `460878bd1e11b3c17c830b9c34d767add856fa5c` |
+| D17 run / jobs | [42357652748](https://github.com/osmankaankars/lemulip/actions/runs/42357652748), attempt 1; ARM `128359171366`, Intel `128359171490` |
+| D18 executed code / tree | `80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d` / `e159ad30d8ad0ef0443a0ee04dc74b515f739ddb` |
+| D18 run / jobs | [42419686902](https://github.com/osmankaankars/lemulip/actions/runs/42419686902), attempt 1; ARM `128545233709`, Intel `128545233926` |
+
+The [integrity manifest](evidence/D17-D18-investigation-manifest.json) gives immutable Git URLs and SHA-256 values for **all 36 D17 and eight D18 retained source copies**, as well as both runs' archive identities and verification limits. It includes the original source/control, complete build/staging workflow, observers/input producers, classifiers, tests, and candidate staging sources. An investigator does not need the original chat to identify the executed code.
+
+## Recorded reproduction
+
+The failure was minimized to an owned native AppKit source and a receiver with an actual plain `NSWindow`. The source offers one exact file URL using `beginDraggingSession`, copy only, and normal cancellation animation. The destination uses normal dragging callbacks. Neither contains a custom Escape repair. The C12 product is built for staging, but D17 does not send the test input to its production view. This minimization narrows the failure surface; it does not establish that every source/environment has an identical internal cause.
+
+Use the immutable [D17 workflow](https://github.com/osmankaankars/lemulip/blob/a17259046aed8ef62c0bd5273e530847b9c78b3c/.github/workflows/native-drag-activation-request-log.yml) as the complete recorded build/staging recipe. It pins C12, builds the original AppKit source/control and observers, prepares the public XCTest mouse runner, records provenance, and invokes the strict comparator. The [source manifest](evidence/D17-D18-investigation-manifest.json) resolves every retained dependency to its tested revision; the two application source snippets alone are not a complete reproduction environment.
+
+The fixed four-case order is **Quartz, XCTest, XCTest, Quartz**. The diagnostic schedule is an initial 0.3-second press, one entry at nominal 400 points/second, a five-second terminal hold, globally posted Escape two seconds after observed entry/terminal cursor, 0.15-second key dwell, release, and—only after a successful cancel—a distinct fresh drop. Fresh-drop hold is one second. No held AX reads or screenshots are taken. Failed cancellation does not proceed to fresh drop. Non-comparable evidence halts remaining input rather than being retried.
+
+The recorded comparator invocation is:
+
+```bash
+python3 script/compare_native_drag_mouse_driver.py \
+  --staged "$RUNNER_TEMP/lemulip-native-ui" \
+  --output "$RUNNER_TEMP/drag-mouse-driver-comparison" \
+  --experiment-commit "$GITHUB_SHA"
+```
+
+This command belongs after the exact workflow's preparation/provenance steps in a fresh isolated workspace. It is supplied as a recipe reference, not as an instruction to overwrite retained evidence or rerun without a new measurement question. The experiment is nondeterministic: the completed D17 run had both PASS and FAIL. A new run is not promised to reproduce every individual outcome.
+
+| D17 case | ARM64 | Intel |
+| --- | --- | --- |
+| `quartz-first` | PASS | PASS |
+| `xctest-first` | FAIL | FAIL |
+| `xctest-second` | FAIL | FAIL |
+| `quartz-second` | PASS | FAIL |
+
+All eight cases were comparable, inputs were unchanged, and cleanup completed normally. These are diagnostic results. The original acceptance gate additionally requires exit and reentry and covers all three themes; a diagnostic single-entry PASS cannot satisfy it.
+
+## Navigate the evidence
+
+### D17: positive system transition
+
+Start with the [completed D17 report](NATIVE_DRAG_ACTIVATION_REQUEST_LOG_DIAGNOSTIC.md#r1-completed-run-and-new-server-side-transition-evidence) and [39 retained transition records](evidence/D17-front-transitions.json). The five held failure rows are:
+
+| Architecture / case | Raw record index | Source PID → target PID |
+| --- | ---: | --- |
+| ARM `xctest-first` | 132 | 7967 → 7959 |
+| ARM `xctest-second` | 187 | 8617 → 8514 |
+| Intel `xctest-first` | 131 | 10538 → 10522 |
+| Intel `xctest-second` | 186 | 10949 → 10783 |
+| Intel `quartz-second` | 241 | 11215 → 11199 |
+
+In each downloaded D17 artifact, retain together:
+
+- `drag-activation-request-log/`: complete raw query bytes, full parsed records, context, clock inputs, analysis and query receipt.
+- `drag-activation-request-clock/`: before/after owned markers, execution receipts, clock configuration and clock executable.
+- `drag-mouse-driver-comparison/`: immutable-input inventories, reports and strict native results.
+- `lemulip-native-ui/NativeDragControlEvidence-Capture-ax-only-Lifecycle-appkit-MouseDriver-*/orchard/`: source, receiver, activation and observer evidence for each case.
+- `lemulip-native-ui/provenance.json` and `DiagnosticSources/`: exact build and source bindings.
+
+The complete log category, rather than an emitter allowlist, exposed the daemon transition. The old collector included `lsd` but excluded `launchservicesd`. Correcting that demonstrated selection gap produced new evidence; simply repeating the old query would not.
+
+Clock comparisons use the empirical marker calibration and callback-entry uptime, retaining complete uncertainty intervals. `NSEvent.timestamp` is not substituted for a calibrated clock. `oldFrontPid` names the previous foreground application, not the requesting client. The zero activity identifiers, null `source`, repeated daemon thread/trace fields, and single logging frame do not supply a request chain. Source resignation callbacks also follow the daemon transition; they do not provide an earlier requesting stack.
+
+### D18: a tested observation boundary that did not calibrate
+
+The [completed D18 report](NATIVE_ACTIVATION_ENTRY_CALIBRATION.md#r2-completed-startup-calibration) and [projected evidence](evidence/D18-startup-calibration.json) establish four normal startup/termination lifecycles with **four valid zero-call probe receipts**. Both analyses are `coverage-unproven`. No held-drag input followed.
+
+D18 artifacts contain `calibration-run.json`, `control.json`, `source.json`, both inventories, `analysis.json`, exact helper/library/app build material, and eight retained sources. `staged-evidence.zip` plus `staged-archive.json` retain the complete staged tree, native journals and original empty directories. Validate the outer archive and nested ZIP before extracting into a new directory. The exact analyzer can replay the extracted data without launching any native program; its CLI writes a new result exclusively, so use its pure `load_evidence` / `analyze_records` functions to compare against an already present `analysis.json`.
+
+The library loaded and contains the expected two-entry table and imports. This does not establish dyld's runtime patching decision, AMFI policy, or traversal of those exports by natural activation. An extra synthetic direct-C call would test its own binding. D18 supplies no basis for extending this selected mechanism into the held gesture.
+
+### Retention and verification scope
+
+The manifest identifies D17 artifacts `13568960184` / `13568149451` and D18 artifacts `13592893180` / `13592938122`, with their advertised sizes and checked SHA-256 digests. The workflow artifact retention is 14 days; preserve required archives before expiration. Canonical reports, source revisions, public evidence projections and the integrity index remain in Git.
+
+D17's source/control/observer executable bytes were not archived; their provenance links are not fresh binary rehashes. Its clock executable was retained. D18 archives the exact executables and loaded library bytes, and all 128 immutable input entries were rechecked. These verification scopes must remain distinct. Archived executables need not be run to validate either packet.
+
+## Questions already investigated
+
+| Question | Decisive retained result / implication |
+| --- | --- |
+| Is Finder-specific source code necessary? | [D10 retained result](NATIVE_DRAG_ACTIVATION_DIAGNOSTIC.md#evidence-and-hypothesis) reproduced first-session acceptance with an owned copy-only AppKit source. Its [recorded protocol](NATIVE_VERIFICATION.md#instrumented-drag-source-comparison) does not establish identical internal causes across sources. |
+| Is observer target AXRaise necessary? | [D11](NATIVE_DRAG_ACTIVATION_DIAGNOSTIC.md) retained an Intel failure with zero such requests. Removing them did not establish a fix. |
+| Are held AX reads necessary? | [D12](NATIVE_DRAG_HELD_AX_DIAGNOSTIC.md) retained failures with those reads omitted. |
+| Does changing the mouse producer reliably fix cancellation? | [D17](NATIVE_DRAG_ACTIVATION_REQUEST_LOG_DIAGNOSTIC.md) retained failures with both producers; Quartz passed and failed on Intel. |
+| Does the first target event stack identify the initiator? | [D15](NATIVE_DRAG_DISPATCH_STACK_DIAGNOSTIC.md) showed ordinary downstream AppKit dispatch in PASS and FAIL. |
+| Is per-record receiver synchronization necessary? | [D16](NATIVE_DRAG_RECEIVER_SYNC_DIAGNOSTIC.md) retained a PASS and FAIL per architecture under lifecycle-only synchronization. |
+| Does a public retrieval/responder hook certify the Escape consumer? | [Routing review](NATIVE_DRAG_ROUTING_EVIDENCE.md) found no supported coverage contract; the proposed `nextEvent` probe was not run. |
+| Do the selected public C wrappers observe a natural startup request? | [D18](NATIVE_ACTIVATION_ENTRY_CALIBRATION.md) returned four complete zero-call receipts, so the prerequisite coverage gate remained closed. |
+
+## Concrete question for a platform investigator
+
+Identify a supported observation mechanism that reaches at least one of the following boundaries in a comparable failing session:
+
+1. **Earlier activation request/client context:** the submitting process, requested target, and synchronous caller or documented initiating transition before the daemon foreground change. Retain a real request/IPC relationship when available; time proximity alone is not a unique transaction match.
+2. **Actual source drag-tracking consumer:** positive evidence binding the posted Escape key-down to cancellation handling for that session, with the handler's disposition. Ordinary key dispatch, a generic responder action, or event retrieval is not automatically this consumer.
+
+Before further native input, specify the exact boundary, positive natural-path witness or documented coverage contract, process/target identity binding, clock relationship, access requirements, measurement cost, missing-data interpretation and stopping condition. A verified earlier observation can support a bounded new experiment. The present evidence does not support another downstream callback stack, a guessed selector/symbol, a timing adjustment, a focus repair or directed Escape.
+
+This packet does not assert that standard runners are impossible to debug. It asks for an observation with a demonstrable relationship to the failing path. No external communication has been sent.
+
+## Acceptance and remaining work
+
+Task 07 still requires the original **Finder enter → exit → reenter → Escape → release → distinct fresh drop**, for Orchard, Pistachio and Lemonade on ARM64 and Intel, against the final candidate. A supported repair or an explicit resolution of that remaining CI gate is required before final acceptance. Task 08's C12 source and twelve-screenshot review is complete; its final acceptance waits on 07 and any resulting production change review. The owner's physical check and v4 automatic results are completed evidence and are not requested again. PR #45 remains draft/unmerged; no release is authorized by these diagnostics.
