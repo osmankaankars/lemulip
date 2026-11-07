@@ -99,10 +99,67 @@ The order balances two observations of each policy but supplies neither randomiz
 
 No D16 result alone establishes an upstream activation requester, makes C12 release-ready, or satisfies PR #45's original full gate. C12/PR45 remains HOLD.
 
-## Tests and results
+## Pre-run checks
 
-Native D16 execution is **unrun**. No CI run, tested experiment commit/tree, artifact identifiers, architecture outcomes, or pass counts are claimed by this initial protocol.
+The protocol retained in the tested commit marked native execution unrun. The completed R1 results below belong to that exact tested source; this results update is documentation only.
 
 Local portable validation passed all **121 tests**: 105 inherited checks and 16 D16 tests. The initial combined run identified one stale exact source hash in the inherited D14 analyzer after the shared comparator gained explicit case-plan support. That pin was updated to the reviewed shared comparator hash, `44839f19f4eff2b23246bd3919658d8880d234db1c9c31629503ed586b2ebabc`; all 13 analyzer and 8 dependent collector tests then passed. The exact hash gate remains required. Neither native postprocessor is executed by D16.
 
-The workflow requires all existing portable comparator tests, the D14 analyzer and collector unit tests, release/coverage/staging checks, and the new D16 tests before native builds and execution. Portable test success is not a native cancellation result. Record fresh native results, exact tested source, and retained artifact identities after the corresponding CI run; leave unavailable evidence explicitly unverified.
+The workflow requires all existing portable comparator tests, the D14 analyzer and collector unit tests, release/coverage/staging checks, and the new D16 tests before native builds and execution. Portable test success is not a native cancellation result.
+
+## R1: completed comparison and retained-evidence audit
+
+Tested commit: `bcb1f00deba2673d3da5b877eab3407f66a4ce22`; tree: `f4d98f133b2ea2df5571f54482aa80722dcb3dc9`. [Run 42315347973](https://github.com/osmankaankars/lemulip/actions/runs/42315347973), attempt 1, ran from **6 November 2026 23:58:52 UTC** to **7 November 2026 00:05:34 UTC**. Its overall result is **failure**. Both architectures passed all **121 portable tests**, built the unchanged C12 application and diagnostic native executables, and reached the four-case comparison. There was no rerun.
+
+| Architecture | `quartz-sync-first` | `quartz-deferred-first` | `quartz-deferred-second` | `quartz-sync-second` |
+| --- | --- | --- | --- | --- |
+| arm64 | Comparable FAIL | Comparable PASS | Comparable FAIL | Comparable FAIL |
+| x86_64 | Comparable PASS | Comparable PASS | Comparable FAIL | Comparable FAIL |
+
+**All eight native cases are comparable and all eight synchronization measurements are valid.** Both reports have `nativeComparisonComplete=true`, `syncInstrumentationComplete=true`, and `comparisonComplete=true`; neither has `allCasesPassed=true`. The three PASS cases retained Existing alone after cancellation, ended canceled source sequence 1 with operation NONE and no receiver acceptance, then accepted Single exactly once in distinct sequence 2 with source operation COPY. The five FAIL cases accepted Single from canceled sequence 1 and ended it with COPY; their fresh-drop leg was not run. These are the unchanged strict diagnostic outcomes, not the original full PR45 gate.
+
+All eight helpers remained idle as mouse producers and completed normally. Button release, owned application shutdown, empty source/target registries, fixture preservation, and cleanup passed. Each architecture's 242-entry input inventories were unchanged, and all four cases shared the required common input signature. Held observer AX reads and screenshots remained disabled. No native D14 analysis, system-log collection, D15 stack capture, input retry, or parameter sweep was performed.
+
+### Measured receiver policy
+
+The following counts cover the whole receiver trace, including setup and termination. Successful cases additionally contain their separate fresh drag, so whole-trace totals are not directly comparable performance workloads. Every receiver write was bound to the exact retained newline-framed bytes, and every case completed one final lifecycle synchronization after its final observed release.
+
+| Architecture | Case | Native result | Receiver writes | Per-record synchronizations | Final lifecycle synchronization (ms) |
+| --- | --- | --- | ---: | ---: | ---: |
+| arm64 | `quartz-sync-first` | FAIL | 132 | 132 | 0.002833 |
+| arm64 | `quartz-deferred-first` | PASS | 111 | 0 | 0.573875 |
+| arm64 | `quartz-deferred-second` | FAIL | 139 | 0 | 0.127375 |
+| arm64 | `quartz-sync-second` | FAIL | 137 | 137 | 0.009083 |
+| x86_64 | `quartz-sync-first` | PASS | 122 | 122 | 0.003486 |
+| x86_64 | `quartz-deferred-first` | PASS | 123 | 0 | 0.462410 |
+| x86_64 | `quartz-deferred-second` | FAIL | 138 | 0 | 0.506083 |
+| x86_64 | `quartz-sync-second` | FAIL | 139 | 139 | 0.003845 |
+
+Within the canceled gesture's API-start/observed-release interval, the four per-record cases contained respectively **121, 126, 63, and 128** synchronized receiver records (ARM first/second, then Intel first/second). Their summed explicit synchronization intervals were **99.338, 75.591, 83.869, and 138.890 ms**. The four lifecycle cases had **zero** per-record synchronizations. Final synchronization began 1.4527–1.8020 seconds after each case's final observed release. These measurements establish that the policy difference executed. They do not measure complete callback duration, exact physical button boundaries, an upstream requester, or a causal timing threshold.
+
+### Retained movement and activation observations
+
+The three D16 PASS cases each contain two distinct receiver positions in canceled sequence 1 and one source-moved callback at or after the first receiver-entry record timestamp. The five FAIL cases contain 4–8 receiver positions and 4–8 such source callbacks. The association is still present in both streams after changing synchronization policy; it does not isolate receiver processing or establish a cause. The new four-position FAIL also means the earlier 21-case FAIL range of 5–20 must not be reused as a general lower bound.
+
+All eight retained common-input signatures and 26-event Quartz cancellation payloads match, including across architectures. Actual posting and delivery times differ. Each of the five FAIL traces records a type-13/subtype-1 target activation dispatch during the canceled gesture interval and target Escape key-down/key-up receipts; the retained pre-Escape target state is active and key. The three PASS traces contain no such activation dispatch in that interval; their retained pre-Escape source state is active and key, with a source Escape key-up receipt and no target Escape receipt. Absence of a recorded source key-down does not establish nondelivery, and these receipts do not identify the upstream activation requester.
+
+### Artifact identities and replay
+
+| Architecture | Artifact ID | ZIP bytes | Extracted files / bytes | ZIP SHA-256 |
+| --- | --- | ---: | ---: | --- |
+| arm64 | 13549949717 | 467,743 | 98 / 2,969,931 | `a5c28d9d5c849631af2a043d2d9fb14cc4933ecaa550e578a0e80f4aecf3ad0b` |
+| x86_64 | 13550916186 | 477,454 | 99 / 3,083,918 | `6c33fa80f1a6c2f41c668645fd1a19aaeced17fda2367d81fc1602ca1c30bd2b` |
+
+Both archives passed their advertised size and SHA-256, ZIP CRC, path, file-type, entry-count and expansion bounds. A separate read-only audit pinned the tested commit/tree, the inherited strict classifier sources, and the reviewed D16 sources. It reproduced all eight case classifications field for field and both aggregate policy conclusions from the original retained files. It also verified every synchronization receipt against its receiver bytes and termination journal. No native input, live `context_for`, inventory recollection, or system-log query ran during this replay; the archives remained unchanged.
+
+Per architecture, the audit verified **33 retained source copies** against their exact published Git blobs (including the workflow, initial protocol, and three C12 preparation sources), **14 retained immutable input files**, four distinct case configurations, the original plus four case-specific manifests, and eight binary-hash links in the inventory/provenance. ARM's 13 snapshots (3/4/3/3) and Intel's 14 snapshots (4/4/3/3) matched the embedded reports exactly. Compiled executable and fixture bytes are not in these archives; their recorded hash links are not independent rehashes of absent bytes.
+
+The retained `comparison.json` SHA-256 values are `b0a055129c0988cc01328d6dc1c90201da7bee35ef12d94fcaaac666aea23f73` (ARM) and `56dd7b014c5452078136640148f183fb88ee2375a3398ba53e895d0236b6677c` (Intel). The separate auditor's SHA-256 is `52743335c25018c178d3351a62113a56b940052d0120ec9c4685d12e1868ff7e`.
+
+### Conclusion and next boundary
+
+Both architectures report `mixed-results-no-policy-conclusion`. Each lifecycle policy produced one PASS and one FAIL; Intel also produced a PASS and a FAIL under per-record synchronization. **Per-record receiver synchronization was not necessary for the observed lifecycle-arm failures, and deferring it did not establish a reliable cancellation repair.** This does not prove that logging has no effect on event delivery. The fixed order and small sample do not supply a statistical causal estimate, and the matching first/second lifecycle pattern is not a new history-effect conclusion.
+
+The planned comparison is complete. Its mixed result does not justify another synchronization variant or a timing sweep. The open task remains to explain the held target activation and Escape routing well enough to support a concrete repair or an explicit resolution of the CI gate, then verify the final candidate with the original enter/exit/reentry, Escape, release, and distinct fresh-drop sequence. No production change follows from D16 alone.
+
+PR #45 remains open, draft and unmerged at C12 `d821d7343675e2850705d141ef9b3b93a6aee945`; main remains `ade8b1673de0c2dff930430564c17f100f5e807b`. Task 07 and final task 08 acceptance remain open. Completed owner physical/v4 checks and the retained C12 source/twelve-frame review remain completed evidence.

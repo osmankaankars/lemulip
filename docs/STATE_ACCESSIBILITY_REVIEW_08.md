@@ -40,7 +40,7 @@ The C12 production diff against main
 
 The independent source review found no additional concrete blocker in that
 production diff. It is separate from native execution and from the still-open
-drag observer failure. D13 through D15 change only diagnostic infrastructure and leave
+drag observer failure. D13 through D16 change only diagnostic infrastructure and leave
 these production sources byte-for-byte equal to C12.
 
 ## Selected visual observations
@@ -78,8 +78,9 @@ drag`. The 58 successful XCTest cases do not override that separate failure.
 
 The [D12 held AX comparison](NATIVE_DRAG_HELD_AX_DIAGNOSTIC.md),
 [D13 mouse producer comparison](NATIVE_DRAG_MOUSE_DRIVER_DIAGNOSTIC.md),
-[D14 event-origin observations](NATIVE_DRAG_EVENT_ORIGIN_DIAGNOSTIC.md) and
-[D15 dispatch-stack observations](NATIVE_DRAG_DISPATCH_STACK_DIAGNOSTIC.md) are
+[D14 event-origin observations](NATIVE_DRAG_EVENT_ORIGIN_DIAGNOSTIC.md),
+[D15 dispatch-stack observations](NATIVE_DRAG_DISPATCH_STACK_DIAGNOSTIC.md), and
+[D16 receiver synchronization comparison](NATIVE_DRAG_RECEIVER_SYNC_DIAGNOSTIC.md) are
 diagnostic work. Their scope and results must remain separate from the original
 enter, exit, reenter, Escape, release and fresh-drop acceptance sequence.
 
@@ -96,6 +97,19 @@ both successful and failed cases; they do not identify an earlier event producer
 or establish a production fix. The Intel post-comparison system-log query timed
 out; its absence of selected records is not evidence that no request occurred.
 The bounded stack investigation has reached its stated stopping condition.
+
+D16 R1 completed eight comparable cases with valid synchronization measurements
+in [run 42315347973](https://github.com/osmankaankars/lemulip/actions/runs/42315347973),
+tested commit `bcb1f00deba2673d3da5b877eab3407f66a4ce22`. ARM had one diagnostic
+pass and three cancellation failures; Intel had two passes and two failures.
+Each architecture's lifecycle-only policy produced one pass and one failure,
+with zero per-record synchronizations verified from the retained receipts.
+Per-record receiver synchronization was therefore not necessary for those
+observed failures, and deferring it did not establish a cancellation repair.
+Both reports have complete native and measurement evidence, unchanged inputs,
+and normal cleanup. All 121 portable checks and native builds passed on each
+architecture; the overall CI result remains failure because the strict native
+outcomes did not all pass. D16 ends with mixed results and no production change.
 
 To complete task 08, close or explicitly resolve task 07's remaining CI gate on
 the final candidate, review any resulting production changes, and retain the
