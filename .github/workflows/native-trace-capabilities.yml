@@ -1,0 +1,67 @@
+name: Native Trace Capabilities
+
+on:
+  push:
+    branches: ['codex/drag-trace-capabilities-07']
+    paths:
+      - '.github/workflows/native-trace-capabilities.yml'
+      - 'script/collect_native_trace_capabilities.py'
+      - 'script/test_collect_native_trace_capabilities.py'
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+  EVIDENCE_BASE: d2a8d51d22744fcecafde3da2a170ffac9165eb2
+
+concurrency:
+  group: native-trace-capabilities-${{ github.ref }}
+  cancel-in-progress: true
+
+# Read-only tool/host inventory. No record command, application launch, input,
+# debugger attachment, privilege escalation, or settings change.
+jobs:
+  inventory:
+    name: Installed Trace Tools (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - name: Check Out Exact Inventory Code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify Scope And Source
+        run: |
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+          test "$(uname -m)" = '${{ matrix.arch }}'
+          git merge-base --is-ancestor "$EVIDENCE_BASE" HEAD
+          git diff --exit-code "$EVIDENCE_BASE" -- Sources Resources Package.swift script/native_ui \
+            script/build_app.sh script/prepare_native_ui.py script/compare_native_drag_mouse_driver.py
+          python3 script/privacy_check.py
+          python3 -m py_compile script/collect_native_trace_capabilities.py
+          python3 script/test_collect_native_trace_capabilities.py
+      - name: Collect Installed Tool Contracts
+        run: >-
+          python3 script/collect_native_trace_capabilities.py
+          --output "$RUNNER_TEMP/drag-trace-capabilities"
+          --experiment-commit "$GITHUB_SHA"
+          --architecture '${{ matrix.arch }}'
+      - name: Retain Inventory Including Incomplete Results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-trace-capabilities-${{ matrix.arch }}
+          path: ${{ runner.temp }}/drag-trace-capabilities
+          if-no-files-found: error
+          retention-days: 14
