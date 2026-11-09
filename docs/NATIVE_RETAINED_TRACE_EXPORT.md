@@ -1,11 +1,109 @@
 # D25 — Read the retained Intel trace
 
-**Protocol prepared; no D25 native export result is asserted in this revision.**
-The [D24 observation](NATIVE_RECORDER_PROGRESS_OBSERVATION.md) retained a partial
-Intel trace after its recorder exited on signal 11. This diagnostic asks whether
-the exact package can supply a recognizable table of contents through the
-installed Xcode export tool. C12, task 07 and draft/unmerged
+**D25 completed: the installed Xcode 26.3 reader refused the unchanged Intel
+package with `Document Missing Template Error`. No table of contents was produced.**
+The [D24 observation](NATIVE_RECORDER_PROGRESS_OBSERVATION.md) retained this partial
+trace after its recorder exited on signal 11. The one D25 export exited normally
+with code 10 after 1.734828604 seconds, without a deadline or cleanup failure.
+The diagnostic execution completed; trace exportability and usable event timing
+remain unestablished. C12, task 07 and draft/unmerged
 [PR #45](https://github.com/osmankaankars/lemulip/pull/45) remain **HOLD**.
+
+## Executed result — 9 November 2026
+
+[R2, attempt 1](https://github.com/osmankaankars/lemulip/actions/runs/42616711092)
+passed its 91-test dependency gate and completed the single native Intel export
+attempt. The earlier R1 stopped before any native export, as detailed below.
+The public [result projection](evidence/D25-retained-trace-export.json) preserves
+the native classification, exact command clocks, input manifests, tool identity
+and raw stream identities. The [verification record](evidence/D25-verification.json)
+binds the artifacts, Git objects, native and portable tests, and independent
+audits. Private runner paths and full installed manual bytes are omitted from
+the public projection; the original artifacts were not rewritten.
+
+| Execution identity | Value |
+| --- | --- |
+| Executed source commit | `e537fb774768747c144ba7c57c1d8d4a097683e9` |
+| Executed source tree | `8b073dc3cafb004d4fe4dc8dd99e5fdd9ce42e04` |
+| Native run / attempt / Intel job | `42616711092` / `1` / `129158262959` |
+| Architecture / Python | x86_64 / 3.13.15 |
+| Reader Xcode | 26.3, build 17C529; exact producer-version match |
+| Reader OS | macOS 15.7.9, build 24G830 |
+| Artifact ID | `13672758368` |
+| Artifact bytes / files / expanded bytes | 12,928,357 / 85 / 14,161,297 |
+| Artifact SHA-256 | `2f4eb0d06b15985baf3a2584994488363c2cf018d66ddd2a9aa0cd48b0916ecf` |
+| Artifact expiration | 23 November 2026, 12:25:44 UTC |
+
+### Reader refusal
+
+The exact retained 47-byte stderr, including its terminal newline, is:
+
+```text
+Export failed: Document Missing Template Error
+```
+
+Its SHA-256 is
+`28c3ee1d8e3698496c540c01ccbb9d79fed962accf4e675fd0f33a6af02fdef5`.
+The XML stdout file is empty. There are no observed run IDs, table schemas or
+exported rows to query.
+
+| Observation | Retained result |
+| --- | --- |
+| Original classification | `export-refused` |
+| Diagnostic / transport / cleanup complete | true / true / true |
+| TOC export / table data / usable clock mapping established | false / false / false |
+| Export invocations / PID / exit code | 1 / 6621 / 10 |
+| Command operation time | 1.734828604 seconds |
+| Adapter time, including final group inventory and collection | 1.843466875 seconds |
+| Signals / emergency cleanup | none / false |
+| New recordings / samplers / application launches | 0 / 0 / 0 |
+| Input package / source / installed tool unchanged | true / true / true |
+
+All seven fixed commands and their seven final group probes completed within
+their operation budgets. Each target's final group snapshot contained only its
+unreaped zombie leader; collection released the PID lease afterward. This is
+positive cleanup evidence at the snapshots, not a timestamp for every possible
+descendant's exit.
+
+The error identifies this reader's refusal, but does not identify a particular
+missing file, object or template name. It does not prove why D24 exited on
+signal 11, that signal 11 caused this refusal, or that the raw ATRC bytes cannot
+support any separately qualified analysis. Incomplete document finalization is
+an interpretation to investigate, not an established mechanism. No permission
+denial, internal sampler phase, activation route or IPC chain follows from the
+error text. CI success records completion of this finite diagnostic; it does
+not establish successful trace export or product acceptance.
+
+### Input, source and tool preservation
+
+The retained input ZIP is byte-for-byte equal to D24's original inner archive.
+Both native manifests contain the exact two files and three directories, with
+unchanged hashes and expected file/directory modes `0400`/`0500`. The independent
+offline audit validates these retained receipts and bytes; it cannot re-observe
+the runner's filesystem after the job ends.
+
+The installed xctrace executable remained 121,520 bytes with SHA-256
+`abf89e498e0bdb43dd48a3ccb545313a83b413a8d329503401ade7fa4e1a5674`.
+Its Intel Mach-O UUID is `98781736-C05A-3140-9BCF-279C288AEE66`.
+An independently implemented binary parse agreed with both retained slice
+UUIDs and Apple's `dwarfdump` output.
+
+All **20 before/after source identities** match the exact executed Git objects.
+There are **19 physically retained source copies**. The hidden workflow path
+`.github/workflows/native-retained-trace-export.yml` is absent from the uploaded
+artifact. Its 6,050-byte identity is recorded in both native snapshots and
+matches the immutable Git blob, SHA-256
+`2cf342900903b33c6a67e2668ff8d65ac78b5f246bdaf414cb58477e9999dd04`.
+This is a hash binding to Git, not an archived byte copy. The retention omission
+does not justify another export.
+
+Independent input/source/tool and command/ownership audits passed **238** and
+**375** checks respectively. These are evidence consistency checks, separate
+from the **91 native tests**: 6 D19, 10 D20, 19 selected D24 primitives and
+56 D25 tests. The four D25 suites also passed all 56 tests locally; the final
+D24 selector passed 19 locally. All eight D25 Python source/test files were
+unchanged between that local 56-test execution and R2. Only the workflow test
+selection and this protocol document changed from R1 to R2.
 
 ### R1 pre-export gate failure and dependency scope
 
@@ -149,11 +247,22 @@ enumerates actual direct runs and literal table attributes rather than assuming
 a fresh run numbered 1. Empty tables remain empty. Other metadata remains
 uninterpreted, and no attribute is executed as an XPath or command.
 
-If the TOC qualifies, subsequent queries may use only observed entities and
-schemas. The next questions are decoded time range, usable clock mapping and
-process/scheduling rows. Only then can evidence be compared to D24's
-recorder-relative approximately +3.045–6.812-second window and PIDs 2040, 2147
-and 2149. A displayed date, duration or PID does not supply that mapping alone.
+D25 did not qualify a TOC, so there is no observed schema for a follow-up XPath
+query. **D26's next finite question is an offline review of the retained Xcode
+26.3 reader, import and template contracts:** is there a supported, separately
+derived analysis route for this exact ATRC input, and which preconditions would
+it require? Start with the existing version-bound manual/help, tool identity
+and package inventory. Identify any concrete documentation gap before another
+native metadata collection. Do not assume a filename from the error text,
+repair the original package, substitute a different Xcode contract, or repeat
+the failed export or recording merely to obtain a different result.
+
+Any later derived-data attempt would need its own provenance and finite
+protocol; it would not retroactively complete D24. Only qualified decoded time
+range, usable clock mapping and process/scheduling rows could support a later
+comparison with D24's recorder-relative approximately +3.045–6.812-second window
+and PIDs 2040, 2147 and 2149. A displayed date, duration or PID does not supply
+that mapping alone. No such attempt occurred in D25.
 
 No TOC result establishes normal completion of D24's recording, a sampler
 phase, activation routing, an IPC request chain or product acceptance. The
@@ -169,11 +278,12 @@ cleanup and interpretation gates. Synthetic tests cannot produce native trace
 evidence. The unchanged D19 bounded-command and D20 transport suites and the
 19 explicitly selected D24 primitive tests also run before native export.
 
-The workflow retains exact source copies, commit/tree, test output, installed
-tool/version/help/manual evidence, raw command streams and receipts, input
-manifests, the unchanged inner input ZIP and final classification. Producer work
-directories stay outside the uploaded evidence directory.
+The artifact retains 19 exact source copies and all 20 source hash bindings,
+commit/tree, test output, installed tool/version/help/manual evidence, raw
+command streams and receipts, input manifests, the unchanged inner input ZIP
+and final classification. The missing workflow copy is described above.
+Producer work directories stayed outside the uploaded evidence directory.
 
-A result entry must bind the exact executed revision, run/attempt, artifact
-hashes and actual outcome before describing D25 as executed. The source base is
+The result and verification entries bind the executed revision, run/attempt,
+artifact hashes and refusal. The source base is
 the [D24 result commit](https://github.com/osmankaankars/lemulip/commit/ee4ceaecee43d7f982e0523a52236799b5f2a603).

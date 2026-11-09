@@ -5,8 +5,10 @@ architecture produced a qualified sampler stack.** Both primary and secondary
 samplers retained only their initial banners. Intel additionally retained late
 recorder progress, one notification callback and a partial trace package; its
 recorder subsequently exited on signal 11. The internal waiting phase remains
-unidentified. The next evidence question is a read-only export of that exact
-retained Intel package, described below.
+unidentified. The subsequent [D25 read-only export](NATIVE_RETAINED_TRACE_EXPORT.md)
+refused that exact retained Intel package with `Document Missing Template Error`.
+No table of contents or time coverage was established. The next D26 step is an
+offline review of the retained reader/import/template contracts.
 
 This diagnostic follows the [D23 retained identity review](NATIVE_SAMPLER_IDENTITY_REVIEW.md).
 It asks whether a bounded stack observation of the primary sampler can distinguish
@@ -159,26 +161,32 @@ exportability, usable clock mapping, event range, sampler-window coverage,
 activation routing or an IPC request chain. All those qualifications remain
 false or unestablished in the public result.
 
-### Decision after D24: D25 reads this existing package
+### Decision after D24 and subsequent D25 result
 
-The next finite question is whether a version-recorded installed Xcode tool can
-export an identifiable table of contents from the **exact retained Intel trace**:
+D24 proposed one bounded read-only export of a table of contents from the
+**exact retained Intel trace**, using a version-recorded installed Xcode tool:
 
 ```text
 /usr/bin/xcrun xctrace export --input <bounded-retained-copy>/recording.trace --toc
 ```
 
-D25 must bind the input hash, bound extraction and command/output handling, and
-retain installed tool/version documentation. If accepted, only actual exported
-schemas may guide subsequent time-map, event-range and process/scheduling row
-queries. The later question is whether rows cover recorder-relative
-approximately +3.045–6.812 seconds and bind recorder PID 2040, primary PID 2147
-or secondary PID 2149. A matching time domain must be established first.
+[D25 R2](NATIVE_RETAINED_TRACE_EXPORT.md) completed that step in
+[run 42616711092](https://github.com/osmankaankars/lemulip/actions/runs/42616711092),
+attempt 1, at `e537fb774768747c144ba7c57c1d8d4a097683e9`, tree
+`8b073dc3cafb004d4fe4dc8dd99e5fdd9ce42e04`. All 91 tests passed. Its single export
+exited **10 after 1.734828604 seconds**, with empty stdout and exactly 47 stderr
+bytes: `Export failed: Document Missing Template Error` followed by a newline.
+Input, source and installed-tool identities remained unchanged. The finite
+refusal is preserved in the [D25 result](evidence/D25-retained-trace-export.json)
+and [verification record](evidence/D25-verification.json); it establishes no TOC,
+usable clock mapping, event range or sampler-window coverage. The error text
+does not by itself identify a particular missing metadata field or prove a
+repair route.
 
-If the retained package is rejected, preserve that bounded refusal as the
-result. No silent reconstruction, import, repair or new recording is part of
-this next question. D24 itself performed **no trace export**. Its new partial
-Intel trace gives a concrete retained input to inspect; it does not resolve the
+The next D26 task first reviews the retained Xcode 26.3 reader, import and
+template contracts offline. Any actual metadata gap must be identified before
+proposing another native collection or derived-data attempt. D24 itself
+performed **no trace export**; D25's subsequent refusal does not resolve the
 sampler phase, D21 causality, the original drag route or C12 acceptance.
 
 ## Evidence motivating this observation

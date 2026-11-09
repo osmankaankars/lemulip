@@ -1,0 +1,4752 @@
+{
+  "R1PreExportGateFailure": {
+    "identity": {
+      "bytes": 2810,
+      "sha256": "464bc11bc4f0aac741415f3bc282ebe01a5e5935cbccc257373fb92dd2077ab4"
+    },
+    "record": {
+      "D24FailuresFixed": false,
+      "artifactBytes": 5005,
+      "artifactDownloadStep": "skipped",
+      "artifactID": 13671828280,
+      "artifactSHA256": "2a7ce57cb0778ef39e67c44544906563de1eca278cd5990ffc451b027b25f794",
+      "attempt": 1,
+      "createdUTC": "2026-11-09T12:22:49.127809+00:00",
+      "diagnostic": "D25-R1-pre-export-gate-failure",
+      "failureCauseEstablished": false,
+      "jobID": 129155601626,
+      "nativeExportInvocations": 0,
+      "nativeExportStep": "skipped",
+      "nativePermissionDenialEstablished": false,
+      "newD25SuitesRun": false,
+      "newRecordingInvocations": 0,
+      "observedFailureScope": "Only SyntheticOrchestrationTests: helper/recorder/sampler multi-role scenarios, final snapshot/receipt assertions and teardown EPERM.",
+      "originalD24TestSourceSHA256": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a",
+      "originalD24TestsUnchanged": true,
+      "retainedMembers": {
+        "build/collect_native_trace_capabilities.stderr.txt": {
+          "bytes": 890,
+          "sha256": "074dc004e3615aa3a5517271be21c148c4a21345184061378e8cfc54df981e2b"
+        },
+        "build/collect_native_trace_capabilities.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/experiment-commit.txt": {
+          "bytes": 41,
+          "sha256": "16380613386b2fb2519a2cfddbe24d71384685b7adf16d5442e04b0c0743f67e"
+        },
+        "build/experiment-tree.txt": {
+          "bytes": 41,
+          "sha256": "ad421d1c6d8999b59ad5f717cfddeca4e03b6b249e49acb59bd98c5b337cc780"
+        },
+        "build/run_native_recorder_progress_observation.stderr.txt": {
+          "bytes": 21093,
+          "sha256": "c0fbb4cc873112d29a11e13dad3412d9619f66d5bbc7053bd023f0ceffbc38c6"
+        },
+        "build/run_native_recorder_progress_observation.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/run_native_system_trace_startup.stderr.txt": {
+          "bytes": 1651,
+          "sha256": "6cf9d8b6ac2e89ec34cccf630076e3cdd5db0ccfe2fae7b8d8d3d050b3e00823"
+        },
+        "build/run_native_system_trace_startup.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      },
+      "runID": 42615911091,
+      "schema": 1,
+      "sourceCommit": "320d06576b2c2ac5cd3352704598082147fe10c8",
+      "sourceTree": "461a4330d2df31b2acde160f788c3233e78fcc01",
+      "testFlakinessEstablished": false,
+      "tests": {
+        "collect_native_trace_capabilities": {
+          "passed": true,
+          "seconds": 2.963,
+          "tests": 6
+        },
+        "run_native_recorder_progress_observation": {
+          "errors": 4,
+          "failures": 10,
+          "passed": false,
+          "seconds": 48.545,
+          "tests": 50
+        },
+        "run_native_system_trace_startup": {
+          "passed": true,
+          "seconds": 2.097,
+          "tests": 10
+        }
+      }
+    }
+  },
+  "R2DependencyScopeCorrection": {
+    "D24RuntimeBytesUnchanged": true,
+    "D24TestBytesUnchanged": true,
+    "actualNativeCleanupGatesPreserved": true,
+    "changedPathsFromR1": [
+      ".github/workflows/native-retained-trace-export.yml",
+      "docs/NATIVE_RETAINED_TRACE_EXPORT.md"
+    ],
+    "excludedD24TestCount": 31,
+    "localSelector": {
+      "identity": {
+        "bytes": 743,
+        "sha256": "fe7ee510fd7f903d7f0b67909e39dfe69538f6459e8bb6dde72b61ac59366ddd"
+      },
+      "record": {
+        "D24TestSourceSHA256": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a",
+        "command": [
+          "python3",
+          "script/test_run_native_recorder_progress_observation.py",
+          "-v",
+          "OwnedCommandTests",
+          "NonreapingCapabilityTests",
+          "BoundedFileTests",
+          "InstalledToolIdentityTests"
+        ],
+        "elapsedSeconds": 2.9224516920003225,
+        "exitCode": 0,
+        "nativeExportExecuted": false,
+        "newD25RuntimeUnchangedFromLocal56TestProof": true,
+        "stderr": {
+          "bytes": 3259,
+          "sha256": "8ac4acc59d6bf268fde208c35e198674bf79237b824b099b75adbf926d54c913"
+        },
+        "stdout": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "utc": "2026-11-09T12:23:35.256900+00:00"
+      }
+    },
+    "newAdapterTestCount": 9,
+    "newD25RuntimeOrTestsChanged": false,
+    "oldFailureCauseEstablished": false,
+    "oldFailureFixed": false,
+    "selectedD24Classes": [
+      "OwnedCommandTests",
+      "NonreapingCapabilityTests",
+      "BoundedFileTests",
+      "InstalledToolIdentityTests"
+    ],
+    "selectedD24TestCount": 19,
+    "selectionReason": "Actual D25 dependency call path; D25 does not call D24 full orchestration, notification helper validation, banner-triggered nested sampling or report qualification."
+  },
+  "artifact": {
+    "allMemberBytesMatchExtractedCopies": true,
+    "bytes": 12928357,
+    "createdAt": "2026-11-09T12:25:47Z",
+    "expandedBytes": 14161297,
+    "expiresAt": "2026-11-23T12:25:44Z",
+    "fileCount": 85,
+    "fullCRCReadsCompleted": true,
+    "id": 13672758368,
+    "retentionDays": 14,
+    "sha256": "2f4eb0d06b15985baf3a2584994488363c2cf018d66ddd2a9aa0cd48b0916ecf",
+    "unchangedDuringAudit": true
+  },
+  "attempt": 1,
+  "createdUTC": "2026-11-09T12:34:58.423304+00:00",
+  "diagnostic": "D25-retained-trace-export-verification",
+  "executedSource": {
+    "commit": "e537fb774768747c144ba7c57c1d8d4a097683e9",
+    "tree": "8b073dc3cafb004d4fe4dc8dd99e5fdd9ce42e04"
+  },
+  "independentChecks": {
+    "allPassed": true,
+    "commandOwnershipTiming": 375,
+    "inputSourceTool": 238,
+    "meaning": "Evidence-consistency checks; these are not additional native tests or trace-semantic evidence."
+  },
+  "independentCommandOwnershipAudit": {
+    "identity": {
+      "bytes": 81292,
+      "sha256": "736d38eb9526e8d230082f560422a4d27c2e8c8c370bd0e9cfb05d25bb84b71c"
+    },
+    "record": {
+      "R1": {
+        "D24TestSourceUnchanged": true,
+        "causeEstablished": false,
+        "errors": 4,
+        "failureFixed": false,
+        "failures": 10,
+        "jobID": 129155601626,
+        "nativeExportExecuted": false,
+        "originalFullD24SuiteTests": 50,
+        "runID": 42615911091,
+        "scopeCorrection": "D25 R2 selects the 19 actually reused D24 primitive tests; the R1 50-test failure is not reclassified.",
+        "sourceCommit": "320d06576b2c2ac5cd3352704598082147fe10c8",
+        "stderrIdentity": {
+          "bytes": 21093,
+          "sha256": "c0fbb4cc873112d29a11e13dad3412d9619f66d5bbc7053bd023f0ceffbc38c6"
+        }
+      },
+      "allChecksPassed": true,
+      "archive": {
+        "bytes": 12928357,
+        "sha256": "2f4eb0d06b15985baf3a2584994488363c2cf018d66ddd2a9aa0cd48b0916ecf"
+      },
+      "artifactID": 13672758368,
+      "attempt": 1,
+      "audit": "D25-R2-independent-command-receipt-ownership-timing",
+      "checkCount": 375,
+      "checks": [
+        {
+          "invariant": "Exact advertised R2 artifact bytes",
+          "passed": true
+        },
+        {
+          "invariant": "Unique bounded artifact entries",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: retained-trace-export.json",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: build/experiment-commit.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: build/experiment-tree.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Exact source commit and tree recorded",
+          "passed": true
+        },
+        {
+          "invariant": "Git object source tree matches recorded tree",
+          "passed": true
+        },
+        {
+          "invariant": "Seven fixed top-level commands only",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: os-version.json",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: raw command equals summary",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: complete non-reaping lease lifecycle",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: no signals or cleanup/stream errors",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: normal exit observation agrees",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: expected command status",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: effective time and output bounds",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: operation finished within normal and total bounds",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: exact integer clock brackets ordered",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: os-version.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: stdout receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: os-version.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: stderr receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: combined stream accounting exact",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: retained stream progress brackets valid",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: intended command equals actual command",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: native adapter completed without emergency cleanup",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: adapter wall interval stays within its stated bound",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: exactly one group inventory",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: os-version-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "os-version-owned-groups: complete non-reaping lease lifecycle",
+          "passed": true
+        },
+        {
+          "invariant": "os-version-owned-groups: no signals or cleanup/stream errors",
+          "passed": true
+        },
+        {
+          "invariant": "os-version-owned-groups: normal exit observation agrees",
+          "passed": true
+        },
+        {
+          "invariant": "os-version-owned-groups: expected command status",
+          "passed": true
+        },
+        {
+          "invariant": "os-version-owned-groups: effective time and output bounds",
+          "passed": true
+        },
+        {
+          "invariant": "os-version-owned-groups: operation finished within normal and total bounds",
+          "passed": true
+        },
+        {
+          "invariant": "os-version-owned-groups: exact integer clock brackets ordered",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: os-version-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "os-version-owned-groups: stdout receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: os-version-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "os-version-owned-groups: stderr receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "os-version-owned-groups: combined stream accounting exact",
+          "passed": true
+        },
+        {
+          "invariant": "os-version-owned-groups: retained stream progress brackets valid",
+          "passed": true
+        },
+        {
+          "invariant": "os-version-owned-groups: intended command equals actual command",
+          "passed": true
+        },
+        {
+          "invariant": "os-version-owned-groups: fixed group-inventory argv",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: group observation and probe collection precede target collection",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: complete well-formed group inventory",
+          "passed": true
+        },
+        {
+          "invariant": "os-version: raw group rows independently reproduce positive receipt",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xcode-version.json",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: raw command equals summary",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: complete non-reaping lease lifecycle",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: no signals or cleanup/stream errors",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: normal exit observation agrees",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: expected command status",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: effective time and output bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: operation finished within normal and total bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: exact integer clock brackets ordered",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xcode-version.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: stdout receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xcode-version.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: stderr receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: combined stream accounting exact",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: retained stream progress brackets valid",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: intended command equals actual command",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: native adapter completed without emergency cleanup",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: adapter wall interval stays within its stated bound",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: exactly one group inventory",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xcode-version-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version-owned-groups: complete non-reaping lease lifecycle",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version-owned-groups: no signals or cleanup/stream errors",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version-owned-groups: normal exit observation agrees",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version-owned-groups: expected command status",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version-owned-groups: effective time and output bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version-owned-groups: operation finished within normal and total bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version-owned-groups: exact integer clock brackets ordered",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xcode-version-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version-owned-groups: stdout receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xcode-version-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version-owned-groups: stderr receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version-owned-groups: combined stream accounting exact",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version-owned-groups: retained stream progress brackets valid",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version-owned-groups: intended command equals actual command",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version-owned-groups: fixed group-inventory argv",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: group observation and probe collection precede target collection",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: complete well-formed group inventory",
+          "passed": true
+        },
+        {
+          "invariant": "xcode-version: raw group rows independently reproduce positive receipt",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-path.json",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: raw command equals summary",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: complete non-reaping lease lifecycle",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: no signals or cleanup/stream errors",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: normal exit observation agrees",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: expected command status",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: effective time and output bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: operation finished within normal and total bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: exact integer clock brackets ordered",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-path.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: stdout receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-path.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: stderr receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: combined stream accounting exact",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: retained stream progress brackets valid",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: intended command equals actual command",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: native adapter completed without emergency cleanup",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: adapter wall interval stays within its stated bound",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: exactly one group inventory",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-path-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path-owned-groups: complete non-reaping lease lifecycle",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path-owned-groups: no signals or cleanup/stream errors",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path-owned-groups: normal exit observation agrees",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path-owned-groups: expected command status",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path-owned-groups: effective time and output bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path-owned-groups: operation finished within normal and total bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path-owned-groups: exact integer clock brackets ordered",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-path-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path-owned-groups: stdout receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-path-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path-owned-groups: stderr receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path-owned-groups: combined stream accounting exact",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path-owned-groups: retained stream progress brackets valid",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path-owned-groups: intended command equals actual command",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path-owned-groups: fixed group-inventory argv",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: group observation and probe collection precede target collection",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: complete well-formed group inventory",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-path: raw group rows independently reproduce positive receipt",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-uuid.json",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: raw command equals summary",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: complete non-reaping lease lifecycle",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: no signals or cleanup/stream errors",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: normal exit observation agrees",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: expected command status",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: effective time and output bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: operation finished within normal and total bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: exact integer clock brackets ordered",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-uuid.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: stdout receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-uuid.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: stderr receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: combined stream accounting exact",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: retained stream progress brackets valid",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: intended command equals actual command",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: native adapter completed without emergency cleanup",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: adapter wall interval stays within its stated bound",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: exactly one group inventory",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-uuid-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid-owned-groups: complete non-reaping lease lifecycle",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid-owned-groups: no signals or cleanup/stream errors",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid-owned-groups: normal exit observation agrees",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid-owned-groups: expected command status",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid-owned-groups: effective time and output bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid-owned-groups: operation finished within normal and total bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid-owned-groups: exact integer clock brackets ordered",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-uuid-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid-owned-groups: stdout receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-uuid-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid-owned-groups: stderr receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid-owned-groups: combined stream accounting exact",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid-owned-groups: retained stream progress brackets valid",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid-owned-groups: intended command equals actual command",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid-owned-groups: fixed group-inventory argv",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: group observation and probe collection precede target collection",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: complete well-formed group inventory",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-uuid: raw group rows independently reproduce positive receipt",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-export-help.json",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: raw command equals summary",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: complete non-reaping lease lifecycle",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: no signals or cleanup/stream errors",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: normal exit observation agrees",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: expected command status",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: effective time and output bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: operation finished within normal and total bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: exact integer clock brackets ordered",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-export-help.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: stdout receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-export-help.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: stderr receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: combined stream accounting exact",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: retained stream progress brackets valid",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: intended command equals actual command",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: native adapter completed without emergency cleanup",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: adapter wall interval stays within its stated bound",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: exactly one group inventory",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-export-help-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help-owned-groups: complete non-reaping lease lifecycle",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help-owned-groups: no signals or cleanup/stream errors",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help-owned-groups: normal exit observation agrees",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help-owned-groups: expected command status",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help-owned-groups: effective time and output bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help-owned-groups: operation finished within normal and total bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help-owned-groups: exact integer clock brackets ordered",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-export-help-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help-owned-groups: stdout receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-export-help-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help-owned-groups: stderr receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help-owned-groups: combined stream accounting exact",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help-owned-groups: retained stream progress brackets valid",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help-owned-groups: intended command equals actual command",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help-owned-groups: fixed group-inventory argv",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: group observation and probe collection precede target collection",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: complete well-formed group inventory",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-export-help: raw group rows independently reproduce positive receipt",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-manual.json",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: raw command equals summary",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: complete non-reaping lease lifecycle",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: no signals or cleanup/stream errors",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: normal exit observation agrees",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: expected command status",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: effective time and output bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: operation finished within normal and total bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: exact integer clock brackets ordered",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-manual.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: stdout receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-manual.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: stderr receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: combined stream accounting exact",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: retained stream progress brackets valid",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: intended command equals actual command",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: native adapter completed without emergency cleanup",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: adapter wall interval stays within its stated bound",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: exactly one group inventory",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-manual-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual-owned-groups: complete non-reaping lease lifecycle",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual-owned-groups: no signals or cleanup/stream errors",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual-owned-groups: normal exit observation agrees",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual-owned-groups: expected command status",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual-owned-groups: effective time and output bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual-owned-groups: operation finished within normal and total bounds",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual-owned-groups: exact integer clock brackets ordered",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-manual-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual-owned-groups: stdout receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: xctrace-manual-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual-owned-groups: stderr receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual-owned-groups: combined stream accounting exact",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual-owned-groups: retained stream progress brackets valid",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual-owned-groups: intended command equals actual command",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual-owned-groups: fixed group-inventory argv",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: group observation and probe collection precede target collection",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: complete well-formed group inventory",
+          "passed": true
+        },
+        {
+          "invariant": "xctrace-manual: raw group rows independently reproduce positive receipt",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: trace-toc.json",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: raw command equals summary",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: complete non-reaping lease lifecycle",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: no signals or cleanup/stream errors",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: normal exit observation agrees",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: expected command status",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: effective time and output bounds",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: operation finished within normal and total bounds",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: exact integer clock brackets ordered",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: trace-toc.stdout.xml",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: stdout receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: trace-toc.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: stderr receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: combined stream accounting exact",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: retained stream progress brackets valid",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: intended command equals actual command",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: native adapter completed without emergency cleanup",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: adapter wall interval stays within its stated bound",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: exactly one group inventory",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: trace-toc-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc-owned-groups: complete non-reaping lease lifecycle",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc-owned-groups: no signals or cleanup/stream errors",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc-owned-groups: normal exit observation agrees",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc-owned-groups: expected command status",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc-owned-groups: effective time and output bounds",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc-owned-groups: operation finished within normal and total bounds",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc-owned-groups: exact integer clock brackets ordered",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: trace-toc-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc-owned-groups: stdout receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: trace-toc-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc-owned-groups: stderr receipt binds complete retained stream",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc-owned-groups: combined stream accounting exact",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc-owned-groups: retained stream progress brackets valid",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc-owned-groups: intended command equals actual command",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc-owned-groups: fixed group-inventory argv",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: group observation and probe collection precede target collection",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: complete well-formed group inventory",
+          "passed": true
+        },
+        {
+          "invariant": "trace-toc: raw group rows independently reproduce positive receipt",
+          "passed": true
+        },
+        {
+          "invariant": "Fixed preflight/export sequence is serial",
+          "passed": true
+        },
+        {
+          "invariant": "Exactly one fixed read-only export argv",
+          "passed": true
+        },
+        {
+          "invariant": "No forbidden diagnostic operation in top-level argv",
+          "passed": true
+        },
+        {
+          "invariant": "Export refusal exact bytes and code",
+          "passed": true
+        },
+        {
+          "invariant": "Independent native capability observed",
+          "passed": true
+        },
+        {
+          "invariant": "No new recording or sampler invocation",
+          "passed": true
+        },
+        {
+          "invariant": "Refusal leaves semantic qualifications false",
+          "passed": true
+        },
+        {
+          "invariant": "Native scope exclusions preserved",
+          "passed": true
+        },
+        {
+          "invariant": "Preservation and preflight flags complete",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshots exactly equal",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: .github/workflows/native-retained-trace-export.yml",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: docs/NATIVE_RETAINED_TRACE_EXPORT.md",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/docs/NATIVE_RETAINED_TRACE_EXPORT.md",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: docs/NATIVE_RETAINED_TRACE_EXPORT.md",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: docs/evidence/D24-recorder-progress-observation.json",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/docs/evidence/D24-recorder-progress-observation.json",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: docs/evidence/D24-recorder-progress-observation.json",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: docs/evidence/D24-verification.json",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/docs/evidence/D24-verification.json",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: docs/evidence/D24-verification.json",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: script/collect_native_trace_capabilities.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/script/collect_native_trace_capabilities.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: script/collect_native_trace_capabilities.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: script/native_retained_trace_command.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/script/native_retained_trace_command.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: script/native_retained_trace_command.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: script/native_retained_trace_input.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/script/native_retained_trace_input.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: script/native_retained_trace_input.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: script/native_retained_trace_toc.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/script/native_retained_trace_toc.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: script/native_retained_trace_toc.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: script/native_sampler_tool_identity.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/script/native_sampler_tool_identity.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: script/native_sampler_tool_identity.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: script/run_native_recorder_progress_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/script/run_native_recorder_progress_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: script/run_native_recorder_progress_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: script/run_native_recorder_startup_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/script/run_native_recorder_startup_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: script/run_native_recorder_startup_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: script/run_native_retained_trace_export.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/script/run_native_retained_trace_export.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: script/run_native_retained_trace_export.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: script/run_native_system_trace_startup.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/script/run_native_system_trace_startup.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: script/run_native_system_trace_startup.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: script/test_collect_native_trace_capabilities.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/script/test_collect_native_trace_capabilities.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: script/test_collect_native_trace_capabilities.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: script/test_native_retained_trace_command.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/script/test_native_retained_trace_command.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: script/test_native_retained_trace_command.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: script/test_native_retained_trace_input.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/script/test_native_retained_trace_input.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: script/test_native_retained_trace_input.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: script/test_native_retained_trace_toc.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/script/test_native_retained_trace_toc.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: script/test_native_retained_trace_toc.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: script/test_run_native_recorder_progress_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/script/test_run_native_recorder_progress_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: script/test_run_native_recorder_progress_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: script/test_run_native_retained_trace_export.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/script/test_run_native_retained_trace_export.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: script/test_run_native_retained_trace_export.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source snapshot matches exact Git object: script/test_run_native_system_trace_startup.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: sources/script/test_run_native_system_trace_startup.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source matches exact Git object: script/test_run_native_system_trace_startup.py",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: build/collect_native_trace_capabilities.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: build/collect_native_trace_capabilities.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "collect_native_trace_capabilities: native test summary passed exact count",
+          "passed": true
+        },
+        {
+          "invariant": "collect_native_trace_capabilities: all named tests passed",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: build/run_native_system_trace_startup.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: build/run_native_system_trace_startup.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "run_native_system_trace_startup: native test summary passed exact count",
+          "passed": true
+        },
+        {
+          "invariant": "run_native_system_trace_startup: all named tests passed",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: build/d24-used-primitives.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: build/d24-used-primitives.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "d24-used-primitives: native test summary passed exact count",
+          "passed": true
+        },
+        {
+          "invariant": "d24-used-primitives: all named tests passed",
+          "passed": true
+        },
+        {
+          "invariant": "D24 dependency selection exactly matches approved classes",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: build/native_retained_trace_input.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: build/native_retained_trace_input.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "native_retained_trace_input: native test summary passed exact count",
+          "passed": true
+        },
+        {
+          "invariant": "native_retained_trace_input: all named tests passed",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: build/native_retained_trace_command.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: build/native_retained_trace_command.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "native_retained_trace_command: native test summary passed exact count",
+          "passed": true
+        },
+        {
+          "invariant": "native_retained_trace_command: all named tests passed",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: build/native_retained_trace_toc.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: build/native_retained_trace_toc.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "native_retained_trace_toc: native test summary passed exact count",
+          "passed": true
+        },
+        {
+          "invariant": "native_retained_trace_toc: all named tests passed",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: build/run_native_retained_trace_export.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Extracted bytes equal ZIP member: build/run_native_retained_trace_export.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "run_native_retained_trace_export: native test summary passed exact count",
+          "passed": true
+        },
+        {
+          "invariant": "run_native_retained_trace_export: all named tests passed",
+          "passed": true
+        },
+        {
+          "invariant": "Native suite total equals 91",
+          "passed": true
+        },
+        {
+          "invariant": "Original R1 full-suite failure preserved",
+          "passed": true
+        },
+        {
+          "invariant": "R1 and R2 inherited D24 test source unchanged",
+          "passed": true
+        },
+        {
+          "invariant": "D25 audit left source archive unchanged",
+          "passed": true
+        }
+      ],
+      "commands": {
+        "os-version": {
+          "adapterSeconds": 0.13934329099998877,
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 484904695860,
+            "monotonicBeforeNS": 484904691454,
+            "wallTimeNS": 1794227126091148000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 485043698378,
+            "monotonicBeforeNS": 485043697867,
+            "wallTimeNS": 1794227126230220000
+          },
+          "exitCode": 0,
+          "finalGroupWitness": {
+            "members": [
+              {
+                "pgid": 6335,
+                "pid": 6335,
+                "state": "Z<"
+              }
+            ],
+            "noLiveMembersObserved": true,
+            "pgid": 6335,
+            "pidLeaseHeldAtSnapshot": true
+          },
+          "groupObservationBracket": {
+            "afterNS": 485042121904,
+            "beforeNS": 484966349149
+          },
+          "normalBudgetSeconds": 17.0,
+          "operationDoneClock": {
+            "monotonicAfterNS": 484966237652,
+            "monotonicBeforeNS": 484966237345,
+            "wallTimeNS": 1794227126152721000
+          },
+          "operationSeconds": 0.061524383999994825,
+          "ownershipSeconds": 0.13916151899996976,
+          "pid": 6335,
+          "signals": [],
+          "status": "completed",
+          "streamBytes": {
+            "stderr": 0,
+            "stdout": 66
+          },
+          "targetLeaseCollectedAfterGroupObservation": true,
+          "totalBudgetSeconds": 20.0
+        },
+        "trace-toc": {
+          "adapterSeconds": 1.84346687499999,
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 500080105627,
+            "monotonicBeforeNS": 500080104161,
+            "wallTimeNS": 1794227141274146000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 501923226751,
+            "monotonicBeforeNS": 501923226479,
+            "wallTimeNS": 1794227143118188000
+          },
+          "exitCode": 10,
+          "finalGroupWitness": {
+            "members": [
+              {
+                "pgid": 6621,
+                "pid": 6621,
+                "state": "Z<"
+              }
+            ],
+            "noLiveMembersObserved": true,
+            "pgid": 6621,
+            "pidLeaseHeldAtSnapshot": true
+          },
+          "groupObservationBracket": {
+            "afterNS": 501922159454,
+            "beforeNS": 501815122830
+          },
+          "normalBudgetSeconds": 30.0,
+          "operationDoneClock": {
+            "monotonicAfterNS": 501814937549,
+            "monotonicBeforeNS": 501814937111,
+            "wallTimeNS": 1794227143009845000
+          },
+          "operationSeconds": 1.734828603999972,
+          "ownershipSeconds": 1.8433296360000213,
+          "pid": 6621,
+          "signals": [],
+          "status": "nonzero",
+          "streamBytes": {
+            "stderr": 47,
+            "stdout": 0
+          },
+          "targetLeaseCollectedAfterGroupObservation": true,
+          "totalBudgetSeconds": 33.0
+        },
+        "xcode-version": {
+          "adapterSeconds": 5.837036678000004,
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 485047352471,
+            "monotonicBeforeNS": 485047350984,
+            "wallTimeNS": 1794227126233876000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 490884044779,
+            "monotonicBeforeNS": 490884044379,
+            "wallTimeNS": 1794227132073487000
+          },
+          "exitCode": 0,
+          "finalGroupWitness": {
+            "members": [
+              {
+                "pgid": 6337,
+                "pid": 6337,
+                "state": "Z<"
+              }
+            ],
+            "noLiveMembersObserved": true,
+            "pgid": 6337,
+            "pidLeaseHeldAtSnapshot": true
+          },
+          "groupObservationBracket": {
+            "afterNS": 490882527526,
+            "beforeNS": 490802783450
+          },
+          "normalBudgetSeconds": 17.0,
+          "operationDoneClock": {
+            "monotonicAfterNS": 490802612700,
+            "monotonicBeforeNS": 490802612164,
+            "wallTimeNS": 1794227131992014000
+          },
+          "operationSeconds": 5.75525260500001,
+          "ownershipSeconds": 5.836868070999969,
+          "pid": 6337,
+          "signals": [],
+          "status": "completed",
+          "streamBytes": {
+            "stderr": 0,
+            "stdout": 32
+          },
+          "targetLeaseCollectedAfterGroupObservation": true,
+          "totalBudgetSeconds": 20.0
+        },
+        "xctrace-export-help": {
+          "adapterSeconds": 1.403662001999976,
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 496111084916,
+            "monotonicBeforeNS": 496111083168,
+            "wallTimeNS": 1794227137303140000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 497514363164,
+            "monotonicBeforeNS": 497514362667,
+            "wallTimeNS": 1794227138707120000
+          },
+          "exitCode": 0,
+          "finalGroupWitness": {
+            "members": [
+              {
+                "pgid": 6489,
+                "pid": 6489,
+                "state": "Z<"
+              }
+            ],
+            "noLiveMembersObserved": true,
+            "pgid": 6489,
+            "pidLeaseHeldAtSnapshot": true
+          },
+          "groupObservationBracket": {
+            "afterNS": 497512864039,
+            "beforeNS": 497446829140
+          },
+          "normalBudgetSeconds": 17.0,
+          "operationDoneClock": {
+            "monotonicAfterNS": 497446647368,
+            "monotonicBeforeNS": 497446646745,
+            "wallTimeNS": 1794227138639371000
+          },
+          "operationSeconds": 1.3355542589999914,
+          "ownershipSeconds": 1.4034852329999694,
+          "pid": 6489,
+          "signals": [],
+          "status": "completed",
+          "streamBytes": {
+            "stderr": 0,
+            "stdout": 1100
+          },
+          "targetLeaseCollectedAfterGroupObservation": true,
+          "totalBudgetSeconds": 20.0
+        },
+        "xctrace-manual": {
+          "adapterSeconds": 2.5586112599999637,
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 497518772212,
+            "monotonicBeforeNS": 497518770593,
+            "wallTimeNS": 1794227138711532000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 500077057937,
+            "monotonicBeforeNS": 500077057483,
+            "wallTimeNS": 1794227141271096000
+          },
+          "exitCode": 0,
+          "finalGroupWitness": {
+            "members": [
+              {
+                "pgid": 6595,
+                "pid": 6595,
+                "state": "Z<"
+              }
+            ],
+            "noLiveMembersObserved": true,
+            "pgid": 6595,
+            "pidLeaseHeldAtSnapshot": true
+          },
+          "groupObservationBracket": {
+            "afterNS": 500069464772,
+            "beforeNS": 500009481668
+          },
+          "normalBudgetSeconds": 17.0,
+          "operationDoneClock": {
+            "monotonicAfterNS": 500009315449,
+            "monotonicBeforeNS": 500009313846,
+            "wallTimeNS": 1794227141203320000
+          },
+          "operationSeconds": 2.4905363139999963,
+          "ownershipSeconds": 2.558466807000002,
+          "pid": 6595,
+          "signals": [],
+          "status": "completed",
+          "streamBytes": {
+            "stderr": 0,
+            "stdout": 17548
+          },
+          "targetLeaseCollectedAfterGroupObservation": true,
+          "totalBudgetSeconds": 20.0
+        },
+        "xctrace-path": {
+          "adapterSeconds": 3.624818022999989,
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 490888255715,
+            "monotonicBeforeNS": 490888253944,
+            "wallTimeNS": 1794227132077700000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 494512703817,
+            "monotonicBeforeNS": 494512703426,
+            "wallTimeNS": 1794227135703960000
+          },
+          "exitCode": 0,
+          "finalGroupWitness": {
+            "members": [
+              {
+                "pgid": 6462,
+                "pid": 6462,
+                "state": "Z<"
+              }
+            ],
+            "noLiveMembersObserved": true,
+            "pgid": 6462,
+            "pidLeaseHeldAtSnapshot": true
+          },
+          "groupObservationBracket": {
+            "afterNS": 494511253885,
+            "beforeNS": 494413296382
+          },
+          "normalBudgetSeconds": 17.0,
+          "operationDoneClock": {
+            "monotonicAfterNS": 494413135073,
+            "monotonicBeforeNS": 494413133371,
+            "wallTimeNS": 1794227135604342000
+          },
+          "operationSeconds": 3.5248716039999977,
+          "ownershipSeconds": 3.624633272999972,
+          "pid": 6462,
+          "signals": [],
+          "status": "completed",
+          "streamBytes": {
+            "stderr": 0,
+            "stdout": 64
+          },
+          "targetLeaseCollectedAfterGroupObservation": true,
+          "totalBudgetSeconds": 20.0
+        },
+        "xctrace-uuid": {
+          "adapterSeconds": 1.588947735999966,
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 494519278610,
+            "monotonicBeforeNS": 494519276974,
+            "wallTimeNS": 1794227135710538000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 496107844973,
+            "monotonicBeforeNS": 496107844661,
+            "wallTimeNS": 1794227137299899000
+          },
+          "exitCode": 0,
+          "finalGroupWitness": {
+            "members": [
+              {
+                "pgid": 6482,
+                "pid": 6482,
+                "state": "Z<"
+              }
+            ],
+            "noLiveMembersObserved": true,
+            "pgid": 6482,
+            "pidLeaseHeldAtSnapshot": true
+          },
+          "groupObservationBracket": {
+            "afterNS": 496106409816,
+            "beforeNS": 496043264454
+          },
+          "normalBudgetSeconds": 17.0,
+          "operationDoneClock": {
+            "monotonicAfterNS": 496043020386,
+            "monotonicBeforeNS": 496043017945,
+            "wallTimeNS": 1794227137235042000
+          },
+          "operationSeconds": 1.523733682999989,
+          "ownershipSeconds": 1.5887670629999775,
+          "pid": 6482,
+          "signals": [],
+          "status": "completed",
+          "streamBytes": {
+            "stderr": 0,
+            "stdout": 231
+          },
+          "targetLeaseCollectedAfterGroupObservation": true,
+          "totalBudgetSeconds": 20.0
+        }
+      },
+      "createdUTC": "2026-11-09T12:30:46.636487+00:00",
+      "experimentCommit": "e537fb774768747c144ba7c57c1d8d4a097683e9",
+      "experimentTree": "8b073dc3cafb004d4fe4dc8dd99e5fdd9ce42e04",
+      "groupProbes": {
+        "os-version-owned-groups": {
+          "exitCode": 0,
+          "operationSeconds": 0.07576743100003114,
+          "pid": 6336,
+          "stderrIdentity": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdoutIdentity": {
+            "bytes": 7633,
+            "sha256": "149c436dd39f4eeb1c75759a1a7049e0c422dc80544bea88b2ad8b1ee050bcb3"
+          }
+        },
+        "trace-toc-owned-groups": {
+          "exitCode": 0,
+          "operationSeconds": 0.10700822999996262,
+          "pid": 6628,
+          "stderrIdentity": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdoutIdentity": {
+            "bytes": 7633,
+            "sha256": "d97057f7f275d2b1612405802c94b1b3145ae35152307eae5d42e6af943f8237"
+          }
+        },
+        "xcode-version-owned-groups": {
+          "exitCode": 0,
+          "operationSeconds": 0.07973477000001594,
+          "pid": 6461,
+          "stderrIdentity": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdoutIdentity": {
+            "bytes": 7633,
+            "sha256": "b072a088c118231a7ee0a27903c4dc52f826352ac60b0c58029060e7f6ab4b32"
+          }
+        },
+        "xctrace-export-help-owned-groups": {
+          "exitCode": 0,
+          "operationSeconds": 0.06602699600000506,
+          "pid": 6593,
+          "stderrIdentity": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdoutIdentity": {
+            "bytes": 7633,
+            "sha256": "549a86bb9c0fea4994377d7b80d28ae22392a312c1fdbf5eed91b91cc74afc93"
+          }
+        },
+        "xctrace-manual-owned-groups": {
+          "exitCode": 0,
+          "operationSeconds": 0.05998591400003761,
+          "pid": 6620,
+          "stderrIdentity": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdoutIdentity": {
+            "bytes": 7633,
+            "sha256": "46dc09e1baa00866ab7080cb40c9f5fa9fc71e756c20ebd8419d0561030d0342"
+          }
+        },
+        "xctrace-path-owned-groups": {
+          "exitCode": 0,
+          "operationSeconds": 0.09794762700005322,
+          "pid": 6478,
+          "stderrIdentity": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdoutIdentity": {
+            "bytes": 7633,
+            "sha256": "08c899706eef0a732a38125bbc7b9107461cb8a7ebb8898792b3068e3d81d35a"
+          }
+        },
+        "xctrace-uuid-owned-groups": {
+          "exitCode": 0,
+          "operationSeconds": 0.06313720700001113,
+          "pid": 6488,
+          "stderrIdentity": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdoutIdentity": {
+            "bytes": 7633,
+            "sha256": "0d1d2f4efa227a9d324c2b4bd897992b259f88d410ff214e976897b3c1c7215f"
+          }
+        }
+      },
+      "jobID": 129158262959,
+      "limits": [
+        "The exporter diagnostic reports Document Missing Template Error; this audit does not prove its internal cause or the producer failure mechanism.",
+        "Final owned-group snapshots establish no live members at those snapshots; they do not timestamp every possible descendant exit at the command deadline.",
+        "Successful finite transport and diagnostic completion do not imply successful export, normal D24 recording completion or event-time coverage.",
+        "The R1 full D24 synthetic-orchestration suite failure remains preserved, unresolved and unfixed.",
+        "Only fixed D25 invocation receipts are classified; the retained trace and installed executable were never executed by this audit."
+      ],
+      "method": {
+        "archivedCodeImported": false,
+        "basis": "JSON and stream bytes read from the pinned artifact, compared with extracted copies and exact Git source objects; no archived code execution.",
+        "nativeExecutableInvoked": false,
+        "repositoryEdited": false
+      },
+      "nativeTestTotal": 91,
+      "nativeTests": {
+        "collect_native_trace_capabilities": {
+          "elapsedSeconds": 2.676,
+          "stderrIdentity": {
+            "bytes": 890,
+            "sha256": "1f91b0d94f1954e1332b201998025bc52d2c148385c23c84bffe21633ca006af"
+          },
+          "stdoutIdentity": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "testSource": "script/test_collect_native_trace_capabilities.py",
+          "testSourceSHA256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055",
+          "testsPassed": 6
+        },
+        "d24-used-primitives": {
+          "elapsedSeconds": 3.686,
+          "stderrIdentity": {
+            "bytes": 3259,
+            "sha256": "5c0c3d4277a2ed1bd3ac8f1cae727baddf92891a0b133576771be1eeb180aec2"
+          },
+          "stdoutIdentity": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "testSource": "script/test_run_native_recorder_progress_observation.py",
+          "testSourceSHA256": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a",
+          "testsPassed": 19
+        },
+        "native_retained_trace_command": {
+          "elapsedSeconds": 4.06,
+          "stderrIdentity": {
+            "bytes": 1587,
+            "sha256": "9c60e4bd6fb05081252bcf8bf7dce2c7209bffc7054fed8e881e33123ae5ee7c"
+          },
+          "stdoutIdentity": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "testSource": "script/test_native_retained_trace_command.py",
+          "testSourceSHA256": "a7bf175d5470d01cdae3bb641ed2f8da872ac07aa9449d5e8e5482131a867757",
+          "testsPassed": 9
+        },
+        "native_retained_trace_input": {
+          "elapsedSeconds": 0.251,
+          "stderrIdentity": {
+            "bytes": 3436,
+            "sha256": "84603d2e6aac169b2811c7f4875f9b6f60b45bd253c6ebba9ebd2b92ba8472cb"
+          },
+          "stdoutIdentity": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "testSource": "script/test_native_retained_trace_input.py",
+          "testSourceSHA256": "803df2a8932d4ce903ffea6afb71c0ba3754c9feda34dcdf7f5d38728dd6e3ec",
+          "testsPassed": 23
+        },
+        "native_retained_trace_toc": {
+          "elapsedSeconds": 0.266,
+          "stderrIdentity": {
+            "bytes": 2417,
+            "sha256": "227d75b9bdb516d3b92d8278cc8fec30b88bed9ce1e483a59d810b972585b80a"
+          },
+          "stdoutIdentity": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "testSource": "script/test_native_retained_trace_toc.py",
+          "testSourceSHA256": "48f8842c223da63d43a86c4ff035d70bcf3ea3e5861687e7184972d0e13f78a1",
+          "testsPassed": 15
+        },
+        "run_native_retained_trace_export": {
+          "elapsedSeconds": 0.007,
+          "stderrIdentity": {
+            "bytes": 1510,
+            "sha256": "6f78f1b73245e6381a25d0f767021ec6ad1c2d0e34e95c56254df87b4c1b7592"
+          },
+          "stdoutIdentity": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "testSource": "script/test_run_native_retained_trace_export.py",
+          "testSourceSHA256": "c9acee8be1883b90d26f9a2679ccd1ea7a74cbe970abc8234579ebc3ac988056",
+          "testsPassed": 9
+        },
+        "run_native_system_trace_startup": {
+          "elapsedSeconds": 1.36,
+          "stderrIdentity": {
+            "bytes": 1651,
+            "sha256": "405c5674552f5573e0e3831b7f725cfbddb667dd86ca381a651a01f65b70e99f"
+          },
+          "stdoutIdentity": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "testSource": "script/test_run_native_system_trace_startup.py",
+          "testSourceSHA256": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7",
+          "testsPassed": 10
+        }
+      },
+      "outcome": {
+        "C12": "HOLD",
+        "TOCQualified": false,
+        "clockMappingQualified": false,
+        "diagnosticExecutionComplete": true,
+        "exportExitCode": 10,
+        "exportInvocationCount": 1,
+        "exportOperationSeconds": 1.734828603999972,
+        "recordingInvocationCount": 0,
+        "releaseReady": false,
+        "samplerInvocationCount": 0,
+        "samplerWindowCoverageQualified": false,
+        "status": "export-refused",
+        "stderrIdentity": {
+          "bytes": 47,
+          "sha256": "28c3ee1d8e3698496c540c01ccbb9d79fed962accf4e675fd0f33a6af02fdef5"
+        },
+        "stderrText": "Export failed: Document Missing Template Error\n",
+        "stdoutBytes": 0
+      },
+      "retainedEvidenceIdentities": {
+        "build/collect_native_trace_capabilities.stderr.txt": {
+          "bytes": 890,
+          "sha256": "1f91b0d94f1954e1332b201998025bc52d2c148385c23c84bffe21633ca006af"
+        },
+        "build/collect_native_trace_capabilities.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/d24-used-primitives.stderr.txt": {
+          "bytes": 3259,
+          "sha256": "5c0c3d4277a2ed1bd3ac8f1cae727baddf92891a0b133576771be1eeb180aec2"
+        },
+        "build/d24-used-primitives.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/experiment-commit.txt": {
+          "bytes": 41,
+          "sha256": "9647bb107a3af1d4b6635b76da4de2214613a54536030f9d6dbde4cdc9f881d4"
+        },
+        "build/experiment-tree.txt": {
+          "bytes": 41,
+          "sha256": "487a8575be5ad69cc30b569adbe4efdcd739807480e6a390628cd470c7083ad9"
+        },
+        "build/native_retained_trace_command.stderr.txt": {
+          "bytes": 1587,
+          "sha256": "9c60e4bd6fb05081252bcf8bf7dce2c7209bffc7054fed8e881e33123ae5ee7c"
+        },
+        "build/native_retained_trace_command.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/native_retained_trace_input.stderr.txt": {
+          "bytes": 3436,
+          "sha256": "84603d2e6aac169b2811c7f4875f9b6f60b45bd253c6ebba9ebd2b92ba8472cb"
+        },
+        "build/native_retained_trace_input.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/native_retained_trace_toc.stderr.txt": {
+          "bytes": 2417,
+          "sha256": "227d75b9bdb516d3b92d8278cc8fec30b88bed9ce1e483a59d810b972585b80a"
+        },
+        "build/native_retained_trace_toc.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/run_native_retained_trace_export.stderr.txt": {
+          "bytes": 1510,
+          "sha256": "6f78f1b73245e6381a25d0f767021ec6ad1c2d0e34e95c56254df87b4c1b7592"
+        },
+        "build/run_native_retained_trace_export.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/run_native_system_trace_startup.stderr.txt": {
+          "bytes": 1651,
+          "sha256": "405c5674552f5573e0e3831b7f725cfbddb667dd86ca381a651a01f65b70e99f"
+        },
+        "build/run_native_system_trace_startup.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "os-version-owned-groups.json": {
+          "bytes": 2534,
+          "sha256": "18af6761e3b8ee95f7bfdc7249a72565feaa801eb0beaad9967fa1cfa1aa4e97"
+        },
+        "os-version-owned-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "os-version-owned-groups.stdout.txt": {
+          "bytes": 7633,
+          "sha256": "149c436dd39f4eeb1c75759a1a7049e0c422dc80544bea88b2ad8b1ee050bcb3"
+        },
+        "os-version.json": {
+          "bytes": 3341,
+          "sha256": "dac00d325b4ad7b6a8b6e750d421f74d82fc084444eae31b1ad0256ab13d1500"
+        },
+        "os-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "os-version.stdout.txt": {
+          "bytes": 66,
+          "sha256": "31fd674ddb951680692d7b68cafdeab5baa6b3e82aae843269dad73b53f25fc5"
+        },
+        "retained-trace-export.json": {
+          "bytes": 41719,
+          "sha256": "1e785594fda8298441058ba64c6641a35b142334da67d9e86c73a90879980c25"
+        },
+        "sources/docs/NATIVE_RETAINED_TRACE_EXPORT.md": {
+          "bytes": 10269,
+          "sha256": "5ea7cda23a645cea27248f5a32b551ec13035e2a203cf4bad4a3d84e60f59e77"
+        },
+        "sources/docs/evidence/D24-recorder-progress-observation.json": {
+          "bytes": 138066,
+          "sha256": "4c427f58d0afc5d3cb9c1a934ead53c3235cc90094adf4e2cdd356e00b927146"
+        },
+        "sources/docs/evidence/D24-verification.json": {
+          "bytes": 98017,
+          "sha256": "fb1cc5d848294e17fe49dbae9953bf326ec6012224528c1a44d0645f1f0bee44"
+        },
+        "sources/script/collect_native_trace_capabilities.py": {
+          "bytes": 12855,
+          "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+        },
+        "sources/script/native_retained_trace_command.py": {
+          "bytes": 10663,
+          "sha256": "cd772ee5449e124f3e0ad5f0e10417d31bc1d0b6f287c3a76d34a10ccc60fcba"
+        },
+        "sources/script/native_retained_trace_input.py": {
+          "bytes": 17190,
+          "sha256": "270f2e443ecdebde0306c463c4dcfa88d1a4c96c81604fad088dd6500ce9a8f0"
+        },
+        "sources/script/native_retained_trace_toc.py": {
+          "bytes": 6912,
+          "sha256": "952b76a8610b4127ba3c96d98989537632ac619ae4e4e335a9369d9a4733cd8d"
+        },
+        "sources/script/native_sampler_tool_identity.py": {
+          "bytes": 5168,
+          "sha256": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78"
+        },
+        "sources/script/run_native_recorder_progress_observation.py": {
+          "bytes": 66947,
+          "sha256": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f"
+        },
+        "sources/script/run_native_recorder_startup_observation.py": {
+          "bytes": 31718,
+          "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7"
+        },
+        "sources/script/run_native_retained_trace_export.py": {
+          "bytes": 15350,
+          "sha256": "b88b3784f02454dea18bd4dd1e9cbdd23e00f1f8457d001dedd45c2ad483b2a4"
+        },
+        "sources/script/run_native_system_trace_startup.py": {
+          "bytes": 47898,
+          "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010"
+        },
+        "sources/script/test_collect_native_trace_capabilities.py": {
+          "bytes": 7343,
+          "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+        },
+        "sources/script/test_native_retained_trace_command.py": {
+          "bytes": 11565,
+          "sha256": "a7bf175d5470d01cdae3bb641ed2f8da872ac07aa9449d5e8e5482131a867757"
+        },
+        "sources/script/test_native_retained_trace_input.py": {
+          "bytes": 14893,
+          "sha256": "803df2a8932d4ce903ffea6afb71c0ba3754c9feda34dcdf7f5d38728dd6e3ec"
+        },
+        "sources/script/test_native_retained_trace_toc.py": {
+          "bytes": 8763,
+          "sha256": "48f8842c223da63d43a86c4ff035d70bcf3ea3e5861687e7184972d0e13f78a1"
+        },
+        "sources/script/test_run_native_recorder_progress_observation.py": {
+          "bytes": 60266,
+          "sha256": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a"
+        },
+        "sources/script/test_run_native_retained_trace_export.py": {
+          "bytes": 5140,
+          "sha256": "c9acee8be1883b90d26f9a2679ccd1ea7a74cbe970abc8234579ebc3ac988056"
+        },
+        "sources/script/test_run_native_system_trace_startup.py": {
+          "bytes": 14595,
+          "sha256": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7"
+        },
+        "trace-toc-owned-groups.json": {
+          "bytes": 2532,
+          "sha256": "217c60e96df79d2f73e7b03920e7cabb789b53734271221789df6d7939e42a57"
+        },
+        "trace-toc-owned-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "trace-toc-owned-groups.stdout.txt": {
+          "bytes": 7633,
+          "sha256": "d97057f7f275d2b1612405802c94b1b3145ae35152307eae5d42e6af943f8237"
+        },
+        "trace-toc.json": {
+          "bytes": 3605,
+          "sha256": "241d03139ec8a4592aeb8e13d9485ffc2694cc84c52d6ecb5e40401ba62d7b46"
+        },
+        "trace-toc.stderr.txt": {
+          "bytes": 47,
+          "sha256": "28c3ee1d8e3698496c540c01ccbb9d79fed962accf4e675fd0f33a6af02fdef5"
+        },
+        "trace-toc.stdout.xml": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xcode-version-owned-groups.json": {
+          "bytes": 2540,
+          "sha256": "685b2a352bd356a5fa61d7c33aa12795e3e5d8b3fc214b68bdb70b687aa959d3"
+        },
+        "xcode-version-owned-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xcode-version-owned-groups.stdout.txt": {
+          "bytes": 7633,
+          "sha256": "b072a088c118231a7ee0a27903c4dc52f826352ac60b0c58029060e7f6ab4b32"
+        },
+        "xcode-version.json": {
+          "bytes": 3375,
+          "sha256": "49034ea665676142ded5c1ad50466f045a3143dd57dcb1d9a380be56cb023f85"
+        },
+        "xcode-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xcode-version.stdout.txt": {
+          "bytes": 32,
+          "sha256": "bb7fc9a8f5e063e81975b33054b3a526c91bcccff263ad11d5bd8bcdbe8f0973"
+        },
+        "xctrace-export-help-owned-groups.json": {
+          "bytes": 2553,
+          "sha256": "c7259ea7fca59783f913fb889ad1c4f32b53acfa6826c8bc9e4d0107c01c0ea0"
+        },
+        "xctrace-export-help-owned-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xctrace-export-help-owned-groups.stdout.txt": {
+          "bytes": 7633,
+          "sha256": "549a86bb9c0fea4994377d7b80d28ae22392a312c1fdbf5eed91b91cc74afc93"
+        },
+        "xctrace-export-help.json": {
+          "bytes": 3456,
+          "sha256": "658cd7a74c2b14a596124149da3d68c4e959fd19d568beda477a2ad35c5ebf46"
+        },
+        "xctrace-export-help.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xctrace-export-help.stdout.txt": {
+          "bytes": 1100,
+          "sha256": "953fc6079baaffd9d66b7d0f02aa3cfeed12c728425a9c1584120657cf4d8e9d"
+        },
+        "xctrace-manual-owned-groups.json": {
+          "bytes": 2543,
+          "sha256": "23f019a29cac2f46d0d5e9ed6ce0c969502c46025cd8a3bb2a07ee7902fced76"
+        },
+        "xctrace-manual-owned-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xctrace-manual-owned-groups.stdout.txt": {
+          "bytes": 7633,
+          "sha256": "46dc09e1baa00866ab7080cb40c9f5fa9fc71e756c20ebd8419d0561030d0342"
+        },
+        "xctrace-manual.json": {
+          "bytes": 3411,
+          "sha256": "2de94d0c87721f52ec6de1303b07b1e83aa9bbeb23f97ee2f8f22e5b0cd32950"
+        },
+        "xctrace-manual.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xctrace-manual.stdout.txt": {
+          "bytes": 17548,
+          "sha256": "d3399ef5d397cff2afa64e6660011bd8de1801937f32366d886d7b3a28559d14"
+        },
+        "xctrace-path-owned-groups.json": {
+          "bytes": 2538,
+          "sha256": "632e98bf367f6f9d874e7297ef5a06a981a0d334381b74dc922eaa5ce35c4786"
+        },
+        "xctrace-path-owned-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xctrace-path-owned-groups.stdout.txt": {
+          "bytes": 7633,
+          "sha256": "08c899706eef0a732a38125bbc7b9107461cb8a7ebb8898792b3068e3d81d35a"
+        },
+        "xctrace-path.json": {
+          "bytes": 3392,
+          "sha256": "6535b72264bcbd9bd489ed3abbc063f3cf55e0591844e8ae9ddc74631e8beab8"
+        },
+        "xctrace-path.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xctrace-path.stdout.txt": {
+          "bytes": 64,
+          "sha256": "fced716e12a27e0cbca2dd5cdb966bd2536657b6a4db58785ae79c210059bfa8"
+        },
+        "xctrace-uuid-owned-groups.json": {
+          "bytes": 2539,
+          "sha256": "95f8971df2d789f5be888c7be5d506277f09127940b6b4f36d75ce3705e8d29f"
+        },
+        "xctrace-uuid-owned-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xctrace-uuid-owned-groups.stdout.txt": {
+          "bytes": 7633,
+          "sha256": "0d1d2f4efa227a9d324c2b4bd897992b259f88d410ff214e976897b3c1c7215f"
+        },
+        "xctrace-uuid.json": {
+          "bytes": 3543,
+          "sha256": "1d25c8efc6834a0a40cdb43f1e8485bd66f5b88edd60f4a811b1b79a80eb199d"
+        },
+        "xctrace-uuid.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xctrace-uuid.stdout.txt": {
+          "bytes": 231,
+          "sha256": "700f54dfe5a5d3132163e735b8eca05b05b9ed3e9758326a293ab54f555eff25"
+        }
+      },
+      "runID": 42616711092,
+      "schema": 1,
+      "sourceBindings": {
+        ".github/workflows/native-retained-trace-export.yml": {
+          "identity": {
+            "bytes": 6050,
+            "sha256": "2cf342900903b33c6a67e2668ff8d65ac78b5f246bdaf414cb58477e9999dd04"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": false
+        },
+        "docs/NATIVE_RETAINED_TRACE_EXPORT.md": {
+          "identity": {
+            "bytes": 10269,
+            "sha256": "5ea7cda23a645cea27248f5a32b551ec13035e2a203cf4bad4a3d84e60f59e77"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "docs/evidence/D24-recorder-progress-observation.json": {
+          "identity": {
+            "bytes": 138066,
+            "sha256": "4c427f58d0afc5d3cb9c1a934ead53c3235cc90094adf4e2cdd356e00b927146"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "docs/evidence/D24-verification.json": {
+          "identity": {
+            "bytes": 98017,
+            "sha256": "fb1cc5d848294e17fe49dbae9953bf326ec6012224528c1a44d0645f1f0bee44"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "script/collect_native_trace_capabilities.py": {
+          "identity": {
+            "bytes": 12855,
+            "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "script/native_retained_trace_command.py": {
+          "identity": {
+            "bytes": 10663,
+            "sha256": "cd772ee5449e124f3e0ad5f0e10417d31bc1d0b6f287c3a76d34a10ccc60fcba"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "script/native_retained_trace_input.py": {
+          "identity": {
+            "bytes": 17190,
+            "sha256": "270f2e443ecdebde0306c463c4dcfa88d1a4c96c81604fad088dd6500ce9a8f0"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "script/native_retained_trace_toc.py": {
+          "identity": {
+            "bytes": 6912,
+            "sha256": "952b76a8610b4127ba3c96d98989537632ac619ae4e4e335a9369d9a4733cd8d"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "script/native_sampler_tool_identity.py": {
+          "identity": {
+            "bytes": 5168,
+            "sha256": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "script/run_native_recorder_progress_observation.py": {
+          "identity": {
+            "bytes": 66947,
+            "sha256": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "script/run_native_recorder_startup_observation.py": {
+          "identity": {
+            "bytes": 31718,
+            "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "script/run_native_retained_trace_export.py": {
+          "identity": {
+            "bytes": 15350,
+            "sha256": "b88b3784f02454dea18bd4dd1e9cbdd23e00f1f8457d001dedd45c2ad483b2a4"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "script/run_native_system_trace_startup.py": {
+          "identity": {
+            "bytes": 47898,
+            "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "script/test_collect_native_trace_capabilities.py": {
+          "identity": {
+            "bytes": 7343,
+            "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "script/test_native_retained_trace_command.py": {
+          "identity": {
+            "bytes": 11565,
+            "sha256": "a7bf175d5470d01cdae3bb641ed2f8da872ac07aa9449d5e8e5482131a867757"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "script/test_native_retained_trace_input.py": {
+          "identity": {
+            "bytes": 14893,
+            "sha256": "803df2a8932d4ce903ffea6afb71c0ba3754c9feda34dcdf7f5d38728dd6e3ec"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "script/test_native_retained_trace_toc.py": {
+          "identity": {
+            "bytes": 8763,
+            "sha256": "48f8842c223da63d43a86c4ff035d70bcf3ea3e5861687e7184972d0e13f78a1"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "script/test_run_native_recorder_progress_observation.py": {
+          "identity": {
+            "bytes": 60266,
+            "sha256": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "script/test_run_native_retained_trace_export.py": {
+          "identity": {
+            "bytes": 5140,
+            "sha256": "c9acee8be1883b90d26f9a2679ccd1ea7a74cbe970abc8234579ebc3ac988056"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        },
+        "script/test_run_native_system_trace_startup.py": {
+          "identity": {
+            "bytes": 14595,
+            "sha256": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7"
+          },
+          "matchesGitObject": true,
+          "sourceBytesRetained": true
+        }
+      }
+    }
+  },
+  "independentInputSourceToolAudit": {
+    "identity": {
+      "bytes": 57409,
+      "sha256": "ec2e68a8cd84151acdba80728b4bc434775ac8567d535d3213a4f4aa603d7807"
+    },
+    "record": {
+      "allCheckedClaimsPassed": true,
+      "appleUUIDWitness": [
+        {
+          "architecture": "x86_64",
+          "uuid": "98781736-C05A-3140-9BCF-279C288AEE66"
+        },
+        {
+          "architecture": "arm64",
+          "uuid": "A400EC18-24C6-32BA-9A9A-F3A5CA0648E7"
+        }
+      ],
+      "archive": {
+        "allMemberBytesMatchExtractedCopies": true,
+        "bytes": 12928357,
+        "expandedBytes": 14161297,
+        "fileCount": 85,
+        "fullCRCReadsCompleted": true,
+        "sha256": "2f4eb0d06b15985baf3a2584994488363c2cf018d66ddd2a9aa0cd48b0916ecf",
+        "unchangedDuringAudit": true
+      },
+      "artifactID": 13672758368,
+      "attempt": 1,
+      "audit": "D25-R2-independent-retained-input-and-source-identity",
+      "checkCount": 238,
+      "checks": [
+        {
+          "invariant": "D25 artifact byte count and SHA-256 are pinned",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/collect_native_trace_capabilities.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/collect_native_trace_capabilities.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/collect_native_trace_capabilities.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/collect_native_trace_capabilities.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/curl-version.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/curl-version.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/artifact-download.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/artifact-download.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/d24-used-primitives.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/d24-used-primitives.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/d24-used-primitives.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/d24-used-primitives.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/experiment-commit.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/experiment-commit.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/experiment-tree.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/experiment-tree.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/native_retained_trace_command.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/native_retained_trace_command.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/native_retained_trace_command.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/native_retained_trace_command.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/native_retained_trace_input.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/native_retained_trace_input.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/native_retained_trace_input.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/native_retained_trace_input.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/native_retained_trace_toc.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/native_retained_trace_toc.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/native_retained_trace_toc.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/native_retained_trace_toc.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/privacy.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/privacy.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/run_native_retained_trace_export.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/run_native_retained_trace_export.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/run_native_retained_trace_export.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/run_native_retained_trace_export.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/run_native_system_trace_startup.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/run_native_system_trace_startup.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: build/run_native_system_trace_startup.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: build/run_native_system_trace_startup.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: input-after.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: input-after.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: input-before.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: input-before.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: installed-xctrace.macho",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: installed-xctrace.macho",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: os-version-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: os-version-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: os-version-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: os-version-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: os-version-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: os-version-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: os-version.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: os-version.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: os-version.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: os-version.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: os-version.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: os-version.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: retained-input.trace.zip",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: retained-input.trace.zip",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: retained-trace-export.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: retained-trace-export.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/docs/NATIVE_RETAINED_TRACE_EXPORT.md",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/docs/NATIVE_RETAINED_TRACE_EXPORT.md",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/docs/evidence/D24-recorder-progress-observation.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/docs/evidence/D24-recorder-progress-observation.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/docs/evidence/D24-verification.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/docs/evidence/D24-verification.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/script/collect_native_trace_capabilities.py",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/script/collect_native_trace_capabilities.py",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/script/native_retained_trace_command.py",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/script/native_retained_trace_command.py",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/script/native_retained_trace_input.py",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/script/native_retained_trace_input.py",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/script/native_retained_trace_toc.py",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/script/native_retained_trace_toc.py",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/script/native_sampler_tool_identity.py",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/script/native_sampler_tool_identity.py",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/script/run_native_recorder_progress_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/script/run_native_recorder_progress_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/script/run_native_recorder_startup_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/script/run_native_recorder_startup_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/script/run_native_retained_trace_export.py",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/script/run_native_retained_trace_export.py",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/script/run_native_system_trace_startup.py",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/script/run_native_system_trace_startup.py",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/script/test_collect_native_trace_capabilities.py",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/script/test_collect_native_trace_capabilities.py",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/script/test_native_retained_trace_command.py",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/script/test_native_retained_trace_command.py",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/script/test_native_retained_trace_input.py",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/script/test_native_retained_trace_input.py",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/script/test_native_retained_trace_toc.py",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/script/test_native_retained_trace_toc.py",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/script/test_run_native_recorder_progress_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/script/test_run_native_recorder_progress_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/script/test_run_native_retained_trace_export.py",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/script/test_run_native_retained_trace_export.py",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: sources/script/test_run_native_system_trace_startup.py",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: sources/script/test_run_native_system_trace_startup.py",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: trace-toc-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: trace-toc-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: trace-toc-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: trace-toc-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: trace-toc-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: trace-toc-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: trace-toc.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: trace-toc.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: trace-toc.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: trace-toc.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: trace-toc.stdout.xml",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: trace-toc.stdout.xml",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xcode-version-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xcode-version-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xcode-version-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xcode-version-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xcode-version-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xcode-version-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xcode-version.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xcode-version.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xcode-version.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xcode-version.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xcode-version.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xcode-version.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-export-help-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-export-help-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-export-help-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-export-help-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-export-help-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-export-help-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-export-help.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-export-help.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-export-help.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-export-help.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-export-help.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-export-help.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-manual-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-manual-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-manual-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-manual-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-manual-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-manual-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-manual.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-manual.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-manual.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-manual.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-manual.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-manual.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-path-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-path-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-path-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-path-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-path-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-path-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-path.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-path.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-path.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-path.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-path.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-path.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-uuid-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-uuid-owned-groups.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-uuid-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-uuid-owned-groups.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-uuid-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-uuid-owned-groups.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-uuid.json",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-uuid.json",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-uuid.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-uuid.stderr.txt",
+          "passed": true
+        },
+        {
+          "invariant": "Safe ZIP member metadata: xctrace-uuid.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "ZIP CRC/read and extracted bytes agree: xctrace-uuid.stdout.txt",
+          "passed": true
+        },
+        {
+          "invariant": "D25 outer inventory totals match",
+          "passed": true
+        },
+        {
+          "invariant": "Retained commit/tree and Git object tree agree",
+          "passed": true
+        },
+        {
+          "invariant": "Native source snapshots before and after are equal",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: .github/workflows/native-retained-trace-export.yml",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: docs/NATIVE_RETAINED_TRACE_EXPORT.md",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: docs/NATIVE_RETAINED_TRACE_EXPORT.md",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: docs/evidence/D24-recorder-progress-observation.json",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: docs/evidence/D24-recorder-progress-observation.json",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: docs/evidence/D24-verification.json",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: docs/evidence/D24-verification.json",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: script/collect_native_trace_capabilities.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: script/collect_native_trace_capabilities.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: script/native_retained_trace_command.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: script/native_retained_trace_command.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: script/native_retained_trace_input.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: script/native_retained_trace_input.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: script/native_retained_trace_toc.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: script/native_retained_trace_toc.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: script/native_sampler_tool_identity.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: script/native_sampler_tool_identity.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: script/run_native_recorder_progress_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: script/run_native_recorder_progress_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: script/run_native_recorder_startup_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: script/run_native_recorder_startup_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: script/run_native_retained_trace_export.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: script/run_native_retained_trace_export.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: script/run_native_system_trace_startup.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: script/run_native_system_trace_startup.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: script/test_collect_native_trace_capabilities.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: script/test_collect_native_trace_capabilities.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: script/test_native_retained_trace_command.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: script/test_native_retained_trace_command.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: script/test_native_retained_trace_input.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: script/test_native_retained_trace_input.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: script/test_native_retained_trace_toc.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: script/test_native_retained_trace_toc.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: script/test_run_native_recorder_progress_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: script/test_run_native_recorder_progress_observation.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: script/test_run_native_retained_trace_export.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: script/test_run_native_retained_trace_export.py",
+          "passed": true
+        },
+        {
+          "invariant": "Source before/after identity matches exact Git blob: script/test_run_native_system_trace_startup.py",
+          "passed": true
+        },
+        {
+          "invariant": "Retained source bytes match exact Git blob: script/test_run_native_system_trace_startup.py",
+          "passed": true
+        },
+        {
+          "invariant": "Only the workflow copy is absent; all 20 source hash bindings exist",
+          "passed": true
+        },
+        {
+          "invariant": "Retained input ZIP equals the exact D24 bytes",
+          "passed": true
+        },
+        {
+          "invariant": "Retained inner ZIP has exactly the five D24 entries",
+          "passed": true
+        },
+        {
+          "invariant": "Inner member CRC/bytes match original D24: recording.trace/",
+          "passed": true
+        },
+        {
+          "invariant": "Inner member CRC/bytes match original D24: recording.trace/Trace1.run/",
+          "passed": true
+        },
+        {
+          "invariant": "Inner member CRC/bytes match original D24: recording.trace/Trace1.run/Attachments/",
+          "passed": true
+        },
+        {
+          "invariant": "Inner member CRC/bytes match original D24: recording.trace/Trace1.run/Attachments/trace-data.atrc",
+          "passed": true
+        },
+        {
+          "invariant": "Inner member CRC/bytes match original D24: recording.trace/Trace1.run/RunIssues.storedata",
+          "passed": true
+        },
+        {
+          "invariant": "Before manifest equals fixed D24 bytes and required readonly modes",
+          "passed": true
+        },
+        {
+          "invariant": "After manifest exactly equals before and summary manifest",
+          "passed": true
+        },
+        {
+          "invariant": "Summary input-preservation claims and fixed source IDs agree",
+          "passed": true
+        },
+        {
+          "invariant": "Installed xctrace is a bounded 32-bit FAT directory",
+          "passed": true
+        },
+        {
+          "invariant": "Mach-O slice extent 0",
+          "passed": true
+        },
+        {
+          "invariant": "Native Mach-O header 0",
+          "passed": true
+        },
+        {
+          "invariant": "Unique UUID and exact load-command extent 0",
+          "passed": true
+        },
+        {
+          "invariant": "Mach-O slice extent 1",
+          "passed": true
+        },
+        {
+          "invariant": "Native Mach-O header 1",
+          "passed": true
+        },
+        {
+          "invariant": "Unique UUID and exact load-command extent 1",
+          "passed": true
+        },
+        {
+          "invariant": "Nonoverlapping Mach-O slices",
+          "passed": true
+        },
+        {
+          "invariant": "Independent Mach-O identity equals retained before identity",
+          "passed": true
+        },
+        {
+          "invariant": "Independent Mach-O identity equals retained after identity",
+          "passed": true
+        },
+        {
+          "invariant": "Apple dwarfdump UUIDs agree with both independently parsed slices",
+          "passed": true
+        },
+        {
+          "invariant": "Reader Xcode version exactly equals retained producer version",
+          "passed": true
+        },
+        {
+          "invariant": "No trace semantics inferred by result",
+          "passed": true
+        },
+        {
+          "invariant": "Artifact bytes unchanged during independent audit",
+          "passed": true
+        }
+      ],
+      "createdUTC": "2026-11-09T12:30:28.888520+00:00",
+      "experimentCommit": "e537fb774768747c144ba7c57c1d8d4a097683e9",
+      "experimentTree": "8b073dc3cafb004d4fe4dc8dd99e5fdd9ce42e04",
+      "installedTool": {
+        "architecture": "x86_64",
+        "bytes": 121520,
+        "container": "fat",
+        "nativeSlices": [
+          {
+            "architecture": "x86_64",
+            "bytes": 35360,
+            "cpuSubtype": 3,
+            "cpuType": 16777223,
+            "offset": 16384,
+            "sha256": "96ed5ccd7c25308055880e4bf1f64900be0401064b1b55a15ade475fa16eeb50",
+            "uuid": "98781736-C05A-3140-9BCF-279C288AEE66"
+          }
+        ],
+        "nativeUUIDs": [
+          "98781736-C05A-3140-9BCF-279C288AEE66"
+        ],
+        "sha256": "abf89e498e0bdb43dd48a3ccb545313a83b413a8d329503401ade7fa4e1a5674",
+        "slices": [
+          {
+            "architecture": "x86_64",
+            "bytes": 35360,
+            "cpuSubtype": 3,
+            "cpuType": 16777223,
+            "offset": 16384,
+            "sha256": "96ed5ccd7c25308055880e4bf1f64900be0401064b1b55a15ade475fa16eeb50",
+            "uuid": "98781736-C05A-3140-9BCF-279C288AEE66"
+          },
+          {
+            "architecture": "arm64",
+            "bytes": 55984,
+            "cpuSubtype": 0,
+            "cpuType": 16777228,
+            "offset": 65536,
+            "sha256": "4b5e176f39cde3fd24af6da9dc48f18358b6f1bcbe2aaa996b4067e44899af26",
+            "uuid": "A400EC18-24C6-32BA-9A9A-F3A5CA0648E7"
+          }
+        ]
+      },
+      "jobID": 129158262959,
+      "limits": [
+        "Nineteen source copies are physically retained. The workflow copy is absent; its before/after hash is bound to the exact Git blob, without claiming an archived byte copy.",
+        "The native before/after manifests report permissions 0500 for directories and 0400 for files. This offline audit compares those receipts and byte identities; it cannot re-observe the ended runner filesystem.",
+        "Unchanged input bytes and final modes do not prove that the export tool attempted no writes or created no caches elsewhere.",
+        "ZIP/CRC/Mach-O and source integrity do not establish trace semantic validity, exportability, clock mapping, event range, sampler coverage, activation routing or recording completion.",
+        "No retained source or executable was run or imported by this audit."
+      ],
+      "memberInventory": {
+        "build/artifact-download.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/collect_native_trace_capabilities.stderr.txt": {
+          "bytes": 890,
+          "sha256": "1f91b0d94f1954e1332b201998025bc52d2c148385c23c84bffe21633ca006af"
+        },
+        "build/collect_native_trace_capabilities.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/curl-version.txt": {
+          "bytes": 413,
+          "sha256": "770c4da3793a4d03bce2f5e4f6c4b8288adb2613a089d95783cd0139c390a411"
+        },
+        "build/d24-used-primitives.stderr.txt": {
+          "bytes": 3259,
+          "sha256": "5c0c3d4277a2ed1bd3ac8f1cae727baddf92891a0b133576771be1eeb180aec2"
+        },
+        "build/d24-used-primitives.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/experiment-commit.txt": {
+          "bytes": 41,
+          "sha256": "9647bb107a3af1d4b6635b76da4de2214613a54536030f9d6dbde4cdc9f881d4"
+        },
+        "build/experiment-tree.txt": {
+          "bytes": 41,
+          "sha256": "487a8575be5ad69cc30b569adbe4efdcd739807480e6a390628cd470c7083ad9"
+        },
+        "build/native_retained_trace_command.stderr.txt": {
+          "bytes": 1587,
+          "sha256": "9c60e4bd6fb05081252bcf8bf7dce2c7209bffc7054fed8e881e33123ae5ee7c"
+        },
+        "build/native_retained_trace_command.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/native_retained_trace_input.stderr.txt": {
+          "bytes": 3436,
+          "sha256": "84603d2e6aac169b2811c7f4875f9b6f60b45bd253c6ebba9ebd2b92ba8472cb"
+        },
+        "build/native_retained_trace_input.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/native_retained_trace_toc.stderr.txt": {
+          "bytes": 2417,
+          "sha256": "227d75b9bdb516d3b92d8278cc8fec30b88bed9ce1e483a59d810b972585b80a"
+        },
+        "build/native_retained_trace_toc.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/privacy.txt": {
+          "bytes": 100,
+          "sha256": "ea32414c5d3fd4c182f52351406b6e7c3710147fc27e2e03731fc4cae8ed9db8"
+        },
+        "build/run_native_retained_trace_export.stderr.txt": {
+          "bytes": 1510,
+          "sha256": "6f78f1b73245e6381a25d0f767021ec6ad1c2d0e34e95c56254df87b4c1b7592"
+        },
+        "build/run_native_retained_trace_export.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/run_native_system_trace_startup.stderr.txt": {
+          "bytes": 1651,
+          "sha256": "405c5674552f5573e0e3831b7f725cfbddb667dd86ca381a651a01f65b70e99f"
+        },
+        "build/run_native_system_trace_startup.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "input-after.json": {
+          "bytes": 795,
+          "sha256": "1e8d3763ef936935b300d289b4a335c3ec9c4d20ebf380703cfce442eae15642"
+        },
+        "input-before.json": {
+          "bytes": 795,
+          "sha256": "1e8d3763ef936935b300d289b4a335c3ec9c4d20ebf380703cfce442eae15642"
+        },
+        "installed-xctrace.macho": {
+          "bytes": 121520,
+          "sha256": "abf89e498e0bdb43dd48a3ccb545313a83b413a8d329503401ade7fa4e1a5674"
+        },
+        "os-version-owned-groups.json": {
+          "bytes": 2534,
+          "sha256": "18af6761e3b8ee95f7bfdc7249a72565feaa801eb0beaad9967fa1cfa1aa4e97"
+        },
+        "os-version-owned-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "os-version-owned-groups.stdout.txt": {
+          "bytes": 7633,
+          "sha256": "149c436dd39f4eeb1c75759a1a7049e0c422dc80544bea88b2ad8b1ee050bcb3"
+        },
+        "os-version.json": {
+          "bytes": 3341,
+          "sha256": "dac00d325b4ad7b6a8b6e750d421f74d82fc084444eae31b1ad0256ab13d1500"
+        },
+        "os-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "os-version.stdout.txt": {
+          "bytes": 66,
+          "sha256": "31fd674ddb951680692d7b68cafdeab5baa6b3e82aae843269dad73b53f25fc5"
+        },
+        "retained-input.trace.zip": {
+          "bytes": 13283084,
+          "sha256": "d4a6e955f18b79d99530ec92690fad043422cb4897c0fb303f3066150cfb4bde"
+        },
+        "retained-trace-export.json": {
+          "bytes": 41719,
+          "sha256": "1e785594fda8298441058ba64c6641a35b142334da67d9e86c73a90879980c25"
+        },
+        "sources/docs/NATIVE_RETAINED_TRACE_EXPORT.md": {
+          "bytes": 10269,
+          "sha256": "5ea7cda23a645cea27248f5a32b551ec13035e2a203cf4bad4a3d84e60f59e77"
+        },
+        "sources/docs/evidence/D24-recorder-progress-observation.json": {
+          "bytes": 138066,
+          "sha256": "4c427f58d0afc5d3cb9c1a934ead53c3235cc90094adf4e2cdd356e00b927146"
+        },
+        "sources/docs/evidence/D24-verification.json": {
+          "bytes": 98017,
+          "sha256": "fb1cc5d848294e17fe49dbae9953bf326ec6012224528c1a44d0645f1f0bee44"
+        },
+        "sources/script/collect_native_trace_capabilities.py": {
+          "bytes": 12855,
+          "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+        },
+        "sources/script/native_retained_trace_command.py": {
+          "bytes": 10663,
+          "sha256": "cd772ee5449e124f3e0ad5f0e10417d31bc1d0b6f287c3a76d34a10ccc60fcba"
+        },
+        "sources/script/native_retained_trace_input.py": {
+          "bytes": 17190,
+          "sha256": "270f2e443ecdebde0306c463c4dcfa88d1a4c96c81604fad088dd6500ce9a8f0"
+        },
+        "sources/script/native_retained_trace_toc.py": {
+          "bytes": 6912,
+          "sha256": "952b76a8610b4127ba3c96d98989537632ac619ae4e4e335a9369d9a4733cd8d"
+        },
+        "sources/script/native_sampler_tool_identity.py": {
+          "bytes": 5168,
+          "sha256": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78"
+        },
+        "sources/script/run_native_recorder_progress_observation.py": {
+          "bytes": 66947,
+          "sha256": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f"
+        },
+        "sources/script/run_native_recorder_startup_observation.py": {
+          "bytes": 31718,
+          "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7"
+        },
+        "sources/script/run_native_retained_trace_export.py": {
+          "bytes": 15350,
+          "sha256": "b88b3784f02454dea18bd4dd1e9cbdd23e00f1f8457d001dedd45c2ad483b2a4"
+        },
+        "sources/script/run_native_system_trace_startup.py": {
+          "bytes": 47898,
+          "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010"
+        },
+        "sources/script/test_collect_native_trace_capabilities.py": {
+          "bytes": 7343,
+          "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+        },
+        "sources/script/test_native_retained_trace_command.py": {
+          "bytes": 11565,
+          "sha256": "a7bf175d5470d01cdae3bb641ed2f8da872ac07aa9449d5e8e5482131a867757"
+        },
+        "sources/script/test_native_retained_trace_input.py": {
+          "bytes": 14893,
+          "sha256": "803df2a8932d4ce903ffea6afb71c0ba3754c9feda34dcdf7f5d38728dd6e3ec"
+        },
+        "sources/script/test_native_retained_trace_toc.py": {
+          "bytes": 8763,
+          "sha256": "48f8842c223da63d43a86c4ff035d70bcf3ea3e5861687e7184972d0e13f78a1"
+        },
+        "sources/script/test_run_native_recorder_progress_observation.py": {
+          "bytes": 60266,
+          "sha256": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a"
+        },
+        "sources/script/test_run_native_retained_trace_export.py": {
+          "bytes": 5140,
+          "sha256": "c9acee8be1883b90d26f9a2679ccd1ea7a74cbe970abc8234579ebc3ac988056"
+        },
+        "sources/script/test_run_native_system_trace_startup.py": {
+          "bytes": 14595,
+          "sha256": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7"
+        },
+        "trace-toc-owned-groups.json": {
+          "bytes": 2532,
+          "sha256": "217c60e96df79d2f73e7b03920e7cabb789b53734271221789df6d7939e42a57"
+        },
+        "trace-toc-owned-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "trace-toc-owned-groups.stdout.txt": {
+          "bytes": 7633,
+          "sha256": "d97057f7f275d2b1612405802c94b1b3145ae35152307eae5d42e6af943f8237"
+        },
+        "trace-toc.json": {
+          "bytes": 3605,
+          "sha256": "241d03139ec8a4592aeb8e13d9485ffc2694cc84c52d6ecb5e40401ba62d7b46"
+        },
+        "trace-toc.stderr.txt": {
+          "bytes": 47,
+          "sha256": "28c3ee1d8e3698496c540c01ccbb9d79fed962accf4e675fd0f33a6af02fdef5"
+        },
+        "trace-toc.stdout.xml": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xcode-version-owned-groups.json": {
+          "bytes": 2540,
+          "sha256": "685b2a352bd356a5fa61d7c33aa12795e3e5d8b3fc214b68bdb70b687aa959d3"
+        },
+        "xcode-version-owned-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xcode-version-owned-groups.stdout.txt": {
+          "bytes": 7633,
+          "sha256": "b072a088c118231a7ee0a27903c4dc52f826352ac60b0c58029060e7f6ab4b32"
+        },
+        "xcode-version.json": {
+          "bytes": 3375,
+          "sha256": "49034ea665676142ded5c1ad50466f045a3143dd57dcb1d9a380be56cb023f85"
+        },
+        "xcode-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xcode-version.stdout.txt": {
+          "bytes": 32,
+          "sha256": "bb7fc9a8f5e063e81975b33054b3a526c91bcccff263ad11d5bd8bcdbe8f0973"
+        },
+        "xctrace-export-help-owned-groups.json": {
+          "bytes": 2553,
+          "sha256": "c7259ea7fca59783f913fb889ad1c4f32b53acfa6826c8bc9e4d0107c01c0ea0"
+        },
+        "xctrace-export-help-owned-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xctrace-export-help-owned-groups.stdout.txt": {
+          "bytes": 7633,
+          "sha256": "549a86bb9c0fea4994377d7b80d28ae22392a312c1fdbf5eed91b91cc74afc93"
+        },
+        "xctrace-export-help.json": {
+          "bytes": 3456,
+          "sha256": "658cd7a74c2b14a596124149da3d68c4e959fd19d568beda477a2ad35c5ebf46"
+        },
+        "xctrace-export-help.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xctrace-export-help.stdout.txt": {
+          "bytes": 1100,
+          "sha256": "953fc6079baaffd9d66b7d0f02aa3cfeed12c728425a9c1584120657cf4d8e9d"
+        },
+        "xctrace-manual-owned-groups.json": {
+          "bytes": 2543,
+          "sha256": "23f019a29cac2f46d0d5e9ed6ce0c969502c46025cd8a3bb2a07ee7902fced76"
+        },
+        "xctrace-manual-owned-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xctrace-manual-owned-groups.stdout.txt": {
+          "bytes": 7633,
+          "sha256": "46dc09e1baa00866ab7080cb40c9f5fa9fc71e756c20ebd8419d0561030d0342"
+        },
+        "xctrace-manual.json": {
+          "bytes": 3411,
+          "sha256": "2de94d0c87721f52ec6de1303b07b1e83aa9bbeb23f97ee2f8f22e5b0cd32950"
+        },
+        "xctrace-manual.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xctrace-manual.stdout.txt": {
+          "bytes": 17548,
+          "sha256": "d3399ef5d397cff2afa64e6660011bd8de1801937f32366d886d7b3a28559d14"
+        },
+        "xctrace-path-owned-groups.json": {
+          "bytes": 2538,
+          "sha256": "632e98bf367f6f9d874e7297ef5a06a981a0d334381b74dc922eaa5ce35c4786"
+        },
+        "xctrace-path-owned-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xctrace-path-owned-groups.stdout.txt": {
+          "bytes": 7633,
+          "sha256": "08c899706eef0a732a38125bbc7b9107461cb8a7ebb8898792b3068e3d81d35a"
+        },
+        "xctrace-path.json": {
+          "bytes": 3392,
+          "sha256": "6535b72264bcbd9bd489ed3abbc063f3cf55e0591844e8ae9ddc74631e8beab8"
+        },
+        "xctrace-path.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xctrace-path.stdout.txt": {
+          "bytes": 64,
+          "sha256": "fced716e12a27e0cbca2dd5cdb966bd2536657b6a4db58785ae79c210059bfa8"
+        },
+        "xctrace-uuid-owned-groups.json": {
+          "bytes": 2539,
+          "sha256": "95f8971df2d789f5be888c7be5d506277f09127940b6b4f36d75ce3705e8d29f"
+        },
+        "xctrace-uuid-owned-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xctrace-uuid-owned-groups.stdout.txt": {
+          "bytes": 7633,
+          "sha256": "0d1d2f4efa227a9d324c2b4bd897992b259f88d410ff214e976897b3c1c7215f"
+        },
+        "xctrace-uuid.json": {
+          "bytes": 3543,
+          "sha256": "1d25c8efc6834a0a40cdb43f1e8485bd66f5b88edd60f4a811b1b79a80eb199d"
+        },
+        "xctrace-uuid.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "xctrace-uuid.stdout.txt": {
+          "bytes": 231,
+          "sha256": "700f54dfe5a5d3132163e735b8eca05b05b9ed3e9758326a293ab54f555eff25"
+        }
+      },
+      "method": {
+        "archivedCodeImported": false,
+        "basis": "Independent raw ZIP, JSON and binary reads; exact Git object comparison; bounded Mach-O header/load-command parser written separately for this audit.",
+        "nativeExecutableInvoked": false,
+        "repositoryModified": false
+      },
+      "retainedInput": {
+        "afterManifestIdentity": {
+          "bytes": 795,
+          "sha256": "1e8d3763ef936935b300d289b4a335c3ec9c4d20ebf380703cfce442eae15642"
+        },
+        "beforeAfterManifestsEqual": true,
+        "beforeManifestIdentity": {
+          "bytes": 795,
+          "sha256": "1e8d3763ef936935b300d289b4a335c3ec9c4d20ebf380703cfce442eae15642"
+        },
+        "directByteEqualityToD24RetainedZIP": true,
+        "identity": {
+          "bytes": 13283084,
+          "sha256": "d4a6e955f18b79d99530ec92690fad043422cb4897c0fb303f3066150cfb4bde"
+        },
+        "innerEntries": [
+          {
+            "bytes": 0,
+            "crc32": 0,
+            "kind": "directory",
+            "path": "recording.trace/"
+          },
+          {
+            "bytes": 0,
+            "crc32": 0,
+            "kind": "directory",
+            "path": "recording.trace/Trace1.run/"
+          },
+          {
+            "bytes": 0,
+            "crc32": 0,
+            "kind": "directory",
+            "path": "recording.trace/Trace1.run/Attachments/"
+          },
+          {
+            "bytes": 115782056,
+            "crc32": 3125956842,
+            "kind": "file",
+            "path": "recording.trace/Trace1.run/Attachments/trace-data.atrc",
+            "sha256": "dd55ca66c46a4651df145287d2db8573e6dcf5f9387dcea73bec21a7a37719f0"
+          },
+          {
+            "bytes": 53248,
+            "crc32": 1480474241,
+            "kind": "file",
+            "path": "recording.trace/Trace1.run/RunIssues.storedata",
+            "sha256": "50e5b458ca4dcfa54f0186c41195fb90ee85ed733eb55e5f64017251182593e0"
+          }
+        ],
+        "manifest": {
+          "directoryCount": 3,
+          "entries": [
+            {
+              "kind": "directory",
+              "mode": 320,
+              "path": "."
+            },
+            {
+              "kind": "directory",
+              "mode": 320,
+              "path": "Trace1.run"
+            },
+            {
+              "kind": "directory",
+              "mode": 320,
+              "path": "Trace1.run/Attachments"
+            },
+            {
+              "bytes": 115782056,
+              "kind": "file",
+              "mode": 256,
+              "path": "Trace1.run/Attachments/trace-data.atrc",
+              "sha256": "dd55ca66c46a4651df145287d2db8573e6dcf5f9387dcea73bec21a7a37719f0"
+            },
+            {
+              "bytes": 53248,
+              "kind": "file",
+              "mode": 256,
+              "path": "Trace1.run/RunIssues.storedata",
+              "sha256": "50e5b458ca4dcfa54f0186c41195fb90ee85ed733eb55e5f64017251182593e0"
+            }
+          ],
+          "expandedBytes": 115835304,
+          "fileCount": 2,
+          "schema": 1
+        },
+        "manifestMatchesPinnedD24BytesAndExpectedModes": true
+      },
+      "runID": 42616711092,
+      "schema": 1,
+      "sources": {
+        "allAvailableCopiesByteEqualExactGitObjects": true,
+        "allSnapshotIdentitiesMatchExactGitObjects": true,
+        "entries": [
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 6050,
+            "gitBlob": "34648b8d7c673e74d9bdaf1cfa926565082bf33e",
+            "path": ".github/workflows/native-retained-trace-export.yml",
+            "retainedBytesAvailable": false,
+            "retainedBytesMatchGit": null,
+            "sha256": "2cf342900903b33c6a67e2668ff8d65ac78b5f246bdaf414cb58477e9999dd04"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 10269,
+            "gitBlob": "a1ddcbb5c671ec8359463abc086e056aa7ff73de",
+            "path": "docs/NATIVE_RETAINED_TRACE_EXPORT.md",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "5ea7cda23a645cea27248f5a32b551ec13035e2a203cf4bad4a3d84e60f59e77"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 138066,
+            "gitBlob": "0a5c6b103ea4a65ce1bbce2bb597dd823a361ff7",
+            "path": "docs/evidence/D24-recorder-progress-observation.json",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "4c427f58d0afc5d3cb9c1a934ead53c3235cc90094adf4e2cdd356e00b927146"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 98017,
+            "gitBlob": "ee60b3257518e2ae43f97f6b82d8fba0e79d7606",
+            "path": "docs/evidence/D24-verification.json",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "fb1cc5d848294e17fe49dbae9953bf326ec6012224528c1a44d0645f1f0bee44"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 12855,
+            "gitBlob": "20d086409fa62142cbd17f3e2e30782277912710",
+            "path": "script/collect_native_trace_capabilities.py",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 10663,
+            "gitBlob": "584cc280fe1be93b7bc16865d459d8fe5141e5c0",
+            "path": "script/native_retained_trace_command.py",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "cd772ee5449e124f3e0ad5f0e10417d31bc1d0b6f287c3a76d34a10ccc60fcba"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 17190,
+            "gitBlob": "45eca217fb867e2f98f8f164b0599fa296045572",
+            "path": "script/native_retained_trace_input.py",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "270f2e443ecdebde0306c463c4dcfa88d1a4c96c81604fad088dd6500ce9a8f0"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 6912,
+            "gitBlob": "678e0d4df4b0375eac2ee3400de4136c87b23618",
+            "path": "script/native_retained_trace_toc.py",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "952b76a8610b4127ba3c96d98989537632ac619ae4e4e335a9369d9a4733cd8d"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 5168,
+            "gitBlob": "1ad1f995edb7e72985d8ffe7b623bc9f43ccd862",
+            "path": "script/native_sampler_tool_identity.py",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 66947,
+            "gitBlob": "0c37c0f25227ce0a7396007413af8b9b14ff002b",
+            "path": "script/run_native_recorder_progress_observation.py",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 31718,
+            "gitBlob": "d2ba042eddd4bf3e1ad1965d05fbf382e2ecbbfd",
+            "path": "script/run_native_recorder_startup_observation.py",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 15350,
+            "gitBlob": "051a6fbb6d877697ab81c15e3d4c3a9d3b79b9e5",
+            "path": "script/run_native_retained_trace_export.py",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "b88b3784f02454dea18bd4dd1e9cbdd23e00f1f8457d001dedd45c2ad483b2a4"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 47898,
+            "gitBlob": "c528fe302ca150c918f44775e704e8d5044bb46d",
+            "path": "script/run_native_system_trace_startup.py",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 7343,
+            "gitBlob": "75f685e90b808cfc46c5f7a2f020fe50010a9dcc",
+            "path": "script/test_collect_native_trace_capabilities.py",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 11565,
+            "gitBlob": "daf1c922059ebb5dabf351e87d8df537f57260b7",
+            "path": "script/test_native_retained_trace_command.py",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "a7bf175d5470d01cdae3bb641ed2f8da872ac07aa9449d5e8e5482131a867757"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 14893,
+            "gitBlob": "bfa927d17043ef88a5140bc9ab8d025a497ac0ae",
+            "path": "script/test_native_retained_trace_input.py",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "803df2a8932d4ce903ffea6afb71c0ba3754c9feda34dcdf7f5d38728dd6e3ec"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 8763,
+            "gitBlob": "c5cc8944b98b051e3c6734ff176e327b74914b59",
+            "path": "script/test_native_retained_trace_toc.py",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "48f8842c223da63d43a86c4ff035d70bcf3ea3e5861687e7184972d0e13f78a1"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 60266,
+            "gitBlob": "192103a3117fecda3f86fd84bc02a2ed28f02919",
+            "path": "script/test_run_native_recorder_progress_observation.py",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 5140,
+            "gitBlob": "afaf18766b51d3730cf085ccea21384324dc07a4",
+            "path": "script/test_run_native_retained_trace_export.py",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "c9acee8be1883b90d26f9a2679ccd1ea7a74cbe970abc8234579ebc3ac988056"
+          },
+          {
+            "beforeAfterIdentityMatchesGit": true,
+            "bytes": 14595,
+            "gitBlob": "82863395b9d30d0be7ae5f4a8a949a95b894874a",
+            "path": "script/test_run_native_system_trace_startup.py",
+            "retainedBytesAvailable": true,
+            "retainedBytesMatchGit": true,
+            "sha256": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7"
+          }
+        ],
+        "missingRetainedCopies": [
+          ".github/workflows/native-retained-trace-export.yml"
+        ],
+        "retainedByteCopyCount": 19,
+        "snapshotBindingCount": 20,
+        "workflowCopyAvailable": false,
+        "workflowIdentityHashBoundToGit": true
+      },
+      "summaryIdentity": {
+        "bytes": 41719,
+        "sha256": "1e785594fda8298441058ba64c6641a35b142334da67d9e86c73a90879980c25"
+      },
+      "xcodeVersion": "Xcode 26.3\nBuild version 17C529"
+    }
+  },
+  "independentInterpretationReview": {
+    "includedFields": [
+      "method",
+      "established",
+      "notEstablished",
+      "hypothesis",
+      "existingDocumentationGap",
+      "nextQuestion"
+    ],
+    "omittedFields": [
+      "boundedStaticObservation",
+      "officialResearch",
+      "duplicate identity and native result fields"
+    ],
+    "originalReviewIdentity": {
+      "bytes": 10789,
+      "sha256": "de398548ac2566f92e5d328f4d577945e9b972e0e6f753c44ceda7946beaff4c"
+    },
+    "record": {
+      "established": [
+        "The installed version-bound reader made one TOC export attempt on this unchanged read-only package and returned a normal process exit of 10 with the exact retained error text.",
+        "The refusal occurred without a timeout, output truncation, orchestrator signal, or unresolved cleanup condition; no TOC bytes were produced.",
+        "The inspected package has exactly the two retained regular files and three directories listed in the manifest, with unchanged bytes and mode bits after this attempt.",
+        "The producer and reader report the same Xcode version/build text: 26.3 / 17C529. This does not itself prove equality of every producer/reader framework byte."
+      ],
+      "existingDocumentationGap": {
+        "exportHelp": "Retained 26.3 export help documents .trace input, TOC versus XPath modes, and stdout output; it does not define the missing-template error or an embedded template member.",
+        "installedManual": "Retained 26.3 manual describes importing a supported input format into a new trace using a template, with imported data depending on the instruments in that template. It does not name ATRC among supported formats or define the missing-template error.",
+        "rawFormat": "The existing filename and bounded header metadata do not independently qualify the entire ATRC payload as an accepted input of a particular 26.3 importer."
+      },
+      "hypothesis": {
+        "missingProof": "A version-bound document/template contract or reader diagnostic must identify the relevant missing/unresolvable document element; neither the filename inventory nor the error label identifies it.",
+        "statement": "Incomplete trace-document finalization is consistent with the two-file package, prior abnormal recorder exit, and reader-reported missing-template error.",
+        "status": "not-proven"
+      },
+      "method": {
+        "archivedExecutablesExecuted": false,
+        "importRepairOrRemodelExecuted": false,
+        "newExportExecuted": false,
+        "newRecordingExecuted": false,
+        "repositoryModified": false,
+        "retainedDataReadOnly": true
+      },
+      "nextQuestion": {
+        "beforeAnyFutureConversion": "Establish actual format acceptance and template/data-selection semantics; then specify a separate bounded derivation whose input/output hashes, limitations and clock claims are explicit. This would not repair or reclassify the original recording.",
+        "beforeAnyNativeMetadataCollection": "Identify the precise retained-documentation gap first. Only if necessary collect the smallest bounded same-version import-help or registered importer/template contract evidence; another CI inventory is not automatic.",
+        "diagnostic": "D26-retained-ATRC-analysis-contract",
+        "firstDeliverable": "A finite supported/unsupported-or-unestablished contract assessment that distinguishes original .trace-document export from creation of a separate derived analysis document.",
+        "firstInputs": [
+          "retained 26.3 export help and manual",
+          "exact two-file input inventory and header audit",
+          "retained reader executable identity",
+          "existing D19 template/instrument inventory, with its different-run limit"
+        ],
+        "nativeActionsPerformedInThisReview": false,
+        "question": "Do already-retained, version-bound Xcode 26.3 contracts establish a supported separately-derived analysis route for the existing ATRC payload, and what exact contract evidence is missing if they do not?",
+        "startOffline": true,
+        "stopCondition": "If no supported route is established, record that result and the exact missing contract; do not substitute an undocumented format reader, silent repair/import, modified template, or blind recorder retry."
+      },
+      "notEstablished": [
+        "Which required template object, identifier, member, file path or serialization format is absent or unresolvable; the message alone does not specify one.",
+        "That the globally installed System Trace template is absent, or that switching record --template to --instrument would address this case.",
+        "That the D24 SIGSEGV caused loss of particular metadata, or that its stopping signal caused the SIGSEGV.",
+        "That the prior Time Mapping issue caused this error, or what that issue severity or timestamp means.",
+        "That the raw ATRC data has no usable events, or that any rows cover the original sampler window.",
+        "That every reader configuration would refuse this package; the effect of the read-only input mode was not independently varied.",
+        "A documented meaning for numeric exit code 10 beyond its observed occurrence with this stderr.",
+        "A qualified trace epoch, clock conversion, event range, sampler phase, activation route or IPC chain."
+      ]
+    },
+    "scope": "Public projection of the retained-evidence interpretation and next question; later-Xcode research is excluded from this version-bound execution result."
+  },
+  "jobID": 129158262959,
+  "limits": [
+    "Successful diagnostic execution is a finite refused export; there is no TOC, table data, usable clock mapping or event coverage.",
+    "The source identity audit has twenty Git hash bindings and nineteen retained byte copies, with the workflow omission explicitly reported.",
+    "The before/after mode and hash receipts do not prove the tool attempted no writes or created no external caches.",
+    "Final group snapshots do not retrospectively timestamp every possible descendant exit at the operation deadline.",
+    "No missing template member name, producer failure mechanism, Time Mapping causality or global template absence has been established.",
+    "The full D24 R1 test failure is preserved and remains unresolved; R2 is a dependency-scope correction, not a D24 fix.",
+    "No new recording, sampler, input sequence, import, repair, settings change or product acceptance occurred in D25."
+  ],
+  "localD25PortableTests": {
+    "executedR2PythonBindings": {
+      "script/native_retained_trace_command.py": "cd772ee5449e124f3e0ad5f0e10417d31bc1d0b6f287c3a76d34a10ccc60fcba",
+      "script/native_retained_trace_input.py": "270f2e443ecdebde0306c463c4dcfa88d1a4c96c81604fad088dd6500ce9a8f0",
+      "script/native_retained_trace_toc.py": "952b76a8610b4127ba3c96d98989537632ac619ae4e4e335a9369d9a4733cd8d",
+      "script/run_native_retained_trace_export.py": "b88b3784f02454dea18bd4dd1e9cbdd23e00f1f8457d001dedd45c2ad483b2a4",
+      "script/test_native_retained_trace_command.py": "a7bf175d5470d01cdae3bb641ed2f8da872ac07aa9449d5e8e5482131a867757",
+      "script/test_native_retained_trace_input.py": "803df2a8932d4ce903ffea6afb71c0ba3754c9feda34dcdf7f5d38728dd6e3ec",
+      "script/test_native_retained_trace_toc.py": "48f8842c223da63d43a86c4ff035d70bcf3ea3e5861687e7184972d0e13f78a1",
+      "script/test_run_native_retained_trace_export.py": "c9acee8be1883b90d26f9a2679ccd1ea7a74cbe970abc8234579ebc3ac988056"
+    },
+    "identity": {
+      "bytes": 5418,
+      "sha256": "966fab37e6d6f57fa0280c0ecc861ade3c5ca36fe5edcc0bc9a66f0810e73021"
+    },
+    "nativeEvidenceProduced": false,
+    "record": {
+      "diagnostic": "D25-portable-final-source-tests",
+      "elapsedSeconds": 2.8761361940014467,
+      "evidenceKind": "synthetic-portable-test",
+      "passed": true,
+      "platform": {
+        "machine": "x86_64",
+        "system": "Linux"
+      },
+      "runtime": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "schema": 1,
+      "sourceHashesUnchanged": true,
+      "sourceSHA256": {
+        ".github/workflows/native-retained-trace-export.yml": "06ef0468a9c4ee547e378bee5ff1e41bd7e27884acdd9cd46d96be94f2c6dc4f",
+        "docs/NATIVE_RETAINED_TRACE_EXPORT.md": "5b3ba04152999595f6a66cbecc2a7d00cbd32147d3e0a18ec4acb30e71446f97",
+        "script/native_retained_trace_command.py": "cd772ee5449e124f3e0ad5f0e10417d31bc1d0b6f287c3a76d34a10ccc60fcba",
+        "script/native_retained_trace_input.py": "270f2e443ecdebde0306c463c4dcfa88d1a4c96c81604fad088dd6500ce9a8f0",
+        "script/native_retained_trace_toc.py": "952b76a8610b4127ba3c96d98989537632ac619ae4e4e335a9369d9a4733cd8d",
+        "script/run_native_retained_trace_export.py": "b88b3784f02454dea18bd4dd1e9cbdd23e00f1f8457d001dedd45c2ad483b2a4",
+        "script/test_native_retained_trace_command.py": "a7bf175d5470d01cdae3bb641ed2f8da872ac07aa9449d5e8e5482131a867757",
+        "script/test_native_retained_trace_input.py": "803df2a8932d4ce903ffea6afb71c0ba3754c9feda34dcdf7f5d38728dd6e3ec",
+        "script/test_native_retained_trace_toc.py": "48f8842c223da63d43a86c4ff035d70bcf3ea3e5861687e7184972d0e13f78a1",
+        "script/test_run_native_retained_trace_export.py": "c9acee8be1883b90d26f9a2679ccd1ea7a74cbe970abc8234579ebc3ac988056"
+      },
+      "sourcesAfterSHA256": {
+        ".github/workflows/native-retained-trace-export.yml": "06ef0468a9c4ee547e378bee5ff1e41bd7e27884acdd9cd46d96be94f2c6dc4f",
+        "docs/NATIVE_RETAINED_TRACE_EXPORT.md": "5b3ba04152999595f6a66cbecc2a7d00cbd32147d3e0a18ec4acb30e71446f97",
+        "script/native_retained_trace_command.py": "cd772ee5449e124f3e0ad5f0e10417d31bc1d0b6f287c3a76d34a10ccc60fcba",
+        "script/native_retained_trace_input.py": "270f2e443ecdebde0306c463c4dcfa88d1a4c96c81604fad088dd6500ce9a8f0",
+        "script/native_retained_trace_toc.py": "952b76a8610b4127ba3c96d98989537632ac619ae4e4e335a9369d9a4733cd8d",
+        "script/run_native_retained_trace_export.py": "b88b3784f02454dea18bd4dd1e9cbdd23e00f1f8457d001dedd45c2ad483b2a4",
+        "script/test_native_retained_trace_command.py": "a7bf175d5470d01cdae3bb641ed2f8da872ac07aa9449d5e8e5482131a867757",
+        "script/test_native_retained_trace_input.py": "803df2a8932d4ce903ffea6afb71c0ba3754c9feda34dcdf7f5d38728dd6e3ec",
+        "script/test_native_retained_trace_toc.py": "48f8842c223da63d43a86c4ff035d70bcf3ea3e5861687e7184972d0e13f78a1",
+        "script/test_run_native_retained_trace_export.py": "c9acee8be1883b90d26f9a2679ccd1ea7a74cbe970abc8234579ebc3ac988056"
+      },
+      "suites": [
+        {
+          "exitCode": 0,
+          "streams": {
+            "stderr": {
+              "bytes": 3436,
+              "name": "d25-portable-native_retained_trace_input.stderr.txt",
+              "sha256": "bbb8e6542376d26ff916ea5adee03a2bbc245e9633361527fa0f8cdd6749c718"
+            },
+            "stdout": {
+              "bytes": 0,
+              "name": "d25-portable-native_retained_trace_input.stdout.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "suite": "native_retained_trace_input",
+          "testCount": 23,
+          "unittestSeconds": 0.057,
+          "wallSeconds": 0.1681638230002136
+        },
+        {
+          "exitCode": 0,
+          "streams": {
+            "stderr": {
+              "bytes": 2417,
+              "name": "d25-portable-native_retained_trace_toc.stderr.txt",
+              "sha256": "a9dde49b7702d3757880cc5e56079276595be53676e815e85a4ed032cd4dbdea"
+            },
+            "stdout": {
+              "bytes": 0,
+              "name": "d25-portable-native_retained_trace_toc.stdout.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "suite": "native_retained_trace_toc",
+          "testCount": 15,
+          "unittestSeconds": 0.085,
+          "wallSeconds": 0.16931901299903984
+        },
+        {
+          "exitCode": 0,
+          "streams": {
+            "stderr": {
+              "bytes": 1587,
+              "name": "d25-portable-native_retained_trace_command.stderr.txt",
+              "sha256": "ef61fe9ed71e2fe8a625ad90e4145690575b1dda1b4d956a8825c8389115a9ab"
+            },
+            "stdout": {
+              "bytes": 0,
+              "name": "d25-portable-native_retained_trace_command.stdout.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "suite": "native_retained_trace_command",
+          "testCount": 9,
+          "unittestSeconds": 2.8,
+          "wallSeconds": 2.8727991779996955
+        },
+        {
+          "exitCode": 0,
+          "streams": {
+            "stderr": {
+              "bytes": 1510,
+              "name": "d25-portable-run_native_retained_trace_export.stderr.txt",
+              "sha256": "cb73f8da97f294966dc00e5d5274782d2e0cc91f35f05f9c4eba83d85909cdbd"
+            },
+            "stdout": {
+              "bytes": 0,
+              "name": "d25-portable-run_native_retained_trace_export.stdout.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "suite": "run_native_retained_trace_export",
+          "testCount": 9,
+          "unittestSeconds": 0.001,
+          "wallSeconds": 0.11520994899910875
+        }
+      ],
+      "totalTestCount": 56,
+      "utcEnd": "2026-11-09T12:17:33.237644+00:00",
+      "utcStart": "2026-11-09T12:17:30.361512+00:00"
+    },
+    "versionScope": "The eight Python source/test files match R2 exactly. The proof also contains R1-era workflow/document hashes; those two files changed before R2 and are not claimed byte-equal to R2."
+  },
+  "nativeTestTotal": 91,
+  "nativeTests": {
+    "collect_native_trace_capabilities": {
+      "elapsedSeconds": 2.676,
+      "stderrIdentity": {
+        "bytes": 890,
+        "sha256": "1f91b0d94f1954e1332b201998025bc52d2c148385c23c84bffe21633ca006af"
+      },
+      "stdoutIdentity": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "testSource": "script/test_collect_native_trace_capabilities.py",
+      "testSourceSHA256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055",
+      "testsPassed": 6
+    },
+    "d24-used-primitives": {
+      "elapsedSeconds": 3.686,
+      "stderrIdentity": {
+        "bytes": 3259,
+        "sha256": "5c0c3d4277a2ed1bd3ac8f1cae727baddf92891a0b133576771be1eeb180aec2"
+      },
+      "stdoutIdentity": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "testSource": "script/test_run_native_recorder_progress_observation.py",
+      "testSourceSHA256": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a",
+      "testsPassed": 19
+    },
+    "native_retained_trace_command": {
+      "elapsedSeconds": 4.06,
+      "stderrIdentity": {
+        "bytes": 1587,
+        "sha256": "9c60e4bd6fb05081252bcf8bf7dce2c7209bffc7054fed8e881e33123ae5ee7c"
+      },
+      "stdoutIdentity": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "testSource": "script/test_native_retained_trace_command.py",
+      "testSourceSHA256": "a7bf175d5470d01cdae3bb641ed2f8da872ac07aa9449d5e8e5482131a867757",
+      "testsPassed": 9
+    },
+    "native_retained_trace_input": {
+      "elapsedSeconds": 0.251,
+      "stderrIdentity": {
+        "bytes": 3436,
+        "sha256": "84603d2e6aac169b2811c7f4875f9b6f60b45bd253c6ebba9ebd2b92ba8472cb"
+      },
+      "stdoutIdentity": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "testSource": "script/test_native_retained_trace_input.py",
+      "testSourceSHA256": "803df2a8932d4ce903ffea6afb71c0ba3754c9feda34dcdf7f5d38728dd6e3ec",
+      "testsPassed": 23
+    },
+    "native_retained_trace_toc": {
+      "elapsedSeconds": 0.266,
+      "stderrIdentity": {
+        "bytes": 2417,
+        "sha256": "227d75b9bdb516d3b92d8278cc8fec30b88bed9ce1e483a59d810b972585b80a"
+      },
+      "stdoutIdentity": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "testSource": "script/test_native_retained_trace_toc.py",
+      "testSourceSHA256": "48f8842c223da63d43a86c4ff035d70bcf3ea3e5861687e7184972d0e13f78a1",
+      "testsPassed": 15
+    },
+    "run_native_retained_trace_export": {
+      "elapsedSeconds": 0.007,
+      "stderrIdentity": {
+        "bytes": 1510,
+        "sha256": "6f78f1b73245e6381a25d0f767021ec6ad1c2d0e34e95c56254df87b4c1b7592"
+      },
+      "stdoutIdentity": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "testSource": "script/test_run_native_retained_trace_export.py",
+      "testSourceSHA256": "c9acee8be1883b90d26f9a2679ccd1ea7a74cbe970abc8234579ebc3ac988056",
+      "testsPassed": 9
+    },
+    "run_native_system_trace_startup": {
+      "elapsedSeconds": 1.36,
+      "stderrIdentity": {
+        "bytes": 1651,
+        "sha256": "405c5674552f5573e0e3831b7f725cfbddb667dd86ca381a651a01f65b70e99f"
+      },
+      "stdoutIdentity": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "testSource": "script/test_run_native_system_trace_startup.py",
+      "testSourceSHA256": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7",
+      "testsPassed": 10
+    }
+  },
+  "runID": 42616711092,
+  "schema": 1,
+  "sourceRetention": {
+    "allAvailableCopiesMatchExactGitObjects": true,
+    "allBeforeAfterIdentitiesMatchExactGitObjects": true,
+    "missingSourceByteCopies": [
+      {
+        "archivedSourceBytesPresent": false,
+        "bytes": 6050,
+        "gitBlob": "34648b8d7c673e74d9bdaf1cfa926565082bf33e",
+        "limitation": "The hidden workflow source copy is absent from the uploaded artifact. Its recorded identity matches the exact Git blob; this is not an archived byte copy.",
+        "nativeBeforeAfterHashBindingPresent": true,
+        "path": ".github/workflows/native-retained-trace-export.yml",
+        "sha256": "2cf342900903b33c6a67e2668ff8d65ac78b5f246bdaf414cb58477e9999dd04"
+      }
+    ],
+    "physicallyRetainedSourceCopyCount": 19,
+    "sourceIdentityCount": 20
+  }
+}

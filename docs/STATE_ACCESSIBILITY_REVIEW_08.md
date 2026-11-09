@@ -231,11 +231,21 @@ callback and a partial trace; recorder output appeared after the sampler window
 in the parent clock domain, and recorder exit -11 followed stopping without
 normal completion. This adds no original acceptance case or product repair.
 
-The next D25 step is a bounded read-only installed-tool TOC export of an exact
-retained Intel trace copy. It has not run; preserve any refusal without package
-repair or another recording. PR #45 remains draft/unmerged and C12 remains
-HOLD. The original full Finder sequence, completed source/twelve-image review,
-physical/v4 evidence and task 08's dependency on task 07 remain unchanged.
+[D25 R2](NATIVE_RETAINED_TRACE_EXPORT.md) subsequently completed that retained-input
+step in [run 42616711092](https://github.com/osmankaankars/lemulip/actions/runs/42616711092),
+attempt 1, with 91 passing tests. Its one read-only export exited 10 after
+1.734828604 seconds, with empty stdout and exactly 47 stderr bytes:
+`Export failed: Document Missing Template Error` followed by a newline. Input,
+source and installed-tool identities remained unchanged. The
+[result](evidence/D25-retained-trace-export.json) and
+[verification](evidence/D25-verification.json) establish no TOC, usable clock
+mapping, event range or original acceptance case.
+
+The next D26 task first reviews the retained Xcode 26.3 reader/import/template
+contracts offline, identifying any actual metadata gap before another native
+collection or derived-data proposal. PR #45 remains draft/unmerged and C12
+remains HOLD. The original full Finder sequence, completed source/twelve-image
+review, physical/v4 evidence and task 08's dependency on task 07 remain unchanged.
 
 To complete task 08, close or explicitly resolve task 07's remaining CI gate on
 the final candidate, review any resulting production changes, and retain the

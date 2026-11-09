@@ -2,8 +2,10 @@
 
 **Current status, 9 November 2026:** [D24's bounded recorder-progress observation](NATIVE_RECORDER_PROGRESS_OBSERVATION.md)
 completed without a qualified sampler stack. Intel retained a partial trace;
-the next D25 step is a bounded read-only TOC export of an exact retained copy,
-which has not run. C12, draft/unmerged PR #45 and the task 07/08 gates remain HOLD.
+[D25's single read-only export](NATIVE_RETAINED_TRACE_EXPORT.md) refused its exact
+retained copy with `Document Missing Template Error`. No TOC or time coverage was
+established. D26 next reviews the retained reader/import/template contracts
+offline. C12, draft/unmerged PR #45 and the task 07/08 gates remain HOLD.
 
 ## Decision on 7 November 2026
 
@@ -155,10 +157,25 @@ Those clock domains remain separate. Intel retained a partial trace, but the
 recorder exited -11 after stopping and normal recording completion is unproven.
 Read-only inspection verifies the retained bytes, not their event-time coverage.
 
-D25 is limited to a bounded installed-tool `xctrace export --input … --toc`
-against an exact retained copy. It has not run; a refusal must be retained
-without repairing the package or starting another recording. No held gesture,
-activation requester or original acceptance result is added by D24.
+No held gesture, activation requester or original acceptance result was added
+by D24. Its proposed retained-input export was subsequently performed in D25.
+
+### Subsequent D25 retained-input export refusal
+
+[D25 R2](NATIVE_RETAINED_TRACE_EXPORT.md),
+[run 42616711092](https://github.com/osmankaankars/lemulip/actions/runs/42616711092),
+attempt 1, passed all 91 tests. One bounded read-only export exited 10 after
+1.734828604 seconds, with empty stdout and 47 stderr bytes containing
+`Export failed: Document Missing Template Error` plus a newline. Input, source
+and installed-tool identities remained unchanged. The
+[result](evidence/D25-retained-trace-export.json) and
+[verification](evidence/D25-verification.json) preserve the refusal; no TOC,
+usable clock mapping or event coverage was established.
+
+D26 first reviews the retained Xcode 26.3 reader, import and template contracts
+offline. Any actual metadata gap must be identified before proposing another
+native collection or derived-data attempt. The refusal alone does not establish
+a missing field, a repair route or the original activation mechanism.
 
 ## Symptom and impact
 
@@ -416,11 +433,12 @@ acceptance relaxation.
 | 08 | Source and twelve-image review completed; final review follows task 07 on the exact final candidate and includes any resulting code changes |
 | 09 | Not opened without a new brief |
 | D24 diagnostic | Bounded execution and cleanup completed; four banner-only sampler streams, no qualified stack/phase and an Intel partial trace; see the [D24 result](NATIVE_RECORDER_PROGRESS_OBSERVATION.md) |
-| D25 next evidence step | Not run; bounded read-only installed-tool TOC export of an exact retained Intel trace copy, preserving any refusal without repair or recording |
+| D25 diagnostic | Completed; one read-only export refused the exact retained Intel trace with exit 10 / `Document Missing Template Error`; no TOC or time coverage, and input/source/tool identities unchanged |
+| D26 next evidence step | Offline review of retained Xcode 26.3 reader/import/template contracts; identify any actual metadata gap before another native collection or derived-data proposal |
 
 The original read-only routing review remains complete. Subsequent D24
 diagnostic work leaves C12 production and the original acceptance gate unchanged;
-its partial Intel trace does not yet establish event-time coverage or the
-missing native mechanism. D25's retained-input TOC check remains unrun. There
-is no verified narrow fix to ship, and no additional owner test is needed to
-restate the completed local results.
+its partial Intel trace does not establish event-time coverage or the missing
+native mechanism. D25 preserved the reader's refusal. D26's offline contract
+review is the next finite step. There is no verified narrow fix to ship, and no
+additional owner test is needed to restate the completed local results.
