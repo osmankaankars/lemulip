@@ -60,9 +60,15 @@ jobs:
           assert set(changed) <= set(NEW_PATHS), changed
           assert subprocess.check_output(['git', 'rev-parse', 'd821d7343675e2850705d141ef9b3b93a6aee945^{tree}'], text=True).strip() == '425baa28f00ec24551dd70c0cc874a75fa3be0c1'
           PYCODE
-          for suite in collect_native_trace_capabilities run_native_system_trace_startup run_native_recorder_progress_observation native_retained_trace_input native_retained_trace_toc native_retained_trace_command run_native_retained_trace_export; do
+          for suite in collect_native_trace_capabilities run_native_system_trace_startup native_retained_trace_input native_retained_trace_toc native_retained_trace_command run_native_retained_trace_export; do
             python3 "script/test_${suite}.py" -v > "$RUNNER_TEMP/retained-trace-export/preflight/${suite}.stdout.txt" 2> "$RUNNER_TEMP/retained-trace-export/preflight/${suite}.stderr.txt"
           done
+          # D25 reuses these D24 primitives, not its helper/recorder/sampler orchestration.
+          # The full D24 R1 failure remains recorded; these tests do not reclassify it.
+          python3 script/test_run_native_recorder_progress_observation.py -v \
+            OwnedCommandTests NonreapingCapabilityTests BoundedFileTests InstalledToolIdentityTests \
+            > "$RUNNER_TEMP/retained-trace-export/preflight/d24-used-primitives.stdout.txt" \
+            2> "$RUNNER_TEMP/retained-trace-export/preflight/d24-used-primitives.stderr.txt"
           python3 script/privacy_check.py --staged > "$RUNNER_TEMP/retained-trace-export/preflight/privacy.txt"
       - name: Fetch Exact Existing Intel Artifact
         env:

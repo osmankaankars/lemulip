@@ -7,6 +7,33 @@ the exact package can supply a recognizable table of contents through the
 installed Xcode export tool. C12, task 07 and draft/unmerged
 [PR #45](https://github.com/osmankaankars/lemulip/pull/45) remain **HOLD**.
 
+### R1 pre-export gate failure and dependency scope
+
+[R1, attempt 1](https://github.com/osmankaankars/lemulip/actions/runs/42615911091)
+at `320d06576b2c2ac5cd3352704598082147fe10c8` stopped before artifact download or
+native export. The D19/D20 suites passed 6 and 10 tests. The unchanged full D24
+suite ran 50 tests and reported 10 failures and 4 errors, all within its
+multi-role `SyntheticOrchestrationTests`. It retained final-group snapshot,
+helper-completion, expected-role and teardown `EPERM` failures. Per-case raw
+receipts were not retained, so their internal cause remains unproven; the run
+does not establish flakiness or native sampler permission denial. The new D25
+suites had not yet run, and **zero exports or recordings occurred**.
+
+D25 never calls D24's `run()`, notification-helper validation, banner-triggered
+nested sampling or report qualification. Its dependency gate now explicitly
+selects the **19 unchanged D24 tests** for `OwnedCommand`, non-reaping capability,
+bounded file reads and installed Mach-O identity. Together with the 16 D19/D20
+tests and 56 D25 tests, this gives a 91-test gate for the actual call path.
+The nine new adapter tests exercise its own cleanup composition. Every native
+metadata command must additionally pass actual leased-group/stream cleanup
+before the TOC attempt can start.
+
+This is a test-scope correction, **not a fix or reclassification of the failed
+full D24 suite**. Its source and tests are unchanged. Shared cleanup risk remains
+an enforced D25 gate; no failure is converted to success. R1's eight-file
+artifact is `13671828280`, 5,005 bytes, SHA-256
+`2a7ce57cb0778ef39e67c44544906563de1eca278cd5990ffc451b027b25f794`.
+
 ## Evidence question and fixed input
 
 D24 did not obtain a qualified primary or secondary sampler stack. In the
@@ -139,8 +166,8 @@ Task 08's final acceptance remains dependent on task 07.
 Portable tests cover unsafe/corrupt input rejection, read-only extraction and
 input changes, bounded XML and ambiguous/error envelopes, leased-child command
 cleanup and interpretation gates. Synthetic tests cannot produce native trace
-evidence. The unchanged D19 bounded-command, D20 transport and D24 ownership
-suites also run before native export.
+evidence. The unchanged D19 bounded-command and D20 transport suites and the
+19 explicitly selected D24 primitive tests also run before native export.
 
 The workflow retains exact source copies, commit/tree, test output, installed
 tool/version/help/manual evidence, raw command streams and receipts, input
