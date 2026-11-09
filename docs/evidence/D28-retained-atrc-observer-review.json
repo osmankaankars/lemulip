@@ -1,0 +1,1470 @@
+{
+  "schema": "lemulip-d28-retained-atrc-observer-review-v1",
+  "status": "offline-review-complete-counter-fixed",
+  "completedDateEuropeIstanbul": "2026-11-10",
+  "baseCommit": "34e74c055f55cd3f8f4181d9b67edee1140a706f",
+  "baseTree": "9b5fda62a00350136d8030fddd5c2f3e0346ac91",
+  "nativeOutcomeChanged": false,
+  "nativeTraceToolInvocations": 0,
+  "nativeReconstruction": {
+    "schema": "lemulip-d28-retained-observer-review-v1",
+    "status": "offline-reconstruction-complete",
+    "scope": "Read-only archive, JSON, AST and immutable Git-object analysis; no retained source was executed and no native command or CI was requested.",
+    "analyzer": {
+      "name": "d28-evidence-review.py",
+      "bytes": 22554,
+      "sha256": "b705c46afadc88fec41d16c87eb30c1512f935ddbd05c15c3443f76b5ce1e087",
+      "pythonVersion": "3.12.14"
+    },
+    "nativeBinding": {
+      "executedCommit": "50b34b215e1372a46add0f6c67fc8a2b9dc95e06",
+      "executedTree": "1d7db69e5778be3d909188daf8ab0604a4db1a4f",
+      "publicationCommit": "34e74c055f55cd3f8f4181d9b67edee1140a706f",
+      "publicationTree": "9b5fda62a00350136d8030fddd5c2f3e0346ac91",
+      "runID": 42639700185,
+      "attempt": 1,
+      "jobID": 129237191513,
+      "artifactID": 13685495111,
+      "archive": {
+        "bytes": 12940445,
+        "sha256": "03fe68b01b0818d660d4c493ffcf68dc81878046e866b36fbcfc2e9a7115b3a8",
+        "fileCount": 75,
+        "expandedBytes": 14339706
+      },
+      "summary": {
+        "bytes": 212041,
+        "sha256": "7aeda69d542ac8acba7e2f6381ea6e033523f19c8c09fc1374c4a49b0ceb7ca3"
+      },
+      "commandReceipt": {
+        "bytes": 153267,
+        "sha256": "991180d137c354c20d775298f1a94a860d55cb1964560cf9e029322989181aa5"
+      },
+      "groupReceipt": {
+        "bytes": 2539,
+        "sha256": "0dd98393fddd8f6a2d86667a0b980aa041c3f44cca334660068a82cd1bb05e03"
+      },
+      "publicResult": {
+        "bytes": 241402,
+        "sha256": "4fb53201ccb6373a01b64c67535288a4a12f27bad3ce4b54251b8d2c34b2dff1"
+      }
+    },
+    "sourceBindings": [
+      {
+        "path": ".github/workflows/native-retained-atrc-import.yml",
+        "archiveMember": "sources/workflows/native-retained-atrc-import.yml",
+        "bytes": 5920,
+        "sha256": "ac4aff8def81ac5c4eb549f94ee2ba712ce18f0f38e1836a35a0716d228ec95a"
+      },
+      {
+        "path": "docs/NATIVE_RETAINED_ATRC_CONTRACT.md",
+        "archiveMember": "sources/docs/NATIVE_RETAINED_ATRC_CONTRACT.md",
+        "bytes": 16094,
+        "sha256": "bd1f61826842add80a09c574c361b43283ab980557466189e82c4d8e23148a05"
+      },
+      {
+        "path": "docs/NATIVE_RETAINED_ATRC_IMPORT.md",
+        "archiveMember": "sources/docs/NATIVE_RETAINED_ATRC_IMPORT.md",
+        "bytes": 11379,
+        "sha256": "2fe32a91cc3201f4aae5052ff11a5274fea64700a9b6b846a4f968b4eca564f5"
+      },
+      {
+        "path": "docs/evidence/D26-retained-atrc-contract.json",
+        "archiveMember": "sources/docs/evidence/D26-retained-atrc-contract.json",
+        "bytes": 48518,
+        "sha256": "4cc7bf76545775275fbd70f98032543eb703f23030edad9333f415287e3d2e49"
+      },
+      {
+        "path": "script/collect_native_trace_capabilities.py",
+        "archiveMember": "sources/script/collect_native_trace_capabilities.py",
+        "bytes": 12855,
+        "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+      },
+      {
+        "path": "script/native_retained_atrc_output.py",
+        "archiveMember": "sources/script/native_retained_atrc_output.py",
+        "bytes": 37389,
+        "sha256": "f75d272ba2d4ae7650dd3f23a7c5b85e2c8c26ff6eddd6817bb07f0e9023d216"
+      },
+      {
+        "path": "script/native_retained_trace_command.py",
+        "archiveMember": "sources/script/native_retained_trace_command.py",
+        "bytes": 10663,
+        "sha256": "cd772ee5449e124f3e0ad5f0e10417d31bc1d0b6f287c3a76d34a10ccc60fcba"
+      },
+      {
+        "path": "script/native_retained_trace_input.py",
+        "archiveMember": "sources/script/native_retained_trace_input.py",
+        "bytes": 17190,
+        "sha256": "270f2e443ecdebde0306c463c4dcfa88d1a4c96c81604fad088dd6500ce9a8f0"
+      },
+      {
+        "path": "script/native_sampler_tool_identity.py",
+        "archiveMember": "sources/script/native_sampler_tool_identity.py",
+        "bytes": 5168,
+        "sha256": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78"
+      },
+      {
+        "path": "script/privacy_check.py",
+        "archiveMember": "sources/script/privacy_check.py",
+        "bytes": 18042,
+        "sha256": "3924cd779956cee1575489ae4f724d3bfd15ebbd8d166ae62cb17d3cf99294a6"
+      },
+      {
+        "path": "script/run_native_recorder_progress_observation.py",
+        "archiveMember": "sources/script/run_native_recorder_progress_observation.py",
+        "bytes": 66947,
+        "sha256": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f"
+      },
+      {
+        "path": "script/run_native_recorder_startup_observation.py",
+        "archiveMember": "sources/script/run_native_recorder_startup_observation.py",
+        "bytes": 31718,
+        "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7"
+      },
+      {
+        "path": "script/run_native_retained_atrc_import.py",
+        "archiveMember": "sources/script/run_native_retained_atrc_import.py",
+        "bytes": 23685,
+        "sha256": "e657b42ad59f3cd4ef4580944db735e60aa094a49ad392d0fedbc4dbffc06c96"
+      },
+      {
+        "path": "script/run_native_system_trace_startup.py",
+        "archiveMember": "sources/script/run_native_system_trace_startup.py",
+        "bytes": 47898,
+        "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010"
+      },
+      {
+        "path": "script/test_native_retained_atrc_output.py",
+        "archiveMember": "sources/script/test_native_retained_atrc_output.py",
+        "bytes": 17071,
+        "sha256": "6ada2b0763bb28476949c484af16c79a0109b99f3821fc20e3741dec68e0f5b0"
+      },
+      {
+        "path": "script/test_native_retained_trace_command.py",
+        "archiveMember": "sources/script/test_native_retained_trace_command.py",
+        "bytes": 11565,
+        "sha256": "a7bf175d5470d01cdae3bb641ed2f8da872ac07aa9449d5e8e5482131a867757"
+      },
+      {
+        "path": "script/test_native_retained_trace_input.py",
+        "archiveMember": "sources/script/test_native_retained_trace_input.py",
+        "bytes": 14893,
+        "sha256": "803df2a8932d4ce903ffea6afb71c0ba3754c9feda34dcdf7f5d38728dd6e3ec"
+      },
+      {
+        "path": "script/test_run_native_recorder_progress_observation.py",
+        "archiveMember": "sources/script/test_run_native_recorder_progress_observation.py",
+        "bytes": 60266,
+        "sha256": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a"
+      },
+      {
+        "path": "script/test_run_native_retained_atrc_import.py",
+        "archiveMember": "sources/script/test_run_native_retained_atrc_import.py",
+        "bytes": 15887,
+        "sha256": "21fd9ec40f88dd06bd955afee597183bfaa95667724247f0e064721cde708c48"
+      }
+    ],
+    "publicProjection": {
+      "changedStrings": 12,
+      "allOtherTypesValuesAndIntegerClocksUnchanged": true
+    },
+    "nativeOutcome": {
+      "status": "diagnostic-incomplete",
+      "importCount": 1,
+      "nativeTestCount": 99,
+      "transportComplete": false,
+      "cleanupComplete": true,
+      "sourceInputReaderUnchanged": true,
+      "qualifiedDerivativeRetained": false
+    },
+    "timeline": [
+      {
+        "event": "import-before-spawn",
+        "clock": {
+          "monotonicAfterNS": 294557260659,
+          "monotonicBeforeNS": 294557259818,
+          "wallTimeNS": 1794236332565609000
+        }
+      },
+      {
+        "event": "import-after-spawn",
+        "clock": {
+          "monotonicAfterNS": 294560994187,
+          "monotonicBeforeNS": 294560992519,
+          "wallTimeNS": 1794236332569345000
+        }
+      },
+      {
+        "event": "stdout-first-drained",
+        "clock": {
+          "monotonicAfterNS": 297328777646,
+          "monotonicBeforeNS": 297328776246,
+          "wallTimeNS": 1794236335338512000
+        }
+      },
+      {
+        "event": "stdout-saving-message-drained",
+        "clock": {
+          "monotonicAfterNS": 311363818183,
+          "monotonicBeforeNS": 311363816543,
+          "wallTimeNS": 1794236349380570000
+        }
+      },
+      {
+        "event": "last-complete-census-start",
+        "clock": {
+          "monotonicAfterNS": 313192485607,
+          "monotonicBeforeNS": 313192483474,
+          "wallTimeNS": 1794236351210152000
+        }
+      },
+      {
+        "event": "last-complete-census-end",
+        "clock": {
+          "monotonicAfterNS": 313206557334,
+          "monotonicBeforeNS": 313206555945,
+          "wallTimeNS": 1794236351224231000
+        }
+      },
+      {
+        "event": "failed-census-start",
+        "clock": {
+          "monotonicAfterNS": 313260949185,
+          "monotonicBeforeNS": 313260946687,
+          "wallTimeNS": 1794236351278649000
+        }
+      },
+      {
+        "event": "observation-failure-recorded",
+        "clock": {
+          "monotonicAfterNS": 313852059210,
+          "monotonicBeforeNS": 313852057389,
+          "wallTimeNS": 1794236351870055000
+        }
+      },
+      {
+        "event": "failed-census-end",
+        "clock": {
+          "monotonicAfterNS": 313852773688,
+          "monotonicBeforeNS": 313852772400,
+          "wallTimeNS": 1794236351870770000
+        }
+      },
+      {
+        "event": "target-stop-requested",
+        "clock": {
+          "monotonicAfterNS": 313852831751,
+          "monotonicBeforeNS": 313852823945,
+          "wallTimeNS": 1794236351870828000
+        }
+      },
+      {
+        "event": "target-exit-observed-without-reap",
+        "clock": {
+          "monotonicAfterNS": 314152170067,
+          "monotonicBeforeNS": 314152168257,
+          "wallTimeNS": 1794236352170316000
+        }
+      },
+      {
+        "event": "target-operation-complete",
+        "clock": {
+          "monotonicAfterNS": 314152187041,
+          "monotonicBeforeNS": 314152186622,
+          "wallTimeNS": 1794236352170333000
+        }
+      },
+      {
+        "event": "owned-group-probe-before-spawn",
+        "clock": {
+          "monotonicAfterNS": 314152488569,
+          "monotonicBeforeNS": 314152487406,
+          "wallTimeNS": 1794236352170635000
+        }
+      },
+      {
+        "event": "owned-group-probe-after-spawn",
+        "clock": {
+          "monotonicAfterNS": 314159305931,
+          "monotonicBeforeNS": 314159303908,
+          "wallTimeNS": 1794236352177455000
+        }
+      },
+      {
+        "event": "owned-group-probe-output-drained",
+        "clock": {
+          "monotonicAfterNS": 314199075932,
+          "monotonicBeforeNS": 314199074451,
+          "wallTimeNS": 1794236352217246000
+        }
+      },
+      {
+        "event": "owned-group-probe-operation-complete",
+        "clock": {
+          "monotonicAfterNS": 314204705248,
+          "monotonicBeforeNS": 314204703701,
+          "wallTimeNS": 1794236352222878000
+        }
+      },
+      {
+        "event": "owned-group-probe-collected",
+        "clock": {
+          "monotonicAfterNS": 314207697248,
+          "monotonicBeforeNS": 314207696729,
+          "wallTimeNS": 1794236352225871000
+        }
+      },
+      {
+        "event": "target-collection-started",
+        "clock": {
+          "monotonicAfterNS": 314207704613,
+          "monotonicBeforeNS": 314207704203,
+          "wallTimeNS": 1794236352225879000
+        }
+      },
+      {
+        "event": "target-collected",
+        "clock": {
+          "monotonicAfterNS": 314207718354,
+          "monotonicBeforeNS": 314207717928,
+          "wallTimeNS": 1794236352225892000
+        }
+      }
+    ],
+    "adjacentClockSampleIntervals": [
+      {
+        "from": "import-before-spawn",
+        "to": "import-after-spawn",
+        "minimumNS": 3731860,
+        "maximumNS": 3734369
+      },
+      {
+        "from": "import-after-spawn",
+        "to": "stdout-first-drained",
+        "minimumNS": 2767782059,
+        "maximumNS": 2767785127
+      },
+      {
+        "from": "stdout-first-drained",
+        "to": "stdout-saving-message-drained",
+        "minimumNS": 14035038897,
+        "maximumNS": 14035041937
+      },
+      {
+        "from": "stdout-saving-message-drained",
+        "to": "last-complete-census-start",
+        "minimumNS": 1828665291,
+        "maximumNS": 1828669064
+      },
+      {
+        "from": "last-complete-census-start",
+        "to": "last-complete-census-end",
+        "minimumNS": 14070338,
+        "maximumNS": 14073860
+      },
+      {
+        "from": "last-complete-census-end",
+        "to": "failed-census-start",
+        "minimumNS": 54389353,
+        "maximumNS": 54393240
+      },
+      {
+        "from": "failed-census-start",
+        "to": "observation-failure-recorded",
+        "minimumNS": 591108204,
+        "maximumNS": 591112523
+      },
+      {
+        "from": "observation-failure-recorded",
+        "to": "failed-census-end",
+        "minimumNS": 713190,
+        "maximumNS": 716299
+      },
+      {
+        "from": "failed-census-end",
+        "to": "target-stop-requested",
+        "minimumNS": 50257,
+        "maximumNS": 59351
+      },
+      {
+        "from": "target-stop-requested",
+        "to": "target-exit-observed-without-reap",
+        "minimumNS": 299336506,
+        "maximumNS": 299346122
+      },
+      {
+        "from": "target-exit-observed-without-reap",
+        "to": "target-operation-complete",
+        "minimumNS": 16555,
+        "maximumNS": 18784
+      },
+      {
+        "from": "target-operation-complete",
+        "to": "owned-group-probe-before-spawn",
+        "minimumNS": 300365,
+        "maximumNS": 301947
+      },
+      {
+        "from": "owned-group-probe-before-spawn",
+        "to": "owned-group-probe-after-spawn",
+        "minimumNS": 6815339,
+        "maximumNS": 6818525
+      },
+      {
+        "from": "owned-group-probe-after-spawn",
+        "to": "owned-group-probe-output-drained",
+        "minimumNS": 39768520,
+        "maximumNS": 39772024
+      },
+      {
+        "from": "owned-group-probe-output-drained",
+        "to": "owned-group-probe-operation-complete",
+        "minimumNS": 5627769,
+        "maximumNS": 5630797
+      },
+      {
+        "from": "owned-group-probe-operation-complete",
+        "to": "owned-group-probe-collected",
+        "minimumNS": 2991481,
+        "maximumNS": 2993547
+      },
+      {
+        "from": "owned-group-probe-collected",
+        "to": "target-collection-started",
+        "minimumNS": 6955,
+        "maximumNS": 7884
+      },
+      {
+        "from": "target-collection-started",
+        "to": "target-collected",
+        "minimumNS": 13315,
+        "maximumNS": 14151
+      }
+    ],
+    "clockSemantics": "Integer samples bracket wall-clock sampling; interval differences refer to these samples, not exact syscall entry/exit or target event times. Stdout clocks are parent drain observations.",
+    "signals": [
+      {
+        "afterSeconds": 19.297913152000035,
+        "signal": "SIGTERM",
+        "target": "owned-group"
+      },
+      {
+        "afterSeconds": 19.558746246,
+        "signal": "SIGKILL",
+        "target": "owned-group"
+      }
+    ],
+    "termToKillSecondsDerivedFromRecordedOffsets": 0.26083309399996324,
+    "signalTimingLimit": "Signals retain floating afterSeconds offsets measured after killpg returns; no independent integer signal clock or child-delivery timestamp was retained. These offsets use transport.started, not clockAtSpawn.",
+    "stopResponseAfterFailedCensusEnd": {
+      "minimumNS": 50257,
+      "maximumNS": 59351
+    },
+    "failedCensus": {
+      "completed": false,
+      "elapsedSeconds": 0.5918786610000097,
+      "endedClock": {
+        "monotonicAfterNS": 313852773688,
+        "monotonicBeforeNS": 313852772400,
+        "wallTimeNS": 1794236351870770000
+      },
+      "scanDeadlineOvershootSeconds": 0.34187866100000974,
+      "startedClock": {
+        "monotonicAfterNS": 313260949185,
+        "monotonicBeforeNS": 313260946687,
+        "wallTimeNS": 1794236351278649000
+      }
+    },
+    "failure": {
+      "clock": {
+        "monotonicAfterNS": 313852059210,
+        "monotonicBeforeNS": 313852057389,
+        "wallTimeNS": 1794236351870055000
+      },
+      "code": "derived-output-observation-failed",
+      "error": "OutputError: Output observation or retention deadline exceeded"
+    },
+    "perCensusBudgetSeconds": 0.25,
+    "lastCompletedRetainedCensus": {
+      "allocatedBytes": 2142208,
+      "completed": true,
+      "depth": 7,
+      "elapsedSeconds": 0.014072890000022653,
+      "endedClock": {
+        "monotonicAfterNS": 313206557334,
+        "monotonicBeforeNS": 313206555945,
+        "wallTimeNS": 1794236351224231000
+      },
+      "entries": 244,
+      "logicalBytes": 1569293,
+      "scanDeadlineOvershootSeconds": 0.0,
+      "startedClock": {
+        "monotonicAfterNS": 313192485607,
+        "monotonicBeforeNS": 313192483474,
+        "wallTimeNS": 1794236351210152000
+      }
+    },
+    "highWaterObserved": {
+      "allocatedBytes": 2232320,
+      "depth": 7,
+      "entries": 244,
+      "logicalBytes": 1686939
+    },
+    "outputScope": "Live traversal totals and partial failed-scan high-water counters prove output growth; they do not reconstruct a final named tree, transient peak, saved document, or readable payload.",
+    "operationTiming": {
+      "normalOperationBudgetSeconds": 90.0,
+      "totalBudgetSeconds": 95.0,
+      "exitObservedAfterSeconds": 19.594896554,
+      "operationElapsedSeconds": 19.594917998000028,
+      "adapterElapsedSeconds": 19.651000823999993,
+      "normalDeadlineOvershootSeconds": 0.0,
+      "totalDeadlineOvershootSeconds": 0.0
+    },
+    "retention": {
+      "archive": null,
+      "archiveRootPrefix": "derived-output/",
+      "errors": [
+        "OutputError: Output observation or retention deadline exceeded"
+      ],
+      "inventory": null,
+      "inventoryComplete": false,
+      "newAnalysisDocumentObserved": false,
+      "outputBoundsPass": false,
+      "retentionBudgetSeconds": 30.0,
+      "retentionComplete": false,
+      "retentionDeadlineOvershootSeconds": 0.0,
+      "retentionElapsedSeconds": 1.8080000018017017e-05,
+      "semanticAnalysisValidityEstablished": false,
+      "status": "skipped-output-observation-failed"
+    },
+    "retentionTimingLimit": "Source order places finalization after capture and positive cleanup. Only retention elapsed time is recorded; no absolute retention clock or final partial-output inventory is available.",
+    "observationAccounting": {
+      "completedScans": 324,
+      "retainedRecords": 256,
+      "retainedCompleted": 255,
+      "retainedFailed": 1,
+      "reportedOmittedCompleted": 68,
+      "independentlyDerivedOmittedCompleted": 69,
+      "discrepancy": 1,
+      "cause": "summary subtracts all retained records, including the failed record, from completed scans; sample increments only after a returned complete scan.",
+      "scope": "A summary accounting defect; it occurs after capture and cannot explain the slow census or establish native import acceptance."
+    },
+    "sourceAnchors": {
+      "_scan": {
+        "path": "script/native_retained_atrc_output.py",
+        "line": 169
+      },
+      "sample": {
+        "path": "script/native_retained_atrc_output.py",
+        "line": 242
+      },
+      "summary": {
+        "path": "script/native_retained_atrc_output.py",
+        "line": 281
+      },
+      "finalize": {
+        "path": "script/native_retained_atrc_output.py",
+        "line": 318
+      }
+    },
+    "nativeTestLogs": [
+      {
+        "suite": "d24-used-primitives",
+        "testsPassed": 19,
+        "reportedSeconds": 3.195,
+        "bytes": 3259,
+        "sha256": "8e44eca6aac839bf99b5d2c4f09d5b621a4e934a5a465a85d551ed659963c5b5"
+      },
+      {
+        "suite": "native_retained_trace_command",
+        "testsPassed": 9,
+        "reportedSeconds": 3.781,
+        "bytes": 1587,
+        "sha256": "facf418ecdcde9332eea41a27a520f718a666e71f48e498c1e7316f67cd9b0ab"
+      },
+      {
+        "suite": "native_retained_trace_input",
+        "testsPassed": 23,
+        "reportedSeconds": 0.274,
+        "bytes": 3436,
+        "sha256": "e42574de89c13119471521a428e1fc3349d5ff0a4b8db3b13f6487cab2f930d7"
+      },
+      {
+        "suite": "native_retained_atrc_output",
+        "testsPassed": 24,
+        "reportedSeconds": 2.708,
+        "bytes": 3955,
+        "sha256": "f09115af18ab81e9fe7ea0999ed2a41a5d44403300a5802807f612abee0463ed"
+      },
+      {
+        "suite": "run_native_retained_atrc_import",
+        "testsPassed": 24,
+        "reportedSeconds": 0.03,
+        "bytes": 4154,
+        "sha256": "3fc7a95c28b3b027c8d4ab096328289a11805cd85d446ae2f96c78a46dcda1e5"
+      }
+    ],
+    "established": [
+      "The cooperative census budget failed and caused the owned-group stop request.",
+      "TERM and KILL were requested before the parent observed exit -9; PID ownership was retained through group inspection.",
+      "The last completed retained census and high-water counters show output growth, without a stable final retained document.",
+      "The original reported68 and independently derived69 are distinct and preserved."
+    ],
+    "notEstablished": [
+      "The particular delayed filesystem call or its duration.",
+      "Whether filesystem latency or parent scheduling explains the census delay.",
+      "The child's actual stderr/stdout emission time or exact signal-delivery/descendant-exit times.",
+      "The native partial output's file names, final structure, readability, or outcome had saving continued.",
+      "The missing69 completed observation records or a suitable larger budget from this single outcome."
+    ],
+    "thresholdDecision": {
+      "largerThresholdJustifiedByThisRecord": false,
+      "changeMade": false,
+      "reason": "One unattributed cooperative overrun provides no latency distribution, per-call witness, or supervision-liveness guarantee; increasing a threshold would not test the identified boundary."
+    },
+    "recommendedNextEvidence": [
+      "Use deterministic delayed-filesystem and clock fixtures against the actual observation/capture path to measure when supervision resumes.",
+      "Fix the isolated completed-versus-retained accounting defect with an observed red/green regression.",
+      "Specify observer work isolation or bounded yields, operation-level timing witnesses, sequence numbers, and cleanup obligations before a separately scoped native attempt."
+    ],
+    "nativeInvocationsPerformedByThisAnalysis": 0,
+    "checks": [
+      {
+        "id": "pinned-native-archive-bytes-and-sha",
+        "passed": true
+      },
+      {
+        "id": "unique-native-archive-members",
+        "passed": true
+      },
+      {
+        "id": "native-archive-files-and-expanded-bytes",
+        "passed": true
+      },
+      {
+        "id": "all75-native-members-crc-read-and-sized",
+        "passed": true
+      },
+      {
+        "id": "pinned-native-summary-bytes-and-sha",
+        "passed": true
+      },
+      {
+        "id": "summary-embeds-exact-command-receipt",
+        "passed": true
+      },
+      {
+        "id": "executed-source-commit-and-tree",
+        "passed": true
+      },
+      {
+        "id": "executed-git-tree-exists-and-matches",
+        "passed": true
+      },
+      {
+        "id": "published-git-tree-exists-and-matches",
+        "passed": true
+      },
+      {
+        "id": "native-build-source-receipts-match",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:.github/workflows/native-retained-atrc-import.yml",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:docs/NATIVE_RETAINED_ATRC_CONTRACT.md",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:docs/NATIVE_RETAINED_ATRC_IMPORT.md",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:docs/evidence/D26-retained-atrc-contract.json",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:script/collect_native_trace_capabilities.py",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:script/native_retained_atrc_output.py",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:script/native_retained_trace_command.py",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:script/native_retained_trace_input.py",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:script/native_sampler_tool_identity.py",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:script/privacy_check.py",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:script/run_native_recorder_progress_observation.py",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:script/run_native_recorder_startup_observation.py",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:script/run_native_retained_atrc_import.py",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:script/run_native_system_trace_startup.py",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:script/test_native_retained_atrc_output.py",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:script/test_native_retained_trace_command.py",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:script/test_native_retained_trace_input.py",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:script/test_run_native_recorder_progress_observation.py",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-byte-binding:script/test_run_native_retained_atrc_import.py",
+        "passed": true
+      },
+      {
+        "id": "all19-physical-source-copies-bound",
+        "passed": true
+      },
+      {
+        "id": "public-summary-original-identity-bound",
+        "passed": true
+      },
+      {
+        "id": "public-projection-only12-declared-leaf-changes",
+        "passed": true
+      },
+      {
+        "id": "public-projection-exact-declared-prefix-substitutions",
+        "passed": true
+      },
+      {
+        "id": "retained-observation-accounting",
+        "passed": true
+      },
+      {
+        "id": "distinct-retained-observation-starts",
+        "passed": true
+      },
+      {
+        "id": "native-completed-count-preserved",
+        "passed": true
+      },
+      {
+        "id": "known-counter-discrepancy-preserved-and-rederived",
+        "passed": true
+      },
+      {
+        "id": "old-formula-explains-reported-count",
+        "passed": true
+      },
+      {
+        "id": "failed-observation-is-last-and-has-no-complete-totals",
+        "passed": true
+      },
+      {
+        "id": "last-complete-output-growth",
+        "passed": true
+      },
+      {
+        "id": "reported-high-water-includes-partial-traversal",
+        "passed": true
+      },
+      {
+        "id": "no-observed-size-entry-depth-limit-breach",
+        "passed": true
+      },
+      {
+        "id": "census-budget-exceeded",
+        "passed": true
+      },
+      {
+        "id": "explicit-observation-stop-not-command-deadline",
+        "passed": true
+      },
+      {
+        "id": "all-retained-clocks-remain-integer-samples",
+        "passed": true
+      },
+      {
+        "id": "clock-order:import-before-spawn->import-after-spawn",
+        "passed": true
+      },
+      {
+        "id": "clock-order:import-after-spawn->stdout-first-drained",
+        "passed": true
+      },
+      {
+        "id": "clock-order:stdout-first-drained->stdout-saving-message-drained",
+        "passed": true
+      },
+      {
+        "id": "clock-order:stdout-saving-message-drained->last-complete-census-start",
+        "passed": true
+      },
+      {
+        "id": "clock-order:last-complete-census-start->last-complete-census-end",
+        "passed": true
+      },
+      {
+        "id": "clock-order:last-complete-census-end->failed-census-start",
+        "passed": true
+      },
+      {
+        "id": "clock-order:failed-census-start->observation-failure-recorded",
+        "passed": true
+      },
+      {
+        "id": "clock-order:observation-failure-recorded->failed-census-end",
+        "passed": true
+      },
+      {
+        "id": "clock-order:failed-census-end->target-stop-requested",
+        "passed": true
+      },
+      {
+        "id": "clock-order:target-stop-requested->target-exit-observed-without-reap",
+        "passed": true
+      },
+      {
+        "id": "clock-order:target-exit-observed-without-reap->target-operation-complete",
+        "passed": true
+      },
+      {
+        "id": "clock-order:target-operation-complete->owned-group-probe-before-spawn",
+        "passed": true
+      },
+      {
+        "id": "clock-order:owned-group-probe-before-spawn->owned-group-probe-after-spawn",
+        "passed": true
+      },
+      {
+        "id": "clock-order:owned-group-probe-after-spawn->owned-group-probe-output-drained",
+        "passed": true
+      },
+      {
+        "id": "clock-order:owned-group-probe-output-drained->owned-group-probe-operation-complete",
+        "passed": true
+      },
+      {
+        "id": "clock-order:owned-group-probe-operation-complete->owned-group-probe-collected",
+        "passed": true
+      },
+      {
+        "id": "clock-order:owned-group-probe-collected->target-collection-started",
+        "passed": true
+      },
+      {
+        "id": "clock-order:target-collection-started->target-collected",
+        "passed": true
+      },
+      {
+        "id": "recorded-owned-group-term-then-kill",
+        "passed": true
+      },
+      {
+        "id": "signal-offset-order-and-grace",
+        "passed": true
+      },
+      {
+        "id": "exit-is-recorded-kill-and-cleanup-complete",
+        "passed": true
+      },
+      {
+        "id": "final-probe-contains-only-owned-zombie-leader",
+        "passed": true
+      },
+      {
+        "id": "probe-and-target-lease-collected-without-loss",
+        "passed": true
+      },
+      {
+        "id": "exact-reader-progress-stream-and-empty-stderr",
+        "passed": true
+      },
+      {
+        "id": "retention-skipped-with-no-inventory-or-archive",
+        "passed": true
+      },
+      {
+        "id": "no-derived-archive-member",
+        "passed": true
+      },
+      {
+        "id": "original-input-source-tool-unchanged",
+        "passed": true
+      },
+      {
+        "id": "single-native-import-no-export-recording-or-sampler",
+        "passed": true
+      },
+      {
+        "id": "incomplete-result-and-acceptance-flags-preserved",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-has-demonstrated-counter-formula",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-increments-only-after-complete-scan",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-declares-cooperative-not-hard-syscall-deadline",
+        "passed": true
+      },
+      {
+        "id": "frozen-source-finalizes-after-capture-and-skips-failed-observation",
+        "passed": true
+      },
+      {
+        "id": "native-test-log-ended-successfully:d24-used-primitives",
+        "passed": true
+      },
+      {
+        "id": "native-test-log-ended-successfully:native_retained_trace_command",
+        "passed": true
+      },
+      {
+        "id": "native-test-log-ended-successfully:native_retained_trace_input",
+        "passed": true
+      },
+      {
+        "id": "native-test-log-ended-successfully:native_retained_atrc_output",
+        "passed": true
+      },
+      {
+        "id": "native-test-log-ended-successfully:run_native_retained_atrc_import",
+        "passed": true
+      },
+      {
+        "id": "native99-passing-tests-distinct-from-import-outcome",
+        "passed": true
+      },
+      {
+        "id": "public-review-record-has-no-private-home-prefix",
+        "passed": true
+      }
+    ],
+    "checkCount": 85,
+    "checksPassed": 85,
+    "allChecksPassed": true
+  },
+  "nativeReconstructionIdentity": {
+    "bytes": 29892,
+    "sha256": "7de8a6bdfd356d4762fdfc02ddf3b59c9b6670eed86f2e690f8ae4f98129980a"
+  },
+  "syntheticCharacterization": {
+    "schema": "lemulip-d28-synthetic-timing-witnesses-v1",
+    "recordedUTC": "2026-11-09T23:06:06.189521+00:00",
+    "evidenceKind": "deterministic-synthetic-observer-tests",
+    "sourceBefore": {
+      "native_retained_atrc_output.py": {
+        "bytes": 37465,
+        "sha256": "4c7cde158a0b10257facbea1b0e40e161e9d5bdb72878a46d43dfac08b7a4fec"
+      },
+      "test_native_retained_atrc_observer.py": {
+        "bytes": 15421,
+        "sha256": "0de916df3b691965465549a22717ca10ffb669067db75ec3df2253a2f6f858c3"
+      },
+      "run_native_recorder_progress_observation.py": {
+        "bytes": 66947,
+        "sha256": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f"
+      }
+    },
+    "sourceAfter": {
+      "native_retained_atrc_output.py": {
+        "bytes": 37465,
+        "sha256": "4c7cde158a0b10257facbea1b0e40e161e9d5bdb72878a46d43dfac08b7a4fec"
+      },
+      "test_native_retained_atrc_observer.py": {
+        "bytes": 15421,
+        "sha256": "0de916df3b691965465549a22717ca10ffb669067db75ec3df2253a2f6f858c3"
+      },
+      "run_native_recorder_progress_observation.py": {
+        "bytes": 66947,
+        "sha256": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f"
+      }
+    },
+    "sourceUnchangedDuringExecution": true,
+    "testsRun": 5,
+    "allTestsPassed": true,
+    "witnesses": [
+      {
+        "test": "test_native_retained_atrc_observer.ObserverBoundaryTests.test_exit_zero_during_scan_does_not_erase_observer_failure",
+        "passed": true,
+        "witness": {
+          "evidenceKind": "deterministic-synthetic-observer-test",
+          "delay": {
+            "begin": 0.05,
+            "end": 0.65
+          },
+          "firstResumedSupervision": {
+            "kind": "drain",
+            "time": 0.655,
+            "pid": 42000
+          },
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.65
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.9
+            }
+          ],
+          "stopReason": "derived-output-observation-failed",
+          "exitCode": 0,
+          "cleanupComplete": true,
+          "transportComplete": false,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "operationElapsedSeconds": 0.9,
+          "completionObservedWithinTotalBudget": true,
+          "lifecycleEvents": [
+            {
+              "kind": "metadata-enter",
+              "time": 0.05,
+              "pid": null
+            },
+            {
+              "kind": "metadata-return",
+              "time": 0.65,
+              "pid": null
+            },
+            {
+              "kind": "SIGTERM",
+              "time": 0.65,
+              "pid": 42000
+            },
+            {
+              "kind": "SIGKILL",
+              "time": 0.9,
+              "pid": 42000
+            },
+            {
+              "kind": "group-snapshot",
+              "time": 0.9,
+              "pid": 42000
+            },
+            {
+              "kind": "collect",
+              "time": 0.9,
+              "pid": 42001
+            },
+            {
+              "kind": "collect",
+              "time": 0.9,
+              "pid": 42000
+            }
+          ],
+          "observation": {
+            "startedClock": {
+              "monotonicBeforeNS": 50000000,
+              "wallTimeNS": 1700000000050000000,
+              "monotonicAfterNS": 50000000
+            },
+            "elapsedSeconds": 0.6,
+            "completed": false,
+            "endedClock": {
+              "monotonicBeforeNS": 650000000,
+              "wallTimeNS": 1700000000650000000,
+              "monotonicAfterNS": 650000000
+            },
+            "scanDeadlineOvershootSeconds": 0.35
+          },
+          "syntheticNaturalExitAt": 0.1,
+          "exitObservedAfterSeconds": 0.655
+        }
+      },
+      {
+        "test": "test_native_retained_atrc_observer.ObserverBoundaryTests.test_late_metadata_return_preserves_partial_high_water_and_skips_retention",
+        "passed": true,
+        "witness": {
+          "evidenceKind": "deterministic-synthetic-observer-test",
+          "observation": {
+            "startedClock": {
+              "monotonicBeforeNS": 0,
+              "wallTimeNS": 1700000000000000000,
+              "monotonicAfterNS": 0
+            },
+            "elapsedSeconds": 0.6,
+            "completed": false,
+            "endedClock": {
+              "monotonicBeforeNS": 600000000,
+              "wallTimeNS": 1700000000600000000,
+              "monotonicAfterNS": 600000000
+            },
+            "scanDeadlineOvershootSeconds": 0.35
+          },
+          "failure": {
+            "code": "derived-output-observation-failed",
+            "error": "OutputError: Output observation or retention deadline exceeded",
+            "clock": {
+              "monotonicBeforeNS": 600000000,
+              "wallTimeNS": 1700000000600000000,
+              "monotonicAfterNS": 600000000
+            }
+          },
+          "completedScanCount": 1,
+          "highWaterObserved": {
+            "logicalBytes": 7,
+            "allocatedBytes": 8192,
+            "entries": 2,
+            "depth": 1
+          },
+          "retentionStatus": "skipped-output-observation-failed",
+          "retentionElapsedSeconds": 0.0
+        }
+      },
+      {
+        "test": "test_native_retained_atrc_observer.ObserverBoundaryTests.test_metadata_delay_and_between_call_pause_have_identical_aggregate_scan_timing",
+        "passed": true,
+        "witness": {
+          "evidenceKind": "deterministic-synthetic-observer-test",
+          "indistinguishableAggregateWitness": {
+            "observation": {
+              "startedClock": {
+                "monotonicBeforeNS": 0,
+                "wallTimeNS": 1700000000000000000,
+                "monotonicAfterNS": 0
+              },
+              "elapsedSeconds": 0.6,
+              "completed": false,
+              "endedClock": {
+                "monotonicBeforeNS": 600000000,
+                "wallTimeNS": 1700000000600000000,
+                "monotonicAfterNS": 600000000
+              },
+              "scanDeadlineOvershootSeconds": 0.35
+            },
+            "failure": {
+              "code": "derived-output-observation-failed",
+              "error": "OutputError: Output observation or retention deadline exceeded",
+              "clock": {
+                "monotonicBeforeNS": 600000000,
+                "wallTimeNS": 1700000000600000000,
+                "monotonicAfterNS": 600000000
+              }
+            },
+            "completedScanCount": 1,
+            "highWaterObserved": {
+              "logicalBytes": 0,
+              "allocatedBytes": 4096,
+              "entries": 1,
+              "depth": 0
+            }
+          },
+          "injectedBoundaries": [
+            "metadata-call",
+            "between-calls"
+          ],
+          "actualNativeDelayAttributed": false
+        }
+      },
+      {
+        "test": "test_native_retained_atrc_observer.ObserverBoundaryTests.test_scan_crossing_total_deadline_cannot_pass_after_late_collection",
+        "passed": true,
+        "witness": {
+          "evidenceKind": "deterministic-synthetic-observer-test",
+          "delay": {
+            "begin": 0.05,
+            "end": 0.65
+          },
+          "firstResumedSupervision": {
+            "kind": "drain",
+            "time": 0.655,
+            "pid": 42000
+          },
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.65
+            },
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.655
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.905
+            }
+          ],
+          "stopReason": "derived-output-observation-failed",
+          "exitCode": -9,
+          "cleanupComplete": false,
+          "transportComplete": false,
+          "normalDeadlineOvershootSeconds": 0.25,
+          "totalDeadlineOvershootSeconds": 0.15500000000000003,
+          "operationElapsedSeconds": 0.655,
+          "completionObservedWithinTotalBudget": false,
+          "lifecycleEvents": [
+            {
+              "kind": "metadata-enter",
+              "time": 0.05,
+              "pid": null
+            },
+            {
+              "kind": "metadata-return",
+              "time": 0.65,
+              "pid": null
+            },
+            {
+              "kind": "SIGTERM",
+              "time": 0.65,
+              "pid": 42000
+            },
+            {
+              "kind": "group-snapshot",
+              "time": 0.655,
+              "pid": 42000
+            },
+            {
+              "kind": "SIGTERM",
+              "time": 0.655,
+              "pid": 42000
+            },
+            {
+              "kind": "SIGKILL",
+              "time": 0.905,
+              "pid": 42000
+            },
+            {
+              "kind": "group-snapshot",
+              "time": 0.905,
+              "pid": 42000
+            },
+            {
+              "kind": "collect",
+              "time": 0.905,
+              "pid": 42001
+            },
+            {
+              "kind": "collect",
+              "time": 0.905,
+              "pid": 42002
+            },
+            {
+              "kind": "collect",
+              "time": 0.905,
+              "pid": 42000
+            }
+          ],
+          "observation": {
+            "startedClock": {
+              "monotonicBeforeNS": 50000000,
+              "wallTimeNS": 1700000000050000000,
+              "monotonicAfterNS": 50000000
+            },
+            "elapsedSeconds": 0.6,
+            "completed": false,
+            "endedClock": {
+              "monotonicBeforeNS": 650000000,
+              "wallTimeNS": 1700000000650000000,
+              "monotonicAfterNS": 650000000
+            },
+            "scanDeadlineOvershootSeconds": 0.35
+          }
+        }
+      },
+      {
+        "test": "test_native_retained_atrc_observer.ObserverBoundaryTests.test_synchronous_scan_defers_supervision_then_preserves_owned_cleanup",
+        "passed": true,
+        "witness": {
+          "evidenceKind": "deterministic-synthetic-observer-test",
+          "delay": {
+            "begin": 0.05,
+            "end": 0.65
+          },
+          "firstResumedSupervision": {
+            "kind": "drain",
+            "time": 0.655,
+            "pid": 42000
+          },
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.65
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.9
+            }
+          ],
+          "stopReason": "derived-output-observation-failed",
+          "exitCode": -9,
+          "cleanupComplete": true,
+          "transportComplete": false,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "operationElapsedSeconds": 0.905,
+          "completionObservedWithinTotalBudget": true,
+          "lifecycleEvents": [
+            {
+              "kind": "metadata-enter",
+              "time": 0.05,
+              "pid": null
+            },
+            {
+              "kind": "metadata-return",
+              "time": 0.65,
+              "pid": null
+            },
+            {
+              "kind": "SIGTERM",
+              "time": 0.65,
+              "pid": 42000
+            },
+            {
+              "kind": "SIGKILL",
+              "time": 0.9,
+              "pid": 42000
+            },
+            {
+              "kind": "group-snapshot",
+              "time": 0.905,
+              "pid": 42000
+            },
+            {
+              "kind": "collect",
+              "time": 0.905,
+              "pid": 42001
+            },
+            {
+              "kind": "collect",
+              "time": 0.905,
+              "pid": 42000
+            }
+          ],
+          "observation": {
+            "startedClock": {
+              "monotonicBeforeNS": 50000000,
+              "wallTimeNS": 1700000000050000000,
+              "monotonicAfterNS": 50000000
+            },
+            "elapsedSeconds": 0.6,
+            "completed": false,
+            "endedClock": {
+              "monotonicBeforeNS": 650000000,
+              "wallTimeNS": 1700000000650000000,
+              "monotonicAfterNS": 650000000
+            },
+            "scanDeadlineOvershootSeconds": 0.35
+          }
+        }
+      }
+    ],
+    "syntheticBudgetsSeconds": {
+      "defaultNormal": 1.5,
+      "defaultTotal": 2.0,
+      "overrunNormal": 0.4,
+      "overrunTotal": 0.5,
+      "injectedMetadataDuration": 0.6
+    },
+    "limitations": [
+      "Virtual elapsed time, synthetic transport and waitid state; real disposable filesystem.",
+      "No real process, scheduler, kernel filesystem latency or native import was measured.",
+      "The five cases are part of, not additional to, the final 56-test verification."
+    ],
+    "nativeTraceToolInvocations": 0
+  },
+  "counterFix": {
+    "nativeAccountingWitness": {
+      "pointer": "/nativeResult/commands/atrc-import/outputGuard",
+      "completedScanCount": 324,
+      "retainedObservationCount": 256,
+      "retainedCompletedObservationCount": 255,
+      "retainedFailedObservationCount": 1,
+      "reportedOmittedCompletedObservationCount": 68,
+      "derivedOmittedCompletedObservationCount": 69
+    },
+    "rootCause": "Completed-scan count previously subtracted all retained observations, including a failed observation that occupies a bounded history slot but does not increment completed scans.",
+    "fix": "Subtract only retained completed observations; leave counters, history, failure gates and native outcomes unchanged.",
+    "runtimeDiffRestrictedToSummaryAccounting": true,
+    "sourceBefore": {
+      "bytes": 37389,
+      "sha256": "f75d272ba2d4ae7650dd3f23a7c5b85e2c8c26ff6eddd6817bb07f0e9023d216"
+    },
+    "sourceAfter": {
+      "bytes": 37465,
+      "sha256": "4c7cde158a0b10257facbea1b0e40e161e9d5bdb72878a46d43dfac08b7a4fec"
+    },
+    "testsBefore": {
+      "bytes": 17071,
+      "sha256": "6ada2b0763bb28476949c484af16c79a0109b99f3821fc20e3741dec68e0f5b0"
+    },
+    "testsAfter": {
+      "bytes": 18812,
+      "sha256": "0824d09dbf18b3671e42f4508dcfc6cea17d1044f14834217208ae06fe0a909e"
+    },
+    "newRegressionTestCount": 3,
+    "focusedTestCountIncludingExistingControl": 4,
+    "productionTimingTraversalAdapterRetentionAndClassificationUnchanged": true
+  },
+  "designDecision": {
+    "nextDiagnostic": "D29-offline-isolated-observer",
+    "document": "docs/NATIVE_RETAINED_ATRC_OBSERVER_REVIEW.md",
+    "status": "candidate-contract-defined-not-implemented-or-verified",
+    "separateOwnedObserverProcess": true,
+    "parentDirectoryCensusAllowedDuringCommandSupervision": false,
+    "inheritedLimitsUnchanged": true,
+    "candidateWorkerStartupSeconds": 2.0,
+    "candidateWorkerCleanupSeconds": 2.0,
+    "candidateScanCompletionFromParentDispatchSeconds": 0.25,
+    "candidateMaximumPendingScans": 1,
+    "candidateMaximumMessageBytes": 4096,
+    "candidateMaximumUndecodedBytes": 65536,
+    "candidateMaximumMessagesParsedPerTick": 16,
+    "candidateMaximumBytesParsedPerTick": 65536,
+    "candidateRetainedWorkerDiagnosticBytes": 8388608,
+    "candidateOperationWitnessHistoryFirstLast": [
+      128,
+      128
+    ],
+    "pendingOperationAndFirstFailureRetainedSeparately": true,
+    "nativeRunAuthorizedByThisResult": false,
+    "budgetsAreHardKernelOrSchedulerGuarantees": false
+  },
+  "disposition": {
+    "PR": 45,
+    "status": "open-draft-unmerged-HOLD",
+    "C12": "d821d7343675e2850705d141ef9b3b93a6aee945",
+    "main": "ade8b1673de0c2dff930430564c17f100f5e807b",
+    "task07Accepted": false,
+    "task08FinalAcceptanceDependsOn07": true,
+    "ownerPhysicalAndV4ChecksRemainComplete": true,
+    "productSourceOrOriginalAcceptanceChanged": false
+  }
+}

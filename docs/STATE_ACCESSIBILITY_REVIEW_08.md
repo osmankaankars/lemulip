@@ -263,10 +263,12 @@ diagnostic remains `diagnostic-incomplete`, with no qualified derivative/archive
 [verification](evidence/D27-verification.json) supply no unsupported-input,
 importer-hang or product-root-cause conclusion. No export or new recording ran.
 
-D28 is proposed as an offline review of the bounded observer, classification
-and omitted-observation counter; exact per-call timing was not retained.
-Review precedes any further native proposal, with no automatic threshold
-increase or retry. PR #45 remains draft/unmerged and C12 remains HOLD. The
+[D28](NATIVE_RETAINED_ATRC_OBSERVER_REVIEW.md) completed its offline review and
+narrow omitted-observation counter fix with 56 passing portable tests. Five
+deterministic cases characterize synchronous census/supervision coupling;
+exact native per-call timing remains unavailable. A candidate D29 contract
+for an isolated observer is defined but unimplemented. No native retry or
+threshold increase occurred. PR #45 remains draft/unmerged and C12 remains HOLD. The
 original full Finder sequence, completed source/twelve-image review,
 physical/v4 evidence and task 08's dependency on task 07 remain unchanged.
 

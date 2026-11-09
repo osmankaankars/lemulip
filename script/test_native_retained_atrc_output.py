@@ -228,6 +228,36 @@ class OutputRetentionTests(unittest.TestCase):
         self.assertEqual(256, len(summary["observations"]))
         self.assertEqual(45, summary["omittedCompletedObservationCount"])
 
+    def failed_observation_after(self, completed_scans):
+        guard = self.guard()
+        # Creating the guard already records its first completed scan.
+        for _ in range(completed_scans - 1):
+            self.assertTrue(guard.sample(force=True))
+        with mock.patch.object(guard, "_scan", side_effect=subject.OutputError("synthetic census failure")):
+            self.assertFalse(guard.sample(force=True))
+        summary = guard.summary()
+        self.assertEqual(completed_scans, summary["completedScanCount"])
+        self.assertFalse(summary["observations"][-1]["completed"])
+        return summary
+
+    def test_failed_observation_without_eviction_omits_no_completed_scans(self):
+        summary = self.failed_observation_after(2)
+        self.assertEqual([True, True, False], [row["completed"] for row in summary["observations"]])
+        self.assertEqual(0, summary["omittedCompletedObservationCount"])
+
+    def test_failed_observation_evicting_first_completed_record_counts_that_omission(self):
+        summary = self.failed_observation_after(256)
+        self.assertEqual(256, len(summary["observations"]))
+        self.assertEqual(255, sum(row["completed"] for row in summary["observations"]))
+        self.assertEqual(1, summary["omittedCompletedObservationCount"])
+
+    def test_failed_observation_after_history_truncation_counts_only_completed_records(self):
+        # Match D27's 324 completed scans and one retained failed observation.
+        summary = self.failed_observation_after(324)
+        self.assertEqual(256, len(summary["observations"]))
+        self.assertEqual(255, sum(row["completed"] for row in summary["observations"]))
+        self.assertEqual(69, summary["omittedCompletedObservationCount"])
+
 
 @unittest.skipUnless(hasattr(os, "waitid") and hasattr(os, "WNOWAIT"), "Requires non-reaping POSIX child status")
 class OutputCommandTests(unittest.TestCase):

@@ -280,6 +280,7 @@ class OutputGuard:
 
     def summary(self):
         observations = self.first_observations + list(self.last_observations)
+        retained_completed = sum(row["completed"] for row in observations)
         return {"schema": 1, "root": str(self.root), "target": str(self.target),
                 "limits": dict(self.limits), "syntheticLimitsUsed": self.synthetic_limits,
                 "sampleIntervalSeconds": SAMPLE_INTERVAL_SECONDS,
@@ -292,7 +293,7 @@ class OutputGuard:
                 "hardFilesystemQuotaEnforced": False,
                 "unobservedTransientOrOffRootGrowthExcluded": False,
                 "observations": observations,
-                "omittedCompletedObservationCount": max(0, self.scan_count-len(observations))}
+                "omittedCompletedObservationCount": max(0, self.scan_count-retained_completed)}
 
     def _open_file(self, row, catalog, deadline):
         parts = row["path"].split("/")

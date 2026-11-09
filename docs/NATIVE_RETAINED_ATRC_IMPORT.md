@@ -99,7 +99,16 @@ one failed on this disclosed counter discrepancy**. Its original
 `allChecksPassed=false` remains visible in the verification record. The separate
 semantic review passed all **31 checks** while preserving the incomplete result.
 
-## Next proposed D28 — review the output observer offline
+## D28 follow-up — output-observer review completed offline
+
+[D28's completed review](NATIVE_RETAINED_ATRC_OBSERVER_REVIEW.md) corrects the
+isolated omitted-completed counter, passes 56 portable tests and characterizes
+the synchronous supervision boundary with five deterministic cases. It
+preserves both original D27 JSON files and this incomplete native outcome.
+Its candidate D29 contract separates census work from command supervision;
+that worker is not implemented or executed in D28. No native retry occurred.
+
+The following was the proposed scope at D27's conclusion:
 
 D28 should use the retained receipts, frozen source and controlled synthetic
 fixtures to examine the live census's time accounting and responsiveness. The
@@ -111,8 +120,8 @@ Reproduce delayed census work and history truncation in synthetic tests, correct
 the omitted-completed counter, and assess an observation design that preserves
 the command's cleanup/deadline handling while retaining bounded progress evidence.
 Any change needs its own explicit timing, storage and retention contract. A
-larger timeout or a repeated import is not automatically prescribed. **D28 is
-proposed and has not been executed.** D27 ends with this one retained incomplete
+larger timeout or a repeated import is not automatically prescribed. **At D27's
+conclusion, D28 had not been executed.** D27 ends with this one retained incomplete
 attempt; no useful trace rows, clock mapping or task 07 acceptance are added.
 
 ## Pre-import test failure and fixture correction

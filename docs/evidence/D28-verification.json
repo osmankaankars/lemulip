@@ -1,0 +1,1207 @@
+{
+  "schema": "lemulip-d28-verification-v1",
+  "recordedUTC": "2026-11-09T23:07:45.343806+00:00",
+  "baseCommit": "34e74c055f55cd3f8f4181d9b67edee1140a706f",
+  "resultIdentity": {
+    "path": "docs/evidence/D28-retained-atrc-observer-review.json",
+    "bytes": 48529,
+    "sha256": "e479a107b341a0fc6e9a60c54d90371e7b70b77522b540476eae7e80d634c677"
+  },
+  "finalPortableVerification": {
+    "schema": 1,
+    "scope": "D28 local portable regressions and deterministic characterization; no native trace tool invocation",
+    "recordedUTC": "2026-11-09T23:03:45.679808+00:00",
+    "baseCommit": "34e74c055f55cd3f8f4181d9b67edee1140a706f",
+    "baseTree": "9b5fda62a00350136d8030fddd5c2f3e0346ac91",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "platform": "Linux-6.18.57-x86_64-with-glibc2.39",
+    "sourceBefore": {
+      "script/collect_native_trace_capabilities.py": {
+        "bytes": 12855,
+        "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7",
+        "gitBlob": "20d086409fa62142cbd17f3e2e30782277912710"
+      },
+      "script/native_retained_atrc_output.py": {
+        "bytes": 37465,
+        "sha256": "4c7cde158a0b10257facbea1b0e40e161e9d5bdb72878a46d43dfac08b7a4fec",
+        "gitBlob": "f9cdb12f546e60d4b736c02d23e582f67f5f9638"
+      },
+      "script/native_retained_trace_command.py": {
+        "bytes": 10663,
+        "sha256": "cd772ee5449e124f3e0ad5f0e10417d31bc1d0b6f287c3a76d34a10ccc60fcba",
+        "gitBlob": "584cc280fe1be93b7bc16865d459d8fe5141e5c0"
+      },
+      "script/native_retained_trace_input.py": {
+        "bytes": 17190,
+        "sha256": "270f2e443ecdebde0306c463c4dcfa88d1a4c96c81604fad088dd6500ce9a8f0",
+        "gitBlob": "45eca217fb867e2f98f8f164b0599fa296045572"
+      },
+      "script/native_sampler_tool_identity.py": {
+        "bytes": 5168,
+        "sha256": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78",
+        "gitBlob": "1ad1f995edb7e72985d8ffe7b623bc9f43ccd862"
+      },
+      "script/run_native_recorder_progress_observation.py": {
+        "bytes": 66947,
+        "sha256": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f",
+        "gitBlob": "0c37c0f25227ce0a7396007413af8b9b14ff002b"
+      },
+      "script/run_native_recorder_startup_observation.py": {
+        "bytes": 31718,
+        "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7",
+        "gitBlob": "d2ba042eddd4bf3e1ad1965d05fbf382e2ecbbfd"
+      },
+      "script/run_native_retained_atrc_import.py": {
+        "bytes": 23685,
+        "sha256": "e657b42ad59f3cd4ef4580944db735e60aa094a49ad392d0fedbc4dbffc06c96",
+        "gitBlob": "6f671e76d232011ad47b246eb7c8057457955a69"
+      },
+      "script/run_native_system_trace_startup.py": {
+        "bytes": 47898,
+        "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010",
+        "gitBlob": "c528fe302ca150c918f44775e704e8d5044bb46d"
+      },
+      "script/test_native_retained_atrc_observer.py": {
+        "bytes": 15421,
+        "sha256": "0de916df3b691965465549a22717ca10ffb669067db75ec3df2253a2f6f858c3",
+        "gitBlob": "3a04997d9a8b7e93c9b785e145b62fcd3026f9e4"
+      },
+      "script/test_native_retained_atrc_output.py": {
+        "bytes": 18812,
+        "sha256": "0824d09dbf18b3671e42f4508dcfc6cea17d1044f14834217208ae06fe0a909e",
+        "gitBlob": "170254af27b065bfc2ad5719f81b5b340c3aabd8"
+      },
+      "script/test_run_native_retained_atrc_import.py": {
+        "bytes": 15887,
+        "sha256": "21fd9ec40f88dd06bd955afee597183bfaa95667724247f0e064721cde708c48",
+        "gitBlob": "ff02ea1b3251905bd6a4bb5d8650ae1a3a07c6e4"
+      }
+    },
+    "sourceAfter": {
+      "script/collect_native_trace_capabilities.py": {
+        "bytes": 12855,
+        "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7",
+        "gitBlob": "20d086409fa62142cbd17f3e2e30782277912710"
+      },
+      "script/native_retained_atrc_output.py": {
+        "bytes": 37465,
+        "sha256": "4c7cde158a0b10257facbea1b0e40e161e9d5bdb72878a46d43dfac08b7a4fec",
+        "gitBlob": "f9cdb12f546e60d4b736c02d23e582f67f5f9638"
+      },
+      "script/native_retained_trace_command.py": {
+        "bytes": 10663,
+        "sha256": "cd772ee5449e124f3e0ad5f0e10417d31bc1d0b6f287c3a76d34a10ccc60fcba",
+        "gitBlob": "584cc280fe1be93b7bc16865d459d8fe5141e5c0"
+      },
+      "script/native_retained_trace_input.py": {
+        "bytes": 17190,
+        "sha256": "270f2e443ecdebde0306c463c4dcfa88d1a4c96c81604fad088dd6500ce9a8f0",
+        "gitBlob": "45eca217fb867e2f98f8f164b0599fa296045572"
+      },
+      "script/native_sampler_tool_identity.py": {
+        "bytes": 5168,
+        "sha256": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78",
+        "gitBlob": "1ad1f995edb7e72985d8ffe7b623bc9f43ccd862"
+      },
+      "script/run_native_recorder_progress_observation.py": {
+        "bytes": 66947,
+        "sha256": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f",
+        "gitBlob": "0c37c0f25227ce0a7396007413af8b9b14ff002b"
+      },
+      "script/run_native_recorder_startup_observation.py": {
+        "bytes": 31718,
+        "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7",
+        "gitBlob": "d2ba042eddd4bf3e1ad1965d05fbf382e2ecbbfd"
+      },
+      "script/run_native_retained_atrc_import.py": {
+        "bytes": 23685,
+        "sha256": "e657b42ad59f3cd4ef4580944db735e60aa094a49ad392d0fedbc4dbffc06c96",
+        "gitBlob": "6f671e76d232011ad47b246eb7c8057457955a69"
+      },
+      "script/run_native_system_trace_startup.py": {
+        "bytes": 47898,
+        "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010",
+        "gitBlob": "c528fe302ca150c918f44775e704e8d5044bb46d"
+      },
+      "script/test_native_retained_atrc_observer.py": {
+        "bytes": 15421,
+        "sha256": "0de916df3b691965465549a22717ca10ffb669067db75ec3df2253a2f6f858c3",
+        "gitBlob": "3a04997d9a8b7e93c9b785e145b62fcd3026f9e4"
+      },
+      "script/test_native_retained_atrc_output.py": {
+        "bytes": 18812,
+        "sha256": "0824d09dbf18b3671e42f4508dcfc6cea17d1044f14834217208ae06fe0a909e",
+        "gitBlob": "170254af27b065bfc2ad5719f81b5b340c3aabd8"
+      },
+      "script/test_run_native_retained_atrc_import.py": {
+        "bytes": 15887,
+        "sha256": "21fd9ec40f88dd06bd955afee597183bfaa95667724247f0e064721cde708c48",
+        "gitBlob": "ff02ea1b3251905bd6a4bb5d8650ae1a3a07c6e4"
+      }
+    },
+    "sourceUnchangedDuringVerification": true,
+    "localPythonDependencies": [
+      "script/collect_native_trace_capabilities.py",
+      "script/native_retained_atrc_output.py",
+      "script/native_retained_trace_command.py",
+      "script/native_retained_trace_input.py",
+      "script/native_sampler_tool_identity.py",
+      "script/run_native_recorder_progress_observation.py",
+      "script/run_native_recorder_startup_observation.py",
+      "script/run_native_retained_atrc_import.py",
+      "script/run_native_system_trace_startup.py",
+      "script/test_native_retained_atrc_observer.py",
+      "script/test_native_retained_atrc_output.py",
+      "script/test_run_native_retained_atrc_import.py"
+    ],
+    "localDependencyMethod": "Static transitive imports resolving to script/*.py, starting with the three executed suites",
+    "suites": {
+      "test_native_retained_atrc_output": {
+        "command": [
+          "<python3>",
+          "script/test_native_retained_atrc_output.py",
+          "-v"
+        ],
+        "cwd": "<checkout>",
+        "exitCode": 0,
+        "wallElapsedSeconds": 2.1932626779998827,
+        "streams": {
+          "stdout": {
+            "path": "<work>/d28-final-test_native_retained_atrc_output.stdout.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+          },
+          "stderr": {
+            "path": "<work>/d28-final-test_native_retained_atrc_output.stderr.txt",
+            "bytes": 4516,
+            "sha256": "bccc463b3c532bccbb40727946ed313d4777d2dfbd94c39334e9c3e8fa36dd75",
+            "gitBlob": "c35df4d7db26d78d2740e0e7baf777ac51821bf1"
+          }
+        },
+        "expectedTestCasesFromSource": [
+          "OutputCommandTests.test_command_timeout_remains_failed_after_owned_cleanup",
+          "OutputCommandTests.test_growth_during_group_inspection_cannot_be_promoted_to_success",
+          "OutputCommandTests.test_live_output_growth_stops_the_owned_process_and_preserves_failure",
+          "OutputCommandTests.test_natural_refusal_with_no_output_remains_completed_diagnostic_transport",
+          "OutputCommandTests.test_output_guard_rejects_a_second_attempt",
+          "OutputCommandTests.test_preexisting_derived_entry_prevents_any_process_launch",
+          "OutputCommandTests.test_successful_command_keeps_lease_and_retains_new_document",
+          "OutputCommandTests.test_zero_exit_without_output_does_not_create_document_evidence",
+          "OutputRetentionTests.test_allocated_bytes_are_bounded_independently",
+          "OutputRetentionTests.test_empty_output_is_retained_observation_without_an_analysis_document",
+          "OutputRetentionTests.test_empty_trace_directory_is_retained_but_unqualified",
+          "OutputRetentionTests.test_entry_and_depth_bounds_fail_before_unbounded_walk",
+          "OutputRetentionTests.test_existing_parent_and_existing_archive_are_not_overwritten",
+          "OutputRetentionTests.test_failed_observation_after_history_truncation_counts_only_completed_records",
+          "OutputRetentionTests.test_failed_observation_evicting_first_completed_record_counts_that_omission",
+          "OutputRetentionTests.test_failed_observation_without_eviction_omits_no_completed_scans",
+          "OutputRetentionTests.test_file_mutation_during_retention_rejects_and_removes_partial_archive",
+          "OutputRetentionTests.test_late_growth_first_observed_in_finalization_fails_bounds",
+          "OutputRetentionTests.test_missing_cleanup_skips_all_output_reads_and_archiving",
+          "OutputRetentionTests.test_nonempty_document_retains_exact_bytes_hashes_crc_and_complete_inventory",
+          "OutputRetentionTests.test_observation_history_is_bounded_and_omissions_are_explicit",
+          "OutputRetentionTests.test_observed_growth_fails_closed_and_cannot_be_requalified",
+          "OutputRetentionTests.test_replaced_root_cannot_redirect_observation",
+          "OutputRetentionTests.test_retention_deadline_is_finite_and_partial_archive_stays_unpublished",
+          "OutputRetentionTests.test_scan_deadline_and_actual_overshoot_are_retained",
+          "OutputRetentionTests.test_symlinks_hardlinks_and_special_files_are_never_read",
+          "OutputRetentionTests.test_unexpected_sibling_is_retained_without_qualifying_document"
+        ],
+        "observedTestCases": [
+          {
+            "name": "OutputCommandTests.test_command_timeout_remains_failed_after_owned_cleanup",
+            "status": "ok"
+          },
+          {
+            "name": "OutputCommandTests.test_growth_during_group_inspection_cannot_be_promoted_to_success",
+            "status": "ok"
+          },
+          {
+            "name": "OutputCommandTests.test_live_output_growth_stops_the_owned_process_and_preserves_failure",
+            "status": "ok"
+          },
+          {
+            "name": "OutputCommandTests.test_natural_refusal_with_no_output_remains_completed_diagnostic_transport",
+            "status": "ok"
+          },
+          {
+            "name": "OutputCommandTests.test_output_guard_rejects_a_second_attempt",
+            "status": "ok"
+          },
+          {
+            "name": "OutputCommandTests.test_preexisting_derived_entry_prevents_any_process_launch",
+            "status": "ok"
+          },
+          {
+            "name": "OutputCommandTests.test_successful_command_keeps_lease_and_retains_new_document",
+            "status": "ok"
+          },
+          {
+            "name": "OutputCommandTests.test_zero_exit_without_output_does_not_create_document_evidence",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_allocated_bytes_are_bounded_independently",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_empty_output_is_retained_observation_without_an_analysis_document",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_empty_trace_directory_is_retained_but_unqualified",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_entry_and_depth_bounds_fail_before_unbounded_walk",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_existing_parent_and_existing_archive_are_not_overwritten",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_failed_observation_after_history_truncation_counts_only_completed_records",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_failed_observation_evicting_first_completed_record_counts_that_omission",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_failed_observation_without_eviction_omits_no_completed_scans",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_file_mutation_during_retention_rejects_and_removes_partial_archive",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_late_growth_first_observed_in_finalization_fails_bounds",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_missing_cleanup_skips_all_output_reads_and_archiving",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_nonempty_document_retains_exact_bytes_hashes_crc_and_complete_inventory",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_observation_history_is_bounded_and_omissions_are_explicit",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_observed_growth_fails_closed_and_cannot_be_requalified",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_replaced_root_cannot_redirect_observation",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_retention_deadline_is_finite_and_partial_archive_stays_unpublished",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_scan_deadline_and_actual_overshoot_are_retained",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_symlinks_hardlinks_and_special_files_are_never_read",
+            "status": "ok"
+          },
+          {
+            "name": "OutputRetentionTests.test_unexpected_sibling_is_retained_without_qualifying_document",
+            "status": "ok"
+          }
+        ],
+        "testsRun": 27,
+        "unittestElapsedSeconds": 1.96,
+        "passed": true
+      },
+      "test_run_native_retained_atrc_import": {
+        "command": [
+          "<python3>",
+          "script/test_run_native_retained_atrc_import.py",
+          "-v"
+        ],
+        "cwd": "<checkout>",
+        "exitCode": 0,
+        "wallElapsedSeconds": 0.17259595899849955,
+        "streams": {
+          "stdout": {
+            "path": "<work>/d28-final-test_run_native_retained_atrc_import.stdout.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+          },
+          "stderr": {
+            "path": "<work>/d28-final-test_run_native_retained_atrc_import.stderr.txt",
+            "bytes": 4154,
+            "sha256": "8477b8932dd3762fafce5ef31192ad2c8c5aff055785d677e7449e1037ad9d8d",
+            "gitBlob": "312a97b9d13dd8840d37496f0ad715633adfdde9"
+          }
+        },
+        "expectedTestCasesFromSource": [
+          "ImportClassificationTests.test_document_flag_without_a_verified_retained_archive_is_unqualified",
+          "ImportClassificationTests.test_every_immutable_gate_is_required",
+          "ImportClassificationTests.test_failed_transport_cleanup_or_observed_output_bound_cannot_be_promoted",
+          "ImportClassificationTests.test_incomplete_final_inventory_retention_or_bound_cannot_be_promoted",
+          "ImportClassificationTests.test_missing_or_noninteger_exit_cannot_complete",
+          "ImportClassificationTests.test_nonzero_with_a_new_document_is_still_a_refusal",
+          "ImportClassificationTests.test_refusal_without_output_is_a_finite_result",
+          "ImportClassificationTests.test_signal_exit_does_not_infer_the_failure_cause",
+          "ImportClassificationTests.test_success_requires_a_retained_document_but_never_qualifies_events_or_native_fixture",
+          "ImportClassificationTests.test_truthy_nonboolean_gate_does_not_count_as_positive_evidence",
+          "ImportClassificationTests.test_warning_stderr_is_retained_without_erasing_a_completed_import",
+          "ImportClassificationTests.test_zero_exit_without_nonempty_document_remains_unqualified",
+          "ProtectedInputTests.test_any_writable_member_or_directory_prevents_selection",
+          "ProtectedInputTests.test_changed_raw_identity_or_missing_member_prevents_selection",
+          "ProtectedInputTests.test_directory_alias_fixture_matches_the_preparers_canonical_parent_contract",
+          "ProtectedInputTests.test_selects_only_the_pinned_raw_member_from_a_full_preparer_manifest",
+          "ProtectedInputTests.test_symlink_replacement_cannot_substitute_for_the_canonical_raw_path",
+          "SourceRetentionTests.test_ambiguous_visible_copy_mapping_is_rejected",
+          "SourceRetentionTests.test_source_change_is_detected_and_existing_copy_cannot_be_overwritten",
+          "SourceRetentionTests.test_workflow_is_retained_visibly_with_its_original_git_path_identity",
+          "TemplateAvailabilityTests.test_binary_control_error_or_empty_listing_is_rejected",
+          "TemplateAvailabilityTests.test_exact_name_is_bound_to_the_standard_section_and_raw_identity",
+          "TemplateAvailabilityTests.test_missing_duplicate_or_nonstandard_section_is_not_unambiguous_availability",
+          "TemplateAvailabilityTests.test_related_names_or_prose_cannot_substitute_for_the_exact_template"
+        ],
+        "observedTestCases": [
+          {
+            "name": "ImportClassificationTests.test_document_flag_without_a_verified_retained_archive_is_unqualified",
+            "status": "ok"
+          },
+          {
+            "name": "ImportClassificationTests.test_every_immutable_gate_is_required",
+            "status": "ok"
+          },
+          {
+            "name": "ImportClassificationTests.test_failed_transport_cleanup_or_observed_output_bound_cannot_be_promoted",
+            "status": "ok"
+          },
+          {
+            "name": "ImportClassificationTests.test_incomplete_final_inventory_retention_or_bound_cannot_be_promoted",
+            "status": "ok"
+          },
+          {
+            "name": "ImportClassificationTests.test_missing_or_noninteger_exit_cannot_complete",
+            "status": "ok"
+          },
+          {
+            "name": "ImportClassificationTests.test_nonzero_with_a_new_document_is_still_a_refusal",
+            "status": "ok"
+          },
+          {
+            "name": "ImportClassificationTests.test_refusal_without_output_is_a_finite_result",
+            "status": "ok"
+          },
+          {
+            "name": "ImportClassificationTests.test_signal_exit_does_not_infer_the_failure_cause",
+            "status": "ok"
+          },
+          {
+            "name": "ImportClassificationTests.test_success_requires_a_retained_document_but_never_qualifies_events_or_native_fixture",
+            "status": "ok"
+          },
+          {
+            "name": "ImportClassificationTests.test_truthy_nonboolean_gate_does_not_count_as_positive_evidence",
+            "status": "ok"
+          },
+          {
+            "name": "ImportClassificationTests.test_warning_stderr_is_retained_without_erasing_a_completed_import",
+            "status": "ok"
+          },
+          {
+            "name": "ImportClassificationTests.test_zero_exit_without_nonempty_document_remains_unqualified",
+            "status": "ok"
+          },
+          {
+            "name": "ProtectedInputTests.test_any_writable_member_or_directory_prevents_selection",
+            "status": "ok"
+          },
+          {
+            "name": "ProtectedInputTests.test_changed_raw_identity_or_missing_member_prevents_selection",
+            "status": "ok"
+          },
+          {
+            "name": "ProtectedInputTests.test_directory_alias_fixture_matches_the_preparers_canonical_parent_contract",
+            "status": "ok"
+          },
+          {
+            "name": "ProtectedInputTests.test_selects_only_the_pinned_raw_member_from_a_full_preparer_manifest",
+            "status": "ok"
+          },
+          {
+            "name": "ProtectedInputTests.test_symlink_replacement_cannot_substitute_for_the_canonical_raw_path",
+            "status": "ok"
+          },
+          {
+            "name": "SourceRetentionTests.test_ambiguous_visible_copy_mapping_is_rejected",
+            "status": "ok"
+          },
+          {
+            "name": "SourceRetentionTests.test_source_change_is_detected_and_existing_copy_cannot_be_overwritten",
+            "status": "ok"
+          },
+          {
+            "name": "SourceRetentionTests.test_workflow_is_retained_visibly_with_its_original_git_path_identity",
+            "status": "ok"
+          },
+          {
+            "name": "TemplateAvailabilityTests.test_binary_control_error_or_empty_listing_is_rejected",
+            "status": "ok"
+          },
+          {
+            "name": "TemplateAvailabilityTests.test_exact_name_is_bound_to_the_standard_section_and_raw_identity",
+            "status": "ok"
+          },
+          {
+            "name": "TemplateAvailabilityTests.test_missing_duplicate_or_nonstandard_section_is_not_unambiguous_availability",
+            "status": "ok"
+          },
+          {
+            "name": "TemplateAvailabilityTests.test_related_names_or_prose_cannot_substitute_for_the_exact_template",
+            "status": "ok"
+          }
+        ],
+        "testsRun": 24,
+        "unittestElapsedSeconds": 0.009,
+        "passed": true
+      },
+      "test_native_retained_atrc_observer": {
+        "command": [
+          "<python3>",
+          "script/test_native_retained_atrc_observer.py",
+          "-v"
+        ],
+        "cwd": "<checkout>",
+        "exitCode": 0,
+        "wallElapsedSeconds": 0.14310421799928008,
+        "streams": {
+          "stdout": {
+            "path": "<work>/d28-final-test_native_retained_atrc_observer.stdout.txt",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+          },
+          "stderr": {
+            "path": "<work>/d28-final-test_native_retained_atrc_observer.stderr.txt",
+            "bytes": 1002,
+            "sha256": "3dbcefa6b45f1e92a9b3410ddcd236209b50072c7faff02d3a0655080f64a6ef",
+            "gitBlob": "86c82a2764f558db48501a437b3f5c1fd905a882"
+          }
+        },
+        "expectedTestCasesFromSource": [
+          "ObserverBoundaryTests.test_exit_zero_during_scan_does_not_erase_observer_failure",
+          "ObserverBoundaryTests.test_late_metadata_return_preserves_partial_high_water_and_skips_retention",
+          "ObserverBoundaryTests.test_metadata_delay_and_between_call_pause_have_identical_aggregate_scan_timing",
+          "ObserverBoundaryTests.test_scan_crossing_total_deadline_cannot_pass_after_late_collection",
+          "ObserverBoundaryTests.test_synchronous_scan_defers_supervision_then_preserves_owned_cleanup"
+        ],
+        "observedTestCases": [
+          {
+            "name": "ObserverBoundaryTests.test_exit_zero_during_scan_does_not_erase_observer_failure",
+            "status": "ok"
+          },
+          {
+            "name": "ObserverBoundaryTests.test_late_metadata_return_preserves_partial_high_water_and_skips_retention",
+            "status": "ok"
+          },
+          {
+            "name": "ObserverBoundaryTests.test_metadata_delay_and_between_call_pause_have_identical_aggregate_scan_timing",
+            "status": "ok"
+          },
+          {
+            "name": "ObserverBoundaryTests.test_scan_crossing_total_deadline_cannot_pass_after_late_collection",
+            "status": "ok"
+          },
+          {
+            "name": "ObserverBoundaryTests.test_synchronous_scan_defers_supervision_then_preserves_owned_cleanup",
+            "status": "ok"
+          }
+        ],
+        "testsRun": 5,
+        "unittestElapsedSeconds": 0.01,
+        "passed": true
+      }
+    },
+    "testsRun": 56,
+    "allTestsPassedWithoutSkips": true,
+    "originalD27EvidenceBefore": {
+      "docs/evidence/D27-retained-atrc-import.json": {
+        "bytes": 241402,
+        "sha256": "4fb53201ccb6373a01b64c67535288a4a12f27bad3ce4b54251b8d2c34b2dff1",
+        "gitBlob": "c6d757a2c90c15037ee5a0b45712367255526872"
+      },
+      "docs/evidence/D27-verification.json": {
+        "bytes": 397140,
+        "sha256": "5c6e7aa256ae062fa551c3f5d2f54ad59b11b715346345778ae62ee663c20356",
+        "gitBlob": "d0ba101618f574f954459b0bd67e67244ff4ddfb"
+      }
+    },
+    "originalD27EvidenceAfter": {
+      "docs/evidence/D27-retained-atrc-import.json": {
+        "bytes": 241402,
+        "sha256": "4fb53201ccb6373a01b64c67535288a4a12f27bad3ce4b54251b8d2c34b2dff1",
+        "gitBlob": "c6d757a2c90c15037ee5a0b45712367255526872"
+      },
+      "docs/evidence/D27-verification.json": {
+        "bytes": 397140,
+        "sha256": "5c6e7aa256ae062fa551c3f5d2f54ad59b11b715346345778ae62ee663c20356",
+        "gitBlob": "d0ba101618f574f954459b0bd67e67244ff4ddfb"
+      }
+    },
+    "originalD27EvidenceUnchanged": true,
+    "nativeImportInvocations": 0,
+    "nativeExportInvocations": 0,
+    "nativeRecordingInvocations": 0,
+    "nativeSamplerInvocations": 0,
+    "nativeOutcomeReclassified": false,
+    "historicalFullD24SuiteRepairedOrRerun": false,
+    "verificationPassed": true
+  },
+  "counterRedGreenProof": {
+    "schema": 1,
+    "scope": "D28 offline summary-accounting correction; no native commands or evidence mutation",
+    "baseCommit": "34e74c055f55cd3f8f4181d9b67edee1140a706f",
+    "baseTree": "9b5fda62a00350136d8030fddd5c2f3e0346ac91",
+    "nativeAccountingWitness": {
+      "pointer": "/nativeResult/commands/atrc-import/outputGuard",
+      "completedScanCount": 324,
+      "retainedObservationCount": 256,
+      "retainedCompletedObservationCount": 255,
+      "retainedFailedObservationCount": 1,
+      "reportedOmittedCompletedObservationCount": 68,
+      "derivedOmittedCompletedObservationCount": 69
+    },
+    "rootCause": "Completed-scan count previously subtracted all retained observations, including a failed observation that occupies a bounded history slot but does not increment completed scans.",
+    "fix": "Subtract only retained completed observations; leave counters, history, failure gates and native outcomes unchanged.",
+    "runtimeDiffRestrictedToSummaryAccounting": true,
+    "sourceBefore": {
+      "bytes": 37389,
+      "sha256": "f75d272ba2d4ae7650dd3f23a7c5b85e2c8c26ff6eddd6817bb07f0e9023d216"
+    },
+    "sourceAfter": {
+      "bytes": 37465,
+      "sha256": "4c7cde158a0b10257facbea1b0e40e161e9d5bdb72878a46d43dfac08b7a4fec"
+    },
+    "testsBefore": {
+      "bytes": 17071,
+      "sha256": "6ada2b0763bb28476949c484af16c79a0109b99f3821fc20e3741dec68e0f5b0"
+    },
+    "testsAfter": {
+      "bytes": 18812,
+      "sha256": "0824d09dbf18b3671e42f4508dcfc6cea17d1044f14834217208ae06fe0a909e"
+    },
+    "newRegressionTestCount": 3,
+    "focusedTestCountIncludingExistingControl": 4,
+    "red": {
+      "phase": "observed-red-before-runtime-fix",
+      "command": [
+        "<python3>",
+        "script/test_native_retained_atrc_output.py",
+        "-v",
+        "OutputRetentionTests.test_observation_history_is_bounded_and_omissions_are_explicit",
+        "OutputRetentionTests.test_failed_observation_without_eviction_omits_no_completed_scans",
+        "OutputRetentionTests.test_failed_observation_evicting_first_completed_record_counts_that_omission",
+        "OutputRetentionTests.test_failed_observation_after_history_truncation_counts_only_completed_records"
+      ],
+      "cwd": "<checkout>",
+      "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.57-x86_64-with-glibc2.39",
+      "elapsedSeconds": 0.13228913499915507,
+      "exitCode": 1,
+      "testCases": [
+        "OutputRetentionTests.test_observation_history_is_bounded_and_omissions_are_explicit",
+        "OutputRetentionTests.test_failed_observation_without_eviction_omits_no_completed_scans",
+        "OutputRetentionTests.test_failed_observation_evicting_first_completed_record_counts_that_omission",
+        "OutputRetentionTests.test_failed_observation_after_history_truncation_counts_only_completed_records"
+      ],
+      "testsRun": 4,
+      "passed": 2,
+      "failures": 2,
+      "errors": 0,
+      "assertionMismatches": [
+        "expected 1, observed 0",
+        "expected 69, observed 68"
+      ],
+      "sourceBefore": {
+        "script/native_retained_atrc_output.py": {
+          "bytes": 37389,
+          "sha256": "f75d272ba2d4ae7650dd3f23a7c5b85e2c8c26ff6eddd6817bb07f0e9023d216"
+        },
+        "script/test_native_retained_atrc_output.py": {
+          "bytes": 18812,
+          "sha256": "0824d09dbf18b3671e42f4508dcfc6cea17d1044f14834217208ae06fe0a909e"
+        }
+      },
+      "sourceAfterUnchanged": true,
+      "originalD27EvidenceUnchanged": true,
+      "streams": {
+        "stdout": {
+          "path": "<work>/d28-counter-red.stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "<work>/d28-counter-red.stderr.txt",
+          "bytes": 2190,
+          "sha256": "e6f5e8b3430c442880113c97e77bdcf624e6cd2e1a326c6f0a4e3b7639692805"
+        }
+      }
+    },
+    "green": {
+      "phase": "observed-green-after-runtime-fix",
+      "command": [
+        "<python3>",
+        "script/test_native_retained_atrc_output.py",
+        "-v",
+        "OutputRetentionTests.test_observation_history_is_bounded_and_omissions_are_explicit",
+        "OutputRetentionTests.test_failed_observation_without_eviction_omits_no_completed_scans",
+        "OutputRetentionTests.test_failed_observation_evicting_first_completed_record_counts_that_omission",
+        "OutputRetentionTests.test_failed_observation_after_history_truncation_counts_only_completed_records"
+      ],
+      "cwd": "<checkout>",
+      "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+      "platform": "Linux-6.18.57-x86_64-with-glibc2.39",
+      "elapsedSeconds": 0.09648411600210238,
+      "exitCode": 0,
+      "testCases": [
+        "OutputRetentionTests.test_observation_history_is_bounded_and_omissions_are_explicit",
+        "OutputRetentionTests.test_failed_observation_without_eviction_omits_no_completed_scans",
+        "OutputRetentionTests.test_failed_observation_evicting_first_completed_record_counts_that_omission",
+        "OutputRetentionTests.test_failed_observation_after_history_truncation_counts_only_completed_records"
+      ],
+      "testsRun": 4,
+      "passed": 4,
+      "failures": 0,
+      "errors": 0,
+      "sourceBefore": {
+        "script/native_retained_atrc_output.py": {
+          "bytes": 37465,
+          "sha256": "4c7cde158a0b10257facbea1b0e40e161e9d5bdb72878a46d43dfac08b7a4fec"
+        },
+        "script/test_native_retained_atrc_output.py": {
+          "bytes": 18812,
+          "sha256": "0824d09dbf18b3671e42f4508dcfc6cea17d1044f14834217208ae06fe0a909e"
+        }
+      },
+      "sourceAfterUnchanged": true,
+      "originalD27EvidenceUnchanged": true,
+      "streams": {
+        "stdout": {
+          "path": "<work>/d28-counter-green.stdout.txt",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "stderr": {
+          "path": "<work>/d28-counter-green.stderr.txt",
+          "bytes": 824,
+          "sha256": "e1fc7aa78cdcdd074ff5be1ec5026ce69e342f6bfb1257e4ba5bca106fc1ff1a"
+        }
+      }
+    },
+    "nativeD27EvidenceUnchanged": {
+      "docs/evidence/D27-retained-atrc-import.json": {
+        "bytes": 241402,
+        "sha256": "4fb53201ccb6373a01b64c67535288a4a12f27bad3ce4b54251b8d2c34b2dff1"
+      },
+      "docs/evidence/D27-verification.json": {
+        "bytes": 397140,
+        "sha256": "5c6e7aa256ae062fa551c3f5d2f54ad59b11b715346345778ae62ee663c20356"
+      }
+    },
+    "productionTimingTraversalAdapterRetentionAndClassificationUnchanged": true,
+    "nativeExecutionPerformed": false,
+    "apiCallsPerformed": false,
+    "scopeLimit": "Fix does not explain the delayed native census or qualify the D27 import. Final broad relevant suites are owned by the parent agent.",
+    "diff": {
+      "path": "<work>/d28-counter.diff",
+      "bytes": 3536,
+      "sha256": "a0f7cf4d0a548077d708de999e8a91c719d3a5239ec53b93b6cba36f9e5ad9ae"
+    }
+  },
+  "counterRedStandardError": "test_observation_history_is_bounded_and_omissions_are_explicit (__main__.OutputRetentionTests.test_observation_history_is_bounded_and_omissions_are_explicit) ... ok\ntest_failed_observation_without_eviction_omits_no_completed_scans (__main__.OutputRetentionTests.test_failed_observation_without_eviction_omits_no_completed_scans) ... ok\ntest_failed_observation_evicting_first_completed_record_counts_that_omission (__main__.OutputRetentionTests.test_failed_observation_evicting_first_completed_record_counts_that_omission) ... FAIL\ntest_failed_observation_after_history_truncation_counts_only_completed_records (__main__.OutputRetentionTests.test_failed_observation_after_history_truncation_counts_only_completed_records) ... FAIL\n\n======================================================================\nFAIL: test_failed_observation_evicting_first_completed_record_counts_that_omission (__main__.OutputRetentionTests.test_failed_observation_evicting_first_completed_record_counts_that_omission)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<checkout>/script/test_native_retained_atrc_output.py\", line 252, in test_failed_observation_evicting_first_completed_record_counts_that_omission\n    self.assertEqual(1, summary[\"omittedCompletedObservationCount\"])\nAssertionError: 1 != 0\n\n======================================================================\nFAIL: test_failed_observation_after_history_truncation_counts_only_completed_records (__main__.OutputRetentionTests.test_failed_observation_after_history_truncation_counts_only_completed_records)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<checkout>/script/test_native_retained_atrc_output.py\", line 259, in test_failed_observation_after_history_truncation_counts_only_completed_records\n    self.assertEqual(69, summary[\"omittedCompletedObservationCount\"])\nAssertionError: 69 != 68\n\n----------------------------------------------------------------------\nRan 4 tests in 0.016s\n\nFAILED (failures=2)\n",
+  "counterGreenStandardError": "test_observation_history_is_bounded_and_omissions_are_explicit (__main__.OutputRetentionTests.test_observation_history_is_bounded_and_omissions_are_explicit) ... ok\ntest_failed_observation_without_eviction_omits_no_completed_scans (__main__.OutputRetentionTests.test_failed_observation_without_eviction_omits_no_completed_scans) ... ok\ntest_failed_observation_evicting_first_completed_record_counts_that_omission (__main__.OutputRetentionTests.test_failed_observation_evicting_first_completed_record_counts_that_omission) ... ok\ntest_failed_observation_after_history_truncation_counts_only_completed_records (__main__.OutputRetentionTests.test_failed_observation_after_history_truncation_counts_only_completed_records) ... ok\n\n----------------------------------------------------------------------\nRan 4 tests in 0.016s\n\nOK\n",
+  "finalSuiteStandardErrors": {
+    "test_native_retained_atrc_output": "test_command_timeout_remains_failed_after_owned_cleanup (__main__.OutputCommandTests.test_command_timeout_remains_failed_after_owned_cleanup) ... ok\ntest_growth_during_group_inspection_cannot_be_promoted_to_success (__main__.OutputCommandTests.test_growth_during_group_inspection_cannot_be_promoted_to_success) ... ok\ntest_live_output_growth_stops_the_owned_process_and_preserves_failure (__main__.OutputCommandTests.test_live_output_growth_stops_the_owned_process_and_preserves_failure) ... ok\ntest_natural_refusal_with_no_output_remains_completed_diagnostic_transport (__main__.OutputCommandTests.test_natural_refusal_with_no_output_remains_completed_diagnostic_transport) ... ok\ntest_output_guard_rejects_a_second_attempt (__main__.OutputCommandTests.test_output_guard_rejects_a_second_attempt) ... ok\ntest_preexisting_derived_entry_prevents_any_process_launch (__main__.OutputCommandTests.test_preexisting_derived_entry_prevents_any_process_launch) ... ok\ntest_successful_command_keeps_lease_and_retains_new_document (__main__.OutputCommandTests.test_successful_command_keeps_lease_and_retains_new_document) ... ok\ntest_zero_exit_without_output_does_not_create_document_evidence (__main__.OutputCommandTests.test_zero_exit_without_output_does_not_create_document_evidence) ... ok\ntest_allocated_bytes_are_bounded_independently (__main__.OutputRetentionTests.test_allocated_bytes_are_bounded_independently) ... ok\ntest_empty_output_is_retained_observation_without_an_analysis_document (__main__.OutputRetentionTests.test_empty_output_is_retained_observation_without_an_analysis_document) ... ok\ntest_empty_trace_directory_is_retained_but_unqualified (__main__.OutputRetentionTests.test_empty_trace_directory_is_retained_but_unqualified) ... ok\ntest_entry_and_depth_bounds_fail_before_unbounded_walk (__main__.OutputRetentionTests.test_entry_and_depth_bounds_fail_before_unbounded_walk) ... ok\ntest_existing_parent_and_existing_archive_are_not_overwritten (__main__.OutputRetentionTests.test_existing_parent_and_existing_archive_are_not_overwritten) ... ok\ntest_failed_observation_after_history_truncation_counts_only_completed_records (__main__.OutputRetentionTests.test_failed_observation_after_history_truncation_counts_only_completed_records) ... ok\ntest_failed_observation_evicting_first_completed_record_counts_that_omission (__main__.OutputRetentionTests.test_failed_observation_evicting_first_completed_record_counts_that_omission) ... ok\ntest_failed_observation_without_eviction_omits_no_completed_scans (__main__.OutputRetentionTests.test_failed_observation_without_eviction_omits_no_completed_scans) ... ok\ntest_file_mutation_during_retention_rejects_and_removes_partial_archive (__main__.OutputRetentionTests.test_file_mutation_during_retention_rejects_and_removes_partial_archive) ... ok\ntest_late_growth_first_observed_in_finalization_fails_bounds (__main__.OutputRetentionTests.test_late_growth_first_observed_in_finalization_fails_bounds) ... ok\ntest_missing_cleanup_skips_all_output_reads_and_archiving (__main__.OutputRetentionTests.test_missing_cleanup_skips_all_output_reads_and_archiving) ... ok\ntest_nonempty_document_retains_exact_bytes_hashes_crc_and_complete_inventory (__main__.OutputRetentionTests.test_nonempty_document_retains_exact_bytes_hashes_crc_and_complete_inventory) ... ok\ntest_observation_history_is_bounded_and_omissions_are_explicit (__main__.OutputRetentionTests.test_observation_history_is_bounded_and_omissions_are_explicit) ... ok\ntest_observed_growth_fails_closed_and_cannot_be_requalified (__main__.OutputRetentionTests.test_observed_growth_fails_closed_and_cannot_be_requalified) ... ok\ntest_replaced_root_cannot_redirect_observation (__main__.OutputRetentionTests.test_replaced_root_cannot_redirect_observation) ... ok\ntest_retention_deadline_is_finite_and_partial_archive_stays_unpublished (__main__.OutputRetentionTests.test_retention_deadline_is_finite_and_partial_archive_stays_unpublished) ... ok\ntest_scan_deadline_and_actual_overshoot_are_retained (__main__.OutputRetentionTests.test_scan_deadline_and_actual_overshoot_are_retained) ... ok\ntest_symlinks_hardlinks_and_special_files_are_never_read (__main__.OutputRetentionTests.test_symlinks_hardlinks_and_special_files_are_never_read) ... ok\ntest_unexpected_sibling_is_retained_without_qualifying_document (__main__.OutputRetentionTests.test_unexpected_sibling_is_retained_without_qualifying_document) ... ok\n\n----------------------------------------------------------------------\nRan 27 tests in 1.960s\n\nOK\n",
+    "test_run_native_retained_atrc_import": "test_document_flag_without_a_verified_retained_archive_is_unqualified (__main__.ImportClassificationTests.test_document_flag_without_a_verified_retained_archive_is_unqualified) ... ok\ntest_every_immutable_gate_is_required (__main__.ImportClassificationTests.test_every_immutable_gate_is_required) ... ok\ntest_failed_transport_cleanup_or_observed_output_bound_cannot_be_promoted (__main__.ImportClassificationTests.test_failed_transport_cleanup_or_observed_output_bound_cannot_be_promoted) ... ok\ntest_incomplete_final_inventory_retention_or_bound_cannot_be_promoted (__main__.ImportClassificationTests.test_incomplete_final_inventory_retention_or_bound_cannot_be_promoted) ... ok\ntest_missing_or_noninteger_exit_cannot_complete (__main__.ImportClassificationTests.test_missing_or_noninteger_exit_cannot_complete) ... ok\ntest_nonzero_with_a_new_document_is_still_a_refusal (__main__.ImportClassificationTests.test_nonzero_with_a_new_document_is_still_a_refusal) ... ok\ntest_refusal_without_output_is_a_finite_result (__main__.ImportClassificationTests.test_refusal_without_output_is_a_finite_result) ... ok\ntest_signal_exit_does_not_infer_the_failure_cause (__main__.ImportClassificationTests.test_signal_exit_does_not_infer_the_failure_cause) ... ok\ntest_success_requires_a_retained_document_but_never_qualifies_events_or_native_fixture (__main__.ImportClassificationTests.test_success_requires_a_retained_document_but_never_qualifies_events_or_native_fixture) ... ok\ntest_truthy_nonboolean_gate_does_not_count_as_positive_evidence (__main__.ImportClassificationTests.test_truthy_nonboolean_gate_does_not_count_as_positive_evidence) ... ok\ntest_warning_stderr_is_retained_without_erasing_a_completed_import (__main__.ImportClassificationTests.test_warning_stderr_is_retained_without_erasing_a_completed_import) ... ok\ntest_zero_exit_without_nonempty_document_remains_unqualified (__main__.ImportClassificationTests.test_zero_exit_without_nonempty_document_remains_unqualified) ... ok\ntest_any_writable_member_or_directory_prevents_selection (__main__.ProtectedInputTests.test_any_writable_member_or_directory_prevents_selection) ... ok\ntest_changed_raw_identity_or_missing_member_prevents_selection (__main__.ProtectedInputTests.test_changed_raw_identity_or_missing_member_prevents_selection) ... ok\ntest_directory_alias_fixture_matches_the_preparers_canonical_parent_contract (__main__.ProtectedInputTests.test_directory_alias_fixture_matches_the_preparers_canonical_parent_contract) ... ok\ntest_selects_only_the_pinned_raw_member_from_a_full_preparer_manifest (__main__.ProtectedInputTests.test_selects_only_the_pinned_raw_member_from_a_full_preparer_manifest) ... ok\ntest_symlink_replacement_cannot_substitute_for_the_canonical_raw_path (__main__.ProtectedInputTests.test_symlink_replacement_cannot_substitute_for_the_canonical_raw_path) ... ok\ntest_ambiguous_visible_copy_mapping_is_rejected (__main__.SourceRetentionTests.test_ambiguous_visible_copy_mapping_is_rejected) ... ok\ntest_source_change_is_detected_and_existing_copy_cannot_be_overwritten (__main__.SourceRetentionTests.test_source_change_is_detected_and_existing_copy_cannot_be_overwritten) ... ok\ntest_workflow_is_retained_visibly_with_its_original_git_path_identity (__main__.SourceRetentionTests.test_workflow_is_retained_visibly_with_its_original_git_path_identity) ... ok\ntest_binary_control_error_or_empty_listing_is_rejected (__main__.TemplateAvailabilityTests.test_binary_control_error_or_empty_listing_is_rejected) ... ok\ntest_exact_name_is_bound_to_the_standard_section_and_raw_identity (__main__.TemplateAvailabilityTests.test_exact_name_is_bound_to_the_standard_section_and_raw_identity) ... ok\ntest_missing_duplicate_or_nonstandard_section_is_not_unambiguous_availability (__main__.TemplateAvailabilityTests.test_missing_duplicate_or_nonstandard_section_is_not_unambiguous_availability) ... ok\ntest_related_names_or_prose_cannot_substitute_for_the_exact_template (__main__.TemplateAvailabilityTests.test_related_names_or_prose_cannot_substitute_for_the_exact_template) ... ok\n\n----------------------------------------------------------------------\nRan 24 tests in 0.009s\n\nOK\n",
+    "test_native_retained_atrc_observer": "test_exit_zero_during_scan_does_not_erase_observer_failure (__main__.ObserverBoundaryTests.test_exit_zero_during_scan_does_not_erase_observer_failure) ... ok\ntest_late_metadata_return_preserves_partial_high_water_and_skips_retention (__main__.ObserverBoundaryTests.test_late_metadata_return_preserves_partial_high_water_and_skips_retention) ... ok\ntest_metadata_delay_and_between_call_pause_have_identical_aggregate_scan_timing (__main__.ObserverBoundaryTests.test_metadata_delay_and_between_call_pause_have_identical_aggregate_scan_timing) ... ok\ntest_scan_crossing_total_deadline_cannot_pass_after_late_collection (__main__.ObserverBoundaryTests.test_scan_crossing_total_deadline_cannot_pass_after_late_collection) ... ok\ntest_synchronous_scan_defers_supervision_then_preserves_owned_cleanup (__main__.ObserverBoundaryTests.test_synchronous_scan_defers_supervision_then_preserves_owned_cleanup) ... ok\n\n----------------------------------------------------------------------\nRan 5 tests in 0.010s\n\nOK\n"
+  },
+  "retainedAnalysisReplay": {
+    "checkCount": 85,
+    "allChecksPassed": true,
+    "byteIdenticalReplay": true,
+    "resultIdentity": {
+      "bytes": 29892,
+      "sha256": "7de8a6bdfd356d4762fdfc02ddf3b59c9b6670eed86f2e690f8ae4f98129980a"
+    },
+    "sourceIdentity": {
+      "bytes": 22554,
+      "sha256": "b705c46afadc88fec41d16c87eb30c1512f935ddbd05c15c3443f76b5ce1e087"
+    }
+  },
+  "independentMaterialAudit": {
+    "schema": "lemulip-d28-independent-material-audit-v1",
+    "scope": "Independent read-only archive/JSON and Git-object recomputation; no retained source execution or native command.",
+    "allPassed": true,
+    "checkCount": 40,
+    "checks": [
+      {
+        "check": "archive_identity",
+        "pass": true
+      },
+      {
+        "check": "zip_crc",
+        "pass": true
+      },
+      {
+        "check": "member_count",
+        "pass": true
+      },
+      {
+        "check": "member_paths",
+        "pass": true
+      },
+      {
+        "check": "embedded_command",
+        "pass": true
+      },
+      {
+        "check": "executed_commit",
+        "pass": true
+      },
+      {
+        "check": "retained_flags_boolean",
+        "pass": true
+      },
+      {
+        "check": "completed_counter_discrepancy",
+        "pass": true,
+        "measured": {
+          "complete": 324,
+          "retained_complete": 255,
+          "retained_failed": 1,
+          "missing_complete": 69,
+          "reported_missing": 68
+        }
+      },
+      {
+        "check": "terminal_failure",
+        "pass": true
+      },
+      {
+        "check": "failed_scan_sample_duration",
+        "pass": true,
+        "measured": [
+          591823215,
+          591827001
+        ]
+      },
+      {
+        "check": "failed_end_stop_sample_gap",
+        "pass": true,
+        "measured": [
+          50257,
+          59351
+        ]
+      },
+      {
+        "check": "completed_then_failed",
+        "pass": true
+      },
+      {
+        "check": "scan_not_main_deadline",
+        "pass": true
+      },
+      {
+        "check": "single_reader_invocation",
+        "pass": true
+      },
+      {
+        "check": "signals_group_term_kill",
+        "pass": true
+      },
+      {
+        "check": "term_kill_order",
+        "pass": true
+      },
+      {
+        "check": "cleanup_scope",
+        "pass": true
+      },
+      {
+        "check": "lease_held_for_inventory",
+        "pass": true
+      },
+      {
+        "check": "collection_after_group_inventory",
+        "pass": true
+      },
+      {
+        "check": "no_final_payload",
+        "pass": true
+      },
+      {
+        "check": "source:.github/workflows/native-retained-atrc-import.yml",
+        "pass": true
+      },
+      {
+        "check": "source:docs/NATIVE_RETAINED_ATRC_CONTRACT.md",
+        "pass": true
+      },
+      {
+        "check": "source:docs/NATIVE_RETAINED_ATRC_IMPORT.md",
+        "pass": true
+      },
+      {
+        "check": "source:docs/evidence/D26-retained-atrc-contract.json",
+        "pass": true
+      },
+      {
+        "check": "source:script/collect_native_trace_capabilities.py",
+        "pass": true
+      },
+      {
+        "check": "source:script/native_retained_atrc_output.py",
+        "pass": true
+      },
+      {
+        "check": "source:script/native_retained_trace_command.py",
+        "pass": true
+      },
+      {
+        "check": "source:script/native_retained_trace_input.py",
+        "pass": true
+      },
+      {
+        "check": "source:script/native_sampler_tool_identity.py",
+        "pass": true
+      },
+      {
+        "check": "source:script/privacy_check.py",
+        "pass": true
+      },
+      {
+        "check": "source:script/run_native_recorder_progress_observation.py",
+        "pass": true
+      },
+      {
+        "check": "source:script/run_native_recorder_startup_observation.py",
+        "pass": true
+      },
+      {
+        "check": "source:script/run_native_retained_atrc_import.py",
+        "pass": true
+      },
+      {
+        "check": "source:script/run_native_system_trace_startup.py",
+        "pass": true
+      },
+      {
+        "check": "source:script/test_native_retained_atrc_output.py",
+        "pass": true
+      },
+      {
+        "check": "source:script/test_native_retained_trace_command.py",
+        "pass": true
+      },
+      {
+        "check": "source:script/test_native_retained_trace_input.py",
+        "pass": true
+      },
+      {
+        "check": "source:script/test_run_native_recorder_progress_observation.py",
+        "pass": true
+      },
+      {
+        "check": "source:script/test_run_native_retained_atrc_import.py",
+        "pass": true
+      },
+      {
+        "check": "source_count",
+        "pass": true
+      }
+    ],
+    "limits": [
+      "Run/job/artifact IDs are historical bindings supplied by earlier retained metadata, not newly fetched API assertions.",
+      "Integer intervals bracket recorded clock samples, not exact syscall or signal times.",
+      "Source-input-reader unchanged flags alone are recorded claims; 19 retained source byte bindings are freshly checked.",
+      "No specific native delayed syscall or scheduler root cause can be identified."
+    ]
+  },
+  "independentAuditOriginalIdentity": {
+    "bytes": 4361,
+    "sha256": "024af4c519e9df847d89dede3a58e08fb60b8fbe354aa19d1af8c15219e0f76b"
+  },
+  "review": {
+    "counterAndTestSemanticReview": "No blocking semantic defect identified by independent source review.",
+    "completedWordings": [
+      "The first retained block never evicts; the failed scan causes omission from the rolling tail.",
+      "Synthetic command budgets and recorded native limits remain distinct.",
+      "Proposed D29 parameters are unimplemented engineering budgets, not verified native limits."
+    ]
+  },
+  "scope": {
+    "distinctFinalSoftwareTests": 56,
+    "historicalFocusedCounterCasesOverlapFinalOutputSuite": true,
+    "timingWitnessCaptureOverlapsFinalFiveObserverCases": true,
+    "evidenceChecksAreSeparateFromSoftwareTests": true,
+    "retainedNativeOutcomeReclassified": false,
+    "nativeInvocations": 0,
+    "nativeCIRequested": false,
+    "historicalFullD24SuiteRerunOrRepaired": false
+  },
+  "publicProjection": {
+    "policy": "Only declared local checkout/work/interpreter strings are replaced; integers, clocks, source hashes, test identities and outcomes are unchanged.",
+    "changedStrings": [
+      {
+        "pointer": "/finalPortableVerification/suites/test_native_retained_atrc_output/command/0",
+        "originalStringIdentity": {
+          "bytes": 73,
+          "sha256": "3f99dacf3fe1173f4083a3592804a3f0194569f6f6cf30c3f75b1b9e425c8f7d"
+        },
+        "publicStringIdentity": {
+          "bytes": 9,
+          "sha256": "5d974d88f83c9022720b1550b1cfee0dc33dab550a17bee3e11a7a27b3d41b9c"
+        }
+      },
+      {
+        "pointer": "/finalPortableVerification/suites/test_native_retained_atrc_output/cwd",
+        "originalStringIdentity": {
+          "bytes": 62,
+          "sha256": "5284d0a02697867ad6308ed16bffb8dbe4655ffe045ac1ec813b4de9098fe426"
+        },
+        "publicStringIdentity": {
+          "bytes": 10,
+          "sha256": "e9e070438e00efe8903cea6b5b6430249666d0d6fe66dc8c3baf210b989a1a14"
+        }
+      },
+      {
+        "pointer": "/finalPortableVerification/suites/test_native_retained_atrc_output/streams/stdout/path",
+        "originalStringIdentity": {
+          "bytes": 85,
+          "sha256": "7a809cfa2dd52a67ea44b89eb7783a66201ebed880b5360a65efc0aed01abe9d"
+        },
+        "publicStringIdentity": {
+          "bytes": 60,
+          "sha256": "695c79805309c46f1f3aa7e072328fd07a3fdff0f08381cc5edc3f2b96edffe1"
+        }
+      },
+      {
+        "pointer": "/finalPortableVerification/suites/test_native_retained_atrc_output/streams/stderr/path",
+        "originalStringIdentity": {
+          "bytes": 85,
+          "sha256": "49529bda24109e6e41714b70e4c99a170ffa34e8a4390b5bf87e6032b055f39e"
+        },
+        "publicStringIdentity": {
+          "bytes": 60,
+          "sha256": "f65012699159b8c80d34e6a5922493d63d017907fe60dad24b294b7df990fbbd"
+        }
+      },
+      {
+        "pointer": "/finalPortableVerification/suites/test_run_native_retained_atrc_import/command/0",
+        "originalStringIdentity": {
+          "bytes": 73,
+          "sha256": "3f99dacf3fe1173f4083a3592804a3f0194569f6f6cf30c3f75b1b9e425c8f7d"
+        },
+        "publicStringIdentity": {
+          "bytes": 9,
+          "sha256": "5d974d88f83c9022720b1550b1cfee0dc33dab550a17bee3e11a7a27b3d41b9c"
+        }
+      },
+      {
+        "pointer": "/finalPortableVerification/suites/test_run_native_retained_atrc_import/cwd",
+        "originalStringIdentity": {
+          "bytes": 62,
+          "sha256": "5284d0a02697867ad6308ed16bffb8dbe4655ffe045ac1ec813b4de9098fe426"
+        },
+        "publicStringIdentity": {
+          "bytes": 10,
+          "sha256": "e9e070438e00efe8903cea6b5b6430249666d0d6fe66dc8c3baf210b989a1a14"
+        }
+      },
+      {
+        "pointer": "/finalPortableVerification/suites/test_run_native_retained_atrc_import/streams/stdout/path",
+        "originalStringIdentity": {
+          "bytes": 89,
+          "sha256": "b7da96f427292c0594b7ba43cc638ce6b86f6e88e309b07b82b2125b84cf8ef7"
+        },
+        "publicStringIdentity": {
+          "bytes": 64,
+          "sha256": "e4a3e8690ff2f73ed1d1ae6f59eaecdf50a0b99dda94be1847e134e55f3c0466"
+        }
+      },
+      {
+        "pointer": "/finalPortableVerification/suites/test_run_native_retained_atrc_import/streams/stderr/path",
+        "originalStringIdentity": {
+          "bytes": 89,
+          "sha256": "fb5f970d18f62666161488288b173f03dfb36fb1c9593d08d9ba1cf51c757160"
+        },
+        "publicStringIdentity": {
+          "bytes": 64,
+          "sha256": "c0ab7ad43592460943eb6be393bd7b28e4a0b5940da1e66ff2ad7a191ad1561a"
+        }
+      },
+      {
+        "pointer": "/finalPortableVerification/suites/test_native_retained_atrc_observer/command/0",
+        "originalStringIdentity": {
+          "bytes": 73,
+          "sha256": "3f99dacf3fe1173f4083a3592804a3f0194569f6f6cf30c3f75b1b9e425c8f7d"
+        },
+        "publicStringIdentity": {
+          "bytes": 9,
+          "sha256": "5d974d88f83c9022720b1550b1cfee0dc33dab550a17bee3e11a7a27b3d41b9c"
+        }
+      },
+      {
+        "pointer": "/finalPortableVerification/suites/test_native_retained_atrc_observer/cwd",
+        "originalStringIdentity": {
+          "bytes": 62,
+          "sha256": "5284d0a02697867ad6308ed16bffb8dbe4655ffe045ac1ec813b4de9098fe426"
+        },
+        "publicStringIdentity": {
+          "bytes": 10,
+          "sha256": "e9e070438e00efe8903cea6b5b6430249666d0d6fe66dc8c3baf210b989a1a14"
+        }
+      },
+      {
+        "pointer": "/finalPortableVerification/suites/test_native_retained_atrc_observer/streams/stdout/path",
+        "originalStringIdentity": {
+          "bytes": 87,
+          "sha256": "91d7b4786f73026f34b170957b14693c384f090a4a02fd6d790debdbdf5f863c"
+        },
+        "publicStringIdentity": {
+          "bytes": 62,
+          "sha256": "473ceeabc50b3aae0e5bf2e1fc1fa49814ed8bee6eb7cfba1e4834517799eb9e"
+        }
+      },
+      {
+        "pointer": "/finalPortableVerification/suites/test_native_retained_atrc_observer/streams/stderr/path",
+        "originalStringIdentity": {
+          "bytes": 87,
+          "sha256": "fc6cc0a76ae98ada732b09864e1e497b12feabb37f82000b78031721af965f71"
+        },
+        "publicStringIdentity": {
+          "bytes": 62,
+          "sha256": "b7c3d86b1a771ead30c8538a9e51f22c7329c17c0efccc5d8f1aa0ff58d6a5b0"
+        }
+      },
+      {
+        "pointer": "/counterRedGreenProof/red/command/0",
+        "originalStringIdentity": {
+          "bytes": 73,
+          "sha256": "3f99dacf3fe1173f4083a3592804a3f0194569f6f6cf30c3f75b1b9e425c8f7d"
+        },
+        "publicStringIdentity": {
+          "bytes": 9,
+          "sha256": "5d974d88f83c9022720b1550b1cfee0dc33dab550a17bee3e11a7a27b3d41b9c"
+        }
+      },
+      {
+        "pointer": "/counterRedGreenProof/red/cwd",
+        "originalStringIdentity": {
+          "bytes": 62,
+          "sha256": "5284d0a02697867ad6308ed16bffb8dbe4655ffe045ac1ec813b4de9098fe426"
+        },
+        "publicStringIdentity": {
+          "bytes": 10,
+          "sha256": "e9e070438e00efe8903cea6b5b6430249666d0d6fe66dc8c3baf210b989a1a14"
+        }
+      },
+      {
+        "pointer": "/counterRedGreenProof/red/streams/stdout/path",
+        "originalStringIdentity": {
+          "bytes": 58,
+          "sha256": "d78cc7fa0ab3fcbbf3e6579df668a0e7ec09470eeee8e38bbba546a0aa90d430"
+        },
+        "publicStringIdentity": {
+          "bytes": 33,
+          "sha256": "12e7ac5486531c85b1bb26cdb1e819232742d9556440e1dbad5f147377e6fde2"
+        }
+      },
+      {
+        "pointer": "/counterRedGreenProof/red/streams/stderr/path",
+        "originalStringIdentity": {
+          "bytes": 58,
+          "sha256": "5af455062a9f9c81c749bf4e69bb2a5b765e7d2614addbc02d99617753a940fa"
+        },
+        "publicStringIdentity": {
+          "bytes": 33,
+          "sha256": "06c5e0dde9be499a4abc9acf83f28a4dea22471d2a1fcfe3dbd82d4d0eab7069"
+        }
+      },
+      {
+        "pointer": "/counterRedGreenProof/green/command/0",
+        "originalStringIdentity": {
+          "bytes": 73,
+          "sha256": "3f99dacf3fe1173f4083a3592804a3f0194569f6f6cf30c3f75b1b9e425c8f7d"
+        },
+        "publicStringIdentity": {
+          "bytes": 9,
+          "sha256": "5d974d88f83c9022720b1550b1cfee0dc33dab550a17bee3e11a7a27b3d41b9c"
+        }
+      },
+      {
+        "pointer": "/counterRedGreenProof/green/cwd",
+        "originalStringIdentity": {
+          "bytes": 62,
+          "sha256": "5284d0a02697867ad6308ed16bffb8dbe4655ffe045ac1ec813b4de9098fe426"
+        },
+        "publicStringIdentity": {
+          "bytes": 10,
+          "sha256": "e9e070438e00efe8903cea6b5b6430249666d0d6fe66dc8c3baf210b989a1a14"
+        }
+      },
+      {
+        "pointer": "/counterRedGreenProof/green/streams/stdout/path",
+        "originalStringIdentity": {
+          "bytes": 60,
+          "sha256": "24ee7a24b07ad8918cce176153dd255a4eeafe991bb22a71a52117c47fc13343"
+        },
+        "publicStringIdentity": {
+          "bytes": 35,
+          "sha256": "0576623602c575da0d15463575297bb55a2dc65850f761afc4631eb83e9ff35d"
+        }
+      },
+      {
+        "pointer": "/counterRedGreenProof/green/streams/stderr/path",
+        "originalStringIdentity": {
+          "bytes": 60,
+          "sha256": "06c3e0610a7183f8fbaf32c5db35422f79809610bdda64e69336634c913dcb06"
+        },
+        "publicStringIdentity": {
+          "bytes": 35,
+          "sha256": "3c25bce9f2bedd7a8d6ad3471d8fd748108cf9a1f27e4d9ebacc77a5db1a8092"
+        }
+      },
+      {
+        "pointer": "/counterRedGreenProof/diff/path",
+        "originalStringIdentity": {
+          "bytes": 48,
+          "sha256": "efda77227ad98f8ac319cb65e114a552ca25770cd42e15e4675463c623e4d92e"
+        },
+        "publicStringIdentity": {
+          "bytes": 23,
+          "sha256": "25af404a5f70c0cb4215b5c746723d6eb09e8813296e632e48518599b83fb786"
+        }
+      },
+      {
+        "pointer": "/counterRedStandardError",
+        "originalStringIdentity": {
+          "bytes": 2190,
+          "sha256": "e6f5e8b3430c442880113c97e77bdcf624e6cd2e1a326c6f0a4e3b7639692805"
+        },
+        "publicStringIdentity": {
+          "bytes": 2086,
+          "sha256": "ee10b4c4e9623b56a9a5c62e5c4de762375d52459292283a2aed8cfe34840891"
+        }
+      }
+    ]
+  }
+}
