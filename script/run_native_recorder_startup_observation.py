@@ -61,7 +61,7 @@ def manual_sections(layout: str) -> dict:
 
 
 def option_block(sections: dict, name: str) -> str:
-    area = sections.get("OPTIONS", sections.get("DESCRIPTION", ""))
+    area = sections.get("OPTIONS", sections.get("ARGUMENTS", sections.get("DESCRIPTION", "")))
     lines = area.splitlines()
     start = next((index for index, line in enumerate(lines) if re.match(r"^" + re.escape(name) + r"(?:\s|$)", line)), None)
     if start is None:
@@ -84,16 +84,35 @@ def validate_manuals(sample_raw: bytes, ps_raw: bytes) -> dict:
                           "contexts": [text[max(0, match.start() - 80):min(len(text), match.end() + 80)] if match else None
                                        for match in found]}
 
-    description = sample.get("DESCRIPTION", "")
+    description = sample.get("ARGUMENTS", sample.get("DESCRIPTION", ""))
     require("sampleSynopsisOrder", sample.get("SYNOPSIS", ""),
             r"\bsample\s+(?:pid|process)(?:\s*\|\s*partial-executable-name)?\s+\[?duration\s+\[?(?:samplingInterval|interval)")
-    require("samplePID", description, r"(?:process|pid).{0,220}(?:process ID|process identifier)")
     flat_description = re.sub(r"\s+", " ", description)
     def unit_statements(argument):
         candidates = re.findall(r"\b(?:" + argument + r")\b[^.]{0,400}(?:\.|$)", flat_description, re.I)
         return " ".join(value for value in candidates if re.search(r"\b(?:seconds|milliseconds)\b", value, re.I))
-    require("durationSeconds", unit_statements("duration"), r"\bseconds\b", r"^(?!.*\bmilliseconds\b).*$")
-    require("intervalMilliseconds", unit_statements("samplingInterval|interval"), r"\bmilliseconds\b", r"^(?!.*\bseconds\b).*$")
+    if "ARGUMENTS" in sample:
+        # The retained macOS manual defines all three positional arguments in
+        # one sentence. Bind each unit to its own ordered clause; a later default
+        # duration must not rescue a changed or reversed argument definition.
+        argument_definition = (r"\btarget process[^.]{0,180}?\bprocess id\b[^.]{0,100}?,\s*(?:the )?"
+                               r"(?P<duration>duration[^,.]{0,150}\(in\s+[A-Za-z]+\)),\s*and (?:a )?"
+                               r"(?P<interval>sampling rate[^,.]{0,100}\(in\s+[A-Za-z]+\))")
+        paragraphs = [re.sub(r"\s+", " ", block).strip() for block in re.split(r"\n\s*\n", description)]
+        matching = [(paragraph, re.search(argument_definition, paragraph, re.I)) for paragraph in paragraphs]
+        matching = [(paragraph, match) for paragraph, match in matching if match is not None]
+        paragraph, definition = matching[0] if len(matching) == 1 else ("", None)
+        require("sampleArgumentDefinitionOrder", paragraph, argument_definition)
+        identity_text = definition[0] if definition else ""
+        duration_text = definition["duration"] if definition else ""
+        interval_text = definition["interval"] if definition else ""
+    else:
+        identity_text = description
+        duration_text = unit_statements("duration")
+        interval_text = unit_statements("samplingInterval|interval")
+    require("samplePID", identity_text, r"(?:process|pid).{0,220}(?:process ID|process identifier)")
+    require("durationSeconds", duration_text, r"\bseconds\b", r"^(?!.*\bmilliseconds\b).*$")
+    require("intervalMilliseconds", interval_text, r"\bmilliseconds\b", r"^(?!.*\bseconds\b).*$")
     require("mayDieSymbolsFirst", option_block(sample, "-mayDie"),
             r"(?:symbol.{0,400}(?:before|first)|(?:before|first).{0,400}symbol|immediately.{0,400}(?:symbol|location))")
     require("explicitReportFile", option_block(sample, "-file"),

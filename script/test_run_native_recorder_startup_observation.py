@@ -36,6 +36,24 @@ pid process ID ppid parent process ID pgid process group number uid effective us
 lstart time started state symbolic process state (alias stat) comm command args command and arguments
 """
 
+# Structural regression fixture, paraphrased rather than retaining a complete
+# third-party manual. The observed ARM R1 sample(1) raw bytes were 4490 bytes,
+# SHA-256 253f16336d7cc4b1441e34358ee8220c57bdd5a1c5fd0a5fd835e96292617cf6.
+# Intel R1 also retained 4490 bytes, SHA-256
+# 04221ddc0cfed094820524f54e5dc4e018002fbb84a17e7603c18356cea4e615.
+SAMPLE_ARGUMENTS_MANUAL = b"""SYNOPSIS
+sample pid | partial-executable-name [duration [samplingInterval]] [-mayDie] [-file filename]
+DESCRIPTION
+A process sampling utility.
+ARGUMENTS
+Target process selected by process id, duration measured (in seconds), and a sampling rate (in milliseconds).
+An omitted duration has a default of 10 seconds.
+-mayDie Immediately collect the location of symbols before the target exits.
+-file filename Provides a full path for the written output.
+SEE ALSO
+Related tools.
+"""
+
 
 def complete(command, timeout=3):
     deadline = time.monotonic() + timeout
@@ -47,6 +65,26 @@ def complete(command, timeout=3):
 
 
 class ObserverContracts(unittest.TestCase):
+    def test_retained_arguments_section_shape_binds_units_to_ordered_parameters(self):
+        report = subject.validate_manuals(SAMPLE_ARGUMENTS_MANUAL, PS_MANUAL)
+        self.assertTrue(report["passed"])
+        self.assertTrue(report["semanticChecks"]["sampleArgumentDefinitionOrder"])
+        self.assertEqual(report["matchedPassages"]["durationSeconds"]["matches"][0], "seconds")
+        self.assertEqual(report["matchedPassages"]["intervalMilliseconds"]["matches"][0], "milliseconds")
+        for sample in (
+            SAMPLE_ARGUMENTS_MANUAL.replace(b"ARGUMENTS", b"UNRECOGNIZED"),
+            SAMPLE_ARGUMENTS_MANUAL.replace(b"duration measured (in seconds)", b"duration measured (in milliseconds)"),
+            SAMPLE_ARGUMENTS_MANUAL.replace(b"sampling rate (in milliseconds)", b"sampling rate (in seconds)"),
+            SAMPLE_ARGUMENTS_MANUAL.replace(b"duration measured (in seconds), and a sampling rate (in milliseconds)",
+                                           b"sampling rate (in milliseconds), and duration measured (in seconds)"),
+            SAMPLE_ARGUMENTS_MANUAL.replace(b"[duration [samplingInterval]]", b"[samplingInterval [duration]]"),
+            SAMPLE_ARGUMENTS_MANUAL.replace(b", duration measured", b",\n\nduration measured"),
+            SAMPLE_ARGUMENTS_MANUAL.replace(b"-mayDie Immediately collect the location of symbols before the target exits.", b"-mayDie"),
+            SAMPLE_ARGUMENTS_MANUAL.replace(b"-file filename Provides a full path for the written output.", b"-file filename"),
+        ):
+            with self.subTest(sample=sample):
+                self.assertFalse(subject.validate_manuals(sample, PS_MANUAL)["passed"])
+
     def test_manual_gate_requires_semantics_and_preserves_normalized_overstrikes(self):
         self.assertTrue(subject.validate_manuals(SAMPLE_MANUAL, PS_MANUAL)["passed"])
         self.assertEqual(subject.manual_text(b"s\bsa\bam\bme\bep\bpl\ble\be"), "sameple")

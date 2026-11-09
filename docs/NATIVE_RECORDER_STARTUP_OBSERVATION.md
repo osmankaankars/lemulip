@@ -175,3 +175,48 @@ After this one observation, inspect the retained image, frames, identity and
 notification ordering. A further change requires a concrete new boundary
 supported by those results. A timeout, access error or generic wait supplies no
 basis for longer waits, blind repetition, security changes or a held gesture.
+
+## R1: installed-manual recognition stopped before runtime observation
+
+[Run 42583070469](https://github.com/osmankaankars/lemulip/actions/runs/42583070469),
+attempt 1, ran on 9 November 2026, 08:02:01–08:05:58 UTC, at
+`ea57f66f50ec170caeb097f702e093a31bbbb1d3`, tree
+`8c7f57d903a9f7af3e78181026eb42a6c0f90e76`. ARM job `129046216128` and
+Intel job `129046216378` both passed the six bounded-command, ten original
+orchestration and fourteen observer tests, all builds and source/provenance
+checks. Input preservation and artifact upload completed after the observation
+step stopped at its manual preflight.
+
+Both installed-man commands exited zero with complete bounded captures.
+All `ps` semantic checks and the sample synopsis check passed. Five sample
+checks failed: PID definition, duration units, interval units, `-mayDie` and
+`-file`. The retained manuals explain the false rejection: those definitions
+and option paragraphs are under **ARGUMENTS**, while R1 searched DESCRIPTION
+and OPTIONS. The argument paragraph also defines seconds and milliseconds in
+separate clauses of one sentence, which R1's whole-sentence unit exclusion did
+not recognise.
+
+The gate stopped before helper, recorder or sample creation. No startup,
+recording, application launch or input occurred. This run therefore supplies
+installed documentation, not a failed runtime sampling attempt.
+
+| R1 architecture | Artifact | ZIP bytes | ZIP SHA-256 |
+| --- | ---: | ---: | --- |
+| ARM64 | `13658136399` | 9,193,557 | `3193ae75ffcc367e1f4a1bdf79668bec56c8d72890165487cf822742e16d755d` |
+| Intel | `13657654327` | 9,290,455 | `1103e145792c094a3bcae9a3ce0d0beff7d9c82b2214dbd7358c9230fd47fdc2` |
+
+Each archive contains 66 files. Both raw sample manuals are 4,490 bytes; their
+SHA-256 identities are
+`253f16336d7cc4b1441e34358ee8220c57bdd5a1c5fd0a5fd835e96292617cf6`
+(ARM) and
+`04221ddc0cfed094820524f54e5dc4e018002fbb84a17e7603c18356cea4e615`
+(Intel). The relevant normalized synopsis and argument sections agree.
+
+The narrow R2 correction recognises ARGUMENTS explicitly and checks the ordered
+parameter definitions and their individual unit clauses. Missing definitions or
+swapped units still fail. Both retained native manual pairs pass all twenty
+checks when replayed through the corrected validator. A focused regression
+fixture binds its source-manual identities without copying the complete manual.
+The observer runtime, command arguments, process ownership and all time/output
+bounds are unchanged. R2 is the first runtime-observation attempt after that
+pre-execution parser correction.
