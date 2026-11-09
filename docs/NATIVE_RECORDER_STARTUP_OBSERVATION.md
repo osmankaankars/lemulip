@@ -354,3 +354,21 @@ A pass qualifies only the controlled child's sampler/report path. A further
 recorder observation would still need a concrete proposal for new
 recorder-specific evidence. No held gesture or security change follows from
 this result.
+
+### Subsequent D22 control result
+
+[D22 R1](NATIVE_SAMPLER_CALIBRATION.md#r1-reports-produced-strict-path-identity-remained-incomplete)
+completed one native control sample per architecture in
+[run 42588874357](https://github.com/osmankaankars/lemulip/actions/runs/42588874357).
+Both samplers exited zero in approximately 1.47 seconds within the unchanged
+budget. Their retained call graphs contain the known waiting frame with 82 ARM
+and 97 Intel samples; UUID and address-range witnesses agree with the owned
+build/native receipts. The executed strict parser rejected different masked
+path strings in the report header and Binary Images row. No after-identity
+snapshot followed, so the original full calibration remains incomplete despite
+the useful controlled-image/frame observations and normal cleanup.
+
+The next unit is an offline identity-witness contract using these existing
+bytes. It must preserve the original failure, missing exact path and missing
+post-sample snapshot. D22 does not explain D21's sampler noncompletion or
+recorder startup, and no additional recorder invocation follows automatically.

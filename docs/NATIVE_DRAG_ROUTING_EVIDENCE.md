@@ -112,7 +112,25 @@ Finder gate, C12/PR #45 HOLD and task 08 dependency are unchanged.
 
 Each single bounded sampler attempt announced its PID and requested parameters, then reached its fixed command budget without a report. TERM produced exit -15. The subsequent group KILL EPERM concerns cleanup and was retained; positive final group snapshots and closed streams resolved cleanup without promoting the sample to success. No stack or post-sample identity was retained. The unchanged native helper still received zero recording-start callbacks and launched no app. Recorder exit was -2 after direct SIGINT, all 124 inputs per architecture remained unchanged, and no trace/export followed.
 
-The [retained evidence](evidence/D21-recorder-startup-observation.json) supplies these observations and their limits. Recorder startup and sampler noncompletion remain unexplained; no permission denial is established. The next prerequisite is one positive calibration of the same bounded sampler on a small owned native child with a known frame, without another recording invocation. No native drag or acceptance case is added, and C12/PR #45 HOLD and task 08's dependency remain unchanged.
+The [retained evidence](evidence/D21-recorder-startup-observation.json) supplies these observations and their limits. Recorder startup and sampler noncompletion remain unexplained; no permission denial is established. The proposed next prerequisite was one positive calibration of the same bounded sampler on a small owned native child with a known frame, without another recording invocation. No native drag or acceptance case is added, and C12/PR #45 HOLD and task 08's dependency remain unchanged.
+
+### Subsequent D22 controlled sample
+
+[D22 R1](NATIVE_SAMPLER_CALIBRATION.md#r1-reports-produced-strict-path-identity-remained-incomplete)
+ran once per architecture in [run 42588874357](https://github.com/osmankaankars/lemulip/actions/runs/42588874357)
+at `10ececdd145ca4c857c5844a83cee0b0b3a5d8e2`. Both samplers exited zero in
+approximately 1.47 seconds. Their actual call graphs contain the expected
+waiting frame with 82 ARM and 97 Intel samples, consistent image UUIDs and frame
+addresses. The strict parser stopped on unequal masked header/image paths;
+there is no after-identity snapshot and the original full calibration remains
+incomplete. Both targets finished by normal stdin EOF and cleanup resolved.
+
+The [D22 projection](evidence/D22-native-sampler-calibration.json) binds all 156
+artifact files and the limited positive witnesses. The next unit is an offline
+identity contract over the retained reports and build/native receipts, keeping
+exact-path and post-sample omissions explicit. This supplies no new held gesture,
+recorder stack, activation requester, product repair or original acceptance
+result. Task 07 and task 08 retain their existing gates.
 
 ## Symptom and impact
 

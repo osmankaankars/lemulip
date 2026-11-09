@@ -196,11 +196,27 @@ no qualified loaded image/stack, no recording-start callback, no app launch,
 trace or export. Both sampler and recorder cleanup resolved and inputs remained
 unchanged. Sampler cleanup EPERM is not an inspection-permission denial.
 
-The next prerequisite is a standalone positive calibration of the same bounded
+The proposed next prerequisite was a standalone positive calibration of the same bounded
 sampler on an owned native child with a known frame. That requires no new
 recorder run, timeout widening or held input. D21 supplies no product repair or
 original Finder acceptance result. The completed source/twelve-image review,
 physical check and v4 evidence remain valid; task 08 still waits on task 07.
+
+[D22 R1](NATIVE_SAMPLER_CALIBRATION.md) subsequently ran that standalone control
+in [run 42588874357](https://github.com/osmankaankars/lemulip/actions/runs/42588874357)
+at `10ececdd145ca4c857c5844a83cee0b0b3a5d8e2`. Both architectures passed all 43
+portable tests, native compilation and provenance checks. One sampler each
+completed in about 1.47 seconds and produced the known waiting frame (82/97
+samples). CI remained incomplete because the strict image parser rejected
+unequal privacy-masked paths; no post-sample identity query followed. Normal
+target completion and cleanup passed. These controlled-process observations
+are preserved in the [D22 evidence](evidence/D22-native-sampler-calibration.json)
+without promoting the full calibration or the product gate.
+
+The next work is an offline identity-witness contract using those already
+retained files. It adds no native input or acceptance result. C12, the completed
+source/twelve-image review, physical check and v4 result retain their status;
+task 08's final closure remains dependent on task 07.
 
 To complete task 08, close or explicitly resolve task 07's remaining CI gate on
 the final candidate, review any resulting production changes, and retain the

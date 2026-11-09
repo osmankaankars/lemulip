@@ -314,6 +314,14 @@ budget and exited -15 after TERM without a report; no stack or loaded image was
 qualified. Both unchanged helpers again received zero callbacks and launched no
 apps. Final observer/recorder cleanup resolved, inputs stayed unchanged, and no
 trace/export followed. The sampler's cleanup EPERM is not a target-inspection
-access error. The next prerequisite is standalone positive sampler calibration
+access error. The proposed next prerequisite was standalone positive sampler calibration
 on a small owned child under the same budget, without another recorder run.
 D20's pre-start cause and the original acceptance gate remain unresolved.
+
+[D22](NATIVE_SAMPLER_CALIBRATION.md) has now run that control once per
+architecture. Both samplers completed in about 1.47 seconds and retained the
+known frame, but the strict identity parser rejected unequal masked display
+paths before a post-sample identity snapshot. The full control gate remains
+incomplete; the new report/UUID/address witnesses are retained separately.
+The next work is an offline identity contract over those existing artifacts,
+with no new recording, input or budget change. D20's cause remains unresolved.
