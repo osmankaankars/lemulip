@@ -10,6 +10,7 @@ import sys
 import tempfile
 import time
 import unittest
+from unittest.mock import patch
 
 from collect_native_trace_capabilities import capture
 
@@ -37,6 +38,66 @@ class CaptureTests(unittest.TestCase):
         self.assertEqual(receipt["status"], "timeout")
         self.assertLess(receipt["elapsedSeconds"], 5)
         self.assertIsNotNone(receipt["exitCode"])
+
+    def test_final_signal_eperm_requires_independent_exited_group_evidence(self):
+        for kind in ("no-members", "zombie-members"):
+            with self.subTest(kind=kind):
+                original = os.killpg
+                group = []
+
+                def signal_group(pgid, sig):
+                    group[:] = [pgid]
+                    if sig == signal.SIGKILL:
+                        raise PermissionError(1, "simulated final signal EPERM")
+                    return original(pgid, sig)
+
+                def snapshot(argv, **options):
+                    self.assertEqual(argv, ("/bin/ps", "-A", "-o", "pid=,pgid=,stat="))
+                    self.assertFalse(options["allow_group_snapshot"])
+                    body = "1 0 S\n"
+                    if kind == "zombie-members": body += f"{group[0] + 1} {group[0]} Z+\n"
+                    return ({"status": "completed", "exitCode": 0, "cleanupFailed": False},
+                            {"stdout": body.encode(), "stderr": b""})
+
+                with patch("collect_native_trace_capabilities.os.killpg", side_effect=signal_group), \
+                     patch("collect_native_trace_capabilities.capture", side_effect=snapshot):
+                    receipt, _ = self.run_child("import time; time.sleep(30)", timeout=0.2)
+                self.assertEqual(receipt["status"], "timeout")
+                self.assertFalse(receipt["cleanupFailed"])
+                self.assertEqual(receipt["cleanupErrors"], [{"signal": "SIGKILL", "errno": 1}])
+                self.assertNotIn("SIGKILL", receipt["cleanupSignals"])
+                self.assertEqual(receipt["groupSnapshot"]["status"], "no-live-group-members-observed")
+
+    def test_eperm_cannot_hide_live_or_unverifiable_group(self):
+        for kind in ("live-member", "malformed", "truncated", "failed"):
+            with self.subTest(kind=kind):
+                original = os.killpg
+                group = []
+
+                def signal_group(pgid, sig):
+                    group[:] = [pgid]
+                    if sig == signal.SIGKILL:
+                        raise PermissionError(1, "simulated final signal EPERM")
+                    return original(pgid, sig)
+
+                def snapshot(argv, **options):
+                    self.assertEqual(argv, ("/bin/ps", "-A", "-o", "pid=,pgid=,stat="))
+                    self.assertFalse(options["allow_group_snapshot"])
+                    self.assertEqual(options["timeout"], 2)
+                    self.assertEqual(options["limit"], 65536)
+                    body = f"999999 {group[0]} S\n" if kind == "live-member" else "1 0 S\n"
+                    if kind == "malformed": body = "unparseable row\n"
+                    status = "output-limit" if kind == "truncated" else "nonzero" if kind == "failed" else "completed"
+                    return ({"status": status, "exitCode": 1 if kind == "failed" else 0, "cleanupFailed": False},
+                            {"stdout": body.encode(), "stderr": b""})
+
+                with patch("collect_native_trace_capabilities.os.killpg", side_effect=signal_group), \
+                     patch("collect_native_trace_capabilities.capture", side_effect=snapshot):
+                    receipt, _ = self.run_child("import time; time.sleep(30)", timeout=0.2)
+                self.assertEqual(receipt["status"], "cleanup-incomplete")
+                self.assertEqual(receipt["stopReason"], "timeout")
+                self.assertTrue(receipt["cleanupFailed"])
+                self.assertEqual(receipt["groupSnapshot"]["status"], "unresolved")
 
     @staticmethod
     def owned_child_running(pid, pgid):

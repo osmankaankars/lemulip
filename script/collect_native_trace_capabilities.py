@@ -44,13 +44,15 @@ def write_json(path: Path, value: object) -> None:
 
 
 def capture(argv: tuple[str, ...], *, cwd: Path, env: dict[str, str],
-            timeout: float = TIMEOUT_SECONDS, limit: int = MAX_COMBINED_BYTES) -> tuple[dict, dict[str, bytes]]:
+            timeout: float = TIMEOUT_SECONDS, limit: int = MAX_COMBINED_BYTES,
+            allow_group_snapshot: bool = True) -> tuple[dict, dict[str, bytes]]:
     """Bound both time and combined output; terminate only our new process group."""
     started = time.monotonic()
     streams = {"stdout": bytearray(), "stderr": bytearray()}
     result = {"argv": list(argv), "timeoutSeconds": timeout, "maximumCombinedBytes": limit,
               "status": "not-started", "exitCode": None, "cleanupSignals": [],
               "groupEscalationAttempted": False,
+              "cleanupErrors": [], "cleanupFailed": False, "stopReason": None,
               "observedBytes": 0, "retainedBytes": 0}
     try:
         process = subprocess.Popen(argv, cwd=cwd, env=env, stdin=subprocess.DEVNULL,
@@ -62,17 +64,51 @@ def capture(argv: tuple[str, ...], *, cwd: Path, env: dict[str, str],
     deadline = started + timeout
     stopped = None
 
+    def signal_group(sig: signal.Signals) -> None:
+        try:
+            os.killpg(process.pid, sig)
+            result["cleanupSignals"].append(sig.name)
+        except ProcessLookupError:
+            pass
+        except PermissionError as error:
+            # EPERM alone never proves cleanup. A zombie-only Darwin process
+            # group can also produce it. Reap the direct child if it exited,
+            # inspect one bounded snapshot, and never signal this PGID again.
+            result["cleanupErrors"].append({"signal": sig.name, "errno": error.errno})
+            result["cleanupFailed"] = True
+            result["groupSnapshot"] = {"status": "unresolved", "members": [],
+                                       "leaderExitCode": process.poll()}
+            if allow_group_snapshot:
+                check, data = capture(("/bin/ps", "-A", "-o", "pid=,pgid=,stat="),
+                                      cwd=cwd, env=env, timeout=2, limit=65536,
+                                      allow_group_snapshot=False)
+                snapshot = result["groupSnapshot"]
+                snapshot.update(commandStatus=check["status"], exitCode=check["exitCode"],
+                                stdoutSHA256=hashlib.sha256(data["stdout"]).hexdigest(),
+                                stderrSHA256=hashlib.sha256(data["stderr"]).hexdigest())
+                try:
+                    rows = [row.split() for row in data["stdout"].decode("ascii").splitlines() if row.strip()]
+                    valid = bool(rows) and all(len(row) == 3 and row[0].isdigit() and row[1].isdigit() for row in rows)
+                    members = [{"pid": int(row[0]), "pgid": int(row[1]), "state": row[2]}
+                               for row in rows if valid and int(row[1]) == process.pid]
+                    snapshot["members"] = members
+                    snapshot["leaderExitCode"] = process.poll()
+                    if (valid and check["status"] == "completed" and not check["cleanupFailed"]
+                            and not data["stderr"] and process.returncode is not None
+                            and all(row["state"].startswith("Z") for row in members)):
+                        snapshot["status"] = "no-live-group-members-observed"
+                        result["cleanupFailed"] = False
+                except (UnicodeDecodeError, ValueError):
+                    pass
+
     def stop(reason: str) -> None:
         nonlocal stopped
         if stopped is not None:
             return
         stopped = time.monotonic()
         result["status"] = reason
-        try:
-            os.killpg(process.pid, signal.SIGTERM)
-            result["cleanupSignals"].append("SIGTERM")
-        except ProcessLookupError:
-            pass
+        result["stopReason"] = reason
+        signal_group(signal.SIGTERM)
 
     with selectors.DefaultSelector() as selector:
         for name, pipe in (("stdout", process.stdout), ("stderr", process.stderr)):
@@ -83,6 +119,8 @@ def capture(argv: tuple[str, ...], *, cwd: Path, env: dict[str, str],
                 now = time.monotonic()
                 if now >= deadline:
                     stop("timeout")
+                if result["cleanupErrors"]:
+                    break
                 if stopped is not None and now - stopped >= 2:
                     break
                 for key, _ in selector.select(0.1):
@@ -102,33 +140,34 @@ def capture(argv: tuple[str, ...], *, cwd: Path, env: dict[str, str],
                     process.wait(timeout=max(0.01, deadline - time.monotonic()))
                 except subprocess.TimeoutExpired:
                     stop("timeout")
-            if stopped is not None:
+            if stopped is not None and not result["cleanupErrors"]:
                 # The leader can exit and close both pipes while a same-group
                 # descendant ignores TERM. Escalate the group before waiting
                 # on/reaping only the leader, irrespective of pipe/leader state.
                 result["groupEscalationAttempted"] = True
-                try:
-                    os.killpg(process.pid, signal.SIGKILL)
-                    result["cleanupSignals"].append("SIGKILL")
-                except ProcessLookupError:
-                    pass
+                signal_group(signal.SIGKILL)
             if process.poll() is None:
                 try:
                     process.wait(timeout=2)
                 except subprocess.TimeoutExpired:
+                    if not result["cleanupErrors"]:
+                        signal_group(signal.SIGKILL)
                     try:
-                        os.killpg(process.pid, signal.SIGKILL)
-                        result["cleanupSignals"].append("SIGKILL")
-                    except ProcessLookupError:
-                        pass
-                    process.wait(timeout=2)
+                        process.wait(timeout=2)
+                    except subprocess.TimeoutExpired:
+                        result["cleanupFailed"] = True
         finally:
             for pipe in (process.stdout, process.stderr):
                 pipe.close()
-            if process.poll() is None:
-                os.killpg(process.pid, signal.SIGKILL)
-                process.wait(timeout=2)
-    if stopped is None:
+            if process.poll() is None and not result["cleanupErrors"]:
+                signal_group(signal.SIGKILL)
+                try:
+                    process.wait(timeout=2)
+                except subprocess.TimeoutExpired:
+                    result["cleanupFailed"] = True
+    if result["cleanupFailed"]:
+        result["status"] = "cleanup-incomplete"
+    elif stopped is None:
         result["status"] = "completed" if process.returncode == 0 else "nonzero"
     result.update(exitCode=process.returncode, elapsedSeconds=time.monotonic() - started)
     return result, {key: bytes(value) for key, value in streams.items()}
@@ -189,8 +228,11 @@ def main() -> int:
         write_json(args.output / (name + ".json"), receipt)
         report["commands"].append(receipt)
         print(name + ": " + receipt["status"], flush=True)
-    report["inventoryComplete"] = all(not row["required"] or row["status"] == "completed"
-                                      for row in report["commands"])
+        if receipt["cleanupFailed"]:
+            break
+    report["inventoryComplete"] = (len(report["commands"]) == len(COMMANDS)
+                                   and all(not row["required"] or row["status"] == "completed"
+                                           for row in report["commands"]))
     report["status"] = "inventory-complete" if report["inventoryComplete"] else "inventory-incomplete"
     write_json(args.output / "capabilities.json", report)
     print(report["status"], flush=True)

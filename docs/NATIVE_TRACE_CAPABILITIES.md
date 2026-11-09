@@ -59,10 +59,22 @@ files precede command execution; individual receipts survive a later failure.
 The final `capabilities.json` binds results to the executed commit/tree and native
 architecture. The workflow uploads available evidence on either outcome.
 
-Four focused subprocess checks exercise nonzero stream retention, output limits,
+Six focused subprocess checks exercise nonzero stream retention, output limits,
 deadlines, and a leader that exits on termination while its same-group descendant
 ignores that signal. Review reproduced the last cleanup gap before publication;
 the collector now escalates the owned group independently of leader/pipe state.
+They also cover a final-signal EPERM with independently observed exited-group
+evidence and reject live, malformed, truncated or failed snapshots. These checks
+do not launch the source/control apps or invoke the tracing tools.
+
+An EPERM is always recorded. One bounded `ps -A -o pid=,pgid=,stat=` snapshot may
+establish that the direct child exited and no non-zombie member of its exact
+group was observed. Only matching-group rows are retained. The snapshot has a
+two-second deadline and 64-KiB output cap, and cannot recursively request another
+snapshot. No further signal is sent to that numeric group after the EPERM/leader
+reap. Any unresolved group stops subsequent inventory commands; independent exit
+evidence preserves the original timeout/output-limit outcome rather than turning
+the command into success.
 
 ## Interpretation and stop condition
 
@@ -83,6 +95,24 @@ inventory success alone.
 
 ## Status
 
-Prepared on 9 November 2026 Europe/Istanbul. Native inventory has not run at this
-protocol revision. Results will retain their exact executed revision and separate
-tool availability, recording access, exported data and causal coverage.
+### R1: subprocess tests stopped before tool inventory
+
+[Run 42564449289](https://github.com/osmankaankars/lemulip/actions/runs/42564449289),
+attempt 1, tested `c267498adf1013d3ed6b8d78990696028ecd9455` / tree
+`638771b5c4e4f773c0045d9e8792404c9baa2abe`. Both architectures passed source
+scope/privacy checks, then two of four subprocess tests raised EPERM at the
+post-termination group SIGKILL. Nonzero retention and the live stubborn-descendant
+test passed. No inventory command, trace recording, or source/control startup ran;
+artifact upload found no output. Job logs retain this infrastructure result.
+
+Apple's published [XNU group-signal implementation](https://github.com/apple-oss-distributions/xnu/blob/xnu-11417.140.69/bsd/kern/kern_sig.c)
+excludes zombie members and can return POSIX EPERM for an existing group with no
+eligible members. This is consistent with the observed failure, but R1 did not
+retain process states and does not prove that its groups were zombie-only. R2
+adds the independent bounded state check above, keeps the real cleanup tests,
+and preserves their output before inventory starts. No tracing permission is
+inferred from this subprocess-signaling result.
+
+Prepared on 9 November 2026 Europe/Istanbul. The corrected inventory has not run
+at this protocol revision. Results will bind their exact executed revision and
+separate tool availability, recording access, exported data and causal coverage.

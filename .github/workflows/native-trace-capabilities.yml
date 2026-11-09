@@ -48,9 +48,13 @@ jobs:
           git merge-base --is-ancestor "$EVIDENCE_BASE" HEAD
           git diff --exit-code "$EVIDENCE_BASE" -- Sources Resources Package.swift script/native_ui \
             script/build_app.sh script/prepare_native_ui.py script/compare_native_drag_mouse_driver.py
+          mkdir "$RUNNER_TEMP/drag-trace-capabilities-bootstrap"
+          printf '%s\n' "$GITHUB_SHA" > "$RUNNER_TEMP/drag-trace-capabilities-bootstrap/experiment-commit.txt"
           python3 script/privacy_check.py
           python3 -m py_compile script/collect_native_trace_capabilities.py
-          python3 script/test_collect_native_trace_capabilities.py
+          python3 script/test_collect_native_trace_capabilities.py \
+            > "$RUNNER_TEMP/drag-trace-capabilities-bootstrap/tests.stdout.txt" \
+            2> "$RUNNER_TEMP/drag-trace-capabilities-bootstrap/tests.stderr.txt"
       - name: Collect Installed Tool Contracts
         run: >-
           python3 script/collect_native_trace_capabilities.py
@@ -62,6 +66,8 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: native-trace-capabilities-${{ matrix.arch }}
-          path: ${{ runner.temp }}/drag-trace-capabilities
+          path: |
+            ${{ runner.temp }}/drag-trace-capabilities
+            ${{ runner.temp }}/drag-trace-capabilities-bootstrap
           if-no-files-found: error
           retention-days: 14
