@@ -1,0 +1,238 @@
+name: Native Recorder Progress Observation
+
+on:
+  push:
+    branches: ['codex/recorder-progress-observation-07']
+    paths:
+      - '.github/workflows/native-recorder-progress-observation.yml'
+      - 'script/native_ui/NativeRecorderProgressNotify.c'
+      - 'script/native_sampler_tool_identity.py'
+      - 'script/run_native_recorder_progress_observation.py'
+      - 'script/test_run_native_recorder_progress_observation.py'
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+  CANDIDATE_COMMIT: d821d7343675e2850705d141ef9b3b93a6aee945
+  CANDIDATE_TREE: 425baa28f00ec24551dd70c0cc874a75fa3be0c1
+  PROGRESS_BASE: c1844a1ecb1650336d2cd584d23e2c3c6ed33a29
+
+concurrency:
+  group: native-recorder-progress-observation-${{ github.ref }}
+  cancel-in-progress: false
+
+# One recorder and at most one nested sampler per architecture. The nested
+# observer cannot extend the primary sampler's original 3.5/4-second budget.
+# The notification-only helper never opens apps or synthesizes input.
+jobs:
+  observation:
+    name: Recorder Progress Observation (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - name: Check Out Exact Diagnostic
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Select Python With macOS Nonreaping Child Status
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.13'
+      - name: Bind Source And Portable Gates
+        run: |
+          mkdir -p "$RUNNER_TEMP/recorder-progress-observation/evidence/build"
+          printf '%s\n' "$GITHUB_SHA" > "$RUNNER_TEMP/recorder-progress-observation/evidence/build/experiment-commit.txt"
+          git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/recorder-progress-observation/evidence/build/experiment-tree.txt"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+          test "$(uname -m)" = '${{ matrix.arch }}'
+          test "$(git rev-parse "$CANDIDATE_COMMIT^{tree}")" = "$CANDIDATE_TREE"
+          git merge-base --is-ancestor "$PROGRESS_BASE" HEAD
+          python3 - <<'PYCODE'
+          import os, subprocess, sys
+          assert sys.version_info >= (3, 13)
+          assert all(hasattr(os, name) for name in ('waitid', 'P_PID', 'WEXITED', 'WNOHANG', 'WNOWAIT'))
+          allowed = {'.github/workflows/native-recorder-progress-observation.yml',
+                     'script/native_ui/NativeRecorderProgressNotify.c',
+                     'script/native_sampler_tool_identity.py',
+                     'script/run_native_recorder_progress_observation.py',
+                     'script/test_run_native_recorder_progress_observation.py',
+                     'docs/NATIVE_RECORDER_PROGRESS_OBSERVATION.md'}
+          changed = set(subprocess.check_output(['git', 'diff', '--name-only', os.environ['PROGRESS_BASE'], 'HEAD'], text=True).splitlines())
+          assert changed and changed <= allowed, sorted(changed - allowed)
+          PYCODE
+          python3 script/privacy_check.py
+          python3 script/test_collect_native_trace_capabilities.py \
+            > "$RUNNER_TEMP/recorder-progress-observation/evidence/build/bounded-command-tests.stdout.txt" \
+            2> "$RUNNER_TEMP/recorder-progress-observation/evidence/build/bounded-command-tests.stderr.txt"
+          python3 script/test_run_native_system_trace_startup.py \
+            > "$RUNNER_TEMP/recorder-progress-observation/evidence/build/transport-tests.stdout.txt" \
+            2> "$RUNNER_TEMP/recorder-progress-observation/evidence/build/transport-tests.stderr.txt"
+          python3 script/test_run_native_recorder_startup_observation.py \
+            > "$RUNNER_TEMP/recorder-progress-observation/evidence/build/observer-tests.stdout.txt" \
+            2> "$RUNNER_TEMP/recorder-progress-observation/evidence/build/observer-tests.stderr.txt"
+          python3 script/test_run_native_recorder_progress_observation.py \
+            > "$RUNNER_TEMP/recorder-progress-observation/evidence/build/progress-tests.stdout.txt" \
+            2> "$RUNNER_TEMP/recorder-progress-observation/evidence/build/progress-tests.stderr.txt"
+      - name: Build Notification Only Helper
+        run: |
+          source_sha=$(shasum -a 256 script/native_ui/NativeRecorderProgressNotify.c | cut -d ' ' -f 1)
+          xcrun clang -std=c11 -fblocks -O0 -g -fno-omit-frame-pointer \
+            -Wall -Wextra -Werror "-DD24_SOURCE_SHA256=\"$source_sha\"" \
+            script/native_ui/NativeRecorderProgressNotify.c \
+            -o "$RUNNER_TEMP/recorder-progress-observation/evidence/build/NativeRecorderProgressNotify" \
+            > "$RUNNER_TEMP/recorder-progress-observation/evidence/build/compile.stdout.txt" \
+            2> "$RUNNER_TEMP/recorder-progress-observation/evidence/build/compile.stderr.txt"
+      - name: Preserve Installed Tool And Source Identities
+        id: provenance
+        run: |
+          python3 - <<'PYCODE'
+          import ctypes, errno, hashlib, json, os, pathlib, platform, re, shutil, stat, subprocess, sys
+          sys.path.insert(0, 'script')
+          from native_sampler_tool_identity import inspect_tool
+          from run_native_system_trace_startup import read_regular
+          from collect_native_trace_capabilities import capture
+          out = (pathlib.Path(os.environ['RUNNER_TEMP']) / 'recorder-progress-observation/evidence').resolve(strict=True)
+          build, sources = out / 'build', out / 'sources'
+          helper, sample = build / 'NativeRecorderProgressNotify', pathlib.Path('/usr/bin/sample')
+          architecture = platform.machine()
+          assert architecture == '${{ matrix.arch }}'
+          digest = lambda raw: hashlib.sha256(raw).hexdigest()
+          libc = ctypes.CDLL(None, use_errno=True)
+          probe = libc.sysctlbyname
+          probe.argtypes = [ctypes.c_char_p, ctypes.c_void_p, ctypes.POINTER(ctypes.c_size_t), ctypes.c_void_p, ctypes.c_size_t]
+          probe.restype = ctypes.c_int
+          translated, length = ctypes.c_int(-1), ctypes.c_size_t(ctypes.sizeof(ctypes.c_int))
+          ctypes.set_errno(0)
+          rc = probe(b'sysctl.proc_translated', ctypes.byref(translated), ctypes.byref(length), None, 0)
+          err = ctypes.get_errno()
+          assert (rc == 0 and err == 0 and length.value == ctypes.sizeof(translated) and translated.value == 0) or (rc == -1 and err == errno.ENOENT)
+          helper_raw, sample_raw = read_regular(helper, 64 * 1024 * 1024), read_regular(sample, 64 * 1024 * 1024)
+          with (build / 'installed-sample.macho').open('xb') as stream:
+              stream.write(sample_raw)
+          helper_identity, sample_identity = inspect_tool(helper_raw, architecture), inspect_tool(sample_raw, architecture)
+          assert len(helper_identity['slices']) == len(helper_identity['nativeUUIDs']) == 1
+          tool_outputs = {}
+          for name, args in [('helper-uuid', ['/usr/bin/xcrun', 'dwarfdump', '--uuid', str(helper)]),
+                             ('helper-architecture', ['/usr/bin/xcrun', 'lipo', '-archs', str(helper)]),
+                             ('sample-uuid', ['/usr/bin/xcrun', 'dwarfdump', '--uuid', str(sample)]),
+                             ('sample-architecture', ['/usr/bin/xcrun', 'lipo', '-archs', str(sample)]),
+                             ('os-version', ['/usr/bin/sw_vers']),
+                             ('kernel-version', ['/usr/sbin/sysctl', '-n', 'kern.version']),
+                             ('xcode-version', ['/usr/bin/xcodebuild', '-version']),
+                             ('clang-version', ['/usr/bin/xcrun', 'clang', '--version']),
+                             ('python-version', [sys.executable, '--version'])]:
+              result, streams = capture(tuple(args), cwd=pathlib.Path.cwd(), env=dict(os.environ), timeout=20, limit=2 * 1024 * 1024)
+              stdout, stderr = streams['stdout'], streams['stderr']
+              (build / (name + '.json')).write_text(json.dumps(result, indent=2) + '\n')
+              (build / (name + '.stdout.txt')).write_bytes(stdout)
+              (build / (name + '.stderr.txt')).write_bytes(stderr)
+              assert result['status'] == 'completed' and result['exitCode'] == 0 and not result['cleanupFailed'] and result['stopReason'] is None, name
+              tool_outputs[name] = stdout.decode('utf-8')
+          for name, identity in [('helper', helper_identity), ('sample', sample_identity)]:
+              rows = re.findall(r'^UUID: ([0-9A-Fa-f-]{36}) \(([^)]+)\)', tool_outputs[name + '-uuid'], re.M)
+              assert len(rows) == len(identity['slices'])
+              assert {row[0].upper() for row in rows} == {part['uuid'] for part in identity['slices']}
+          assert tool_outputs['helper-architecture'].strip().split() == [architecture]
+          sources.mkdir(exist_ok=False)
+          names = ['script/native_ui/NativeRecorderProgressNotify.c',
+                   'script/native_sampler_tool_identity.py',
+                   'script/run_native_recorder_progress_observation.py',
+                   'script/test_run_native_recorder_progress_observation.py',
+                   'script/run_native_recorder_startup_observation.py',
+                   'script/test_run_native_recorder_startup_observation.py',
+                   'script/run_native_system_trace_startup.py',
+                   'script/test_run_native_system_trace_startup.py',
+                   'script/collect_native_trace_capabilities.py',
+                   'script/test_collect_native_trace_capabilities.py',
+                   'script/privacy_check.py',
+                   '.github/workflows/native-recorder-progress-observation.yml',
+                   'docs/NATIVE_RECORDER_PROGRESS_OBSERVATION.md']
+          for name in names:
+              shutil.copyfile(name, sources / pathlib.Path(name).name)
+          record = {'schema': 1, 'diagnostic': 'D24-recorder-progress-observation',
+                    'experimentCommit': os.environ['GITHUB_SHA'],
+                    'experimentTree': subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], text=True).strip(),
+                    'architecture': architecture,
+                    'sourceSHA256': digest(pathlib.Path('script/native_ui/NativeRecorderProgressNotify.c').read_bytes()),
+                    'helper': {'path': str(helper), 'bytes': len(helper_raw), 'sha256': digest(helper_raw),
+                               'uuid': helper_identity['nativeUUIDs'][0], 'architecture': architecture,
+                               'architectures': [architecture]},
+                    'sampleTool': {'path': str(sample), **sample_identity},
+                    'frozenCandidate': {'commit': os.environ['CANDIDATE_COMMIT'], 'tree': os.environ['CANDIDATE_TREE']},
+                    'dependencyBase': os.environ['PROGRESS_BASE'],
+                    'translationProbe': {'returnCode': rc, 'errno': err, 'value': translated.value if rc == 0 else None},
+                    'pythonVersion': sys.version, 'pythonExecutable': sys.executable,
+                    'retainedDiagnosticSourcesSHA256': {p.name: digest(p.read_bytes()) for p in sorted(sources.iterdir())},
+                    'diagnosticOnly': True, 'releaseReady': False, 'C12': 'HOLD',
+                    'nativeInputExecuted': False, 'settingsChanged': False,
+                    'activationRouteCoverageEstablished': False}
+          (out / 'build-provenance.json').write_text(json.dumps(record, indent=2) + '\n')
+          inventory = {}
+          for directory in (build, sources):
+              for p in sorted(directory.rglob('*')):
+                  mode, relative = p.lstat().st_mode, p.relative_to(out).as_posix()
+                  assert not stat.S_ISLNK(mode)
+                  if stat.S_ISDIR(mode): inventory[relative] = {'kind': 'directory'}
+                  else:
+                      assert stat.S_ISREG(mode)
+                      raw = read_regular(p, 64 * 1024 * 1024)
+                      inventory[relative] = {'kind': 'file', 'bytes': len(raw), 'sha256': digest(raw)}
+          (out / 'inputs-before.json').write_text(json.dumps(inventory, indent=2) + '\n')
+          PYCODE
+      - name: Observe One Recorder And Its Primary Sampler
+        id: observation
+        run: >-
+          python3 script/run_native_recorder_progress_observation.py
+          --helper "$RUNNER_TEMP/recorder-progress-observation/evidence/build/NativeRecorderProgressNotify"
+          --output "$RUNNER_TEMP/recorder-progress-observation/evidence"
+          --provenance "$RUNNER_TEMP/recorder-progress-observation/evidence/build-provenance.json"
+      - name: Verify Immutable Inputs
+        if: always() && steps.provenance.outcome == 'success'
+        run: |
+          python3 - <<'PYCODE'
+          import hashlib, json, os, pathlib, stat, sys
+          sys.path.insert(0, 'script')
+          from run_native_system_trace_startup import read_regular
+          out = pathlib.Path(os.environ['RUNNER_TEMP']) / 'recorder-progress-observation/evidence'
+          before, after = json.loads((out / 'inputs-before.json').read_text()), {}
+          for directory in (out / 'build', out / 'sources'):
+              for p in sorted(directory.rglob('*')):
+                  relative, mode = p.relative_to(out).as_posix(), p.lstat().st_mode
+                  assert not stat.S_ISLNK(mode)
+                  if stat.S_ISDIR(mode): after[relative] = {'kind': 'directory'}
+                  else:
+                      assert stat.S_ISREG(mode)
+                      raw = read_regular(p, 64 * 1024 * 1024)
+                      after[relative] = {'kind': 'file', 'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest()}
+          provenance = json.loads((out / 'build-provenance.json').read_text())
+          tool_unchanged = hashlib.sha256(read_regular(pathlib.Path('/usr/bin/sample'), 64 * 1024 * 1024)).hexdigest() == provenance['sampleTool']['sha256']
+          (out / 'inputs-after.json').write_text(json.dumps(after, indent=2) + '\n')
+          result = {'schema': 1, 'inputsUnchanged': before == after,
+                    'installedSamplerUnchanged': tool_unchanged,
+                    'beforeEntries': len(before), 'afterEntries': len(after)}
+          (out / 'input-preservation.json').write_text(json.dumps(result, indent=2) + '\n')
+          assert before == after and tool_unchanged
+          PYCODE
+      - name: Confirm Source Remains Unchanged
+        if: always()
+        run: git diff --exit-code HEAD --
+      - name: Retain Bounded Observation Evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: Lemulip-Recorder-Progress-Observation-${{ matrix.arch }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/recorder-progress-observation/evidence
+          if-no-files-found: error
+          retention-days: 14
