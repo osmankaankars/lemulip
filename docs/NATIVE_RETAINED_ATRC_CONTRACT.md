@@ -1,11 +1,106 @@
 # D26 — Qualify the retained ATRC analysis contract
 
-**Offline review completed; one missing command-specific help collection is
-prepared. No D26 native result is asserted in this revision.** The general Apple
-Trace input family is documented, but a version-bound CLI route and acceptance
-of this exact retained partial payload remain unestablished. Unsupported input
-is also unproven. C12, task 07 and draft/unmerged
+**D26 completed: the same reader supplied its import-specific help in one finite
+request. The exact retained ATRC route remains unestablished.** The help clarifies
+selection options and version-dependent default templates, but does not name
+ATRC or enumerate all accepted formats. The general Apple Trace input family is
+documented; acceptance or rejection of this exact partial payload has not been
+tested. Unsupported input is also unproven. C12, task 07 and draft/unmerged
 [PR #45](https://github.com/osmankaankars/lemulip/pull/45) remain **HOLD**.
+
+## Executed result — 9 November 2026
+
+[R1, attempt 1](https://github.com/osmankaankars/lemulip/actions/runs/42629940773)
+passed all **45 tests** and completed the single documented help request. No
+trace input was downloaded or supplied, and no import conversion, export,
+recording or sampler was executed. The public
+[result projection](evidence/D26-retained-atrc-contract.json) and
+[verification record](evidence/D26-verification.json) bind the offline review,
+exact executed code, retained native artifact and interpretation limits.
+
+| Execution identity | Value |
+| --- | --- |
+| Executed source commit | `e8e0cbe351c82f3804a8f5bfa2c0b22ab54f69b4` |
+| Executed source tree | `9b9ffd59df1bb7848e24ecbe82d252c0b47a1d72` |
+| Native run / attempt / Intel job | `42629940773` / `1` / `129203323310` |
+| Artifact ID | `13680745675` |
+| Artifact bytes / files / expanded bytes | 135,565 / 54 / 534,934 |
+| Artifact SHA-256 | `935d9c54ab0e489c9f7e6eff1ff00f57e14803cc6b36372b8174329245f9f17f` |
+| Artifact expiration | 23 November 2026, 13:58:13 UTC |
+| Native tests | 19 used D24 primitives + 9 D25 adapter + 17 D26 = 45 passed |
+| New portable tests | 17 passed on Linux x86_64 / Python 3.12.14; exact executed Python source hashes matched |
+
+The native classification is `help-collected`, with diagnostic execution,
+transport, cleanup and source/tool preservation complete. The help command
+exited **0 after 1.290658711 seconds**, with **1,512 stdout bytes and empty
+stderr**. No termination signal was sent. The stdout SHA-256 is
+`4c303ff573648b3acf5db1b647194036565257617779b9a2e81195643b0de340`.
+All 13 declared source copies, including the explicitly mapped workflow, are
+present in this artifact. The original D25 archive's separate 19/20 retention
+limitation remains unchanged.
+
+The independent provenance audit passed **213 checks**, including all 54 ZIP
+members, the 13 source copies against exact Git objects and the reader's binary
+identity/Apple UUID witnesses. The independent command audit passed **416
+checks** across five targets, five group inventories, preserved clocks/streams
+and all 45 native test cases. Each final target group contained only its
+unreaped zombie leader, with collection afterward. The additional Python
+non-reaping capability probe is separate from those ten command receipts.
+These are consistency checks; they do not qualify payload compatibility.
+
+### What the actual help added
+
+| Observed help contract | Evidence lines | What remains open |
+| --- | --- | --- |
+| `--input` and `--output` create a new analysis document from a supported input. | 4–9 | No accepted-format enumeration or ATRC recognition rule. |
+| `--template`, `--instrument` and `--package` are available import selectors. | 10–12 | A selector's existence does not establish appropriate instrument membership or preserved event coverage. |
+| Omitted or directory output paths create a uniquely named file. | 18–20 | No output was requested or created by D26. |
+| Some importable file types have a default template; only in those cases is explicit template selection optional. | 22–23 | The default for this exact input type is not identified. |
+| Default-template selection is keyed to the import file UTI and may vary by release. | 23 | No UTI-to-template map or registered importer inventory is supplied. |
+| Examples use `.logarchive` and `.ktrace`. | 26–29 | Examples are not an exhaustive exclusion of other formats. |
+
+UTI here is the file type identifier used by the import contract. D26 does not
+derive that identifier from a filename and treat it as proof of an accepted
+payload. The new help also does not explain D25's missing-template error.
+
+**Decision:** the command-specific grammar/default-selection gap is now
+measured. Format recognition for the retained representation, suitable analysis
+selection and actual payload acceptance remain distinct unresolved questions.
+The predeclared generic-help stop condition applies: D26 ends without a
+conversion or another metadata/recording retry. No trace rows, time mapping,
+sampler-window coverage or product acceptance are added.
+
+### Next proposed D27: one explicit compatibility experiment
+
+The next finite question is whether this same selected reader accepts one
+unchanged copy of the retained raw payload with an explicit System Trace
+selection and creates a separately identified analysis document within fixed
+bounds. This is a proposed hypothesis test, **not a claim that the exact ATRC
+payload is already qualified**. D26 performs no such conversion.
+
+The basis is the documented general Apple Trace family, the actual installed
+import grammar and its explicit System Trace example for a ktrace input. The
+observed prefix/magic is not used as format-compatibility proof. Metadata cannot
+prove whole-payload acceptance in advance; the proposed experiment would measure
+that remaining uncertainty directly. This clarifies the earlier plan's format
+precondition while preserving its requirement for a documented command shape,
+explicit selection and protected original bytes.
+
+Before any D27 attempt, define one finite protocol that pins the exact input
+member/hash and reader, obtains fresh same-run System Trace availability using
+the documented template listing, preserves a protected disposable input copy,
+and writes only to a separate new output path. Bound time, streams, output
+growth and owned-process cleanup. Retain rejection or incompletion without
+changing suffix, flags, template or input bytes. Do not automatically export
+the derivative. Any successful import would establish only acceptance under
+those conditions; normal D24 completion, all-event preservation and usable
+clock/activation coverage would remain separate questions.
+
+If that bounded experiment cannot be justified or executed under those
+conditions, keep the route unestablished and carry the precise raw-input and
+selection question into the existing upstream evidence packet. No documented
+importer-registry query was identified, so another generic inventory is not
+the next prescribed step.
 
 ## Question and retained failure
 
@@ -29,7 +124,7 @@ rule, nor establish why D24 exited on signal 11. It does not prove that the
 globally installed System Trace template is absent or that the raw payload
 contains no useful events.
 
-## Offline evidence and exact limits
+## Offline evidence before the help request
 
 The retained D25 manual and dedicated export help are bound to Xcode 26.3,
 build 17C529. D19's general, record, export and list help, template lists and
@@ -43,7 +138,7 @@ instrument lists supply earlier, separate-run evidence. The review checked
 | Does selection affect retained data? | Manual, lines 118–127, describes template/instrument selection and data needed by selected instruments. | No proof that a particular selection preserves the process/scheduling/time-map evidence needed here. |
 | Which example formats appear? | Manual examples name `.logarchive` and `.ktrace`. | Examples do not constitute an exhaustive accepted-format list or disprove ATRC support. |
 | Was System Trace available? | Both D19 template lists include it. | D19 run `42565052135` is not the D25 reader run and does not identify document metadata or importer registration. |
-| Was import-specific help retained? | No; general/record/export/list help were retained. | The current command-specific grammar, defaults and possible format descriptions are missing. |
+| Was import-specific help retained before D26? | No; general/record/export/list help were retained. | This concrete gap justified D26's subsequent single help request. |
 | Is an importer registry query documented? | General/list help names only devices, templates and instruments. | No `list importers` or `list formats` command is established by this corpus. |
 
 The D19 and D25 dedicated export-help bytes are identical. Their manuals differ
@@ -93,9 +188,9 @@ This is a limit of the retrieved evidence, not a universal absence claim.
 Official indexed excerpts supplied the relevant statements; full-page reads
 were constrained by JavaScript shells and unavailable Markdown retrieval.
 
-## Why one additional metadata command is justified
+## Why the one additional metadata command was justified
 
-The missing import-specific help is an actual uncollected primary surface. The
+The missing import-specific help was an actual uncollected primary surface. The
 manual's import synopsis omits `--instrument`, while its option section includes
 it, so command-specific grammar may also clarify selection behavior. The
 retained general help explicitly documents this spelling:
@@ -110,7 +205,7 @@ conversion. It does not recollect existing manuals or template lists merely
 to duplicate them. There is no undocumented registry command, alternate flag,
 automatic conversion or retry path.
 
-## Fixed native collection protocol
+## Executed fixed native collection protocol
 
 Use native Intel macOS, non-root execution and Python 3.13 or later. Require
 the exact Xcode version/build and selected developer directory used in D25.

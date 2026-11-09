@@ -1,0 +1,1260 @@
+{
+  "artifact": {
+    "bytes": 135565,
+    "createdAt": "2026-11-09T13:58:14Z",
+    "expandedBytes": 534934,
+    "expiresAt": "2026-11-23T13:58:13Z",
+    "fileCount": 54,
+    "id": 13680745675,
+    "retentionDays": 14,
+    "sha256": "935d9c54ab0e489c9f7e6eff1ff00f57e14803cc6b36372b8174329245f9f17f"
+  },
+  "contractClaims": [
+    {
+      "claim": "The selected installed help describes importing a supported input into an Instruments .trace document for later viewing or export.",
+      "evidence": [
+        {
+          "firstLine": 1,
+          "lastLine": 5,
+          "source": "D26-import-help"
+        }
+      ],
+      "id": "conditional-import",
+      "limit": "The accepted format set and exact retained payload are not identified by that wording.",
+      "status": "documented-generic-contract"
+    },
+    {
+      "claim": "The installed help explicitly documents an input file and an output path. It describes creation of a unique output when the path is omitted or is a directory, and the specified trace path otherwise.",
+      "evidence": [
+        {
+          "firstLine": 8,
+          "lastLine": 9,
+          "source": "D26-import-help"
+        },
+        {
+          "firstLine": 18,
+          "lastLine": 20,
+          "source": "D26-import-help"
+        }
+      ],
+      "id": "explicit-input-output",
+      "limit": "A future diagnostic should select a fresh explicit output; no output or derived document was created in D26.",
+      "status": "documented"
+    },
+    {
+      "claim": "The installed help documents template-by-name/path, adding a named instrument, and loading a package for the command duration.",
+      "evidence": [
+        {
+          "firstLine": 10,
+          "lastLine": 12,
+          "source": "D26-import-help"
+        }
+      ],
+      "id": "selectors",
+      "limit": "This is grammar and role evidence, not observed template membership, importer format support, or equivalence of selector combinations.",
+      "status": "documented"
+    },
+    {
+      "claim": "Some importable input types have a default template; only in those cases is the template argument optional.",
+      "evidence": [
+        {
+          "firstLine": 22,
+          "lastLine": 23,
+          "source": "D26-import-help"
+        }
+      ],
+      "id": "defaults-are-conditional",
+      "limit": "The statement does not establish that the retained ATRC has a default template, its UTI, or any specific default template identity.",
+      "status": "newly-retained-version-bound-contract"
+    },
+    {
+      "claim": "The help associates default selection with the input file UTI and warns that the default may change across releases.",
+      "evidence": [
+        {
+          "firstLine": 23,
+          "lastLine": 23,
+          "source": "D26-import-help"
+        }
+      ],
+      "id": "defaults-vary-by-release",
+      "limit": "Neither a UTI-to-template mapping nor an API to query that mapping is supplied here. It is not evidence that switching releases will repair the trace.",
+      "status": "newly-retained-version-bound-contract"
+    },
+    {
+      "claim": "The native help explicitly demonstrates a ktrace-named input, the System Trace template, and a separate named .trace output.",
+      "evidence": [
+        {
+          "firstLine": 28,
+          "lastLine": 28,
+          "source": "D26-import-help"
+        }
+      ],
+      "id": "specific-ktrace-example",
+      "limit": "The example documents one command shape; it does not assert that every ktrace variant or this differently named partial ATRC payload will be accepted.",
+      "status": "newly-retained-version-bound-example"
+    },
+    {
+      "claim": "The native import-specific option list confirms the import instrument argument that appeared in the older manual detail but not its synopsis.",
+      "evidence": [
+        {
+          "firstLine": 11,
+          "lastLine": 11,
+          "source": "D26-import-help"
+        },
+        {
+          "firstDisplayLine": 18,
+          "lastDisplayLine": 18,
+          "source": "D25-installed-manual"
+        },
+        {
+          "firstDisplayLine": 125,
+          "lastDisplayLine": 127,
+          "source": "D25-installed-manual"
+        }
+      ],
+      "id": "manual-instrument-ambiguity-narrowed",
+      "limit": "No behavioral equivalence, complete selection policy, or accepted payload follows from this grammar confirmation.",
+      "status": "grammar-gap-narrowed"
+    },
+    {
+      "claim": "The retained installed manual limits template-based import to data needed by the template instruments. The new help does not state an all-events-preserved guarantee.",
+      "evidence": [
+        {
+          "firstDisplayLine": 118,
+          "lastDisplayLine": 123,
+          "source": "D25-installed-manual"
+        },
+        {
+          "firstLine": 10,
+          "lastLine": 11,
+          "source": "D26-import-help"
+        }
+      ],
+      "id": "selective-import-caveat",
+      "limit": "Any future derivative must be assessed as a separately selected analysis document, not a restored original recording.",
+      "status": "retained-manual-contract-still-applicable-with-limit"
+    }
+  ],
+  "createdUTC": "2026-11-09T14:08:57.538679+00:00",
+  "decision": {
+    "D26NativeStatus": "help-collected",
+    "D26Task": "completed",
+    "automaticImportExportOrRecording": false,
+    "causalResult": "No particular missing template member, D24 failure mechanism, Time Mapping causality or product fix has been established.",
+    "contractStatus": "generic-import-and-selector-contract-established; exact-ATRC-acceptance-unestablished",
+    "furtherNativeWorkInD26": false,
+    "stopHere": true,
+    "supportedFamilyVsExactPayload": "The separate primary-source review supports a general Apple Trace input family. The installed 26.3 help now supplies actual import grammar, a concrete System Trace example and conditional default rules. Exact partial ATRC compatibility and content validity remain an empirical hypothesis, not a documented success."
+  },
+  "diagnostic": "D26-retained-ATRC-analysis-contract",
+  "evidenceKind": "public-projection-of-offline-review-and-one-native-help-collection",
+  "executedSource": {
+    "commit": "e8e0cbe351c82f3804a8f5bfa2c0b22ab54f69b4",
+    "tree": "9b9ffd59df1bb7848e24ecbe82d252c0b47a1d72"
+  },
+  "helpStreams": {
+    "absenceIsNotUnsupportedFormatProof": true,
+    "literalATRCMatchingLineCount": 0,
+    "stderr": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "stdout": {
+      "bytes": 1512,
+      "sha256": "4c303ff573648b3acf5db1b647194036565257617779b9a2e81195643b0de340"
+    },
+    "stdoutLineCount": 29
+  },
+  "nativeProjection": {
+    "fullRawHelpRetainedInNativeArtifact": true,
+    "integerClocksPreservedWithPythonJSON": true,
+    "omittedJSONPointers": [
+      "/nativeResult/helpText/literalObservations/--instrument/retainedLines/0/text",
+      "/nativeResult/helpText/literalObservations/--template/retainedLines/0/text",
+      "/nativeResult/helpText/literalObservations/--template/retainedLines/1/text",
+      "/nativeResult/helpText/literalObservations/--template/retainedLines/2/text",
+      "/nativeResult/helpText/literalObservations/--template/retainedLines/3/text",
+      "/nativeResult/helpText/literalObservations/--template/retainedLines/4/text",
+      "/nativeResult/helpText/literalObservations/ktrace/retainedLines/0/text",
+      "/nativeResult/helpText/literalObservations/ktrace/retainedLines/1/text",
+      "/nativeResult/helpText/literalObservations/logarchive/retainedLines/0/text",
+      "/nativeResult/helpText/literalObservations/logarchive/retainedLines/1/text"
+    ],
+    "originalArtifactsModified": false,
+    "otherNativeValuesUnchanged": true,
+    "reason": "Do not republish whole matching help lines. Their original line numbers/counts and complete raw stream identity remain retained."
+  },
+  "nativeResult": {
+    "ATRCFormatAcceptanceEstablished": false,
+    "C12": "HOLD",
+    "D25ReaderBytesMatched": true,
+    "D25XcodeVersionMatched": true,
+    "activationRouteCoverageEstablished": false,
+    "applicationLaunchRequested": false,
+    "architecture": "x86_64",
+    "baseCommit": "6102d5d209d5918bc6ae61056917fbb9e3b16987",
+    "bounds": {
+      "commandNormalSeconds": 17,
+      "commandStreamBytes": 2097152,
+      "commandTotalSeconds": 20,
+      "groupInventoryBytes": 65536,
+      "groupInventorySeconds": 2
+    },
+    "commandExitedSuccessfully": true,
+    "commands": {
+      "os-version": {
+        "adapter": "D25-retained-trace-owned-command",
+        "adapterElapsedSeconds": 0.11164890999998534,
+        "adapterErrors": [],
+        "argv": [
+          "/usr/bin/sw_vers"
+        ],
+        "cleanupCommandNames": [
+          "os-version-owned-groups"
+        ],
+        "cleanupComplete": true,
+        "cleanupFailed": false,
+        "cleanupFailureReasons": [],
+        "clockAtSpawn": {
+          "monotonicAfterNS": 267419016418,
+          "monotonicBeforeNS": 267419014108,
+          "wallTimeNS": 1794232679570389000
+        },
+        "clockBeforeSpawn": {
+          "monotonicAfterNS": 267412442929,
+          "monotonicBeforeNS": 267412439730,
+          "wallTimeNS": 1794232679563812000
+        },
+        "collectedClock": {
+          "monotonicAfterNS": 267523613391,
+          "monotonicBeforeNS": 267523612848,
+          "wallTimeNS": 1794232679675039000
+        },
+        "collectionStartedClock": {
+          "monotonicAfterNS": 267523589473,
+          "monotonicBeforeNS": 267523588969,
+          "wallTimeNS": 1794232679675015000
+        },
+        "completionObservedWithinTotalBudget": true,
+        "descendantExitTimesWithinOperationBudgetEstablished": false,
+        "elapsedSeconds": 0.06033024700002443,
+        "emergencyCleanupRequired": false,
+        "emergencyTERMGraceSeconds": 0.25,
+        "exitCode": 0,
+        "exitObservedAfterSeconds": 0.03792079999999487,
+        "exitObservedWithoutReap": true,
+        "files": {
+          "stderr": {
+            "bytes": 0,
+            "name": "os-version.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 66,
+            "name": "os-version.stdout.txt",
+            "sha256": "31fd674ddb951680692d7b68cafdeab5baa6b3e82aae843269dad73b53f25fc5"
+          }
+        },
+        "finalOwnedGroups": {
+          "os-version": {
+            "members": [
+              {
+                "pgid": 4181,
+                "pid": 4181,
+                "state": "Z<"
+              }
+            ],
+            "noLiveMembersObserved": true,
+            "pgid": 4181,
+            "pidLeaseHeldAtSnapshot": true
+          }
+        },
+        "groupProbeTotalBudgetSeconds": 2.0,
+        "groupSnapshotMeaning": "No live members at the snapshot; no retrospective descendant-exit timestamp.",
+        "inheritedStreamsStillOpen": false,
+        "intendedArgv": [
+          "/usr/bin/sw_vers"
+        ],
+        "maximumAdapterWallBudgetSeconds": 24.25,
+        "maximumCombinedBytes": 2097152,
+        "normalOperationBudgetSeconds": 17.0,
+        "observedBytes": 66,
+        "operationDoneClock": {
+          "monotonicAfterNS": 267472790687,
+          "monotonicBeforeNS": 267472789654,
+          "wallTimeNS": 1794232679624191000
+        },
+        "operationElapsedSeconds": 0.06033024700002443,
+        "operationTerminalClock": {
+          "monotonicAfterNS": 267450385061,
+          "monotonicBeforeNS": 267450384582,
+          "wallTimeNS": 1794232679601774000
+        },
+        "ownedGroupsBeforeEmergencyCleanup": null,
+        "ownershipElapsedSeconds": 0.11137279600001193,
+        "pid": 4181,
+        "pidDirectedActionsRevoked": true,
+        "pidLeaseAcquired": true,
+        "pidLeaseLost": false,
+        "pidLeaseReleased": true,
+        "retainedBytes": 66,
+        "signalErrors": [],
+        "signals": [],
+        "status": "completed",
+        "stopReason": null,
+        "streamErrors": [],
+        "streamProgress": [
+          {
+            "clock": {
+              "monotonicAfterNS": 267450356212,
+              "monotonicBeforeNS": 267450354893,
+              "wallTimeNS": 1794232679601745000
+            },
+            "observedBytes": 66,
+            "stderrBytes": 0,
+            "stdoutBytes": 66
+          }
+        ],
+        "testFactoryUsed": false,
+        "totalBudgetSeconds": 20.0,
+        "totalDeadlineOvershootSeconds": 0.0,
+        "transportComplete": true,
+        "waitidCode": 1,
+        "waitidStatus": 0
+      },
+      "xcode-version": {
+        "adapter": "D25-retained-trace-owned-command",
+        "adapterElapsedSeconds": 6.943385177000039,
+        "adapterErrors": [],
+        "argv": [
+          "/usr/bin/xcodebuild",
+          "-version"
+        ],
+        "cleanupCommandNames": [
+          "xcode-version-owned-groups"
+        ],
+        "cleanupComplete": true,
+        "cleanupFailed": false,
+        "cleanupFailureReasons": [],
+        "clockAtSpawn": {
+          "monotonicAfterNS": 267536627099,
+          "monotonicBeforeNS": 267536625486,
+          "wallTimeNS": 1794232679688059000
+        },
+        "clockBeforeSpawn": {
+          "monotonicAfterNS": 267527929439,
+          "monotonicBeforeNS": 267527928138,
+          "wallTimeNS": 1794232679679357000
+        },
+        "collectedClock": {
+          "monotonicAfterNS": 274470987076,
+          "monotonicBeforeNS": 274470986676,
+          "wallTimeNS": 1794232686625886000
+        },
+        "collectionStartedClock": {
+          "monotonicAfterNS": 274470971016,
+          "monotonicBeforeNS": 274470970644,
+          "wallTimeNS": 1794232686625870000
+        },
+        "completionObservedWithinTotalBudget": true,
+        "descendantExitTimesWithinOperationBudgetEstablished": false,
+        "elapsedSeconds": 6.896567097000002,
+        "emergencyCleanupRequired": false,
+        "emergencyTERMGraceSeconds": 0.25,
+        "exitCode": 0,
+        "exitObservedAfterSeconds": 6.878028003999987,
+        "exitObservedWithoutReap": true,
+        "files": {
+          "stderr": {
+            "bytes": 0,
+            "name": "xcode-version.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 32,
+            "name": "xcode-version.stdout.txt",
+            "sha256": "bb7fc9a8f5e063e81975b33054b3a526c91bcccff263ad11d5bd8bcdbe8f0973"
+          }
+        },
+        "finalOwnedGroups": {
+          "xcode-version": {
+            "members": [
+              {
+                "pgid": 4183,
+                "pid": 4183,
+                "state": "Z<"
+              }
+            ],
+            "noLiveMembersObserved": true,
+            "pgid": 4183,
+            "pidLeaseHeldAtSnapshot": true
+          }
+        },
+        "groupProbeTotalBudgetSeconds": 2.0,
+        "groupSnapshotMeaning": "No live members at the snapshot; no retrospective descendant-exit timestamp.",
+        "inheritedStreamsStillOpen": false,
+        "intendedArgv": [
+          "/usr/bin/xcodebuild",
+          "-version"
+        ],
+        "maximumAdapterWallBudgetSeconds": 24.25,
+        "maximumCombinedBytes": 2097152,
+        "normalOperationBudgetSeconds": 17.0,
+        "observedBytes": 32,
+        "operationDoneClock": {
+          "monotonicAfterNS": 274424506431,
+          "monotonicBeforeNS": 274424505282,
+          "wallTimeNS": 1794232686579382000
+        },
+        "operationElapsedSeconds": 6.896567097000002,
+        "operationTerminalClock": {
+          "monotonicAfterNS": 274405969623,
+          "monotonicBeforeNS": 274405969080,
+          "wallTimeNS": 1794232686560836000
+        },
+        "ownedGroupsBeforeEmergencyCleanup": null,
+        "ownershipElapsedSeconds": 6.9432379610000226,
+        "pid": 4183,
+        "pidDirectedActionsRevoked": true,
+        "pidLeaseAcquired": true,
+        "pidLeaseLost": false,
+        "pidLeaseReleased": true,
+        "retainedBytes": 32,
+        "signalErrors": [],
+        "signals": [],
+        "status": "completed",
+        "stopReason": null,
+        "streamErrors": [],
+        "streamProgress": [
+          {
+            "clock": {
+              "monotonicAfterNS": 274405948663,
+              "monotonicBeforeNS": 274405947536,
+              "wallTimeNS": 1794232686560815000
+            },
+            "observedBytes": 32,
+            "stderrBytes": 0,
+            "stdoutBytes": 32
+          }
+        ],
+        "testFactoryUsed": false,
+        "totalBudgetSeconds": 20.0,
+        "totalDeadlineOvershootSeconds": 0.0,
+        "transportComplete": true,
+        "waitidCode": 1,
+        "waitidStatus": 0
+      },
+      "xctrace-import-help": {
+        "adapter": "D25-retained-trace-owned-command",
+        "adapterElapsedSeconds": 1.333014176000006,
+        "adapterErrors": [],
+        "argv": [
+          "/usr/bin/xcrun",
+          "xctrace",
+          "help",
+          "import"
+        ],
+        "cleanupCommandNames": [
+          "xctrace-import-help-owned-groups"
+        ],
+        "cleanupComplete": true,
+        "cleanupFailed": false,
+        "cleanupFailureReasons": [],
+        "clockAtSpawn": {
+          "monotonicAfterNS": 279726810389,
+          "monotonicBeforeNS": 279726808731,
+          "wallTimeNS": 1794232691884337000
+        },
+        "clockBeforeSpawn": {
+          "monotonicAfterNS": 279721113296,
+          "monotonicBeforeNS": 279721111858,
+          "wallTimeNS": 1794232691878637000
+        },
+        "collectedClock": {
+          "monotonicAfterNS": 281053809251,
+          "monotonicBeforeNS": 281053808838,
+          "wallTimeNS": 1794232693212000000
+        },
+        "collectionStartedClock": {
+          "monotonicAfterNS": 281053798975,
+          "monotonicBeforeNS": 281053798618,
+          "wallTimeNS": 1794232693211989000
+        },
+        "completionObservedWithinTotalBudget": true,
+        "descendantExitTimesWithinOperationBudgetEstablished": false,
+        "elapsedSeconds": 1.2906587109999919,
+        "emergencyCleanupRequired": false,
+        "emergencyTERMGraceSeconds": 0.25,
+        "exitCode": 0,
+        "exitObservedAfterSeconds": 1.2850169099999675,
+        "exitObservedWithoutReap": true,
+        "files": {
+          "stderr": {
+            "bytes": 0,
+            "name": "xctrace-import-help.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 1512,
+            "name": "xctrace-import-help.stdout.txt",
+            "sha256": "4c303ff573648b3acf5db1b647194036565257617779b9a2e81195643b0de340"
+          }
+        },
+        "finalOwnedGroups": {
+          "xctrace-import-help": {
+            "members": [
+              {
+                "pgid": 4341,
+                "pid": 4341,
+                "state": "Z<"
+              }
+            ],
+            "noLiveMembersObserved": true,
+            "pgid": 4341,
+            "pidLeaseHeldAtSnapshot": true
+          }
+        },
+        "groupProbeTotalBudgetSeconds": 2.0,
+        "groupSnapshotMeaning": "No live members at the snapshot; no retrospective descendant-exit timestamp.",
+        "inheritedStreamsStillOpen": false,
+        "intendedArgv": [
+          "/usr/bin/xcrun",
+          "xctrace",
+          "help",
+          "import"
+        ],
+        "maximumAdapterWallBudgetSeconds": 24.25,
+        "maximumCombinedBytes": 2097152,
+        "normalOperationBudgetSeconds": 17.0,
+        "observedBytes": 1512,
+        "operationDoneClock": {
+          "monotonicAfterNS": 281011779799,
+          "monotonicBeforeNS": 281011778647,
+          "wallTimeNS": 1794232693169949000
+        },
+        "operationElapsedSeconds": 1.2906587109999919,
+        "operationTerminalClock": {
+          "monotonicAfterNS": 281006140742,
+          "monotonicBeforeNS": 281006140381,
+          "wallTimeNS": 1794232693164307000
+        },
+        "ownedGroupsBeforeEmergencyCleanup": null,
+        "ownershipElapsedSeconds": 1.3328620139999998,
+        "pid": 4341,
+        "pidDirectedActionsRevoked": true,
+        "pidLeaseAcquired": true,
+        "pidLeaseLost": false,
+        "pidLeaseReleased": true,
+        "retainedBytes": 1512,
+        "signalErrors": [],
+        "signals": [],
+        "status": "completed",
+        "stopReason": null,
+        "streamErrors": [],
+        "streamProgress": [
+          {
+            "clock": {
+              "monotonicAfterNS": 281006117096,
+              "monotonicBeforeNS": 281006115371,
+              "wallTimeNS": 1794232693164284000
+            },
+            "observedBytes": 1512,
+            "stderrBytes": 0,
+            "stdoutBytes": 1512
+          }
+        ],
+        "testFactoryUsed": false,
+        "totalBudgetSeconds": 20.0,
+        "totalDeadlineOvershootSeconds": 0.0,
+        "transportComplete": true,
+        "waitidCode": 1,
+        "waitidStatus": 0
+      },
+      "xctrace-path": {
+        "adapter": "D25-retained-trace-owned-command",
+        "adapterElapsedSeconds": 3.4828044610000006,
+        "adapterErrors": [],
+        "argv": [
+          "/usr/bin/xcrun",
+          "--find",
+          "xctrace"
+        ],
+        "cleanupCommandNames": [
+          "xctrace-path-owned-groups"
+        ],
+        "cleanupComplete": true,
+        "cleanupFailed": false,
+        "cleanupFailureReasons": [],
+        "clockAtSpawn": {
+          "monotonicAfterNS": 274480897347,
+          "monotonicBeforeNS": 274480895867,
+          "wallTimeNS": 1794232686635801000
+        },
+        "clockBeforeSpawn": {
+          "monotonicAfterNS": 274474053046,
+          "monotonicBeforeNS": 274474051634,
+          "wallTimeNS": 1794232686628953000
+        },
+        "collectedClock": {
+          "monotonicAfterNS": 277956482876,
+          "monotonicBeforeNS": 277956482507,
+          "wallTimeNS": 1794232690113125000
+        },
+        "collectionStartedClock": {
+          "monotonicAfterNS": 277956468789,
+          "monotonicBeforeNS": 277956468375,
+          "wallTimeNS": 1794232690113110000
+        },
+        "completionObservedWithinTotalBudget": true,
+        "descendantExitTimesWithinOperationBudgetEstablished": false,
+        "elapsedSeconds": 3.436649536999994,
+        "emergencyCleanupRequired": false,
+        "emergencyTERMGraceSeconds": 0.25,
+        "exitCode": 0,
+        "exitObservedAfterSeconds": 3.4313733199999774,
+        "exitObservedWithoutReap": true,
+        "files": {
+          "stderr": {
+            "bytes": 0,
+            "name": "xctrace-path.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 64,
+            "name": "xctrace-path.stdout.txt",
+            "sha256": "fced716e12a27e0cbca2dd5cdb966bd2536657b6a4db58785ae79c210059bfa8"
+          }
+        },
+        "finalOwnedGroups": {
+          "xctrace-path": {
+            "members": [
+              {
+                "pgid": 4218,
+                "pid": 4218,
+                "state": "Z<"
+              }
+            ],
+            "noLiveMembersObserved": true,
+            "pgid": 4218,
+            "pidLeaseHeldAtSnapshot": true
+          }
+        },
+        "groupProbeTotalBudgetSeconds": 2.0,
+        "groupSnapshotMeaning": "No live members at the snapshot; no retrospective descendant-exit timestamp.",
+        "inheritedStreamsStillOpen": false,
+        "intendedArgv": [
+          "/usr/bin/xcrun",
+          "--find",
+          "xctrace"
+        ],
+        "maximumAdapterWallBudgetSeconds": 24.25,
+        "maximumCombinedBytes": 2097152,
+        "normalOperationBudgetSeconds": 17.0,
+        "observedBytes": 64,
+        "operationDoneClock": {
+          "monotonicAfterNS": 277910707456,
+          "monotonicBeforeNS": 277910705766,
+          "wallTimeNS": 1794232690067326000
+        },
+        "operationElapsedSeconds": 3.436649536999994,
+        "operationTerminalClock": {
+          "monotonicAfterNS": 277905433926,
+          "monotonicBeforeNS": 277905433367,
+          "wallTimeNS": 1794232690062050000
+        },
+        "ownedGroupsBeforeEmergencyCleanup": null,
+        "ownershipElapsedSeconds": 3.4825868369999853,
+        "pid": 4218,
+        "pidDirectedActionsRevoked": true,
+        "pidLeaseAcquired": true,
+        "pidLeaseLost": false,
+        "pidLeaseReleased": true,
+        "retainedBytes": 64,
+        "signalErrors": [],
+        "signals": [],
+        "status": "completed",
+        "stopReason": null,
+        "streamErrors": [],
+        "streamProgress": [
+          {
+            "clock": {
+              "monotonicAfterNS": 277905411543,
+              "monotonicBeforeNS": 277905410135,
+              "wallTimeNS": 1794232690062028000
+            },
+            "observedBytes": 64,
+            "stderrBytes": 0,
+            "stdoutBytes": 64
+          }
+        ],
+        "testFactoryUsed": false,
+        "totalBudgetSeconds": 20.0,
+        "totalDeadlineOvershootSeconds": 0.0,
+        "transportComplete": true,
+        "waitidCode": 1,
+        "waitidStatus": 0
+      },
+      "xctrace-uuid": {
+        "adapter": "D25-retained-trace-owned-command",
+        "adapterElapsedSeconds": 1.7536669869999741,
+        "adapterErrors": [],
+        "argv": [
+          "/usr/bin/xcrun",
+          "dwarfdump",
+          "--uuid",
+          "/Applications/Xcode_26.3.app/Contents/Developer/usr/bin/xctrace"
+        ],
+        "cleanupCommandNames": [
+          "xctrace-uuid-owned-groups"
+        ],
+        "cleanupComplete": true,
+        "cleanupFailed": false,
+        "cleanupFailureReasons": [],
+        "clockAtSpawn": {
+          "monotonicAfterNS": 277969816014,
+          "monotonicBeforeNS": 277969814600,
+          "wallTimeNS": 1794232690126464000
+        },
+        "clockBeforeSpawn": {
+          "monotonicAfterNS": 277964020643,
+          "monotonicBeforeNS": 277964019389,
+          "wallTimeNS": 1794232690120666000
+        },
+        "collectedClock": {
+          "monotonicAfterNS": 279717391719,
+          "monotonicBeforeNS": 279717391476,
+          "wallTimeNS": 1794232691874914000
+        },
+        "collectionStartedClock": {
+          "monotonicAfterNS": 279717384516,
+          "monotonicBeforeNS": 279717384269,
+          "wallTimeNS": 1794232691874907000
+        },
+        "completionObservedWithinTotalBudget": true,
+        "descendantExitTimesWithinOperationBudgetEstablished": false,
+        "elapsedSeconds": 1.706587743,
+        "emergencyCleanupRequired": false,
+        "emergencyTERMGraceSeconds": 0.25,
+        "exitCode": 0,
+        "exitObservedAfterSeconds": 1.7008934350000118,
+        "exitObservedWithoutReap": true,
+        "files": {
+          "stderr": {
+            "bytes": 0,
+            "name": "xctrace-uuid.stderr.txt",
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "stdout": {
+            "bytes": 231,
+            "name": "xctrace-uuid.stdout.txt",
+            "sha256": "700f54dfe5a5d3132163e735b8eca05b05b9ed3e9758326a293ab54f555eff25"
+          }
+        },
+        "finalOwnedGroups": {
+          "xctrace-uuid": {
+            "members": [
+              {
+                "pgid": 4303,
+                "pid": 4303,
+                "state": "Z<"
+              }
+            ],
+            "noLiveMembersObserved": true,
+            "pgid": 4303,
+            "pidLeaseHeldAtSnapshot": true
+          }
+        },
+        "groupProbeTotalBudgetSeconds": 2.0,
+        "groupSnapshotMeaning": "No live members at the snapshot; no retrospective descendant-exit timestamp.",
+        "inheritedStreamsStillOpen": false,
+        "intendedArgv": [
+          "/usr/bin/xcrun",
+          "dwarfdump",
+          "--uuid",
+          "/Applications/Xcode_26.3.app/Contents/Developer/usr/bin/xctrace"
+        ],
+        "maximumAdapterWallBudgetSeconds": 24.25,
+        "maximumCombinedBytes": 2097152,
+        "normalOperationBudgetSeconds": 17.0,
+        "observedBytes": 231,
+        "operationDoneClock": {
+          "monotonicAfterNS": 279670639091,
+          "monotonicBeforeNS": 279670637277,
+          "wallTimeNS": 1794232691828138000
+        },
+        "operationElapsedSeconds": 1.706587743,
+        "operationTerminalClock": {
+          "monotonicAfterNS": 279664947320,
+          "monotonicBeforeNS": 279664946861,
+          "wallTimeNS": 1794232691822443000
+        },
+        "ownedGroupsBeforeEmergencyCleanup": null,
+        "ownershipElapsedSeconds": 1.753500745999986,
+        "pid": 4303,
+        "pidDirectedActionsRevoked": true,
+        "pidLeaseAcquired": true,
+        "pidLeaseLost": false,
+        "pidLeaseReleased": true,
+        "retainedBytes": 231,
+        "signalErrors": [],
+        "signals": [],
+        "status": "completed",
+        "stopReason": null,
+        "streamErrors": [],
+        "streamProgress": [
+          {
+            "clock": {
+              "monotonicAfterNS": 279664926968,
+              "monotonicBeforeNS": 279664925556,
+              "wallTimeNS": 1794232691822423000
+            },
+            "observedBytes": 231,
+            "stderrBytes": 0,
+            "stdoutBytes": 231
+          }
+        ],
+        "testFactoryUsed": false,
+        "totalBudgetSeconds": 20.0,
+        "totalDeadlineOvershootSeconds": 0.0,
+        "transportComplete": true,
+        "waitidCode": 1,
+        "waitidStatus": 0
+      }
+    },
+    "diagnostic": "D26-atrc-import-contract",
+    "diagnosticExecutionComplete": true,
+    "errors": [],
+    "eventTimeRangeEstablished": false,
+    "evidenceKind": "native-installed-help-diagnostic",
+    "experimentCommit": "e8e0cbe351c82f3804a8f5bfa2c0b22ab54f69b4",
+    "experimentTree": "9b9ffd59df1bb7848e24ecbe82d252c0b47a1d72",
+    "exportInvocationCount": 0,
+    "helpGrammarRecognized": true,
+    "helpText": {
+      "grammarChecks": {
+        "noErrorEnvelope": true,
+        "singleImportUsage": true,
+        "singleInputOption": true,
+        "singleOutputOption": true
+      },
+      "identity": {
+        "bytes": 1512,
+        "sha256": "4c303ff573648b3acf5db1b647194036565257617779b9a2e81195643b0de340"
+      },
+      "interpretation": "Literal matching lines only; a keyword does not establish supported format, accepted payload, selection semantics or event coverage.",
+      "lineCount": 29,
+      "literalObservations": {
+        "--instrument": {
+          "linesOmitted": 0,
+          "matchingLineCount": 1,
+          "retainedLines": [
+            {
+              "line": 11
+            }
+          ]
+        },
+        "--template": {
+          "linesOmitted": 0,
+          "matchingLineCount": 5,
+          "retainedLines": [
+            {
+              "line": 10
+            },
+            {
+              "line": 22
+            },
+            {
+              "line": 27
+            },
+            {
+              "line": 28
+            },
+            {
+              "line": 29
+            }
+          ]
+        },
+        "ATRC": {
+          "linesOmitted": 0,
+          "matchingLineCount": 0,
+          "retainedLines": []
+        },
+        "ktrace": {
+          "linesOmitted": 0,
+          "matchingLineCount": 2,
+          "retainedLines": [
+            {
+              "line": 28
+            },
+            {
+              "line": 29
+            }
+          ]
+        },
+        "logarchive": {
+          "linesOmitted": 0,
+          "matchingLineCount": 2,
+          "retainedLines": [
+            {
+              "line": 26
+            },
+            {
+              "line": 27
+            }
+          ]
+        }
+      }
+    },
+    "importHelpAttemptCount": 1,
+    "importHelpInvocationCount": 1,
+    "importInvocationCount": 0,
+    "importSelectionSemanticsEstablished": false,
+    "inputDownloadRequested": false,
+    "inputRepairRequested": false,
+    "installedToolAfter": {
+      "architecture": "x86_64",
+      "bytes": 121520,
+      "container": "fat",
+      "nativeSlices": [
+        {
+          "architecture": "x86_64",
+          "bytes": 35360,
+          "cpuSubtype": 3,
+          "cpuType": 16777223,
+          "offset": 16384,
+          "sha256": "96ed5ccd7c25308055880e4bf1f64900be0401064b1b55a15ade475fa16eeb50",
+          "uuid": "98781736-C05A-3140-9BCF-279C288AEE66"
+        }
+      ],
+      "nativeUUIDs": [
+        "98781736-C05A-3140-9BCF-279C288AEE66"
+      ],
+      "sha256": "abf89e498e0bdb43dd48a3ccb545313a83b413a8d329503401ade7fa4e1a5674",
+      "slices": [
+        {
+          "architecture": "x86_64",
+          "bytes": 35360,
+          "cpuSubtype": 3,
+          "cpuType": 16777223,
+          "offset": 16384,
+          "sha256": "96ed5ccd7c25308055880e4bf1f64900be0401064b1b55a15ade475fa16eeb50",
+          "uuid": "98781736-C05A-3140-9BCF-279C288AEE66"
+        },
+        {
+          "architecture": "arm64",
+          "bytes": 55984,
+          "cpuSubtype": 0,
+          "cpuType": 16777228,
+          "offset": 65536,
+          "sha256": "4b5e176f39cde3fd24af6da9dc48f18358b6f1bcbe2aaa996b4067e44899af26",
+          "uuid": "A400EC18-24C6-32BA-9A9A-F3A5CA0648E7"
+        }
+      ]
+    },
+    "installedToolBefore": {
+      "architecture": "x86_64",
+      "bytes": 121520,
+      "container": "fat",
+      "nativeSlices": [
+        {
+          "architecture": "x86_64",
+          "bytes": 35360,
+          "cpuSubtype": 3,
+          "cpuType": 16777223,
+          "offset": 16384,
+          "sha256": "96ed5ccd7c25308055880e4bf1f64900be0401064b1b55a15ade475fa16eeb50",
+          "uuid": "98781736-C05A-3140-9BCF-279C288AEE66"
+        }
+      ],
+      "nativeUUIDs": [
+        "98781736-C05A-3140-9BCF-279C288AEE66"
+      ],
+      "path": "/Applications/Xcode_26.3.app/Contents/Developer/usr/bin/xctrace",
+      "sha256": "abf89e498e0bdb43dd48a3ccb545313a83b413a8d329503401ade7fa4e1a5674",
+      "slices": [
+        {
+          "architecture": "x86_64",
+          "bytes": 35360,
+          "cpuSubtype": 3,
+          "cpuType": 16777223,
+          "offset": 16384,
+          "sha256": "96ed5ccd7c25308055880e4bf1f64900be0401064b1b55a15ade475fa16eeb50",
+          "uuid": "98781736-C05A-3140-9BCF-279C288AEE66"
+        },
+        {
+          "architecture": "arm64",
+          "bytes": 55984,
+          "cpuSubtype": 0,
+          "cpuType": 16777228,
+          "offset": 65536,
+          "sha256": "4b5e176f39cde3fd24af6da9dc48f18358b6f1bcbe2aaa996b4067e44899af26",
+          "uuid": "A400EC18-24C6-32BA-9A9A-F3A5CA0648E7"
+        }
+      ]
+    },
+    "installedToolUnchanged": true,
+    "interpretationErrors": [],
+    "ipcRequestChainEstablished": false,
+    "limitations": [
+      "Collected help text and literal format mentions are not proof that the retained payload is accepted or contains usable events.",
+      "The reader executable is pinned to D25; all producer/reader framework bytes are not thereby proven identical.",
+      "Final process-group snapshots establish no live members at the snapshot, not every descendant exit time at the operation deadline.",
+      "D25's refused document export and D24's abnormal recording remain unchanged; this command supplies no input and creates no derived trace."
+    ],
+    "nativeHelpEvidenceEstablished": true,
+    "nativeInputExecuted": false,
+    "phaseEstablished": false,
+    "preflightComplete": true,
+    "pythonVersion": "3.13.15",
+    "recordingCompletionEstablished": false,
+    "recordingInvocationCount": 0,
+    "releaseReady": false,
+    "repositoryAfter": {
+      "clean": true,
+      "commit": "e8e0cbe351c82f3804a8f5bfa2c0b22ab54f69b4",
+      "tree": "9b9ffd59df1bb7848e24ecbe82d252c0b47a1d72"
+    },
+    "retainedPayloadAcceptanceEstablished": false,
+    "samplerInvocationCount": 0,
+    "samplerWindowCoverageEstablished": false,
+    "schema": 1,
+    "settingsChanged": false,
+    "sourceBytesUnchanged": true,
+    "sourceCopies": {
+      ".github/workflows/native-atrc-import-contract.yml": "sources/workflows/native-atrc-import-contract.yml",
+      "docs/NATIVE_RETAINED_ATRC_CONTRACT.md": "sources/docs/NATIVE_RETAINED_ATRC_CONTRACT.md",
+      "script/collect_native_atrc_import_contract.py": "sources/script/collect_native_atrc_import_contract.py",
+      "script/collect_native_trace_capabilities.py": "sources/script/collect_native_trace_capabilities.py",
+      "script/native_retained_trace_command.py": "sources/script/native_retained_trace_command.py",
+      "script/native_sampler_tool_identity.py": "sources/script/native_sampler_tool_identity.py",
+      "script/privacy_check.py": "sources/script/privacy_check.py",
+      "script/run_native_recorder_progress_observation.py": "sources/script/run_native_recorder_progress_observation.py",
+      "script/run_native_recorder_startup_observation.py": "sources/script/run_native_recorder_startup_observation.py",
+      "script/run_native_system_trace_startup.py": "sources/script/run_native_system_trace_startup.py",
+      "script/test_collect_native_atrc_import_contract.py": "sources/script/test_collect_native_atrc_import_contract.py",
+      "script/test_native_retained_trace_command.py": "sources/script/test_native_retained_trace_command.py",
+      "script/test_run_native_recorder_progress_observation.py": "sources/script/test_run_native_recorder_progress_observation.py"
+    },
+    "sourceUnchanged": true,
+    "sourcesAfter": {
+      ".github/workflows/native-atrc-import-contract.yml": {
+        "bytes": 4136,
+        "sha256": "c387bc5376d42c8ecb56acadead14e3220bb45cb0563cdb57a9d8c21254c5da2"
+      },
+      "docs/NATIVE_RETAINED_ATRC_CONTRACT.md": {
+        "bytes": 9912,
+        "sha256": "48689ece990f252cac510a47b78911eee7ccc7e0f8af434e42e3e8ff6c43d1c4"
+      },
+      "script/collect_native_atrc_import_contract.py": {
+        "bytes": 15296,
+        "sha256": "7d0a8e54b41be66492ef9ae7d3e1cee852934d9c294e5c1a390a9a2d1f58bd74"
+      },
+      "script/collect_native_trace_capabilities.py": {
+        "bytes": 12855,
+        "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+      },
+      "script/native_retained_trace_command.py": {
+        "bytes": 10663,
+        "sha256": "cd772ee5449e124f3e0ad5f0e10417d31bc1d0b6f287c3a76d34a10ccc60fcba"
+      },
+      "script/native_sampler_tool_identity.py": {
+        "bytes": 5168,
+        "sha256": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78"
+      },
+      "script/privacy_check.py": {
+        "bytes": 18042,
+        "sha256": "3924cd779956cee1575489ae4f724d3bfd15ebbd8d166ae62cb17d3cf99294a6"
+      },
+      "script/run_native_recorder_progress_observation.py": {
+        "bytes": 66947,
+        "sha256": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f"
+      },
+      "script/run_native_recorder_startup_observation.py": {
+        "bytes": 31718,
+        "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7"
+      },
+      "script/run_native_system_trace_startup.py": {
+        "bytes": 47898,
+        "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010"
+      },
+      "script/test_collect_native_atrc_import_contract.py": {
+        "bytes": 8611,
+        "sha256": "0465d213a047e3f123a430a4d45a23601d0dcc04a81ede5619d90bd556f6ece6"
+      },
+      "script/test_native_retained_trace_command.py": {
+        "bytes": 11565,
+        "sha256": "a7bf175d5470d01cdae3bb641ed2f8da872ac07aa9449d5e8e5482131a867757"
+      },
+      "script/test_run_native_recorder_progress_observation.py": {
+        "bytes": 60266,
+        "sha256": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a"
+      }
+    },
+    "sourcesBefore": {
+      ".github/workflows/native-atrc-import-contract.yml": {
+        "bytes": 4136,
+        "sha256": "c387bc5376d42c8ecb56acadead14e3220bb45cb0563cdb57a9d8c21254c5da2"
+      },
+      "docs/NATIVE_RETAINED_ATRC_CONTRACT.md": {
+        "bytes": 9912,
+        "sha256": "48689ece990f252cac510a47b78911eee7ccc7e0f8af434e42e3e8ff6c43d1c4"
+      },
+      "script/collect_native_atrc_import_contract.py": {
+        "bytes": 15296,
+        "sha256": "7d0a8e54b41be66492ef9ae7d3e1cee852934d9c294e5c1a390a9a2d1f58bd74"
+      },
+      "script/collect_native_trace_capabilities.py": {
+        "bytes": 12855,
+        "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+      },
+      "script/native_retained_trace_command.py": {
+        "bytes": 10663,
+        "sha256": "cd772ee5449e124f3e0ad5f0e10417d31bc1d0b6f287c3a76d34a10ccc60fcba"
+      },
+      "script/native_sampler_tool_identity.py": {
+        "bytes": 5168,
+        "sha256": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78"
+      },
+      "script/privacy_check.py": {
+        "bytes": 18042,
+        "sha256": "3924cd779956cee1575489ae4f724d3bfd15ebbd8d166ae62cb17d3cf99294a6"
+      },
+      "script/run_native_recorder_progress_observation.py": {
+        "bytes": 66947,
+        "sha256": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f"
+      },
+      "script/run_native_recorder_startup_observation.py": {
+        "bytes": 31718,
+        "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7"
+      },
+      "script/run_native_system_trace_startup.py": {
+        "bytes": 47898,
+        "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010"
+      },
+      "script/test_collect_native_atrc_import_contract.py": {
+        "bytes": 8611,
+        "sha256": "0465d213a047e3f123a430a4d45a23601d0dcc04a81ede5619d90bd556f6ece6"
+      },
+      "script/test_native_retained_trace_command.py": {
+        "bytes": 11565,
+        "sha256": "a7bf175d5470d01cdae3bb641ed2f8da872ac07aa9449d5e8e5482131a867757"
+      },
+      "script/test_run_native_recorder_progress_observation.py": {
+        "bytes": 60266,
+        "sha256": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a"
+      }
+    },
+    "status": "help-collected",
+    "stderrPresent": false,
+    "traceInputSupplied": false,
+    "usableClockMappingEstablished": false,
+    "waitidPreflight": {
+      "available": true,
+      "exitCode": 23,
+      "peekDidNotReap": true,
+      "pythonVersion": "3.13.15"
+    }
+  },
+  "nextFiniteTaskProposal": {
+    "basis": [
+      {
+        "lines": [
+          1,
+          12
+        ],
+        "meaning": "Observed command and option grammar for creating a separate document.",
+        "source": "D26-import-help"
+      },
+      {
+        "lines": [
+          22,
+          23
+        ],
+        "meaning": "UTI defaults are conditional and release-dependent, so a proposed experiment should make its selector explicit.",
+        "source": "D26-import-help"
+      },
+      {
+        "lines": [
+          28,
+          28
+        ],
+        "meaning": "The exact installed help demonstrates the System Trace selector for a ktrace example.",
+        "source": "D26-import-help"
+      },
+      {
+        "claimUsed": "General Apple Trace import family is documented; exact 26.3/payload acceptance remains unestablished.",
+        "primaryURLs": [
+          "https://developer.apple.com/documentation/xcode-release-notes/xcode-26-release-notes",
+          "https://developer.apple.com/documentation/xcode-release-notes/xcode-26_4-release-notes",
+          "https://developer.apple.com/documentation/xcode-release-notes/xcode-27-release-notes"
+        ],
+        "sourceReviewIdentity": {
+          "bytes": 11465,
+          "sha256": "e470fc6ab9000828003e16edfc38325927a45d1920ad3b52c0c02eda90d158f8"
+        },
+        "versionLimitsPreserved": true
+      }
+    ],
+    "earlierPreconditionClarification": "The earlier plan required a supported format/selection contract before deriving data. The collected evidence now establishes a general Apple Trace input family and the actual selected-version import grammar and selector roles. It does not establish exact payload acceptance. The proposed separate D27 experiment names that remaining acceptance as its hypothesis instead of demanding metadata prove it in advance. D26 itself remains complete and performs no conversion.",
+    "executionInThisReviewOrD26": false,
+    "experimentalStatus": "A proposed compatibility test of a plausible supported-family route, not a declaration that the exact ATRC format or payload has been prequalified.",
+    "fallbackIfNoBoundedTestIsJustified": "Keep the route unestablished and escalate the precise 26.3 raw Apple Trace acceptance/template question with the existing immutable evidence packet. Do not manufacture a new generic inventory or claim the raw data is unsupported.",
+    "headerLimit": "The observed primitive header is not a qualified link to a supported importer format and is not used to justify the candidate as preaccepted.",
+    "headerMagicUsedAsFormatCompatibilityProof": false,
+    "kind": "explicitly-proposed-separate-derived-import-hypothesis-test",
+    "notYetAnExecutedOrQualifiedCommand": true,
+    "question": "Can the same selected reader accept one unchanged copy of the retained raw Apple Trace payload with the explicit System Trace selector and produce a separately identified new analysis document within fixed bounds?",
+    "reasonToPreferOverAnotherGenericInventory": "Import-specific help has now answered its concrete missing grammar/default question. No documented UTI/importer-registry query was identified. Another generic listing would not establish validity of the partial payload; an explicitly hypothetical, bounded derivative test can answer actual acceptance without asserting it beforehand.",
+    "requiredProtocolBeforeAnyAttempt": [
+      "Pin the exact retained raw input by source artifact/member/size/SHA and preserve the original archive; do not rename the extension or alter its bytes to force recognition.",
+      "Use a protected disposable input copy and a separate new output path; define independent input/output provenance.",
+      "Bind the selected Xcode version and reader identity; use the observed import grammar and an explicit System Trace selection. Require fresh observed System Trace availability in the same finite experiment; the older D19 inventory alone is insufficient. The documented list templates command can supply that targeted precondition; do not invent a registry query or rely on an undocumented default.",
+      "Define finite command/stream/output-growth bounds and owned-process cleanup before execution.",
+      "Make exactly one import attempt and retain refusal, signals, limits and all raw streams; do not retry with changed flags or templates.",
+      "Do not automatically export the resulting document. Any later TOC/row/clock analysis is a separate question.",
+      "A successful import and nonempty derivative would establish only that this reader accepted this input/selection under the recorded conditions; it would not establish normal original recording completion, all-event preservation or useful time/activation coverage."
+    ]
+  },
+  "observedVersions": {
+    "os": "ProductName:\t\tmacOS\nProductVersion:\t\t15.7.9\nBuildVersion:\t\t24G830\n",
+    "python": "3.13.15",
+    "xcode": "Xcode 26.3\nBuild version 17C529\n"
+  },
+  "originalNativeSummaryIdentity": {
+    "bytes": 33288,
+    "sha256": "bfbe982a863055896d8ba0116c2750b4d9ca1212515e389eebf6ba5ba24cbc27"
+  },
+  "projectState": {
+    "C12": "HOLD",
+    "PR45": "open-draft-unmerged",
+    "productFixEstablished": false,
+    "releaseReady": false,
+    "task07": "HOLD",
+    "task08FinalAcceptance": "depends-on-task07"
+  },
+  "remainingUnknowns": [
+    "The retained payload’s exact accepted input type/UTI and complete format validity.",
+    "The real default template, if any, for this payload in the selected reader.",
+    "The selected template’s full instrument membership and the retained rows/time maps a derivative would expose.",
+    "The specific missing document template object or the reason D24 exited on signal 11.",
+    "Whether any derived data would cover the earlier sampler interval or the original held-drag acceptance mechanism."
+  ],
+  "run": {
+    "attempt": 1,
+    "id": 42629940773,
+    "jobConclusion": "success",
+    "jobID": 129203323310,
+    "url": "https://github.com/osmankaankars/lemulip/actions/runs/42629940773",
+    "workflowConclusion": "success"
+  },
+  "schema": 1,
+  "sourceRetention": {
+    "D25HistoricalPhysicalSourceCopyCount": 19,
+    "D25HistoricalSourceIdentityCount": 20,
+    "D25MissingWorkflowCopyRetroactivelySupplied": false,
+    "allCopiesAndSnapshotsMatchExactExecutedGitObjects": true,
+    "nativeSourceIdentityCount": 13,
+    "physicalSourceCopyCount": 13,
+    "workflowCopy": "sources/workflows/native-atrc-import-contract.yml"
+  }
+}

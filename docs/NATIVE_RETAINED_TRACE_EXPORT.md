@@ -248,21 +248,42 @@ a fresh run numbered 1. Empty tables remain empty. Other metadata remains
 uninterpreted, and no attribute is executed as an XPath or command.
 
 D25 did not qualify a TOC, so there is no observed schema for a follow-up XPath
-query. **D26's next finite question is an offline review of the retained Xcode
-26.3 reader, import and template contracts:** is there a supported, separately
-derived analysis route for this exact ATRC input, and which preconditions would
-it require? Start with the existing version-bound manual/help, tool identity
-and package inventory. Identify any concrete documentation gap before another
-native metadata collection. Do not assume a filename from the error text,
-repair the original package, substitute a different Xcode contract, or repeat
-the failed export or recording merely to obtain a different result.
+query. Its proposed D26 contract review subsequently identified the missing
+import-specific help and collected that one response from the same reader.
+
+### Subsequent D26 result and proposed D27 experiment
+
+[D26](NATIVE_RETAINED_ATRC_CONTRACT.md) completed in
+[run 42629940773](https://github.com/osmankaankars/lemulip/actions/runs/42629940773),
+attempt 1, with **45 passing tests**. Its one import-help request exited 0 after
+1.290658711 seconds, retaining 1,512 stdout bytes and empty stderr. All 13 source
+copies and identities were verified; source and reader bytes stayed unchanged.
+The [result](evidence/D26-retained-atrc-contract.json) and
+[verification](evidence/D26-verification.json) preserve that help-only result.
+
+The installed help documents conditional default templates by input UTI and
+warns that defaults can change between releases. It gives a ktrace input example
+with an explicit System Trace template, but does not name ATRC, identify this
+payload's UTI/default, or enumerate an accepted format set. D26 made no import,
+export or recording. D25's refusal and all its limits remain unchanged.
+
+The **proposed D27** is one separately bounded derived-import hypothesis test.
+The documented general Apple Trace family and observed 26.3 grammar motivate
+testing compatibility; exact payload acceptance remains the question to be
+measured. This clarifies the earlier prospective format precondition: metadata
+establishes the family/command basis, not full payload validity. The experiment
+must bind the same reader, preserve an exact read-only input copy, observe fresh
+System Trace availability, and use a separate exclusive output with fixed
+transport/output/cleanup bounds. The old D19 inventory is insufficient for
+that fresh selection check. No automatic export, original-package repair or
+recording retry follows. D27 has not run.
 
 Any later derived-data attempt would need its own provenance and finite
 protocol; it would not retroactively complete D24. Only qualified decoded time
 range, usable clock mapping and process/scheduling rows could support a later
 comparison with D24's recorder-relative approximately +3.045–6.812-second window
 and PIDs 2040, 2147 and 2149. A displayed date, duration or PID does not supply
-that mapping alone. No such attempt occurred in D25.
+that mapping alone. No derived-data attempt occurred in D25 or D26.
 
 No TOC result establishes normal completion of D24's recording, a sampler
 phase, activation routing, an IPC request chain or product acceptance. The

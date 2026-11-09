@@ -241,11 +241,23 @@ source and installed-tool identities remained unchanged. The
 [verification](evidence/D25-verification.json) establish no TOC, usable clock
 mapping, event range or original acceptance case.
 
-The next D26 task first reviews the retained Xcode 26.3 reader/import/template
-contracts offline, identifying any actual metadata gap before another native
-collection or derived-data proposal. PR #45 remains draft/unmerged and C12
-remains HOLD. The original full Finder sequence, completed source/twelve-image
-review, physical/v4 evidence and task 08's dependency on task 07 remain unchanged.
+[D26](NATIVE_RETAINED_ATRC_CONTRACT.md) completed its contract review and the one
+missing import-help request, with 45 passing tests. The request exited 0 after
+1.290658711 seconds with 1,512 stdout bytes and empty stderr; all 13 source
+copies and identities were verified, and source/reader bytes stayed unchanged.
+Its [result](evidence/D26-retained-atrc-contract.json) and
+[verification](evidence/D26-verification.json) establish generic import grammar
+and conditional, release-dependent UTI defaults. The help does not name ATRC
+or establish this exact payload's acceptance. D26 performed no import, export
+or recording.
+
+D27 is proposed as a separate bounded derived-import compatibility test, with
+the same reader, an exact read-only input copy, fresh observed System Trace
+availability and a separate exclusive output. Exact acceptance is its
+hypothesis; no automatic export or original-package repair follows. It has not
+run. PR #45 remains draft/unmerged and C12 remains HOLD. The original full
+Finder sequence, completed source/twelve-image review, physical/v4 evidence
+and task 08's dependency on task 07 remain unchanged.
 
 To complete task 08, close or explicitly resolve task 07's remaining CI gate on
 the final candidate, review any resulting production changes, and retain the

@@ -4,8 +4,10 @@
 completed without a qualified sampler stack. Intel retained a partial trace;
 [D25's single read-only export](NATIVE_RETAINED_TRACE_EXPORT.md) refused its exact
 retained copy with `Document Missing Template Error`. No TOC or time coverage was
-established. D26 next reviews the retained reader/import/template contracts
-offline. C12, draft/unmerged PR #45 and the task 07/08 gates remain HOLD.
+established. [D26](NATIVE_RETAINED_ATRC_CONTRACT.md) completed its contract review
+and one missing import-help request; exact raw-payload acceptance remains open.
+A separate bounded D27 derived-import hypothesis test is proposed and has not
+run. C12, draft/unmerged PR #45 and the task 07/08 gates remain HOLD.
 
 ## Decision on 7 November 2026
 
@@ -172,10 +174,27 @@ and installed-tool identities remained unchanged. The
 [verification](evidence/D25-verification.json) preserve the refusal; no TOC,
 usable clock mapping or event coverage was established.
 
-D26 first reviews the retained Xcode 26.3 reader, import and template contracts
-offline. Any actual metadata gap must be identified before proposing another
-native collection or derived-data attempt. The refusal alone does not establish
-a missing field, a repair route or the original activation mechanism.
+The refusal alone does not establish a missing field, a repair route or the
+original activation mechanism.
+
+### Subsequent D26 import-help result and D27 proposal
+
+[D26](NATIVE_RETAINED_ATRC_CONTRACT.md) completed its offline review and one
+import-help request with 45 passing tests. The request exited 0 after
+1.290658711 seconds, retaining 1,512 stdout bytes and empty stderr. All 13 source
+copies and identities were verified; source and reader bytes stayed unchanged.
+The [result](evidence/D26-retained-atrc-contract.json) and
+[verification](evidence/D26-verification.json) preserve this help-only result.
+The help describes conditional, release-dependent UTI defaults but does not
+name ATRC or establish this payload's acceptance. No import/export/recording
+occurred in D26.
+
+The proposed D27 is one separately bounded derived-import compatibility test,
+using the same reader, an exact read-only input copy, fresh observed System
+Trace availability and a separate exclusive output. Exact acceptance is the
+hypothesis to measure; the documented family and actual grammar are its basis.
+No automatic export or original-package repair follows. D27 has not run and
+adds no activation or product-acceptance evidence.
 
 ## Symptom and impact
 
@@ -434,11 +453,13 @@ acceptance relaxation.
 | 09 | Not opened without a new brief |
 | D24 diagnostic | Bounded execution and cleanup completed; four banner-only sampler streams, no qualified stack/phase and an Intel partial trace; see the [D24 result](NATIVE_RECORDER_PROGRESS_OBSERVATION.md) |
 | D25 diagnostic | Completed; one read-only export refused the exact retained Intel trace with exit 10 / `Document Missing Template Error`; no TOC or time coverage, and input/source/tool identities unchanged |
-| D26 next evidence step | Offline review of retained Xcode 26.3 reader/import/template contracts; identify any actual metadata gap before another native collection or derived-data proposal |
+| D26 diagnostic | Completed; 45 tests and one successful import-help request establish generic command/selector behavior and conditional UTI defaults, with 13 source copies verified; exact ATRC acceptance remains unestablished |
+| D27 proposed evidence step | One separately bounded derived-import hypothesis test with same reader, fresh System Trace availability, exact read-only input and exclusive output; no automatic export or original repair; not run |
 
 The original read-only routing review remains complete. Subsequent D24
 diagnostic work leaves C12 production and the original acceptance gate unchanged;
 its partial Intel trace does not establish event-time coverage or the missing
-native mechanism. D25 preserved the reader's refusal. D26's offline contract
-review is the next finite step. There is no verified narrow fix to ship, and no
-additional owner test is needed to restate the completed local results.
+native mechanism. D25 preserved the reader's refusal. D26 completed the missing
+help collection; D27 is a separate proposed compatibility test. There is no
+verified narrow fix to ship, and no additional owner test is needed to restate
+the completed local results.

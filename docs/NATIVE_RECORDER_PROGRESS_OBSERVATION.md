@@ -7,8 +7,10 @@ recorder progress, one notification callback and a partial trace package; its
 recorder subsequently exited on signal 11. The internal waiting phase remains
 unidentified. The subsequent [D25 read-only export](NATIVE_RETAINED_TRACE_EXPORT.md)
 refused that exact retained Intel package with `Document Missing Template Error`.
-No table of contents or time coverage was established. The next D26 step is an
-offline review of the retained reader/import/template contracts.
+No table of contents or time coverage was established. The subsequent
+[D26 contract review](NATIVE_RETAINED_ATRC_CONTRACT.md) collected the missing
+import help; exact ATRC acceptance remains unestablished. A separate bounded
+D27 derived-import hypothesis test is proposed and has not run.
 
 This diagnostic follows the [D23 retained identity review](NATIVE_SAMPLER_IDENTITY_REVIEW.md).
 It asks whether a bounded stack observation of the primary sampler can distinguish
@@ -183,11 +185,22 @@ usable clock mapping, event range or sampler-window coverage. The error text
 does not by itself identify a particular missing metadata field or prove a
 repair route.
 
-The next D26 task first reviews the retained Xcode 26.3 reader, import and
-template contracts offline. Any actual metadata gap must be identified before
-proposing another native collection or derived-data attempt. D24 itself
-performed **no trace export**; D25's subsequent refusal does not resolve the
-sampler phase, D21 causality, the original drag route or C12 acceptance.
+[D26](NATIVE_RETAINED_ATRC_CONTRACT.md) then completed its offline review and one
+missing import-help request, with 45 passing tests. The help request exited 0
+after 1.290658711 seconds, with 1,512 stdout bytes and empty stderr; all 13 source
+copies and identities were verified. Its [result](evidence/D26-retained-atrc-contract.json)
+and [verification](evidence/D26-verification.json) preserve the unchanged reader
+and source evidence. Help describes conditional, release-dependent UTI defaults
+but does not name ATRC or establish this payload's acceptance.
+
+D27 is proposed as one separately bounded compatibility test that creates a new
+analysis document from an exact read-only input copy, with the same reader,
+fresh observed System Trace availability and a separate exclusive output. Exact
+acceptance is its hypothesis, not an already-proven fact; no automatic export or
+original-package repair follows. D27 has not run. D24 itself performed **no
+trace export**, and D26 performed no import, export or recording. These later
+steps do not resolve the sampler phase, D21 causality, the original drag route
+or C12 acceptance.
 
 ## Evidence motivating this observation
 
