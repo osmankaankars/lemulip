@@ -52,6 +52,35 @@ ALLOWED_EMAILS = {
     b"56635935+osmankaankars@users.noreply.github.com",
 }
 
+# D23 retains this exact, already-anonymized sample display path verbatim.
+# It is advisory masked text, not an observed user's canonical home path.
+# Only the reviewed files and the complete delimiter-bounded token are exempt
+# from literal-home-path; every other rule scans the original bytes unchanged.
+MASKED_SAMPLER_PATH = b"/Users/USER/*/NativeSamplerCalibration"
+MASKED_SAMPLER_PATH_FILES = {
+    "script/privacy_check.py",
+    "script/test_privacy_masked_sampler_paths.py",
+    "script/review_native_sampler_identity.py",
+    "script/test_review_native_sampler_identity.py",
+    "script/native_sampler_identity_fixture.py",
+    "docs/NATIVE_SAMPLER_IDENTITY_REVIEW.md",
+    "docs/evidence/D23-native-sampler-identity-review.json",
+    "docs/evidence/D23-verification.json",
+}
+MASKED_PATH_DELIMITERS = b" \t\r\n\v\f'\"`"
+
+
+def masked_sampler_path_spans(name: str, data: bytes) -> list[tuple[int, int]]:
+    if name not in MASKED_SAMPLER_PATH_FILES:
+        return []
+    spans = []
+    for match in re.finditer(re.escape(MASKED_SAMPLER_PATH), data):
+        start, end = match.span()
+        if ((start == 0 or data[start - 1] in MASKED_PATH_DELIMITERS)
+                and (end == len(data) or data[end] in MASKED_PATH_DELIMITERS)):
+            spans.append((start, end))
+    return spans
+
 # Only these visually reviewed illustrations and screenshots may be binary. Generated artwork
 # retains its provenance; no image may carry private metadata.
 # Update a digest only after reviewing the new image and its metadata.
@@ -226,7 +255,13 @@ def content_failures(name: str, data: bytes) -> list[str]:
     if b"\x00" in data:
         failures.append("unexpected-binary-file")
     for rule, pattern in RULES.items():
-        matches = re.findall(pattern, data)
+        if rule == "literal-home-path":
+            approved_spans = masked_sampler_path_spans(name, data)
+            matches = [match.group() for match in re.finditer(pattern, data)
+                       if not any(start <= match.start() and match.end() <= end
+                                  for start, end in approved_spans)]
+        else:
+            matches = re.findall(pattern, data)
         if rule == "embedded-email":
             matches = [match for match in matches if match not in ALLOWED_EMAILS]
         if matches:

@@ -1,0 +1,729 @@
+{
+  "architectures": {
+    "arm64": {
+      "archive": {
+        "bytes": 142346,
+        "sha256": "e198ea29cfef5a59b3bc07a16f1af840e77cbb6a524b41cf9f57dfebdd648c51"
+      },
+      "artifactID": "13660037756",
+      "members": {
+        "build-provenance.json": {
+          "bytes": 2715,
+          "sha256": "df49b2b017da80d7498eb05c42527adf53c1a572e02fc26c70e334ecb8a37efa"
+        },
+        "build/NativeSamplerCalibration": {
+          "bytes": 38184,
+          "sha256": "fd510699e739318f70e372da93096df279a5b06fc5cfcf8637cd21542f4356ad"
+        },
+        "build/NativeSamplerCalibration.dSYM/Contents/Info.plist": {
+          "bytes": 653,
+          "sha256": "c9efc9822a047c681f7e9fc7d1a506a97094d2838958a3122171f0d252aade55"
+        },
+        "build/NativeSamplerCalibration.dSYM/Contents/Resources/DWARF/NativeSamplerCalibration": {
+          "bytes": 8350,
+          "sha256": "5d785a6946c69050dd5ef2d731afbd8bbee9fc72a74fd1bea54afd64fa3e73dd"
+        },
+        "build/NativeSamplerCalibration.dSYM/Contents/Resources/Relocations/aarch64/NativeSamplerCalibration.yml": {
+          "bytes": 177,
+          "sha256": "2154d27f896488884ec82e90eb3e49fae2b287fbd5a29f7357440d81cf133487"
+        },
+        "build/bounded-command-tests.stderr.txt": {
+          "bytes": 104,
+          "sha256": "c5decc053538b36c81aba7788a2f86c3a2dc85389e9d09479110397346eeaf09"
+        },
+        "build/bounded-command-tests.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/calibration-tests.stderr.txt": {
+          "bytes": 112,
+          "sha256": "1b39a1d0919995e1c64f80542f7f60a2ee402d7df73e29bfea808db32903fc27"
+        },
+        "build/calibration-tests.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/clang-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/clang-version.stdout.txt": {
+          "bytes": 205,
+          "sha256": "185385084843a3035d264e1a698f718796ca2c3f992dc7bfffcedb9c9941c09b"
+        },
+        "build/compile.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/compile.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/cpu-brand.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/cpu-brand.stdout.txt": {
+          "bytes": 19,
+          "sha256": "ff76851c55aca2697f22e6534c9378088cae0334bbb5d13675e90a9097fc2713"
+        },
+        "build/dsymutil.stderr.txt": {
+          "bytes": 208,
+          "sha256": "450d1625b31914702f09846027649a73fd39f5420ec2d61c0d9ef6ff8d9b50bd"
+        },
+        "build/dsymutil.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/experiment-commit.txt": {
+          "bytes": 41,
+          "sha256": "1857c62b53b714ac168375a65929de2e245120f02657d0336749e34f8382ea47"
+        },
+        "build/experiment-tree.txt": {
+          "bytes": 41,
+          "sha256": "45bdc1d197b24949174614f7a9048c02ba3cc059e081a453b945e5ecefd6028e"
+        },
+        "build/helper-dependencies.txt": {
+          "bytes": 177,
+          "sha256": "41d8433d1aa3a1001065c7951def8ab116b35ba93070fa8379f23ba6a2067f2a"
+        },
+        "build/helper-dsym-uuid.txt": {
+          "bytes": 198,
+          "sha256": "c1a9c9f150b96c22b3224f27fbfbacb90badee47d7b86c5ee63f64d033509b67"
+        },
+        "build/helper-load-commands.txt": {
+          "bytes": 4025,
+          "sha256": "672101522dba3f0dba63096b47381ae1d01c962f87bc28d4d7b6df54ce668fa3"
+        },
+        "build/helper-symbols.txt": {
+          "bytes": 1517,
+          "sha256": "ef3b28f558131557569f6c4124e00265c0acbd066d82e5a00b0139f8ecbc124b"
+        },
+        "build/helper-uuid.txt": {
+          "bytes": 143,
+          "sha256": "f8ce8359e545f41718daeb72bafd235ba4f3ea79b3997c397f68672c7cda3aa1"
+        },
+        "build/kernel-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/kernel-version.stdout.txt": {
+          "bytes": 113,
+          "sha256": "ff95b22f6cfe5f6a90b4c7093d86ae0fe40880d42b9888eb60d81e376aa80b5d"
+        },
+        "build/observer-tests.stderr.txt": {
+          "bytes": 114,
+          "sha256": "01f91b3cdc63cf465444182c267ff4a19e8f63d50fc6883a16a30450c45558aa"
+        },
+        "build/observer-tests.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/orchestrator-tests.stderr.txt": {
+          "bytes": 109,
+          "sha256": "5c5bbb27a36eb8effb5ea9315f77124d98453eaa1365207233772d84ffd01b82"
+        },
+        "build/orchestrator-tests.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/os-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/os-version.stdout.txt": {
+          "bytes": 66,
+          "sha256": "e0a9e270c507499fb163b6bb80e62f10c6fca344ce2c93fa2987fe42caf94b29"
+        },
+        "build/xcode-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/xcode-version.stdout.txt": {
+          "bytes": 32,
+          "sha256": "bb7fc9a8f5e063e81975b33054b3a526c91bcccff263ad11d5bd8bcdbe8f0973"
+        },
+        "calibration-scope.json": {
+          "bytes": 1901,
+          "sha256": "99d64e59faeaba4760ba7e6389a8080cea8f2f236d1e79cfa1d19bcee3dec3ea"
+        },
+        "controlled-sample.txt": {
+          "bytes": 7988,
+          "sha256": "b3cf4841c437a03a94b56354f9fa946f64a51ec6792d385a61cb4150102087d7"
+        },
+        "identity-before.json": {
+          "bytes": 1248,
+          "sha256": "f5efdf6dce177e099b1fe1563dff18c2a408a194ed838191f2339ab12fed4568"
+        },
+        "identity-before.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "identity-before.stdout.txt": {
+          "bytes": 877,
+          "sha256": "b654bfb0f1c3d72bf7d567207424ba31fcd4af8b49860bc2f71f3c03c9c07c20"
+        },
+        "input-preservation.json": {
+          "bytes": 90,
+          "sha256": "e377fa27e245d2a5d086b18b36876ceb7955f1af96e79635fff79ea08e94b94c"
+        },
+        "inputs-after.json": {
+          "bytes": 8120,
+          "sha256": "cda891bf1f211820dff34f4e3412a6f8c27ab50168b634644d1e9160c72b9651"
+        },
+        "inputs-before.json": {
+          "bytes": 8120,
+          "sha256": "cda891bf1f211820dff34f4e3412a6f8c27ab50168b634644d1e9160c72b9651"
+        },
+        "observer-groups.json": {
+          "bytes": 1196,
+          "sha256": "6fd1d351cee710331c6c98b8b6f62310bc4d0f33513a98e63a1da6e817ed19ae"
+        },
+        "observer-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "observer-groups.stdout.txt": {
+          "bytes": 7548,
+          "sha256": "b7b791b4230153e02594a99a57ee39b6c852ca1a650a9cdb866ac8489ad0b07d"
+        },
+        "observer-manual-ps.json": {
+          "bytes": 762,
+          "sha256": "35a71563d6c9a7dfcc670a80bd3d6f76f1af4a5428e248ba0197b156f5f245a4"
+        },
+        "observer-manual-ps.normalized.txt": {
+          "bytes": 14656,
+          "sha256": "ac203a35c42140489ce6301fa70c07d35b086b17f90fb9a15acdd2e9499c1377"
+        },
+        "observer-manual-ps.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "observer-manual-ps.stdout.txt": {
+          "bytes": 20235,
+          "sha256": "31f60652f3b49f196bbfd6ffade866a214d43eca8d8a8ac54bacbecfbac85788"
+        },
+        "observer-manual-sample.json": {
+          "bytes": 771,
+          "sha256": "ba6afae85099f941e0953be9e5c97af295cd6853f10445edcbf750aec5dc5582"
+        },
+        "observer-manual-sample.normalized.txt": {
+          "bytes": 3724,
+          "sha256": "abeec03a24db46ab4fc26e8696665ec85708b24bfd5b849f5e200e88ca28159c"
+        },
+        "observer-manual-sample.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "observer-manual-sample.stdout.txt": {
+          "bytes": 4490,
+          "sha256": "253f16336d7cc4b1441e34358ee8220c57bdd5a1c5fd0a5fd835e96292617cf6"
+        },
+        "observer-preflight.json": {
+          "bytes": 11403,
+          "sha256": "b9afd9f7ed9833efc7f6d38206a53dec617a2261fc24902b4c2e9c26d2e1f74a"
+        },
+        "sample.json": {
+          "bytes": 1285,
+          "sha256": "5d03a829562dc356d5f880d4c9b4a40978e63ff7be6a3a549b4e4f5cb8d83d2b"
+        },
+        "sample.stderr.txt": {
+          "bytes": 253,
+          "sha256": "ede9be3c8e60c9d80019d371bd89c0b57cf8484fc78abf984f4383a4d010fdbc"
+        },
+        "sample.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "sampler-calibration.json": {
+          "bytes": 12687,
+          "sha256": "81cbd122e3bb78e06871fb2785c13f48e72c1d4ab847346f6e556b0bf6ccd025"
+        },
+        "sources/NATIVE_SAMPLER_CALIBRATION.md": {
+          "bytes": 9149,
+          "sha256": "8baf7c979026e8bd13341918543f7e8919dbbd77f794856efaa01da2edfe9a46"
+        },
+        "sources/NativeSamplerCalibration.c": {
+          "bytes": 25008,
+          "sha256": "672c49a4a17a6bffdfa6cc054d61bed8ca18677fe646a9d07a75010b26591bf7"
+        },
+        "sources/collect_native_trace_capabilities.py": {
+          "bytes": 12855,
+          "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+        },
+        "sources/native-sampler-calibration.yml": {
+          "bytes": 13264,
+          "sha256": "99b81b65b70357a1a1e10f692942936cffd26a792f241c763c211e5e777a89cd"
+        },
+        "sources/privacy_check.py": {
+          "bytes": 16393,
+          "sha256": "1bf638ba0132f8dcc2bed00e81172e4cc367a3d2168e3f053f967229de026019"
+        },
+        "sources/run_native_recorder_startup_observation.py": {
+          "bytes": 31718,
+          "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7"
+        },
+        "sources/run_native_sampler_calibration.py": {
+          "bytes": 41142,
+          "sha256": "725c0b868d46efc52401057f64aa58070a0771e5b1b010483b45440ac86b7868"
+        },
+        "sources/run_native_system_trace_startup.py": {
+          "bytes": 47898,
+          "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010"
+        },
+        "sources/test_collect_native_trace_capabilities.py": {
+          "bytes": 7343,
+          "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+        },
+        "sources/test_run_native_recorder_startup_observation.py": {
+          "bytes": 30306,
+          "sha256": "a7615f8a62777b5e073e3b231d79931906385db36b28c6d1a14f9b2116b45bb7"
+        },
+        "sources/test_run_native_sampler_calibration.py": {
+          "bytes": 26060,
+          "sha256": "7e809057ba349b9bd7d4a6ec332e328babf6ac3eee8c02d9ea093ce0ded7f5d1"
+        },
+        "sources/test_run_native_system_trace_startup.py": {
+          "bytes": 14595,
+          "sha256": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7"
+        },
+        "target-completion.json": {
+          "bytes": 2312,
+          "sha256": "7469cc0788f67a352c94cecd690c90d42a8a4a376c0b27dedb02764f95524817"
+        },
+        "target-groups.json": {
+          "bytes": 1194,
+          "sha256": "695d1daa21a87faa1719411a0959cda19844625a09eae7150c400931c52757b8"
+        },
+        "target-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "target-groups.stdout.txt": {
+          "bytes": 7548,
+          "sha256": "76a1409910a1e6bb9efa2b42c0bdaa374143176df32d02d4ce89f50078e3d0c5"
+        },
+        "target-ready.json": {
+          "bytes": 1593,
+          "sha256": "c56d41616df5ef292d1257da395cb297d14393d6347ccf7bc5c8040aeed7a841"
+        },
+        "target.json": {
+          "bytes": 2266,
+          "sha256": "1199f3fa58e16ca87b99f1d8ba7e908dc15f96ebd745e92c711ba7f5f7b40eb6"
+        },
+        "target.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "target.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    },
+    "x86_64": {
+      "archive": {
+        "bytes": 141781,
+        "sha256": "1b53e3d87e3192922f53e1e7d362158cd0569ae0c7fb5eb70aa1ba4ee1d618a5"
+      },
+      "artifactID": "13660187867",
+      "members": {
+        "build-provenance.json": {
+          "bytes": 2723,
+          "sha256": "4a80e559afb605cdd8120e93f66dd771e97b166ded4391ec06a53956b026af44"
+        },
+        "build/NativeSamplerCalibration": {
+          "bytes": 25416,
+          "sha256": "d9cda95090a7765f55c0191bcac238b0a8d4694a181b0cdf01b2ef11e953598f"
+        },
+        "build/NativeSamplerCalibration.dSYM/Contents/Info.plist": {
+          "bytes": 653,
+          "sha256": "c9efc9822a047c681f7e9fc7d1a506a97094d2838958a3122171f0d252aade55"
+        },
+        "build/NativeSamplerCalibration.dSYM/Contents/Resources/DWARF/NativeSamplerCalibration": {
+          "bytes": 8350,
+          "sha256": "459e311a92bcbbd40317380d7c222a233286bcec46af19847eb2f66f99e82302"
+        },
+        "build/NativeSamplerCalibration.dSYM/Contents/Resources/Relocations/x86_64/NativeSamplerCalibration.yml": {
+          "bytes": 178,
+          "sha256": "cddd0157fba6d9f21f7945bfde742767ec96783f49392efbf61a4723f77dc8b7"
+        },
+        "build/bounded-command-tests.stderr.txt": {
+          "bytes": 104,
+          "sha256": "ff68e2af174d1fbb8e593b4813f9ef282838ba9c00902ada5517ecca962bab25"
+        },
+        "build/bounded-command-tests.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/calibration-tests.stderr.txt": {
+          "bytes": 112,
+          "sha256": "06287c4f528cb50330aad2c610050ef3ab43130e69dbf2a6505dce164c9c09b4"
+        },
+        "build/calibration-tests.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/clang-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/clang-version.stdout.txt": {
+          "bytes": 206,
+          "sha256": "25b6f74e2a86f5cac5bb653246e008720e862cc709097d9faafc4622770abc88"
+        },
+        "build/compile.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/compile.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/cpu-brand.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/cpu-brand.stdout.txt": {
+          "bytes": 41,
+          "sha256": "8654db3d299186d3074bea1db036d2b0937f406974389fbd19e4ee2bad90ab20"
+        },
+        "build/dsymutil.stderr.txt": {
+          "bytes": 210,
+          "sha256": "a37711a9182f52b3b097d2c85df87dc0c3cfe1c52b3a7898ee6adee686f421dd"
+        },
+        "build/dsymutil.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/experiment-commit.txt": {
+          "bytes": 41,
+          "sha256": "1857c62b53b714ac168375a65929de2e245120f02657d0336749e34f8382ea47"
+        },
+        "build/experiment-tree.txt": {
+          "bytes": 41,
+          "sha256": "45bdc1d197b24949174614f7a9048c02ba3cc059e081a453b945e5ecefd6028e"
+        },
+        "build/helper-dependencies.txt": {
+          "bytes": 177,
+          "sha256": "41d8433d1aa3a1001065c7951def8ab116b35ba93070fa8379f23ba6a2067f2a"
+        },
+        "build/helper-dsym-uuid.txt": {
+          "bytes": 199,
+          "sha256": "bec311e979c2bda5d2f5ddb822e31f6a1b16a297796f6c6790cd52677dd37e61"
+        },
+        "build/helper-load-commands.txt": {
+          "bytes": 3938,
+          "sha256": "03b612bc984ba8c35f529702309d052d9a363c7dde21de4d0d17d50875a23418"
+        },
+        "build/helper-symbols.txt": {
+          "bytes": 1508,
+          "sha256": "f3ef05e7cd9ca9ad34feef203b7914ccbc67914ac49ce0c518e9a8f0fb36ad9c"
+        },
+        "build/helper-uuid.txt": {
+          "bytes": 144,
+          "sha256": "67347ea9af1a4f3ea0c09a99dd202e9bd1f2d56ab89994ad93ce75ac954677f9"
+        },
+        "build/kernel-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/kernel-version.stdout.txt": {
+          "bytes": 106,
+          "sha256": "24ffab3ffa929d41530d290182bff82b4531cfc4c50ad94425fc28d237faf8e3"
+        },
+        "build/observer-tests.stderr.txt": {
+          "bytes": 114,
+          "sha256": "c9a8a9bfa2ffeb9e6c47c680b1a3322ed49b9f443d6e42328416d6e0a6d36c25"
+        },
+        "build/observer-tests.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/orchestrator-tests.stderr.txt": {
+          "bytes": 109,
+          "sha256": "374f1d1c10c85aa38f5ed3f69cae4318f8f94427db9965f0e5df2f4fa461fd2c"
+        },
+        "build/orchestrator-tests.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/os-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/os-version.stdout.txt": {
+          "bytes": 66,
+          "sha256": "31fd674ddb951680692d7b68cafdeab5baa6b3e82aae843269dad73b53f25fc5"
+        },
+        "build/xcode-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "build/xcode-version.stdout.txt": {
+          "bytes": 32,
+          "sha256": "bb7fc9a8f5e063e81975b33054b3a526c91bcccff263ad11d5bd8bcdbe8f0973"
+        },
+        "calibration-scope.json": {
+          "bytes": 1905,
+          "sha256": "1f8847e862e36577750357c9d23a20e6f6c973477f85884cfc68577a138da9f8"
+        },
+        "controlled-sample.txt": {
+          "bytes": 7983,
+          "sha256": "16c03839ed3b965b3c48ad94b1c0f01f846e2c0dac792cc310aa1289928b106c"
+        },
+        "identity-before.json": {
+          "bytes": 1248,
+          "sha256": "e79d46a4e682e57c06a13d3b84690abdfb825edd3686aed629358be7d67f0bac"
+        },
+        "identity-before.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "identity-before.stdout.txt": {
+          "bytes": 878,
+          "sha256": "90f33fb37157be214f052d7de2a80aeae19a633711d6ade5d5b97c2f0a53b37f"
+        },
+        "input-preservation.json": {
+          "bytes": 90,
+          "sha256": "e377fa27e245d2a5d086b18b36876ceb7955f1af96e79635fff79ea08e94b94c"
+        },
+        "inputs-after.json": {
+          "bytes": 8118,
+          "sha256": "418dfcdca15396ca3e7ee3963f7847a5b313ddd98cacd7531af4a553e005a1ce"
+        },
+        "inputs-before.json": {
+          "bytes": 8118,
+          "sha256": "418dfcdca15396ca3e7ee3963f7847a5b313ddd98cacd7531af4a553e005a1ce"
+        },
+        "observer-groups.json": {
+          "bytes": 1198,
+          "sha256": "b03e5df7d783450ac9f5e04ef9b3eef2831558693e5d1d318f1f90c4e2c348f5"
+        },
+        "observer-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "observer-groups.stdout.txt": {
+          "bytes": 7667,
+          "sha256": "f30b4e0297c28f2de17b6f3e9cfddd8105728fd9cbf3b6f3d0802a506ffe431e"
+        },
+        "observer-manual-ps.json": {
+          "bytes": 762,
+          "sha256": "07ec02d7addbf58a95a28b06379b2045ec7ece42599602463af7a3ec679bfb5c"
+        },
+        "observer-manual-ps.normalized.txt": {
+          "bytes": 14656,
+          "sha256": "f746ac61ece3e900a6441852b17e99ad41ffa06d1b5ce9f275a92d1b6b43d82e"
+        },
+        "observer-manual-ps.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "observer-manual-ps.stdout.txt": {
+          "bytes": 20235,
+          "sha256": "81a47bb1c163283f36783b4ba1bc2fc0b0bdcd14f6b594906c97ec29ed3c8ddd"
+        },
+        "observer-manual-sample.json": {
+          "bytes": 771,
+          "sha256": "0688d4e82ccacb470a2cc27040962b42ec433e2a5a9c6205d1e9df11d6a5f070"
+        },
+        "observer-manual-sample.normalized.txt": {
+          "bytes": 3724,
+          "sha256": "0a72165a93a2bf08f919ccf528f279a566afb7892bc2fe9f3495fae34f623070"
+        },
+        "observer-manual-sample.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "observer-manual-sample.stdout.txt": {
+          "bytes": 4490,
+          "sha256": "04221ddc0cfed094820524f54e5dc4e018002fbb84a17e7603c18356cea4e615"
+        },
+        "observer-preflight.json": {
+          "bytes": 11403,
+          "sha256": "842445a2fcd5fd02274b2ec62dd64c030c867c8b355dc0df20b4b3df1f1de89e"
+        },
+        "sample.json": {
+          "bytes": 1285,
+          "sha256": "1481f096fdcf5150eb0964780870c4cf776994c7952a3e9c9bf7f2fe0f327c26"
+        },
+        "sample.stderr.txt": {
+          "bytes": 253,
+          "sha256": "9d9eef31d0451816c2dd33b2145aba0039c261bae9729b4b2686c23c3c9c2d69"
+        },
+        "sample.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "sampler-calibration.json": {
+          "bytes": 12695,
+          "sha256": "9221678c8c90a0ce5240ffc4cd67ef3413fc53ccbcb0de5fd2703256eed4647a"
+        },
+        "sources/NATIVE_SAMPLER_CALIBRATION.md": {
+          "bytes": 9149,
+          "sha256": "8baf7c979026e8bd13341918543f7e8919dbbd77f794856efaa01da2edfe9a46"
+        },
+        "sources/NativeSamplerCalibration.c": {
+          "bytes": 25008,
+          "sha256": "672c49a4a17a6bffdfa6cc054d61bed8ca18677fe646a9d07a75010b26591bf7"
+        },
+        "sources/collect_native_trace_capabilities.py": {
+          "bytes": 12855,
+          "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+        },
+        "sources/native-sampler-calibration.yml": {
+          "bytes": 13264,
+          "sha256": "99b81b65b70357a1a1e10f692942936cffd26a792f241c763c211e5e777a89cd"
+        },
+        "sources/privacy_check.py": {
+          "bytes": 16393,
+          "sha256": "1bf638ba0132f8dcc2bed00e81172e4cc367a3d2168e3f053f967229de026019"
+        },
+        "sources/run_native_recorder_startup_observation.py": {
+          "bytes": 31718,
+          "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7"
+        },
+        "sources/run_native_sampler_calibration.py": {
+          "bytes": 41142,
+          "sha256": "725c0b868d46efc52401057f64aa58070a0771e5b1b010483b45440ac86b7868"
+        },
+        "sources/run_native_system_trace_startup.py": {
+          "bytes": 47898,
+          "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010"
+        },
+        "sources/test_collect_native_trace_capabilities.py": {
+          "bytes": 7343,
+          "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+        },
+        "sources/test_run_native_recorder_startup_observation.py": {
+          "bytes": 30306,
+          "sha256": "a7615f8a62777b5e073e3b231d79931906385db36b28c6d1a14f9b2116b45bb7"
+        },
+        "sources/test_run_native_sampler_calibration.py": {
+          "bytes": 26060,
+          "sha256": "7e809057ba349b9bd7d4a6ec332e328babf6ac3eee8c02d9ea093ce0ded7f5d1"
+        },
+        "sources/test_run_native_system_trace_startup.py": {
+          "bytes": 14595,
+          "sha256": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7"
+        },
+        "target-completion.json": {
+          "bytes": 2347,
+          "sha256": "811d6b3579317747ebb5619a900c3239e2e573f5f5834723e18d4de8f3239ddf"
+        },
+        "target-groups.json": {
+          "bytes": 1194,
+          "sha256": "4b81ce28c03a3119ff3a3d4bff387e042c22f9a286525f8ccc291777480b0687"
+        },
+        "target-groups.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "target-groups.stdout.txt": {
+          "bytes": 7650,
+          "sha256": "bc38bd36f81424b3825659b30c86bcc260a3e96a50aa3c7aefe9da8cefa223b5"
+        },
+        "target-ready.json": {
+          "bytes": 1612,
+          "sha256": "b11e63706b0ab0e49b84999ab5c661c9a7258f683cee4c6495027be301ee0d41"
+        },
+        "target.json": {
+          "bytes": 2267,
+          "sha256": "5420903d2f8ebe2812a7eb7a716c2e7d0811cd0a70daa7b2a2f68771e05864dc"
+        },
+        "target.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "target.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      }
+    }
+  },
+  "dependencyBase": "d20b6b59430856b4bf0dd46dc7220fc1492186b6",
+  "experimentCommit": "10ececdd145ca4c857c5844a83cee0b0b3a5d8e2",
+  "experimentTree": "6219e264ff2df60c16b1be5063643808569a09eb",
+  "frozenCandidate": {
+    "commit": "d821d7343675e2850705d141ef9b3b93a6aee945",
+    "tree": "425baa28f00ec24551dd70c0cc874a75fa3be0c1"
+  },
+  "runID": "42588874357",
+  "schema": 1,
+  "sources": {
+    "NATIVE_SAMPLER_CALIBRATION.md": {
+      "bytes": 9149,
+      "gitBlob": "b476c1998ffa7ad4fd860ef5877d65e9df667750",
+      "path": "docs/NATIVE_SAMPLER_CALIBRATION.md",
+      "sha256": "8baf7c979026e8bd13341918543f7e8919dbbd77f794856efaa01da2edfe9a46"
+    },
+    "NativeSamplerCalibration.c": {
+      "bytes": 25008,
+      "gitBlob": "a0d7b15d824644337c0abc21dd223a75d3c6fdea",
+      "path": "script/native_ui/NativeSamplerCalibration.c",
+      "sha256": "672c49a4a17a6bffdfa6cc054d61bed8ca18677fe646a9d07a75010b26591bf7"
+    },
+    "collect_native_trace_capabilities.py": {
+      "bytes": 12855,
+      "gitBlob": "20d086409fa62142cbd17f3e2e30782277912710",
+      "path": "script/collect_native_trace_capabilities.py",
+      "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+    },
+    "native-sampler-calibration.yml": {
+      "bytes": 13264,
+      "gitBlob": "0c4c88d43fee1cefff4f0950c6908c42e21f9083",
+      "path": ".github/workflows/native-sampler-calibration.yml",
+      "sha256": "99b81b65b70357a1a1e10f692942936cffd26a792f241c763c211e5e777a89cd"
+    },
+    "privacy_check.py": {
+      "bytes": 16393,
+      "gitBlob": "531b787b7a87bf21bc8cbac9ecda9e598d5a1237",
+      "path": "script/privacy_check.py",
+      "sha256": "1bf638ba0132f8dcc2bed00e81172e4cc367a3d2168e3f053f967229de026019"
+    },
+    "run_native_recorder_startup_observation.py": {
+      "bytes": 31718,
+      "gitBlob": "d2ba042eddd4bf3e1ad1965d05fbf382e2ecbbfd",
+      "path": "script/run_native_recorder_startup_observation.py",
+      "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7"
+    },
+    "run_native_sampler_calibration.py": {
+      "bytes": 41142,
+      "gitBlob": "00a821170961f0bc8514294056c0685859aa9f59",
+      "path": "script/run_native_sampler_calibration.py",
+      "sha256": "725c0b868d46efc52401057f64aa58070a0771e5b1b010483b45440ac86b7868"
+    },
+    "run_native_system_trace_startup.py": {
+      "bytes": 47898,
+      "gitBlob": "c528fe302ca150c918f44775e704e8d5044bb46d",
+      "path": "script/run_native_system_trace_startup.py",
+      "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010"
+    },
+    "test_collect_native_trace_capabilities.py": {
+      "bytes": 7343,
+      "gitBlob": "75f685e90b808cfc46c5f7a2f020fe50010a9dcc",
+      "path": "script/test_collect_native_trace_capabilities.py",
+      "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+    },
+    "test_run_native_recorder_startup_observation.py": {
+      "bytes": 30306,
+      "gitBlob": "59bbba0e68ba0da278c06dc7ec5b55d1482e6dca",
+      "path": "script/test_run_native_recorder_startup_observation.py",
+      "sha256": "a7615f8a62777b5e073e3b231d79931906385db36b28c6d1a14f9b2116b45bb7"
+    },
+    "test_run_native_sampler_calibration.py": {
+      "bytes": 26060,
+      "gitBlob": "9a65a0db69962b980bb1d96bd815008a69020dd8",
+      "path": "script/test_run_native_sampler_calibration.py",
+      "sha256": "7e809057ba349b9bd7d4a6ec332e328babf6ac3eee8c02d9ea093ce0ded7f5d1"
+    },
+    "test_run_native_system_trace_startup.py": {
+      "bytes": 14595,
+      "gitBlob": "82863395b9d30d0be7ae5f4a8a949a95b894874a",
+      "path": "script/test_run_native_system_trace_startup.py",
+      "sha256": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7"
+    }
+  }
+}
