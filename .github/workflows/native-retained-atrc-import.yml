@@ -1,0 +1,119 @@
+name: Native Retained ATRC Import
+
+on:
+  push:
+    branches: ['codex/retained-atrc-import-07']
+    paths:
+      - '.github/workflows/native-retained-atrc-import.yml'
+      - 'script/native_retained_atrc_output.py'
+      - 'script/run_native_retained_atrc_import.py'
+      - 'script/test_native_retained_atrc_output.py'
+      - 'script/test_run_native_retained_atrc_import.py'
+
+permissions:
+  contents: read
+  actions: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+  D27_BASE: 71909054ccf9d3a174e4de13fdb7c9559387baef
+
+concurrency:
+  group: native-retained-atrc-import-${{ github.ref }}
+  cancel-in-progress: false
+
+# One protected retained input, one explicit import selection, no export/retry.
+jobs:
+  retained-import:
+    name: Intel Retained ATRC Compatibility
+    runs-on: macos-15-intel
+    timeout-minutes: 15
+    steps:
+      - name: Check Out Exact Diagnostic
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Select Python With Nonreaping Child Status
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.13'
+      - name: Bind Source And Run Used Dependency Gates
+        run: |
+          umask 077
+          mkdir -p "$RUNNER_TEMP/retained-atrc-import/preflight"
+          printf '%s\n' "$GITHUB_SHA" > "$RUNNER_TEMP/retained-atrc-import/preflight/experiment-commit.txt"
+          git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/retained-atrc-import/preflight/experiment-tree.txt"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+          test "$(uname -m)" = x86_64
+          git merge-base --is-ancestor "$D27_BASE" HEAD
+          python3 - <<'PYCODE'
+          import os, subprocess, sys
+          sys.path.insert(0, 'script')
+          from run_native_retained_atrc_import import NEW_PATHS
+          assert sys.version_info >= (3, 13)
+          changed = subprocess.check_output(['git', 'diff', '--name-only', os.environ['D27_BASE'], 'HEAD'], text=True).splitlines()
+          assert set(changed) <= set(NEW_PATHS), changed
+          assert subprocess.check_output(['git', 'rev-parse', 'd821d7343675e2850705d141ef9b3b93a6aee945^{tree}'], text=True).strip() == '425baa28f00ec24551dd70c0cc874a75fa3be0c1'
+          PYCODE
+          # D27 uses the owned-command/input primitives, not the old recorder orchestration.
+          # Its historical full-suite failure remains open.
+          python3 script/test_run_native_recorder_progress_observation.py -v \
+            OwnedCommandTests NonreapingCapabilityTests BoundedFileTests InstalledToolIdentityTests \
+            > "$RUNNER_TEMP/retained-atrc-import/preflight/d24-used-primitives.stdout.txt" \
+            2> "$RUNNER_TEMP/retained-atrc-import/preflight/d24-used-primitives.stderr.txt"
+          for suite in native_retained_trace_command native_retained_trace_input native_retained_atrc_output run_native_retained_atrc_import; do
+            python3 "script/test_${suite}.py" -v \
+              > "$RUNNER_TEMP/retained-atrc-import/preflight/${suite}.stdout.txt" \
+              2> "$RUNNER_TEMP/retained-atrc-import/preflight/${suite}.stderr.txt"
+          done
+          python3 script/privacy_check.py --staged > "$RUNNER_TEMP/retained-atrc-import/preflight/privacy.txt"
+      - name: Fetch Exact Existing Intel Artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          /usr/bin/curl --version > "$RUNNER_TEMP/retained-atrc-import/preflight/curl-version.txt"
+          python3 - <<'PYCODE'
+          import os, pathlib, re
+          text = (pathlib.Path(os.environ['RUNNER_TEMP']) / 'retained-atrc-import/preflight/curl-version.txt').read_text()
+          version = re.match(r'curl (\d+)\.(\d+)\.(\d+)\b', text)
+          assert version and tuple(map(int, version.groups())) >= (8, 4, 0), 'Require an in-transfer download-size limit'
+          PYCODE
+          /usr/bin/curl --fail --silent --show-error --location --max-redirs 3 \
+            --proto '=https' --proto-redir '=https' --connect-timeout 10 --max-time 60 \
+            --max-filesize 12948337 \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            --header 'Accept: application/vnd.github+json' \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            --output "$RUNNER_TEMP/retained-atrc-import/D24-R2-x86_64.zip" \
+            'https://api.github.com/repos/osmankaankars/lemulip/actions/artifacts/13669502448/zip' \
+            2> "$RUNNER_TEMP/retained-atrc-import/preflight/artifact-download.stderr.txt"
+      - name: Import The Retained ATRC Once
+        run: |
+          umask 077
+          python3 script/run_native_retained_atrc_import.py \
+            --artifact-zip "$RUNNER_TEMP/retained-atrc-import/D24-R2-x86_64.zip" \
+            --output "$RUNNER_TEMP/retained-atrc-import/evidence" \
+            --experiment-commit "$GITHUB_SHA"
+      - name: Verify Worktree Preservation
+        if: always()
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=normal)"
+      - name: Preserve Gate Evidence
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/retained-atrc-import/evidence/build"
+          if [ -d "$RUNNER_TEMP/retained-atrc-import/preflight" ]; then
+            cp -R "$RUNNER_TEMP/retained-atrc-import/preflight/." "$RUNNER_TEMP/retained-atrc-import/evidence/build/"
+          fi
+      - name: Upload Import Evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-retained-atrc-import-x86_64
+          path: ${{ runner.temp }}/retained-atrc-import/evidence
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 14
