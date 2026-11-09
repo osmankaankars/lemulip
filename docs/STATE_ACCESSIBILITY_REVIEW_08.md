@@ -213,10 +213,13 @@ target completion and cleanup passed. These controlled-process observations
 are preserved in the [D22 evidence](evidence/D22-native-sampler-calibration.json)
 without promoting the full calibration or the product gate.
 
-The next work is an offline identity-witness contract using those already
-retained files. It adds no native input or acceptance result. C12, the completed
-source/twelve-image review, physical check and v4 result retain their status;
-task 08's final closure remains dependent on task 07.
+[D23's offline identity/frame review](NATIVE_SAMPLER_IDENTITY_REVIEW.md) now
+accepts both unchanged artifact sets under a separate narrow contract. All 39
+portable tests passed and independent reconstruction matched every output value.
+The original D22 calibration remains incomplete, with no post-sample identity
+snapshot. It adds no native input or original acceptance result. C12, the
+completed source/twelve-image review, physical check and v4 result retain their
+status; task 08's final closure remains dependent on task 07.
 
 To complete task 08, close or explicitly resolve task 07's remaining CI gate on
 the final candidate, review any resulting production changes, and retain the

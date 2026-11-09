@@ -1,0 +1,418 @@
+{
+  "C12": "HOLD",
+  "exactReportPathMatched": false,
+  "newNativeObservationExecuted": false,
+  "originalD22Complete": false,
+  "postSamplePSAvailable": false,
+  "recorderOrActivationCoverageEstablished": false,
+  "releaseReady": false,
+  "results": [
+    {
+      "C12": "HOLD",
+      "architecture": "arm64",
+      "archive": {
+        "bytes": 142346,
+        "sha256": "e198ea29cfef5a59b3bc07a16f1af840e77cbb6a524b41cf9f57dfebdd648c51"
+      },
+      "archiveBytesVerified": true,
+      "archivedCodeOrBinariesExecuted": false,
+      "artifactID": "13660037756",
+      "binary": {
+        "architecture": "arm64",
+        "bytes": 38184,
+        "cpuType": 16777228,
+        "fileType": 2,
+        "preferredTextVMAddress": 4294967296,
+        "sha256": "fd510699e739318f70e372da93096df279a5b06fc5cfcf8637cd21542f4356ad",
+        "uuid": "DA0DE39D-199B-426C-938A-D111DA3D942E",
+        "waitFunctionBytes": 1548,
+        "waitFunctionEndExclusive": 4294970044,
+        "waitSectionEndExclusive": 4294978748,
+        "waitSectionStart": 4294968496,
+        "waitSymbolAddress": 4294968496
+      },
+      "bindings": {
+        "build-provenance.json": {
+          "bytes": 2715,
+          "sha256": "df49b2b017da80d7498eb05c42527adf53c1a572e02fc26c70e334ecb8a37efa"
+        },
+        "controlled-sample.txt": {
+          "bytes": 7988,
+          "sha256": "b3cf4841c437a03a94b56354f9fa946f64a51ec6792d385a61cb4150102087d7"
+        },
+        "sampler-calibration.json": {
+          "bytes": 12687,
+          "sha256": "81cbd122e3bb78e06871fb2785c13f48e72c1d4ab847346f6e556b0bf6ccd025"
+        },
+        "target-completion.json": {
+          "bytes": 2312,
+          "sha256": "7469cc0788f67a352c94cecd690c90d42a8a4a376c0b27dedb02764f95524817"
+        },
+        "target-ready.json": {
+          "bytes": 1593,
+          "sha256": "c56d41616df5ef292d1257da395cb297d14393d6347ccf7bc5c8040aeed7a841"
+        }
+      },
+      "debugSymbols": {
+        "architecture": "arm64",
+        "bytes": 8350,
+        "cpuType": 16777228,
+        "fileType": 10,
+        "sha256": "5d785a6946c69050dd5ef2d731afbd8bbee9fc72a74fd1bea54afd64fa3e73dd",
+        "uuid": "DA0DE39D-199B-426C-938A-D111DA3D942E"
+      },
+      "evidenceRole": "derived-review-of-immutable-D22-archive",
+      "exactReportPathMatched": false,
+      "executedCommit": "10ececdd145ca4c857c5844a83cee0b0b3a5d8e2",
+      "executedTree": "6219e264ff2df60c16b1be5063643808569a09eb",
+      "identityFrameWitnessConsistent": true,
+      "immutableInputBytesVerified": true,
+      "immutableInputEntries": 51,
+      "memberByteBindingsVerified": true,
+      "memberCount": 78,
+      "nativeLifecycle": {
+        "beforePSIdentityVerified": true,
+        "bootUUID": "032252C2-2712-43CE-B487-F54EF6B721C4",
+        "cooperativeEOFCompleted": true,
+        "euid": 501,
+        "finalObserverMembers": [],
+        "finalPSIsCleanupInventoryOnly": true,
+        "finalTargetMembers": [],
+        "forcedTargetCleanup": false,
+        "nativeClockOrderAndElapsedVerified": true,
+        "nativeElapsedSeconds": 4.615101667,
+        "nativeParentClockOrderVerified": true,
+        "nonce": "1FF392B9-EAA1-47D3-97D5-D35B30186331",
+        "parentLeaseObservationEOFOrderVerified": true,
+        "parentPID": 2381,
+        "pgid": 2421,
+        "pid": 2421,
+        "receiptAndStreamBindingsVerified": true,
+        "sampleElapsedSeconds": 1.4706218750000062,
+        "sampleExitCode": 0,
+        "sampleInvocations": 1
+      },
+      "originalD22Complete": false,
+      "originalD22Errors": [
+        "EvidenceError: Reported process path lacks one matching loaded binary-image entry"
+      ],
+      "originalD22Status": "calibration-incomplete",
+      "postSamplePSAvailable": false,
+      "recorderOrActivationCoverageEstablished": false,
+      "releaseReady": false,
+      "reportWitness": {
+        "canonicalReportPathReconstructed": false,
+        "codeType": "ARM64",
+        "countedKnownFrameWitnesses": [
+          {
+            "line": "          82 lemulip_d22_wait_for_release  (in NativeSamplerCalibration) + 452  [0x102c90674]",
+            "pc": 4341696116,
+            "reportedSymbolOffset": 452,
+            "sampleCount": 82
+          }
+        ],
+        "displayedPathsAreAdvisoryMaskedText": true,
+        "framePCsMatchImageRangeAndRetainedSymbol": true,
+        "imageEnd": 4341709819,
+        "imageStart": 4341694464,
+        "imageUUID": "DA0DE39D-199B-426C-938A-D111DA3D942E",
+        "mainLoadAddress": 4341694464,
+        "observedSlide": 46727168,
+        "parentPID": 2381,
+        "pathsWereGlobMatched": false,
+        "preferredTextVMAddress": 4294967296,
+        "reportedBinaryImagePath": "/Users/*/NativeSamplerCalibration",
+        "reportedHeaderPath": "/Users/USER/*/NativeSamplerCalibration",
+        "retainedSymbolAddress": 4294968496,
+        "targetPID": 2421
+      },
+      "retainedSources": {
+        "NATIVE_SAMPLER_CALIBRATION.md": {
+          "bytes": 9149,
+          "gitBlob": "b476c1998ffa7ad4fd860ef5877d65e9df667750",
+          "path": "docs/NATIVE_SAMPLER_CALIBRATION.md",
+          "sha256": "8baf7c979026e8bd13341918543f7e8919dbbd77f794856efaa01da2edfe9a46"
+        },
+        "NativeSamplerCalibration.c": {
+          "bytes": 25008,
+          "gitBlob": "a0d7b15d824644337c0abc21dd223a75d3c6fdea",
+          "path": "script/native_ui/NativeSamplerCalibration.c",
+          "sha256": "672c49a4a17a6bffdfa6cc054d61bed8ca18677fe646a9d07a75010b26591bf7"
+        },
+        "collect_native_trace_capabilities.py": {
+          "bytes": 12855,
+          "gitBlob": "20d086409fa62142cbd17f3e2e30782277912710",
+          "path": "script/collect_native_trace_capabilities.py",
+          "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+        },
+        "native-sampler-calibration.yml": {
+          "bytes": 13264,
+          "gitBlob": "0c4c88d43fee1cefff4f0950c6908c42e21f9083",
+          "path": ".github/workflows/native-sampler-calibration.yml",
+          "sha256": "99b81b65b70357a1a1e10f692942936cffd26a792f241c763c211e5e777a89cd"
+        },
+        "privacy_check.py": {
+          "bytes": 16393,
+          "gitBlob": "531b787b7a87bf21bc8cbac9ecda9e598d5a1237",
+          "path": "script/privacy_check.py",
+          "sha256": "1bf638ba0132f8dcc2bed00e81172e4cc367a3d2168e3f053f967229de026019"
+        },
+        "run_native_recorder_startup_observation.py": {
+          "bytes": 31718,
+          "gitBlob": "d2ba042eddd4bf3e1ad1965d05fbf382e2ecbbfd",
+          "path": "script/run_native_recorder_startup_observation.py",
+          "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7"
+        },
+        "run_native_sampler_calibration.py": {
+          "bytes": 41142,
+          "gitBlob": "00a821170961f0bc8514294056c0685859aa9f59",
+          "path": "script/run_native_sampler_calibration.py",
+          "sha256": "725c0b868d46efc52401057f64aa58070a0771e5b1b010483b45440ac86b7868"
+        },
+        "run_native_system_trace_startup.py": {
+          "bytes": 47898,
+          "gitBlob": "c528fe302ca150c918f44775e704e8d5044bb46d",
+          "path": "script/run_native_system_trace_startup.py",
+          "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010"
+        },
+        "test_collect_native_trace_capabilities.py": {
+          "bytes": 7343,
+          "gitBlob": "75f685e90b808cfc46c5f7a2f020fe50010a9dcc",
+          "path": "script/test_collect_native_trace_capabilities.py",
+          "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+        },
+        "test_run_native_recorder_startup_observation.py": {
+          "bytes": 30306,
+          "gitBlob": "59bbba0e68ba0da278c06dc7ec5b55d1482e6dca",
+          "path": "script/test_run_native_recorder_startup_observation.py",
+          "sha256": "a7615f8a62777b5e073e3b231d79931906385db36b28c6d1a14f9b2116b45bb7"
+        },
+        "test_run_native_sampler_calibration.py": {
+          "bytes": 26060,
+          "gitBlob": "9a65a0db69962b980bb1d96bd815008a69020dd8",
+          "path": "script/test_run_native_sampler_calibration.py",
+          "sha256": "7e809057ba349b9bd7d4a6ec332e328babf6ac3eee8c02d9ea093ce0ded7f5d1"
+        },
+        "test_run_native_system_trace_startup.py": {
+          "bytes": 14595,
+          "gitBlob": "82863395b9d30d0be7ae5f4a8a949a95b894874a",
+          "path": "script/test_run_native_system_trace_startup.py",
+          "sha256": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7"
+        }
+      },
+      "review": "D23-native-sampler-identity-witness",
+      "runID": "42588874357",
+      "schema": 1,
+      "status": "consistent-counted-known-frame-witness",
+      "trustManifest": {
+        "bytes": 30178,
+        "sha256": "0e324fbec95e91fdab133eef4330580c700635bc4581ed2fff4ff8ad824bdfa7"
+      }
+    },
+    {
+      "C12": "HOLD",
+      "architecture": "x86_64",
+      "archive": {
+        "bytes": 141781,
+        "sha256": "1b53e3d87e3192922f53e1e7d362158cd0569ae0c7fb5eb70aa1ba4ee1d618a5"
+      },
+      "archiveBytesVerified": true,
+      "archivedCodeOrBinariesExecuted": false,
+      "artifactID": "13660187867",
+      "binary": {
+        "architecture": "x86_64",
+        "bytes": 25416,
+        "cpuType": 16777223,
+        "fileType": 2,
+        "preferredTextVMAddress": 4294967296,
+        "sha256": "d9cda95090a7765f55c0191bcac238b0a8d4694a181b0cdf01b2ef11e953598f",
+        "uuid": "5CA00F5F-6107-4C8C-B368-BF38515252AD",
+        "waitFunctionBytes": 1600,
+        "waitFunctionEndExclusive": 4294970112,
+        "waitSectionEndExclusive": 4294978213,
+        "waitSectionStart": 4294968512,
+        "waitSymbolAddress": 4294968512
+      },
+      "bindings": {
+        "build-provenance.json": {
+          "bytes": 2723,
+          "sha256": "4a80e559afb605cdd8120e93f66dd771e97b166ded4391ec06a53956b026af44"
+        },
+        "controlled-sample.txt": {
+          "bytes": 7983,
+          "sha256": "16c03839ed3b965b3c48ad94b1c0f01f846e2c0dac792cc310aa1289928b106c"
+        },
+        "sampler-calibration.json": {
+          "bytes": 12695,
+          "sha256": "9221678c8c90a0ce5240ffc4cd67ef3413fc53ccbcb0de5fd2703256eed4647a"
+        },
+        "target-completion.json": {
+          "bytes": 2347,
+          "sha256": "811d6b3579317747ebb5619a900c3239e2e573f5f5834723e18d4de8f3239ddf"
+        },
+        "target-ready.json": {
+          "bytes": 1612,
+          "sha256": "b11e63706b0ab0e49b84999ab5c661c9a7258f683cee4c6495027be301ee0d41"
+        }
+      },
+      "debugSymbols": {
+        "architecture": "x86_64",
+        "bytes": 8350,
+        "cpuType": 16777223,
+        "fileType": 10,
+        "sha256": "459e311a92bcbbd40317380d7c222a233286bcec46af19847eb2f66f99e82302",
+        "uuid": "5CA00F5F-6107-4C8C-B368-BF38515252AD"
+      },
+      "evidenceRole": "derived-review-of-immutable-D22-archive",
+      "exactReportPathMatched": false,
+      "executedCommit": "10ececdd145ca4c857c5844a83cee0b0b3a5d8e2",
+      "executedTree": "6219e264ff2df60c16b1be5063643808569a09eb",
+      "identityFrameWitnessConsistent": true,
+      "immutableInputBytesVerified": true,
+      "immutableInputEntries": 51,
+      "memberByteBindingsVerified": true,
+      "memberCount": 78,
+      "nativeLifecycle": {
+        "beforePSIdentityVerified": true,
+        "bootUUID": "7EE76D61-7688-43EF-BA48-FBC39E0181C1",
+        "cooperativeEOFCompleted": true,
+        "euid": 501,
+        "finalObserverMembers": [],
+        "finalPSIsCleanupInventoryOnly": true,
+        "finalTargetMembers": [],
+        "forcedTargetCleanup": false,
+        "nativeClockOrderAndElapsedVerified": true,
+        "nativeElapsedSeconds": 4.610197051,
+        "nativeParentClockOrderVerified": true,
+        "nonce": "9D2FEAFF-6DD3-451D-9233-1910B887F00C",
+        "parentLeaseObservationEOFOrderVerified": true,
+        "parentPID": 1932,
+        "pgid": 1972,
+        "pid": 1972,
+        "receiptAndStreamBindingsVerified": true,
+        "sampleElapsedSeconds": 1.4704604010000253,
+        "sampleExitCode": 0,
+        "sampleInvocations": 1
+      },
+      "originalD22Complete": false,
+      "originalD22Errors": [
+        "EvidenceError: Reported process path lacks one matching loaded binary-image entry"
+      ],
+      "originalD22Status": "calibration-incomplete",
+      "postSamplePSAvailable": false,
+      "recorderOrActivationCoverageEstablished": false,
+      "releaseReady": false,
+      "reportWitness": {
+        "canonicalReportPathReconstructed": false,
+        "codeType": "X86-64",
+        "countedKnownFrameWitnesses": [
+          {
+            "line": "          97 lemulip_d22_wait_for_release  (in NativeSamplerCalibration) + 476  [0x10b87a69c]",
+            "pc": 4488406684,
+            "reportedSymbolOffset": 476,
+            "sampleCount": 97
+          }
+        ],
+        "displayedPathsAreAdvisoryMaskedText": true,
+        "framePCsMatchImageRangeAndRetainedSymbol": true,
+        "imageEnd": 4488419591,
+        "imageStart": 4488404992,
+        "imageUUID": "5CA00F5F-6107-4C8C-B368-BF38515252AD",
+        "mainLoadAddress": 4488404992,
+        "observedSlide": 193437696,
+        "parentPID": 1932,
+        "pathsWereGlobMatched": false,
+        "preferredTextVMAddress": 4294967296,
+        "reportedBinaryImagePath": "/Users/*/NativeSamplerCalibration",
+        "reportedHeaderPath": "/Users/USER/*/NativeSamplerCalibration",
+        "retainedSymbolAddress": 4294968512,
+        "targetPID": 1972
+      },
+      "retainedSources": {
+        "NATIVE_SAMPLER_CALIBRATION.md": {
+          "bytes": 9149,
+          "gitBlob": "b476c1998ffa7ad4fd860ef5877d65e9df667750",
+          "path": "docs/NATIVE_SAMPLER_CALIBRATION.md",
+          "sha256": "8baf7c979026e8bd13341918543f7e8919dbbd77f794856efaa01da2edfe9a46"
+        },
+        "NativeSamplerCalibration.c": {
+          "bytes": 25008,
+          "gitBlob": "a0d7b15d824644337c0abc21dd223a75d3c6fdea",
+          "path": "script/native_ui/NativeSamplerCalibration.c",
+          "sha256": "672c49a4a17a6bffdfa6cc054d61bed8ca18677fe646a9d07a75010b26591bf7"
+        },
+        "collect_native_trace_capabilities.py": {
+          "bytes": 12855,
+          "gitBlob": "20d086409fa62142cbd17f3e2e30782277912710",
+          "path": "script/collect_native_trace_capabilities.py",
+          "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+        },
+        "native-sampler-calibration.yml": {
+          "bytes": 13264,
+          "gitBlob": "0c4c88d43fee1cefff4f0950c6908c42e21f9083",
+          "path": ".github/workflows/native-sampler-calibration.yml",
+          "sha256": "99b81b65b70357a1a1e10f692942936cffd26a792f241c763c211e5e777a89cd"
+        },
+        "privacy_check.py": {
+          "bytes": 16393,
+          "gitBlob": "531b787b7a87bf21bc8cbac9ecda9e598d5a1237",
+          "path": "script/privacy_check.py",
+          "sha256": "1bf638ba0132f8dcc2bed00e81172e4cc367a3d2168e3f053f967229de026019"
+        },
+        "run_native_recorder_startup_observation.py": {
+          "bytes": 31718,
+          "gitBlob": "d2ba042eddd4bf3e1ad1965d05fbf382e2ecbbfd",
+          "path": "script/run_native_recorder_startup_observation.py",
+          "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7"
+        },
+        "run_native_sampler_calibration.py": {
+          "bytes": 41142,
+          "gitBlob": "00a821170961f0bc8514294056c0685859aa9f59",
+          "path": "script/run_native_sampler_calibration.py",
+          "sha256": "725c0b868d46efc52401057f64aa58070a0771e5b1b010483b45440ac86b7868"
+        },
+        "run_native_system_trace_startup.py": {
+          "bytes": 47898,
+          "gitBlob": "c528fe302ca150c918f44775e704e8d5044bb46d",
+          "path": "script/run_native_system_trace_startup.py",
+          "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010"
+        },
+        "test_collect_native_trace_capabilities.py": {
+          "bytes": 7343,
+          "gitBlob": "75f685e90b808cfc46c5f7a2f020fe50010a9dcc",
+          "path": "script/test_collect_native_trace_capabilities.py",
+          "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+        },
+        "test_run_native_recorder_startup_observation.py": {
+          "bytes": 30306,
+          "gitBlob": "59bbba0e68ba0da278c06dc7ec5b55d1482e6dca",
+          "path": "script/test_run_native_recorder_startup_observation.py",
+          "sha256": "a7615f8a62777b5e073e3b231d79931906385db36b28c6d1a14f9b2116b45bb7"
+        },
+        "test_run_native_sampler_calibration.py": {
+          "bytes": 26060,
+          "gitBlob": "9a65a0db69962b980bb1d96bd815008a69020dd8",
+          "path": "script/test_run_native_sampler_calibration.py",
+          "sha256": "7e809057ba349b9bd7d4a6ec332e328babf6ac3eee8c02d9ea093ce0ded7f5d1"
+        },
+        "test_run_native_system_trace_startup.py": {
+          "bytes": 14595,
+          "gitBlob": "82863395b9d30d0be7ae5f4a8a949a95b894874a",
+          "path": "script/test_run_native_system_trace_startup.py",
+          "sha256": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7"
+        }
+      },
+      "review": "D23-native-sampler-identity-witness",
+      "runID": "42588874357",
+      "schema": 1,
+      "status": "consistent-counted-known-frame-witness",
+      "trustManifest": {
+        "bytes": 30178,
+        "sha256": "0e324fbec95e91fdab133eef4330580c700635bc4581ed2fff4ff8ad824bdfa7"
+      }
+    }
+  ],
+  "review": "D23-native-sampler-identity-witness",
+  "schema": 1,
+  "status": "both-immutable-archives-consistent"
+}

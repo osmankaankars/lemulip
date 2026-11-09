@@ -1,0 +1,284 @@
+{
+  "C12": "HOLD",
+  "exactReportPathMatched": false,
+  "finishedAtEuropeIstanbul": "2026-11-09T13:30:26.059603+03:00",
+  "finishedAtUTC": "2026-11-09T10:30:26.059603+00:00",
+  "independentAudit": {
+    "identity": {
+      "bytes": 5445,
+      "sha256": "955463a218591ae15f89f9ad989d62e2a635d2c478e27e24c28ce3c25a2dd67b"
+    },
+    "result": {
+      "architectures": [
+        {
+          "architecture": "arm64",
+          "archive": {
+            "bytes": 142346,
+            "sha256": "e198ea29cfef5a59b3bc07a16f1af840e77cbb6a524b41cf9f57dfebdd648c51"
+          },
+          "artifactID": "13660037756",
+          "dSYM": {
+            "bytes": 8350,
+            "cpuType": 16777228,
+            "fileType": 10,
+            "sha256": "5d785a6946c69050dd5ef2d731afbd8bbee9fc72a74fd1bea54afd64fa3e73dd",
+            "uuid": "DA0DE39D-199B-426C-938A-D111DA3D942E"
+          },
+          "exactReportPathMatched": false,
+          "executable": {
+            "bytes": 38184,
+            "cpuType": 16777228,
+            "fileType": 2,
+            "ignoredSTABS": {
+              "_lemulip_d22_wait_for_release": 1
+            },
+            "sha256": "fd510699e739318f70e372da93096df279a5b06fc5cfcf8637cd21542f4356ad",
+            "symbols": {
+              "__mh_execute_header": 4294967296,
+              "_lemulip_d22_wait_for_release": 4294968496
+            },
+            "textAddress": 4294967296,
+            "uuid": "DA0DE39D-199B-426C-938A-D111DA3D942E",
+            "waitFunctionEndExclusive": 4294970044,
+            "waitFunctionSize": 1548,
+            "waitSectionEndExclusive": 4294978748,
+            "waitSectionStart": 4294968496
+          },
+          "frames": [
+            {
+              "displacement": 452,
+              "pc": 4341696116,
+              "sampleCount": 82
+            }
+          ],
+          "imageEnd": 4341709819,
+          "immutableInputEntries": 51,
+          "loadAddress": 4341694464,
+          "maskedBinaryImagePath": "/Users/*/NativeSamplerCalibration",
+          "maskedHeaderPath": "/Users/USER/*/NativeSamplerCalibration",
+          "membersVerified": 78,
+          "narrowImageFrameWitness": true,
+          "nativeAndTransportClockOrderVerified": true,
+          "nativeElapsedSeconds": 4.615101667,
+          "normalEOFAndGroupCleanupVerified": true,
+          "originalD22Complete": false,
+          "postSamplePSAvailable": false,
+          "report": {
+            "bytes": 7988,
+            "sha256": "b3cf4841c437a03a94b56354f9fa946f64a51ec6792d385a61cb4150102087d7"
+          },
+          "sampledPCMapsToExactlyOneImage": true,
+          "sampledPCWithinRetainedWaitFunction": true,
+          "slide": 46727168,
+          "sourcesVerified": 12
+        },
+        {
+          "architecture": "x86_64",
+          "archive": {
+            "bytes": 141781,
+            "sha256": "1b53e3d87e3192922f53e1e7d362158cd0569ae0c7fb5eb70aa1ba4ee1d618a5"
+          },
+          "artifactID": "13660187867",
+          "dSYM": {
+            "bytes": 8350,
+            "cpuType": 16777223,
+            "fileType": 10,
+            "sha256": "459e311a92bcbbd40317380d7c222a233286bcec46af19847eb2f66f99e82302",
+            "uuid": "5CA00F5F-6107-4C8C-B368-BF38515252AD"
+          },
+          "exactReportPathMatched": false,
+          "executable": {
+            "bytes": 25416,
+            "cpuType": 16777223,
+            "fileType": 2,
+            "ignoredSTABS": {
+              "_lemulip_d22_wait_for_release": 1
+            },
+            "sha256": "d9cda95090a7765f55c0191bcac238b0a8d4694a181b0cdf01b2ef11e953598f",
+            "symbols": {
+              "__mh_execute_header": 4294967296,
+              "_lemulip_d22_wait_for_release": 4294968512
+            },
+            "textAddress": 4294967296,
+            "uuid": "5CA00F5F-6107-4C8C-B368-BF38515252AD",
+            "waitFunctionEndExclusive": 4294970112,
+            "waitFunctionSize": 1600,
+            "waitSectionEndExclusive": 4294978213,
+            "waitSectionStart": 4294968512
+          },
+          "frames": [
+            {
+              "displacement": 476,
+              "pc": 4488406684,
+              "sampleCount": 97
+            }
+          ],
+          "imageEnd": 4488419591,
+          "immutableInputEntries": 51,
+          "loadAddress": 4488404992,
+          "maskedBinaryImagePath": "/Users/*/NativeSamplerCalibration",
+          "maskedHeaderPath": "/Users/USER/*/NativeSamplerCalibration",
+          "membersVerified": 78,
+          "narrowImageFrameWitness": true,
+          "nativeAndTransportClockOrderVerified": true,
+          "nativeElapsedSeconds": 4.610197051,
+          "normalEOFAndGroupCleanupVerified": true,
+          "originalD22Complete": false,
+          "postSamplePSAvailable": false,
+          "report": {
+            "bytes": 7983,
+            "sha256": "16c03839ed3b965b3c48ad94b1c0f01f846e2c0dac792cc310aa1289928b106c"
+          },
+          "sampledPCMapsToExactlyOneImage": true,
+          "sampledPCWithinRetainedWaitFunction": true,
+          "slide": 193437696,
+          "sourcesVerified": 12
+        }
+      ],
+      "archivedCodeOrBinariesExecuted": false,
+      "auditRole": "independent-read-only-offline-audit",
+      "executedSourceCommit": "10ececdd145ca4c857c5844a83cee0b0b3a5d8e2",
+      "executedSourceTree": "6219e264ff2df60c16b1be5063643808569a09eb",
+      "nativeRuns": 0,
+      "reviewComparison": {
+        "allOutputValuesIndependentlyMatched": true,
+        "privateCanonicalPathsPresentInReviewOutput": false,
+        "reviewOutput": {
+          "bytes": 17541,
+          "sha256": "733f737168f1481acde1f816d2e5a74b9c75cf14c96018e94cc846fc17d68e85"
+        },
+        "reviewSourceFiles": {
+          "script/native_sampler_identity_fixture.py": {
+            "bytes": 19411,
+            "sha256": "c8f39b7c0300f50cb316e3abfd7fcee9cf46812780ff7b7b2d158be5fb8ab50f"
+          },
+          "script/review_native_sampler_identity.py": {
+            "bytes": 49305,
+            "sha256": "900bf6ec12e3b8afed86af460282485722297529cd87c756c6f440da7936f772"
+          },
+          "script/test_review_native_sampler_identity.py": {
+            "bytes": 24866,
+            "sha256": "c9d321f5eed7e294d9e6e2621c26a65bdbbfd1a2f4d3cdc016c74cc9074a5b9a"
+          }
+        }
+      },
+      "schema": 1,
+      "trustManifest": {
+        "bytes": 30178,
+        "sha256": "0e324fbec95e91fdab133eef4330580c700635bc4581ed2fff4ff8ad824bdfa7"
+      }
+    },
+    "script": {
+      "bytes": 22895,
+      "sha256": "44093a41f7f5f4b316181be7f953af99b4e821ba2053b0397c987f55937c0676"
+    }
+  },
+  "newNativeObservationExecuted": false,
+  "originalArchives": {
+    "arm64": {
+      "bytes": 142346,
+      "sha256": "e198ea29cfef5a59b3bc07a16f1af840e77cbb6a524b41cf9f57dfebdd648c51"
+    },
+    "x86_64": {
+      "bytes": 141781,
+      "sha256": "1b53e3d87e3192922f53e1e7d362158cd0569ae0c7fb5eb70aa1ba4ee1d618a5"
+    }
+  },
+  "originalArchivesUnchangedAfterReview": true,
+  "originalD22Complete": false,
+  "originalD22RuntimeOrWorkflowChanged": false,
+  "portableChecks": [
+    {
+      "command": [
+        "python3",
+        "script/test_review_native_sampler_identity.py"
+      ],
+      "exitCode": 0,
+      "stderr": "................................\n----------------------------------------------------------------------\nRan 32 tests in 0.567s\n\nOK\n",
+      "stdout": "",
+      "tests": 32
+    },
+    {
+      "command": [
+        "python3",
+        "script/test_privacy_masked_sampler_paths.py"
+      ],
+      "exitCode": 0,
+      "stderr": ".......\n----------------------------------------------------------------------\nRan 7 tests in 0.003s\n\nOK\n",
+      "stdout": "",
+      "tests": 7
+    }
+  ],
+  "postSamplePSAvailable": false,
+  "publicationPrivacyCorrection": {
+    "otherRulesInspectOriginalBytes": true,
+    "realHomePathsRemainRejected": true,
+    "reason": "The exact already-anonymized report header token was a false positive for literal-home-path.",
+    "regressionTests": 7,
+    "scope": "One complete delimiter-bounded literal in eight explicitly reviewed D23 paths."
+  },
+  "regressionFindingsResolved": [
+    "A coherent symbol displacement cannot move the sampled PC into another function.",
+    "A sampled PC cannot also belong to a foreign overlapping image.",
+    "Target and parent spawn anchors must agree with retained lifecycle clocks.",
+    "Command elapsed time cannot contradict measured clock duration.",
+    "A dot ZIP name must fail with a bounded evidence error.",
+    "JSON exponent overflow and contradictory Mach-O segment metadata must fail.",
+    "Hidden NUL ZIP names must fail."
+  ],
+  "releaseReady": false,
+  "review": "D23-native-sampler-identity-witness",
+  "reviewCommand": [
+    "python3",
+    "script/review_native_sampler_identity.py",
+    "--arm64",
+    "D22-R1-arm64.zip",
+    "--x86-64",
+    "D22-R1-x86_64.zip",
+    "--output",
+    "docs/evidence/D23-native-sampler-identity-review.json"
+  ],
+  "reviewExitCode": 0,
+  "reviewOutput": {
+    "bytes": 17541,
+    "sha256": "733f737168f1481acde1f816d2e5a74b9c75cf14c96018e94cc846fc17d68e85"
+  },
+  "runtime": {
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "system": "Linux"
+  },
+  "schema": 1,
+  "sourceCommit": "088180b54eb2095f9a634ad0c83f7911821a095f",
+  "sourceTree": "c56a7151beb84f7644107720032707a7180d0e3d",
+  "sources": {
+    "script/fixtures/native_sampler_identity/D22-trust.json": {
+      "bytes": 30178,
+      "sha256": "0e324fbec95e91fdab133eef4330580c700635bc4581ed2fff4ff8ad824bdfa7"
+    },
+    "script/native_sampler_identity_fixture.py": {
+      "bytes": 19411,
+      "sha256": "c8f39b7c0300f50cb316e3abfd7fcee9cf46812780ff7b7b2d158be5fb8ab50f"
+    },
+    "script/privacy_check.py": {
+      "bytes": 18042,
+      "sha256": "3924cd779956cee1575489ae4f724d3bfd15ebbd8d166ae62cb17d3cf99294a6"
+    },
+    "script/review_native_sampler_identity.py": {
+      "bytes": 49305,
+      "sha256": "900bf6ec12e3b8afed86af460282485722297529cd87c756c6f440da7936f772"
+    },
+    "script/test_privacy_masked_sampler_paths.py": {
+      "bytes": 4311,
+      "sha256": "229f56f5613dcd13f7e29fce5c0cf8bdde6a17ed929758d51dcd1febd9b9db1e"
+    },
+    "script/test_review_native_sampler_identity.py": {
+      "bytes": 24866,
+      "sha256": "c9d321f5eed7e294d9e6e2621c26a65bdbbfd1a2f4d3cdc016c74cc9074a5b9a"
+    }
+  },
+  "startedAtUTC": "2026-11-09T10:30:25.300427+00:00",
+  "status": "verified-narrow-offline-witness",
+  "totalPortableTests": 39
+}

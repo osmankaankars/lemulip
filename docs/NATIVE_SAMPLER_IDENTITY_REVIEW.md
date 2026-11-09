@@ -1,5 +1,11 @@
 # D23 — Offline review of the retained sampler identity witnesses
 
+**Completed, 9 November 2026 Europe/Istanbul:** both original archives pass the
+new narrow consistency review. All 39 portable tests passed; independent
+reconstruction matched every output value. The [derived review](evidence/D23-native-sampler-identity-review.json)
+and [verification receipt](evidence/D23-verification.json) retain the exact
+input, source and result identities.
+
 This unit reviews the two immutable [D22 artifacts](NATIVE_SAMPLER_CALIBRATION.md)
 without executing an archived program or making another native measurement.
 Its question is deliberately narrow: do the retained reports contain counted
@@ -161,3 +167,66 @@ independent review has checked the resulting claims. No native retry follows
 automatically. A later live recorder measurement needs a concrete evidence
 question that this controlled-child result cannot answer; the original time
 budget and acceptance conditions remain in force.
+
+## Completed verification
+
+The executed D23 revision is
+[`088180b54eb2095f9a634ad0c83f7911821a095f`](https://github.com/osmankaankars/lemulip/commit/088180b54eb2095f9a634ad0c83f7911821a095f),
+tree `c56a7151beb84f7644107720032707a7180d0e3d`. Verification finished on
+9 November 2026 at 10:30:26 UTC / 13:30:26 Europe/Istanbul using CPython
+3.12.14 on Linux x86_64. The two native artifact sets remain those produced by
+the single earlier D22 run; this verification executes no native program.
+
+| Check | Result |
+| --- | --- |
+| Identity/frame negative-test suite | 32 methods passed; synthetic ARM and Intel baselines remain semantic-only. |
+| Masked-path publication privacy suite | 7 methods passed, including real-path and adjacent-secret rejection. |
+| Original archive review | Both immutable ZIPs accepted; all 156 member byte identities and 24 retained source copies verified. |
+| Immutable inputs | All 102 before/after build/source entries agree. |
+| Independent reconstruction | Every derived JSON value matched a separate parser and lifecycle reconstruction. |
+| Input preservation | Both complete ZIP byte lengths and SHA-256 values remained unchanged after review. |
+
+The negative fixtures rebuild the relevant outer and internal hashes before
+introducing a semantic inconsistency. They cover swapped/duplicate UUIDs,
+foreign identities and architectures, wrong/summary-only frames, zero counts,
+changed bytes, ambiguous records, incorrect symbol or image addresses, mixed
+receipt instances, contradictory clocks and invalid cleanup order.
+
+Review found and fixed specific false-positive paths before publication: a
+coherently displaced PC in another function, overlapping image ownership,
+contradictory spawn/elapsed clocks, an unchecked dot ZIP name, hidden NUL names,
+JSON exponent overflow, and contradictory Mach-O section metadata. The exact
+original archives continue to pass after those rejection rules were added.
+
+| Retained witness | ARM64 | Intel |
+| --- | --- | --- |
+| UUID | `DA0DE39D-199B-426C-938A-D111DA3D942E` | `5CA00F5F-6107-4C8C-B368-BF38515252AD` |
+| Counted wait-frame samples | 82 | 97 |
+| Preferred wait symbol address | `0x1000004b0` | `0x1000004c0` |
+| Wait function size / exclusive end | `0x60c` / `0x100000abc` | `0x640` / `0x100000b00` |
+| Report main load address | `0x102c90000` | `0x10b87a000` |
+| Sampled PC / reported displacement | `0x102c90674` / 452 | `0x10b87a69c` / 476 |
+| Native normal EOF / exit | Verified / 0 | Verified / 0 |
+| Original full D22 complete | false | false |
+
+The retained function ends agree with the next defined text symbol,
+`_capture_clock`. Each sampled PC lies inside the wait function's extent and
+belongs uniquely to the expected reported image.
+
+The exact derived review is 17,541 bytes, SHA-256
+`733f737168f1481acde1f816d2e5a74b9c75cf14c96018e94cc846fc17d68e85`.
+The independent audit is 5,445 bytes, SHA-256
+`955463a218591ae15f89f9ad989d62e2a635d2c478e27e24c28ce3c25a2dd67b`;
+its full parsed result and source identities are retained in the verification
+receipt. This is a consistency review, not a reproducible-build proof of
+source-to-instruction equivalence.
+
+### Decision after D23
+
+The offline identity/frame witness unit is complete. The remaining concrete
+recorder question is **which startup stage prevents the recording-start
+notification, and whether bounded sampling stalls before capture or during
+report/symbol processing**. D21's retained initial banner cannot distinguish
+those stages. A subsequent recorder-specific observation needs to answer that
+question while preserving the existing ownership and time bounds. D23 itself
+ends here, without another sampler/recorder run or a changed task 07 gate.

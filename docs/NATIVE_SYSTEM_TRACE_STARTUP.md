@@ -323,5 +323,7 @@ architecture. Both samplers completed in about 1.47 seconds and retained the
 known frame, but the strict identity parser rejected unequal masked display
 paths before a post-sample identity snapshot. The full control gate remains
 incomplete; the new report/UUID/address witnesses are retained separately.
-The next work is an offline identity contract over those existing artifacts,
-with no new recording, input or budget change. D20's cause remains unresolved.
+[D23's offline identity/frame review](NATIVE_SAMPLER_IDENTITY_REVIEW.md) now
+verifies that narrow witness on both unchanged archives with 39 portable tests
+and independent reconstruction. The original D22 full gate stays incomplete.
+No new recording, input or budget change occurred; D20's cause remains unresolved.

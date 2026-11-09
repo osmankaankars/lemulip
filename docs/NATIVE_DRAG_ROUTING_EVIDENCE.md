@@ -126,11 +126,13 @@ there is no after-identity snapshot and the original full calibration remains
 incomplete. Both targets finished by normal stdin EOF and cleanup resolved.
 
 The [D22 projection](evidence/D22-native-sampler-calibration.json) binds all 156
-artifact files and the limited positive witnesses. The next unit is an offline
-identity contract over the retained reports and build/native receipts, keeping
-exact-path and post-sample omissions explicit. This supplies no new held gesture,
-recorder stack, activation requester, product repair or original acceptance
-result. Task 07 and task 08 retain their existing gates.
+artifact files and the limited positive witnesses. The subsequent
+[D23 offline review](NATIVE_SAMPLER_IDENTITY_REVIEW.md) now verifies both unchanged
+archives against that separate identity/frame contract, with 39 portable tests
+and independent reconstruction of all output values. Exact-path and post-sample
+omissions remain explicit. This supplies no new held gesture, recorder stack,
+activation requester, product repair or original acceptance result. Task 07 and
+task 08 retain their existing gates.
 
 ## Symptom and impact
 

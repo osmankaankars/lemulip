@@ -368,7 +368,10 @@ path strings in the report header and Binary Images row. No after-identity
 snapshot followed, so the original full calibration remains incomplete despite
 the useful controlled-image/frame observations and normal cleanup.
 
-The next unit is an offline identity-witness contract using these existing
-bytes. It must preserve the original failure, missing exact path and missing
-post-sample snapshot. D22 does not explain D21's sampler noncompletion or
-recorder startup, and no additional recorder invocation follows automatically.
+[D23's offline identity/frame review](NATIVE_SAMPLER_IDENTITY_REVIEW.md) now
+verifies both unchanged archives, with 39 portable tests and independent output
+reconstruction. It preserves the original failure, missing exact path and
+missing post-sample snapshot. D21's sampler noncompletion and recorder startup
+remain unexplained. The next evidence question concerns the recorder's startup
+stage and the sampler's capture/report progress; no additional native invocation
+was made in D23.

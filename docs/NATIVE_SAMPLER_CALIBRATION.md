@@ -299,19 +299,19 @@ sampler timeout, establish recorder inspection access, identify the activation
 requester or Escape consumer, or satisfy the original Finder acceptance gate.
 No native retry or new recorder was launched after this result.
 
-The next work is an **offline identity-witness contract over the retained D22
-bytes**. It should distinguish advisory privacy-masked display paths from
-independently measured executable identity; require the owned PID/parent,
-expected UUID, main load address, unique matching image range and counted
-frame-address/symbol-offset relationship; and bind these to the native
-ready/completion, file hashes and immutable source/build evidence. A masked
-path must never be treated as a glob or reconstructed as an observed path.
+The subsequent [D23 offline identity/frame review](NATIVE_SAMPLER_IDENTITY_REVIEW.md)
+is complete. Its versioned verifier accepts both unchanged archives, with 39
+portable tests and independent reconstruction of every derived output value.
+It binds UUID, native process/lifecycle receipts, source/file identities and
+actual call-graph samples to the retained Mach-O symbol and function extent.
+Masked paths remain verbatim advisory text; they are never glob-matched or
+reconstructed as observed canonical paths.
 
-That offline unit needs explicit negative cases for wrong or duplicate UUIDs,
-foreign PID/parent, inconsistent load address, out-of-range or wrong-symbol
-frame addresses, wrong architecture and changed receipt/report bytes. It must
-continue to report the missing after-identity snapshot and leave D22's original
-full gate incomplete. No native rerun or recorder invocation is needed for this
-work. A subsequent live measurement still needs its own concrete evidence
-question; neither the time budget nor the original task 07 acceptance condition
-changes as a consequence of these control reports.
+[D23's derived result](evidence/D23-native-sampler-identity-review.json) explicitly
+keeps `originalD22Complete=false`, `exactReportPathMatched=false` and
+`postSamplePSAvailable=false`. This is the narrow witness defined by D23, while
+D22's original full gate remains incomplete. No native rerun or recorder followed.
+The next recorder-specific question is which startup stage prevents readiness
+and whether sampling stalls before capture or during report/symbol processing;
+a later observation must preserve the current ownership/time bounds and the
+original task 07 acceptance condition.
