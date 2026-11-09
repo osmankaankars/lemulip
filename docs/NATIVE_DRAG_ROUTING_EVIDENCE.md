@@ -106,6 +106,14 @@ neither timeout widening nor a blind repetition is supported. No held input ran,
 no case is added to D17 or the historical population below, and the original
 Finder gate, C12/PR #45 HOLD and task 08 dependency are unchanged.
 
+### Subsequent D21 recorder observation
+
+[D21 R2](NATIVE_RECORDER_STARTUP_OBSERVATION.md#r2-process-metadata-retained-bounded-sample-did-not-complete) ran on 9 November 2026, 08:08:17–08:12:10 UTC, in [run 42583779680](https://github.com/osmankaankars/lemulip/actions/runs/42583779680), at `72e59791f59ae0b6e1de367639f43e161303a828`. Both architectures passed 31 portable tests, native builds and 20 installed-manual checks, then obtained one exact owned-recorder identity snapshot. Advisory arguments name `xctrace`; raw state is `U<s` on ARM and `R<s` on Intel. No common waiting call or loaded-image identity follows from these single snapshots.
+
+Each single bounded sampler attempt announced its PID and requested parameters, then reached its fixed command budget without a report. TERM produced exit -15. The subsequent group KILL EPERM concerns cleanup and was retained; positive final group snapshots and closed streams resolved cleanup without promoting the sample to success. No stack or post-sample identity was retained. The unchanged native helper still received zero recording-start callbacks and launched no app. Recorder exit was -2 after direct SIGINT, all 124 inputs per architecture remained unchanged, and no trace/export followed.
+
+The [retained evidence](evidence/D21-recorder-startup-observation.json) supplies these observations and their limits. Recorder startup and sampler noncompletion remain unexplained; no permission denial is established. The next prerequisite is one positive calibration of the same bounded sampler on a small owned native child with a known frame, without another recording invocation. No native drag or acceptance case is added, and C12/PR #45 HOLD and task 08's dependency remain unchanged.
+
 ## Symptom and impact
 
 The original C12 [run 41803346911](https://github.com/osmankaankars/lemulip/actions/runs/41803346911)

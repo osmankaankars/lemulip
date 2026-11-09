@@ -184,6 +184,24 @@ supported by this result. No drag or acceptance case was run. The original
 Finder gate, C12/PR #45 HOLD, completed source/screenshot and physical/v4 evidence,
 and task 08's dependency on task 07 remain unchanged.
 
+D21 R2 subsequently executed the bounded recorder observation in
+[run 42583779680](https://github.com/osmankaankars/lemulip/actions/runs/42583779680)
+at `72e59791f59ae0b6e1de367639f43e161303a828` on 9 November 2026.
+All 31 portable checks, native builds and 20 installed-manual checks passed per
+architecture. Exact-recorder process metadata was retained, but each single
+sampler attempt reached its fixed command budget without a report. The
+[completed D21 report](NATIVE_RECORDER_STARTUP_OBSERVATION.md) and
+[public evidence](evidence/D21-recorder-startup-observation.json) bind the result:
+no qualified loaded image/stack, no recording-start callback, no app launch,
+trace or export. Both sampler and recorder cleanup resolved and inputs remained
+unchanged. Sampler cleanup EPERM is not an inspection-permission denial.
+
+The next prerequisite is a standalone positive calibration of the same bounded
+sampler on an owned native child with a known frame. That requires no new
+recorder run, timeout widening or held input. D21 supplies no product repair or
+original Finder acceptance result. The completed source/twelve-image review,
+physical check and v4 evidence remain valid; task 08 still waits on task 07.
+
 To complete task 08, close or explicitly resolve task 07's remaining CI gate on
 the final candidate, review any resulting production changes, and retain the
 final source/run/artifact identity. The candidate is still on hold.

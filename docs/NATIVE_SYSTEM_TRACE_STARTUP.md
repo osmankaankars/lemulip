@@ -302,3 +302,18 @@ perturbation. A sample can expose observed initialization or request callers;
 a generic IPC wait cannot establish authorization denial, deadlock or the
 missing drag requester. Sampling access to this Apple-signed process is also
 unproven. No elevated fallback follows from a failure to obtain a sample.
+
+### Subsequent D21 observation
+
+[D21 R2](NATIVE_RECORDER_STARTUP_OBSERVATION.md#r2-process-metadata-retained-bounded-sample-did-not-complete)
+executed that bounded observation in
+[run 42583779680](https://github.com/osmankaankars/lemulip/actions/runs/42583779680),
+at `72e59791f59ae0b6e1de367639f43e161303a828`. Both architectures retained exact
+owned-recorder metadata. Each single sampler attempt reached its fixed command
+budget and exited -15 after TERM without a report; no stack or loaded image was
+qualified. Both unchanged helpers again received zero callbacks and launched no
+apps. Final observer/recorder cleanup resolved, inputs stayed unchanged, and no
+trace/export followed. The sampler's cleanup EPERM is not a target-inspection
+access error. The next prerequisite is standalone positive sampler calibration
+on a small owned child under the same budget, without another recorder run.
+D20's pre-start cause and the original acceptance gate remain unresolved.

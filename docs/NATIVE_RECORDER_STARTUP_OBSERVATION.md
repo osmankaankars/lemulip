@@ -220,3 +220,137 @@ fixture binds its source-manual identities without copying the complete manual.
 The observer runtime, command arguments, process ownership and all time/output
 bounds are unchanged. R2 is the first runtime-observation attempt after that
 pre-execution parser correction.
+
+## R2: process metadata retained; bounded sample did not complete
+
+[Run 42583779680](https://github.com/osmankaankars/lemulip/actions/runs/42583779680),
+attempt 1, ran on 9 November 2026, 08:08:17–08:12:10 UTC, at
+`72e59791f59ae0b6e1de367639f43e161303a828`, tree
+`338e5dd9aabbe9c861c4dba49b2b7cdbb6fe4671`. ARM job `129048547705` and
+Intel job `129048547948` both passed all thirty-one portable checks
+(6 + 10 + 15), source/privacy checks, builds, provenance and all twenty installed
+manual checks. The observation step returned `observation-incomplete` and the
+original transport returned `evidence-incomplete` on both. Subsequent input
+preservation, archiving, source checks and artifact upload completed.
+
+The [retained D21 evidence](evidence/D21-recorder-startup-observation.json)
+binds both runs to their sources, actual receipts and original artifact hashes.
+
+| R2 observation | ARM64 | Intel |
+| --- | ---: | ---: |
+| Native helper PID | 3633 | 8861 |
+| Recorder PID / parent PID | 3636 / 3593 | 8866 / 8808 |
+| Recorder PGID / effective UID | 3636 / 501 | 8866 / 501 |
+| Pre-sample process state, exact text | `U<s` | `R<s` |
+| Sample invocations | 1 | 1 |
+| Sampler PID | 3659 | 9011 |
+| Sampler TERM after creation, seconds | 3.513134 | 3.525102 |
+| Sampler elapsed time, seconds | 3.805801 | 3.795072 |
+| Sampler exit status | -15 | -15 |
+| Sampler stdout / stderr bytes | 0 / 84 | 0 / 84 |
+| Received recording-start callbacks | 0 | 0 |
+| Native notification wait, seconds | 15.005476 | 15.037163 |
+| Original recorder exit after direct SIGINT | -2 | -2 |
+| Unchanged staged input entries | 124 | 124 |
+
+Both first identity snapshots select the exact still-owned recorder instance,
+with matching parent, group and effective UID. Their argument text describes
+the installed Xcode 26.3 `xctrace record` command. This is advisory process
+metadata; it does not qualify the loaded executable image. The leading process
+states differ: the installed `ps` manual describes U as uninterruptible wait and
+R as runnable. These are single snapshots without a waiting call, stack or
+duration. The ARM state cannot establish a common cause across both runs.
+
+Each sampler's only retained output is its 84-byte stderr announcement of the
+selected PID, one-second sampling duration and ten-millisecond interval. The
+announcement does not prove target attachment or completed sampling. Neither
+command finished within the 3.5-second operation allowance of its unchanged
+four-second total budget. The orchestrator then sent TERM and observed exit
+status -15. No sample report was retained; the post-sample identity command was
+not reached. There is no observed stack or qualified binary-image/UUID witness.
+The one-second sampling argument does not establish a whole-command runtime
+bound for symbol acquisition and report production.
+
+### Cleanup and original notification boundary
+
+The subsequent owned sampler-group KILL attempt returned EPERM on both
+architectures. These errors belong to cleanup after TERM; they are not
+target-inspection access-denial results. The final bounded raw group snapshots
+contain no surviving members of the observed groups. Exited direct children,
+closed streams and absence of other cleanup faults allow the narrowly specified
+group proof to resolve cleanup while retaining the original signal errors and
+`command-budget` result. The earlier `observer-sample: cleanup-incomplete`
+message remains in the error history; final observer cleanup is true. No
+interrupted sample is promoted to success.
+
+Both target PID reservations were acquired before identity/sampling and released
+only after this cleanup proof, before the conservative fourteen-second cutoff.
+Observer clocks preserve identity, sample, group check and release ordering.
+The original recorder SIGINT followed observation of helper exit by approximately
+9.990 ms on ARM and 1.688 ms on Intel. The observer did not extend that stop
+boundary, force the recorder's group or send signals to the native applications.
+
+Both native helpers registered and cancelled the notification successfully, with
+zero callbacks throughout their fixed wait. They returned
+`recording-notification-timeout` and `startupNeverRan=true`. Neither original app
+was launched: request flags are false, app PIDs are null and native journals
+are absent. Recorder stdout/stderr remain empty. No trace package or export was
+produced; all recording/startup/export qualification flags remain false. Both
+original transports report complete cleanup. Sampling can perturb timing, so
+these instrumented results do not retrospectively identify D20's process image
+or explain its pre-start silence.
+
+### Artifact identities and independent verification
+
+| R2 architecture | Artifact | ZIP bytes | ZIP SHA-256 |
+| --- | ---: | ---: | --- |
+| ARM64 | `13657739461` | 9,216,861 | `e10b353cc93d5ef64a0ba9039e8bbdc64f485aa6465df2765641387666e6dad3` |
+| Intel | `13657919122` | 9,313,374 | `4285c46481aa8b930edb3bb1c41f95cf6941799645c5604455fa6b1b104f092a` |
+
+Each R2 archive contains 87 files and a 127-entry staged ZIP (75 files and 52
+directories). R1's corresponding staged archives contain 125 entries (75 files
+and 50 directories), because its helper never created the two empty evidence
+directories. The complete four-archive audit verified API size/digest identities,
+ZIP CRCs, every extracted byte, all 56 retained source copies against their
+executed Git revisions, all 504 staged entries and 496 immutable-input checks.
+The twelve diagnostic executable/dSYM UUID pairs, binary hashes, architecture,
+provenance, command streams and helper receipt bindings also agree. Archived
+code and binaries were not executed during this audit.
+
+The public projection indexes all 306 original files, preserves 54 parsed JSON
+receipts except 136 individually enumerated omissions, and retains 88 complete
+UTF-8 text bodies. Forty additional text bodies preserve exact lines and line
+endings except forty runner-local path lines, each separately size/hash bound.
+JSON omissions have exact pointers and hashes of explicitly defined canonical
+values. They cover runner-local path values/maps and installed-manual passage
+bodies; all other values remain exact. All sixteen full raw/normalized manual
+bodies are omitted from the public projection but retain their raw identities,
+semantic-check results and original-artifact availability. Executed source
+bodies are linked at immutable revisions. Artifact retention is fourteen days;
+the report, projection and source revisions persist in Git.
+
+### Decision and next discriminating prerequisite
+
+D21 obtained new exact-process metadata and established that the specified
+bounded sampling attempt did not produce a report on either architecture. It
+does not explain recorder startup, establish a tracing/sampling permission
+denial, or identify the activation requester or Escape consumer. The original
+Finder acceptance requirement, C12/PR #45 HOLD and task 08 dependency remain.
+
+The next prerequisite is a **standalone positive sampler calibration on a small,
+owned native child**. It needs one attempt per architecture using the same fixed
+observation timing, `1 10 -mayDie -file` arguments and four-second total budget,
+including the existing cleanup reserve. The child should publish a bound ready
+receipt while remaining in a known, named waiting frame. No new `xctrace record`
+invocation is needed for this prerequisite.
+
+A positive result requires exact child ownership, a complete bounded report,
+successful sampler exit without interruption, matching report PID/path and
+binary-image/UUID evidence, the expected named frame with a positive sample
+count, and resolved cleanup. A timeout, access error, missing report/frame or
+identity mismatch ends that single attempt and leaves the bounded method
+unqualified; it supplies no basis for a longer timeout or another recorder run.
+A pass qualifies only the controlled child's sampler/report path. A further
+recorder observation would still need a concrete proposal for new
+recorder-specific evidence. No held gesture or security change follows from
+this result.
