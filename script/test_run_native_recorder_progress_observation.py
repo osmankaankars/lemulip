@@ -728,7 +728,7 @@ class SyntheticOrchestrationTests(unittest.TestCase):
     """Real processes and cleanup with clearly synthetic native/report fields."""
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory(prefix="d24-portable-")
-        self.root = Path(self.directory.name)
+        self.root = Path(self.directory.name).resolve(strict=True)
         self.output = self.root / "output"
         self.sources = self.output / "sources"
         self.sources.mkdir(parents=True)
@@ -1078,6 +1078,34 @@ class SyntheticOrchestrationTests(unittest.TestCase):
         self.assertTrue(any("secondary-sample: child collection failed" in value for value in result["errors"]))
         self.assertEqual(set(result["commands"]), set(self.names()))
         self.assert_children_collected()
+
+
+class FixturePathIdentityTests(unittest.TestCase):
+    def test_symlinked_temporary_parent_uses_canonical_paths_before_provenance(self):
+        real_temporary_directory = tempfile.TemporaryDirectory
+        with real_temporary_directory(prefix="d24-path-alias-") as temporary:
+            parent = Path(temporary).resolve(strict=True)
+            actual = parent / "real-parent"
+            actual.mkdir()
+            alias = parent / "linked-parent"
+            alias.symlink_to(actual, target_is_directory=True)
+
+            def through_alias(*args, **kwargs):
+                return real_temporary_directory(*args, dir=alias, **kwargs)
+
+            fixture = SyntheticOrchestrationTests()
+            with mock.patch.object(tempfile, "TemporaryDirectory", side_effect=through_alias):
+                fixture.setUp()
+            try:
+                self.assertNotEqual(Path(fixture.directory.name), fixture.root)
+                provenance, _ = progress.validate_inputs(
+                    fixture.helper.resolve(strict=True), fixture.output.resolve(strict=True),
+                    fixture.provenance.resolve(strict=True), synthetic=True)
+                self.assertEqual(provenance["helper"]["path"], str(fixture.helper.resolve(strict=True)))
+                self.assertEqual(provenance["sampleTool"]["path"], str(fixture.sample_tool.resolve(strict=True)))
+                self.assertEqual(fixture.launches, [])
+            finally:
+                fixture.tearDown()
 
 
 if __name__ == "__main__":

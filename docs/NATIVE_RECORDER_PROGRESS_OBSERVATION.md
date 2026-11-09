@@ -7,6 +7,25 @@ distinguish the stage that has not completed while it observes the recorder.
 Task 07, C12 and [PR #45](https://github.com/osmankaankars/lemulip/pull/45) remain
 **HOLD**. This diagnostic supplies neither a product fix nor a release gate.
 
+### Pre-execution CI correction
+
+[The first CI run](https://github.com/osmankaankars/lemulip/actions/runs/42608920236)
+at `dc877e28778a24c0a36a509ddc0bc107322b8dde` stopped in the portable test gate on
+both architectures. The unchanged command/transport/D21 suites passed all 31
+tests per architecture. The new 49-test suite had 15 failures and one error:
+synthetic orchestration was rejected before any child launch because its helper
+provenance stored an unresolved temporary-directory path while the orchestrator
+compared the canonical path. Helper compilation, tool preflight and the native
+observation steps were skipped. This run made **zero recorder or native sampler
+invocations**.
+
+The same precondition failure was reproduced on Linux using a symbolic-link
+parent and the exact original test bytes. The fixture now resolves its root
+before deriving helper, output and provenance paths, and an explicit alias-parent
+regression checks that binding. Runtime identity checks and sampling bounds
+remain as defined below. This corrects test setup before the first native
+measurement; it does not repeat or reinterpret a recorder observation.
+
 ## Evidence motivating this observation
 
 The [D21 recorder observation](NATIVE_RECORDER_STARTUP_OBSERVATION.md) retained
