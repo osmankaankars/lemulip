@@ -375,3 +375,25 @@ missing post-sample snapshot. D21's sampler noncompletion and recorder startup
 remain unexplained. The next evidence question concerns the recorder's startup
 stage and the sampler's capture/report progress; no additional native invocation
 was made in D23.
+
+### Subsequent D24 recorder-progress result
+
+[D24 R2](NATIVE_RECORDER_PROGRESS_OBSERVATION.md),
+[run 42609635410](https://github.com/osmankaankars/lemulip/actions/runs/42609635410),
+tested that separate recorder-progress question with one primary and one
+secondary sampler per architecture. All 81 tests passed per macOS runner, but
+all four samplers retained only an 84-byte initial banner. No report,
+primary-after snapshot or internal sampler phase was qualified; D21's missing
+stack and noncompletion cause remain unexplained.
+
+ARM observed zero callbacks and no trace. Intel observed one callback at
+helper-native +14.109752 seconds and retained a partial trace; its first recorder
+output was observed at parent recorder-relative +11.31 seconds, after the
+sampler window. The recorder later exited -11 after stopping, without normal
+completion. The separate clock domains and unproven trace-time coverage remain
+explicit in D24.
+
+The next D25 step is a bounded read-only installed-tool TOC export of an exact
+retained Intel copy. It has not run; a refusal ends that step without package
+repair or a new recording. C12/PR #45 HOLD, the original Finder acceptance
+sequence and task 08's dependency remain unchanged.

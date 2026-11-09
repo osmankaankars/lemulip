@@ -139,6 +139,12 @@ app was launched; no trace package or export was produced. The exact result and
 its limits follow below. Local checks verify bounded orchestration and parsing;
 the native result determines whether the recording/startup prerequisite occurred.
 
+The later [D24 recorder-progress result](NATIVE_RECORDER_PROGRESS_OBSERVATION.md)
+does not reclassify D20: it retained an Intel callback and partial trace, but
+neither a qualified sampler stack nor normal recording completion. D25's
+bounded read-only TOC export of an exact retained copy is the next step and has
+not run. The subsequent result and its refusal boundary are recorded below.
+
 Results must distinguish: build/infrastructure failure; recording/access failure;
 incomplete startup or cleanup; export/packaging failure; complete recording/export
 with activation coverage unproven; and an independently inspected positive
@@ -327,3 +333,26 @@ incomplete; the new report/UUID/address witnesses are retained separately.
 verifies that narrow witness on both unchanged archives with 39 portable tests
 and independent reconstruction. The original D22 full gate stays incomplete.
 No new recording, input or budget change occurred; D20's cause remains unresolved.
+
+### Subsequent D24 partial-recording evidence
+
+[D24 R2](NATIVE_RECORDER_PROGRESS_OBSERVATION.md) completed in
+[run 42609635410](https://github.com/osmankaankars/lemulip/actions/runs/42609635410),
+with 81 passing tests on each macOS architecture. All four primary/secondary
+samplers retained only their 84-byte initial banners; none produced a report or
+qualified internal phase. ARM received zero callbacks and retained no trace.
+
+Intel received one callback at helper-native +14.109752 seconds. Its first
+recorder output was observed at parent recorder-relative +11.31 seconds, after
+both sampler operations had ended. These clock domains remain separate. The
+recorder exited -11 after stopping/escalation, so normal completion is unproven.
+The retained partial trace contains 115,835,304 expanded bytes. Read-only
+inspection verifies those bytes and one literal `Data stream: Time Mapping`
+issue; it does not establish the issue's semantics or event-time coverage.
+
+D25 will ask only whether a bounded read-only installed
+`xctrace export --input … --toc` can read an exact retained copy. This export
+has not been performed; preserve refusal without package repair or a new
+recording if the input is rejected. No natural source/control startup,
+activation path or original Finder acceptance is qualified by D24. C12/HOLD
+and task 08's dependency remain unchanged.

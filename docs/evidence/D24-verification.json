@@ -1,0 +1,2611 @@
+{
+  "createdUTC": "2026-11-09T11:47:12.677339+00:00",
+  "exactInputAndArchiveAudit": {
+    "architectures": {
+      "arm64": {
+        "allCommandFilesBound": true,
+        "allInputSnapshotsReconstructed": true,
+        "archive": {
+          "bytes": 226836,
+          "sha256": "44b9438155713c42bcadee75d3359a4a6659bf3027e9f2056fb1f115dd58041f"
+        },
+        "archiveUnchanged": true,
+        "artifactID": 13668694448,
+        "expandedBytes": 803311,
+        "fileCount": 94,
+        "helperBuildAndReadyBindingsMatch": true,
+        "immutableInputEntries": 63,
+        "memberInventory": {
+          "build-provenance.json": {
+            "bytes": 4084,
+            "sha256": "fc34f330cd2bd68f2565c45c9bf2ca22f38f92a25cdbb17599ce9daa27a700cb"
+          },
+          "build/NativeRecorderProgressNotify": {
+            "bytes": 56480,
+            "sha256": "56ab614170aee88890767ce275745671ecac90e095434059d3feb87de53fe2ae"
+          },
+          "build/NativeRecorderProgressNotify.dSYM/Contents/Info.plist": {
+            "bytes": 657,
+            "sha256": "7bfff56f4363417fede23028c4ef4526822b26dcc3b907d1159d3db9e9dd0fda"
+          },
+          "build/NativeRecorderProgressNotify.dSYM/Contents/Resources/DWARF/NativeRecorderProgressNotify": {
+            "bytes": 29560,
+            "sha256": "937fc3323c92ffdcda38b4d10cc74c414f1df9f0fc61f869b85fa54a48ebc77c"
+          },
+          "build/NativeRecorderProgressNotify.dSYM/Contents/Resources/Relocations/aarch64/NativeRecorderProgressNotify.yml": {
+            "bytes": 184,
+            "sha256": "5ce55032e9c93af21fad23ccd1fb9491339102c5b2add5bcfa7c7ce2bd37ada9"
+          },
+          "build/bounded-command-tests.stderr.txt": {
+            "bytes": 104,
+            "sha256": "459798b9f6529963d8b7e38c3ba2a9e7873b8da852e8cf6925cf19d60d94417f"
+          },
+          "build/bounded-command-tests.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/clang-version.json": {
+            "bytes": 408,
+            "sha256": "fca8bb348250c20f223ebb757e6bd5d56d5bcb21d31a08df265d996d94a29936"
+          },
+          "build/clang-version.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/clang-version.stdout.txt": {
+            "bytes": 205,
+            "sha256": "185385084843a3035d264e1a698f718796ca2c3f992dc7bfffcedb9c9941c09b"
+          },
+          "build/compile.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/compile.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/experiment-commit.txt": {
+            "bytes": 41,
+            "sha256": "8cb613ea484dd56d7f166879e086414f69039c02b5171546b4ea2479f84423ad"
+          },
+          "build/experiment-tree.txt": {
+            "bytes": 41,
+            "sha256": "b3a0b8faf0f77a3935f3ef0a97b42cc11047cf5607f0e4019fb82e9c7f028d08"
+          },
+          "build/helper-architecture.json": {
+            "bytes": 505,
+            "sha256": "76094e5e87e42de1fa2afd7e37f19a94f95b73fbc5374d4cd06a9a1ed28febbc"
+          },
+          "build/helper-architecture.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/helper-architecture.stdout.txt": {
+            "bytes": 6,
+            "sha256": "c1669e1d8edca98769c37d494b76442a1d6e5ffffd7b4da1fb63aef8ebaf6f01"
+          },
+          "build/helper-uuid.json": {
+            "bytes": 514,
+            "sha256": "61538be847b7f4edcb68f2a8d99d7c789e60e51254fe2c0f2f68fd4e37e7cc05"
+          },
+          "build/helper-uuid.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/helper-uuid.stdout.txt": {
+            "bytes": 150,
+            "sha256": "b3eb1f142f08a637fec37c344d6e37d6ac181b5cd6a2500ab3ce5a273e7a0a97"
+          },
+          "build/installed-sample.macho": {
+            "bytes": 175056,
+            "sha256": "18a555fada1dd3687348164c2a97df9156e40ee83d2f7980a38843fd533f320f"
+          },
+          "build/kernel-version.json": {
+            "bytes": 409,
+            "sha256": "7b6757b8222a050c9212df8a5592c72998d8cbb92cdcd48d9868d5eed8a055a6"
+          },
+          "build/kernel-version.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/kernel-version.stdout.txt": {
+            "bytes": 113,
+            "sha256": "ff95b22f6cfe5f6a90b4c7093d86ae0fe40880d42b9888eb60d81e376aa80b5d"
+          },
+          "build/observer-tests.stderr.txt": {
+            "bytes": 114,
+            "sha256": "9b590610c570eeb31d4af39767ac61151bb5f90415a87ed59e265789a033c6f9"
+          },
+          "build/observer-tests.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/os-version.json": {
+            "bytes": 378,
+            "sha256": "d9d5a66b5d247f43c1f5d387374d80ef7d420d477e6c2eb89da90ef89e107eac"
+          },
+          "build/os-version.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/os-version.stdout.txt": {
+            "bytes": 66,
+            "sha256": "e0a9e270c507499fb163b6bb80e62f10c6fca344ce2c93fa2987fe42caf94b29"
+          },
+          "build/progress-tests.stderr.txt": {
+            "bytes": 150,
+            "sha256": "616a0cc2629114a15e7c4b5ddb772a2f65c95561675cfb4337824690dac26e15"
+          },
+          "build/progress-tests.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/python-version.json": {
+            "bytes": 442,
+            "sha256": "b051c5c40762a207fa62d4ce322a65fa572a77a86bc86e073ae7146359916915"
+          },
+          "build/python-version.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/python-version.stdout.txt": {
+            "bytes": 15,
+            "sha256": "d62a8f9cf44ca81c8ac6545117bbee8ad62521799745acf8148ef9068d61ac7b"
+          },
+          "build/sample-architecture.json": {
+            "bytes": 426,
+            "sha256": "317a4912e188ad981776a7a9455fc9c29d0bf4981bcda5fa869057bf969cb45f"
+          },
+          "build/sample-architecture.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/sample-architecture.stdout.txt": {
+            "bytes": 14,
+            "sha256": "878bc05b0be49c93d641618864a19e01beaddf7852c53dd15cfc78b0ccdcee5d"
+          },
+          "build/sample-uuid.json": {
+            "bytes": 433,
+            "sha256": "b135fdc6a53bfa9039dd3e9e862770ca3e17834c70a7a06c1cf8863a8bfa0b73"
+          },
+          "build/sample-uuid.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/sample-uuid.stdout.txt": {
+            "bytes": 136,
+            "sha256": "f02e6156c25c258fda95631638bb51eaa9e345fa9126fec658893ee4cba8b5b0"
+          },
+          "build/transport-tests.stderr.txt": {
+            "bytes": 109,
+            "sha256": "451b5d6c8b16c0717cc54662c16ef95cf80d2853395bdd06a34336455382f262"
+          },
+          "build/transport-tests.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/xcode-version.json": {
+            "bytes": 397,
+            "sha256": "ba1c203d4ec1b49e0efddaee51f07d9247c47bc4fd169a0ec93c637336447cfb"
+          },
+          "build/xcode-version.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/xcode-version.stdout.txt": {
+            "bytes": 32,
+            "sha256": "bb7fc9a8f5e063e81975b33054b3a526c91bcccff263ad11d5bd8bcdbe8f0973"
+          },
+          "helper-completion.json": {
+            "bytes": 3045,
+            "sha256": "ef60c19d5edd89a2e5b318f1536a68cf22cc718c5db222e1c57d51d5d47c99f8"
+          },
+          "helper-ready.json": {
+            "bytes": 2111,
+            "sha256": "013d592e807079d254ca3cebda1bb8989716a2626d2c1dd8c04d9b3ce5c8577f"
+          },
+          "helper.json": {
+            "bytes": 4268,
+            "sha256": "02bf2440fd4d7ee8ba98a87d8c29446f3fe18be9b08528f15026925d992ee8f3"
+          },
+          "helper.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "helper.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "input-preservation.json": {
+            "bytes": 127,
+            "sha256": "dd0260aeebd80125f620ad8343e7289280944f70b4f68648def53fe7ef33f3f4"
+          },
+          "inputs-after.json": {
+            "bytes": 10155,
+            "sha256": "78bf432d18a147f2ccb5cca5e86cf0db27606ae9fa73a7c527c2a1782414157a"
+          },
+          "inputs-before.json": {
+            "bytes": 10155,
+            "sha256": "78bf432d18a147f2ccb5cca5e86cf0db27606ae9fa73a7c527c2a1782414157a"
+          },
+          "observer-manual-ps.json": {
+            "bytes": 761,
+            "sha256": "a7e057286f30976c5dff0332d8a82f6dbcb13f02543b173b81bb29b6beb7671a"
+          },
+          "observer-manual-ps.normalized.txt": {
+            "bytes": 14656,
+            "sha256": "5f41da82e89607a1a302df2c2206085d947b919480323da6e56ffed55af2867e"
+          },
+          "observer-manual-ps.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "observer-manual-ps.stdout.txt": {
+            "bytes": 21557,
+            "sha256": "736b7fcbe577152cda17b992f06d4ff2c7e1a5caa5ffbfadf13936cab29e5204"
+          },
+          "observer-manual-sample.json": {
+            "bytes": 771,
+            "sha256": "83dad0644ddd98161e45c6e52aac28a3794b10a52e665d39e6334b5d412e8b8c"
+          },
+          "observer-manual-sample.normalized.txt": {
+            "bytes": 3724,
+            "sha256": "2f3f31c6a538583361e7aec18d3352fa77227ec1581d2debf269f40a80163dbf"
+          },
+          "observer-manual-sample.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "observer-manual-sample.stdout.txt": {
+            "bytes": 4485,
+            "sha256": "42f138d9d867958a2c4ee7cf6d89f111d16a0691990a3a7521bb84cd188656cd"
+          },
+          "observer-preflight.json": {
+            "bytes": 11402,
+            "sha256": "3ae82d50d549fcc6321e9cd2c72d266c86769dfde9b47906f6f978598851c88e"
+          },
+          "owned-groups.json": {
+            "bytes": 2512,
+            "sha256": "cf03a3f7df7c0546979e35db2d81dc5953e68e60cc61ffb3707b6e424c5c3a0b"
+          },
+          "owned-groups.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "owned-groups.stdout.txt": {
+            "bytes": 7888,
+            "sha256": "0f9abfbd780a00da3c35e21b7f821f0a11b04a1f42a44f5a67dac77cb7cf5406"
+          },
+          "primary-before.json": {
+            "bytes": 2835,
+            "sha256": "a2176b7c6fba38e60dbaf4b302f838d03c031413863ccec87541df5f7abed34e"
+          },
+          "primary-before.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "primary-before.stdout.txt": {
+            "bytes": 207,
+            "sha256": "1741569974cd1b7d9a6d8b23e6dcf56f7e2a1fdf561b6369a0778ae1b828a090"
+          },
+          "primary-sample.json": {
+            "bytes": 3304,
+            "sha256": "d69275e654b6f2f53fe23347fc5f0123d6c449489704fb47fb5456bda9b8aa35"
+          },
+          "primary-sample.stderr.txt": {
+            "bytes": 84,
+            "sha256": "1f21fb91268b05170edeaa91dd722d4c41ea91fba4df5783030ead89af160d50"
+          },
+          "primary-sample.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "record.json": {
+            "bytes": 3335,
+            "sha256": "c683c030d6f78183483c4fbaebee7c76fa1aa34f4528b98cc65341e4aa11e29d"
+          },
+          "record.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "record.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "recorder-before.json": {
+            "bytes": 2844,
+            "sha256": "d655519c602439cee2ace1b46f22896bfd9207d728950b8afbf1c8572e0c343f"
+          },
+          "recorder-before.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "recorder-before.stdout.txt": {
+            "bytes": 402,
+            "sha256": "d9a4268d6854a736270b3c0a5bbdb82d428c566fce37ae6da5efdd6a4245e5e1"
+          },
+          "recorder-progress-observation.json": {
+            "bytes": 63661,
+            "sha256": "318abb407f30b5a57414d9d6457a2afbe6f6afea3479695cfb403200c104a422"
+          },
+          "secondary-sample.json": {
+            "bytes": 3475,
+            "sha256": "fa76b780d8d3aea4ed128ee2d0e16451e9ddc7eb3dcca95b2b66e544ce9673cc"
+          },
+          "secondary-sample.stderr.txt": {
+            "bytes": 84,
+            "sha256": "b45a0d8dd72be75b77f948f71ea8956393fa52dfbb5413ad4e8dfd730d78475a"
+          },
+          "secondary-sample.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "sources/NATIVE_RECORDER_PROGRESS_OBSERVATION.md": {
+            "bytes": 11693,
+            "sha256": "acfc511747c4ecae7bb0bfcaf9632842453c3b97bf194a5c37c9350d3b9fd0b9"
+          },
+          "sources/NativeRecorderProgressNotify.c": {
+            "bytes": 32217,
+            "sha256": "0be62710b8242409a79e53c5a961a29d21dafb755f1129985156074749947260"
+          },
+          "sources/collect_native_trace_capabilities.py": {
+            "bytes": 12855,
+            "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+          },
+          "sources/native-recorder-progress-observation.yml": {
+            "bytes": 15186,
+            "sha256": "2b8939648cc1806731132728b3b8d650da9df20adc2179c442ebe9426646feab"
+          },
+          "sources/native_sampler_tool_identity.py": {
+            "bytes": 5168,
+            "sha256": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78"
+          },
+          "sources/privacy_check.py": {
+            "bytes": 18042,
+            "sha256": "3924cd779956cee1575489ae4f724d3bfd15ebbd8d166ae62cb17d3cf99294a6"
+          },
+          "sources/run_native_recorder_progress_observation.py": {
+            "bytes": 66947,
+            "sha256": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f"
+          },
+          "sources/run_native_recorder_startup_observation.py": {
+            "bytes": 31718,
+            "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7"
+          },
+          "sources/run_native_system_trace_startup.py": {
+            "bytes": 47898,
+            "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010"
+          },
+          "sources/test_collect_native_trace_capabilities.py": {
+            "bytes": 7343,
+            "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+          },
+          "sources/test_run_native_recorder_progress_observation.py": {
+            "bytes": 60266,
+            "sha256": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a"
+          },
+          "sources/test_run_native_recorder_startup_observation.py": {
+            "bytes": 30306,
+            "sha256": "a7615f8a62777b5e073e3b231d79931906385db36b28c6d1a14f9b2116b45bb7"
+          },
+          "sources/test_run_native_system_trace_startup.py": {
+            "bytes": 14595,
+            "sha256": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7"
+          }
+        },
+        "runtimeInputEntries": 16,
+        "sampleUUIDsMatchRetainedAppleDwarfdump": true,
+        "sourceCopies": {
+          "NATIVE_RECORDER_PROGRESS_OBSERVATION.md": {
+            "bytes": 11693,
+            "sha256": "acfc511747c4ecae7bb0bfcaf9632842453c3b97bf194a5c37c9350d3b9fd0b9"
+          },
+          "NativeRecorderProgressNotify.c": {
+            "bytes": 32217,
+            "sha256": "0be62710b8242409a79e53c5a961a29d21dafb755f1129985156074749947260"
+          },
+          "collect_native_trace_capabilities.py": {
+            "bytes": 12855,
+            "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+          },
+          "native-recorder-progress-observation.yml": {
+            "bytes": 15186,
+            "sha256": "2b8939648cc1806731132728b3b8d650da9df20adc2179c442ebe9426646feab"
+          },
+          "native_sampler_tool_identity.py": {
+            "bytes": 5168,
+            "sha256": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78"
+          },
+          "privacy_check.py": {
+            "bytes": 18042,
+            "sha256": "3924cd779956cee1575489ae4f724d3bfd15ebbd8d166ae62cb17d3cf99294a6"
+          },
+          "run_native_recorder_progress_observation.py": {
+            "bytes": 66947,
+            "sha256": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f"
+          },
+          "run_native_recorder_startup_observation.py": {
+            "bytes": 31718,
+            "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7"
+          },
+          "run_native_system_trace_startup.py": {
+            "bytes": 47898,
+            "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010"
+          },
+          "test_collect_native_trace_capabilities.py": {
+            "bytes": 7343,
+            "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+          },
+          "test_run_native_recorder_progress_observation.py": {
+            "bytes": 60266,
+            "sha256": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a"
+          },
+          "test_run_native_recorder_startup_observation.py": {
+            "bytes": 30306,
+            "sha256": "a7615f8a62777b5e073e3b231d79931906385db36b28c6d1a14f9b2116b45bb7"
+          },
+          "test_run_native_system_trace_startup.py": {
+            "bytes": 14595,
+            "sha256": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7"
+          }
+        },
+        "sourceCopiesMatchExactGitObjects": true,
+        "tests": {
+          "bounded-command": {
+            "passed": 6,
+            "stderr": {
+              "bytes": 104,
+              "sha256": "459798b9f6529963d8b7e38c3ba2a9e7873b8da852e8cf6925cf19d60d94417f"
+            }
+          },
+          "observer": {
+            "passed": 15,
+            "stderr": {
+              "bytes": 114,
+              "sha256": "9b590610c570eeb31d4af39767ac61151bb5f90415a87ed59e265789a033c6f9"
+            }
+          },
+          "progress": {
+            "passed": 50,
+            "stderr": {
+              "bytes": 150,
+              "sha256": "616a0cc2629114a15e7c4b5ddb772a2f65c95561675cfb4337824690dac26e15"
+            }
+          },
+          "transport": {
+            "passed": 10,
+            "stderr": {
+              "bytes": 109,
+              "sha256": "451b5d6c8b16c0717cc54662c16ef95cf80d2853395bdd06a34336455382f262"
+            }
+          }
+        },
+        "totalPassedTests": 81
+      },
+      "x86_64": {
+        "allCommandFilesBound": true,
+        "allInputSnapshotsReconstructed": true,
+        "archive": {
+          "bytes": 12948336,
+          "sha256": "5e80502e00e9da7cd857ab45b5324d637c4c09195dfe6e70b2d5569976e7b041"
+        },
+        "archiveUnchanged": true,
+        "artifactID": 13669502448,
+        "expandedBytes": 14067380,
+        "fileCount": 95,
+        "helperBuildAndReadyBindingsMatch": true,
+        "immutableInputEntries": 63,
+        "memberInventory": {
+          "build-provenance.json": {
+            "bytes": 4084,
+            "sha256": "ed3448547ba0c06c69f89c0463c9d91efdf67c698690a522e72b67e53dcabc1c"
+          },
+          "build/NativeRecorderProgressNotify": {
+            "bytes": 31360,
+            "sha256": "24d18c2a946ef882b0ebda46f7df91479a51c2b708206124a1ea4ff80affdd3c"
+          },
+          "build/NativeRecorderProgressNotify.dSYM/Contents/Info.plist": {
+            "bytes": 657,
+            "sha256": "7bfff56f4363417fede23028c4ef4526822b26dcc3b907d1159d3db9e9dd0fda"
+          },
+          "build/NativeRecorderProgressNotify.dSYM/Contents/Resources/DWARF/NativeRecorderProgressNotify": {
+            "bytes": 30652,
+            "sha256": "0138e2d07f7feb1b0e80bd707b21b17e7ea5ce35ea764ff6598817b771d6d6a5"
+          },
+          "build/NativeRecorderProgressNotify.dSYM/Contents/Resources/Relocations/x86_64/NativeRecorderProgressNotify.yml": {
+            "bytes": 185,
+            "sha256": "be51e282080604544897f885afdc0443bf2aa0d2247dcd2b1e8332c6de936ad2"
+          },
+          "build/bounded-command-tests.stderr.txt": {
+            "bytes": 104,
+            "sha256": "2b1e8e130bea22d3a2b2cf5258b03280eb75ebd738e91c6f53fc8682b5bf1796"
+          },
+          "build/bounded-command-tests.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/clang-version.json": {
+            "bytes": 409,
+            "sha256": "b4f64f20c70e13739602aeb86fb1d6d91a4f7c222feb10404ef30018bb793fa0"
+          },
+          "build/clang-version.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/clang-version.stdout.txt": {
+            "bytes": 206,
+            "sha256": "25b6f74e2a86f5cac5bb653246e008720e862cc709097d9faafc4622770abc88"
+          },
+          "build/compile.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/compile.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/experiment-commit.txt": {
+            "bytes": 41,
+            "sha256": "8cb613ea484dd56d7f166879e086414f69039c02b5171546b4ea2479f84423ad"
+          },
+          "build/experiment-tree.txt": {
+            "bytes": 41,
+            "sha256": "b3a0b8faf0f77a3935f3ef0a97b42cc11047cf5607f0e4019fb82e9c7f028d08"
+          },
+          "build/helper-architecture.json": {
+            "bytes": 505,
+            "sha256": "7016797b9c607dd49d22406bac111616c3fca4056d8323cd1cb225ff15ca9544"
+          },
+          "build/helper-architecture.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/helper-architecture.stdout.txt": {
+            "bytes": 7,
+            "sha256": "aaf631698ae5160ceb04a97681a14887fdcab47cd6e0f163c87485b3b1340b62"
+          },
+          "build/helper-uuid.json": {
+            "bytes": 514,
+            "sha256": "9d6cedc6a23467e8e949c81d5f18912dfd9c285a71c43e3f74889a76bf8e6e86"
+          },
+          "build/helper-uuid.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/helper-uuid.stdout.txt": {
+            "bytes": 151,
+            "sha256": "6cb4a9a030404706c71f9e6b8e2048516ee025a4ff6b3e90fc43d9769f3c6d16"
+          },
+          "build/installed-sample.macho": {
+            "bytes": 175056,
+            "sha256": "49eca4608cfeb6a0fcebcde9ef9ab5dc74cc841bac13ae6b668058c61e576e5c"
+          },
+          "build/kernel-version.json": {
+            "bytes": 412,
+            "sha256": "c157fc26942f354bc12147d8ea2cd37037b032335a7688a917a7bffb246c0b4f"
+          },
+          "build/kernel-version.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/kernel-version.stdout.txt": {
+            "bytes": 106,
+            "sha256": "24ffab3ffa929d41530d290182bff82b4531cfc4c50ad94425fc28d237faf8e3"
+          },
+          "build/observer-tests.stderr.txt": {
+            "bytes": 114,
+            "sha256": "8b6fab4a8315134b32e58050ed89afc45d571e9dcaf6ff53b8c5be338253bc28"
+          },
+          "build/observer-tests.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/os-version.json": {
+            "bytes": 379,
+            "sha256": "0cac753a0b18fea1d5ef1e0636b5bcdf5ee6858b80350ad01703295758996890"
+          },
+          "build/os-version.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/os-version.stdout.txt": {
+            "bytes": 66,
+            "sha256": "31fd674ddb951680692d7b68cafdeab5baa6b3e82aae843269dad73b53f25fc5"
+          },
+          "build/progress-tests.stderr.txt": {
+            "bytes": 150,
+            "sha256": "0cbc3b68f891e6d6478b917f98190d23cbc9f0bd296dd3afb69495dcd520b8aa"
+          },
+          "build/progress-tests.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/python-version.json": {
+            "bytes": 442,
+            "sha256": "30ddde94e74e0c6397d01493dc52539419f9309b661efcd89b5b9c401c792efc"
+          },
+          "build/python-version.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/python-version.stdout.txt": {
+            "bytes": 15,
+            "sha256": "322f765b04793d55160c8788550761630087e4847a77ed7a1090d79791f73c3b"
+          },
+          "build/sample-architecture.json": {
+            "bytes": 425,
+            "sha256": "15d26467fb55c5767ac224f92803ff25d4a952d30513c73fa94552a932ce4969"
+          },
+          "build/sample-architecture.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/sample-architecture.stdout.txt": {
+            "bytes": 14,
+            "sha256": "878bc05b0be49c93d641618864a19e01beaddf7852c53dd15cfc78b0ccdcee5d"
+          },
+          "build/sample-uuid.json": {
+            "bytes": 433,
+            "sha256": "1e215d2ca3a01a484e28b46945110e87e0cec6c904513be35c95c0a77b135cbe"
+          },
+          "build/sample-uuid.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/sample-uuid.stdout.txt": {
+            "bytes": 136,
+            "sha256": "c77e1a877750d0b5d33abc76f3aa78590622474446583bcdaa9d5d7ead3cc2d0"
+          },
+          "build/transport-tests.stderr.txt": {
+            "bytes": 109,
+            "sha256": "ee31baa27eb7462ff25db34bcb22a36f2d9493c67ae9d5d22dad8c88d9c318b4"
+          },
+          "build/transport-tests.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/xcode-version.json": {
+            "bytes": 397,
+            "sha256": "cbfbf5a982ce1a9142a2521ea7ba56b1935694596092cce5c5bd3a3152785c37"
+          },
+          "build/xcode-version.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/xcode-version.stdout.txt": {
+            "bytes": 32,
+            "sha256": "bb7fc9a8f5e063e81975b33054b3a526c91bcccff263ad11d5bd8bcdbe8f0973"
+          },
+          "helper-completion.json": {
+            "bytes": 3307,
+            "sha256": "23c9e41dafd83bf0efc51d4b170f5fdc7f8c0fd3bc819449732d3ae2e8a020d0"
+          },
+          "helper-ready.json": {
+            "bytes": 2146,
+            "sha256": "302974899adf9fbe379a86d4eaf2e172741db581194d1802a964006c922cddfe"
+          },
+          "helper.json": {
+            "bytes": 4269,
+            "sha256": "de7e260d45e32ea8de919ba3dd2b4905836ce3ac49d915ca345c881ede6576e9"
+          },
+          "helper.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "helper.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "input-preservation.json": {
+            "bytes": 127,
+            "sha256": "dd0260aeebd80125f620ad8343e7289280944f70b4f68648def53fe7ef33f3f4"
+          },
+          "inputs-after.json": {
+            "bytes": 10153,
+            "sha256": "ab59ce1c519ed3fa12c2b4ca01280e35b216e358d1d1b6b4c04d832060022c8e"
+          },
+          "inputs-before.json": {
+            "bytes": 10153,
+            "sha256": "ab59ce1c519ed3fa12c2b4ca01280e35b216e358d1d1b6b4c04d832060022c8e"
+          },
+          "observer-manual-ps.json": {
+            "bytes": 762,
+            "sha256": "a1791cd44fe338bfd6ff93a851f190b590b6b58f1dbf0f274aa252c5e7d2d673"
+          },
+          "observer-manual-ps.normalized.txt": {
+            "bytes": 14656,
+            "sha256": "beb6a20f41da7852a512b236b94e9285d847dfbb67411299941a317b51c718c8"
+          },
+          "observer-manual-ps.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "observer-manual-ps.stdout.txt": {
+            "bytes": 21557,
+            "sha256": "e9fafd92c1b709c723fe7e357c7cb272c453d9bab31a30532e3a260873043083"
+          },
+          "observer-manual-sample.json": {
+            "bytes": 771,
+            "sha256": "a69f0dd0200746893e6dea4280eff59b652fb6d2b450d2088c518c787ea3dca7"
+          },
+          "observer-manual-sample.normalized.txt": {
+            "bytes": 3724,
+            "sha256": "fb30fb77fd997beb3037b36946b5bee01acff6b10a80ea370c82816ecc901b27"
+          },
+          "observer-manual-sample.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "observer-manual-sample.stdout.txt": {
+            "bytes": 4485,
+            "sha256": "97b8e5a61847577b9eb3a82708b273881f1e008eeb0223c75a9b40e20f226940"
+          },
+          "observer-preflight.json": {
+            "bytes": 11403,
+            "sha256": "f62e6e1e01bf77697e076248fe27be7d873c69292c347ec278791717679a91d6"
+          },
+          "owned-groups.json": {
+            "bytes": 2512,
+            "sha256": "c6e9228a4ddb9d7d45a69e6e26975bc52eb958086e7296d904eae9995588f06f"
+          },
+          "owned-groups.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "owned-groups.stdout.txt": {
+            "bytes": 8296,
+            "sha256": "4888a2893c84dc44acb3ca9c696f99d2588f71eae6470905ceeea3cba178f6c3"
+          },
+          "primary-before.json": {
+            "bytes": 2841,
+            "sha256": "8b4a9d6fc2a355add4b883297b63e9a8a5781e1e9aa1cef8d19a2ad2b9c3f81d"
+          },
+          "primary-before.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "primary-before.stdout.txt": {
+            "bytes": 207,
+            "sha256": "cac5f17aec01b6e5af1fa789a852459b69973728265073674d246ae277d9ffde"
+          },
+          "primary-sample.json": {
+            "bytes": 3305,
+            "sha256": "647721600de27d71006d05e38fe6f6120897d416821c03418bab910b1b5c7f42"
+          },
+          "primary-sample.stderr.txt": {
+            "bytes": 84,
+            "sha256": "38912c379dad606f49ad8d062b25062ca81067eeadbec5eefc8c75405c7c0571"
+          },
+          "primary-sample.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "record.json": {
+            "bytes": 4548,
+            "sha256": "713ddab7b3912433eb7e2cf179f01e51e743c7f933071a2806583451340934a4"
+          },
+          "record.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "record.stdout.txt": {
+            "bytes": 146,
+            "sha256": "9dfe644af3d8b098a4910cf09c54348c0862a4452484093354b04c272ac653e2"
+          },
+          "recorder-before.json": {
+            "bytes": 2843,
+            "sha256": "e6a20c2d6b6676ab0c6c17b1d93b724486329f4f8a1eff4e148bfaad8e8ef949"
+          },
+          "recorder-before.stderr.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "recorder-before.stdout.txt": {
+            "bytes": 402,
+            "sha256": "cc64e4c99325bcde9cb80e730c51bae3ca0b6bb9f311531fad13c2e5bf001086"
+          },
+          "recorder-progress-observation.json": {
+            "bytes": 66603,
+            "sha256": "cf8d0d7e0b45397b4718a8e420211087867b28162796f7a36cafa2076003a42c"
+          },
+          "recording.trace.zip": {
+            "bytes": 13283084,
+            "sha256": "d4a6e955f18b79d99530ec92690fad043422cb4897c0fb303f3066150cfb4bde"
+          },
+          "secondary-sample.json": {
+            "bytes": 3476,
+            "sha256": "152c7466af642f2116f83f415e8c478773be15025d22a796fbb4f59ccee947a8"
+          },
+          "secondary-sample.stderr.txt": {
+            "bytes": 84,
+            "sha256": "955c4a40f723bbbefb0fe29d5b581c4f3e7a98860e5118b7b3d49f6d9a2f59c9"
+          },
+          "secondary-sample.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "sources/NATIVE_RECORDER_PROGRESS_OBSERVATION.md": {
+            "bytes": 11693,
+            "sha256": "acfc511747c4ecae7bb0bfcaf9632842453c3b97bf194a5c37c9350d3b9fd0b9"
+          },
+          "sources/NativeRecorderProgressNotify.c": {
+            "bytes": 32217,
+            "sha256": "0be62710b8242409a79e53c5a961a29d21dafb755f1129985156074749947260"
+          },
+          "sources/collect_native_trace_capabilities.py": {
+            "bytes": 12855,
+            "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+          },
+          "sources/native-recorder-progress-observation.yml": {
+            "bytes": 15186,
+            "sha256": "2b8939648cc1806731132728b3b8d650da9df20adc2179c442ebe9426646feab"
+          },
+          "sources/native_sampler_tool_identity.py": {
+            "bytes": 5168,
+            "sha256": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78"
+          },
+          "sources/privacy_check.py": {
+            "bytes": 18042,
+            "sha256": "3924cd779956cee1575489ae4f724d3bfd15ebbd8d166ae62cb17d3cf99294a6"
+          },
+          "sources/run_native_recorder_progress_observation.py": {
+            "bytes": 66947,
+            "sha256": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f"
+          },
+          "sources/run_native_recorder_startup_observation.py": {
+            "bytes": 31718,
+            "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7"
+          },
+          "sources/run_native_system_trace_startup.py": {
+            "bytes": 47898,
+            "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010"
+          },
+          "sources/test_collect_native_trace_capabilities.py": {
+            "bytes": 7343,
+            "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+          },
+          "sources/test_run_native_recorder_progress_observation.py": {
+            "bytes": 60266,
+            "sha256": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a"
+          },
+          "sources/test_run_native_recorder_startup_observation.py": {
+            "bytes": 30306,
+            "sha256": "a7615f8a62777b5e073e3b231d79931906385db36b28c6d1a14f9b2116b45bb7"
+          },
+          "sources/test_run_native_system_trace_startup.py": {
+            "bytes": 14595,
+            "sha256": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7"
+          }
+        },
+        "runtimeInputEntries": 16,
+        "sampleUUIDsMatchRetainedAppleDwarfdump": true,
+        "sourceCopies": {
+          "NATIVE_RECORDER_PROGRESS_OBSERVATION.md": {
+            "bytes": 11693,
+            "sha256": "acfc511747c4ecae7bb0bfcaf9632842453c3b97bf194a5c37c9350d3b9fd0b9"
+          },
+          "NativeRecorderProgressNotify.c": {
+            "bytes": 32217,
+            "sha256": "0be62710b8242409a79e53c5a961a29d21dafb755f1129985156074749947260"
+          },
+          "collect_native_trace_capabilities.py": {
+            "bytes": 12855,
+            "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+          },
+          "native-recorder-progress-observation.yml": {
+            "bytes": 15186,
+            "sha256": "2b8939648cc1806731132728b3b8d650da9df20adc2179c442ebe9426646feab"
+          },
+          "native_sampler_tool_identity.py": {
+            "bytes": 5168,
+            "sha256": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78"
+          },
+          "privacy_check.py": {
+            "bytes": 18042,
+            "sha256": "3924cd779956cee1575489ae4f724d3bfd15ebbd8d166ae62cb17d3cf99294a6"
+          },
+          "run_native_recorder_progress_observation.py": {
+            "bytes": 66947,
+            "sha256": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f"
+          },
+          "run_native_recorder_startup_observation.py": {
+            "bytes": 31718,
+            "sha256": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7"
+          },
+          "run_native_system_trace_startup.py": {
+            "bytes": 47898,
+            "sha256": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010"
+          },
+          "test_collect_native_trace_capabilities.py": {
+            "bytes": 7343,
+            "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+          },
+          "test_run_native_recorder_progress_observation.py": {
+            "bytes": 60266,
+            "sha256": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a"
+          },
+          "test_run_native_recorder_startup_observation.py": {
+            "bytes": 30306,
+            "sha256": "a7615f8a62777b5e073e3b231d79931906385db36b28c6d1a14f9b2116b45bb7"
+          },
+          "test_run_native_system_trace_startup.py": {
+            "bytes": 14595,
+            "sha256": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7"
+          }
+        },
+        "sourceCopiesMatchExactGitObjects": true,
+        "tests": {
+          "bounded-command": {
+            "passed": 6,
+            "stderr": {
+              "bytes": 104,
+              "sha256": "2b1e8e130bea22d3a2b2cf5258b03280eb75ebd738e91c6f53fc8682b5bf1796"
+            }
+          },
+          "observer": {
+            "passed": 15,
+            "stderr": {
+              "bytes": 114,
+              "sha256": "8b6fab4a8315134b32e58050ed89afc45d571e9dcaf6ff53b8c5be338253bc28"
+            }
+          },
+          "progress": {
+            "passed": 50,
+            "stderr": {
+              "bytes": 150,
+              "sha256": "0cbc3b68f891e6d6478b917f98190d23cbc9f0bd296dd3afb69495dcd520b8aa"
+            }
+          },
+          "transport": {
+            "passed": 10,
+            "stderr": {
+              "bytes": 109,
+              "sha256": "ee31baa27eb7462ff25db34bcb22a36f2d9493c67ae9d5d22dad8c88d9c318b4"
+            }
+          }
+        },
+        "totalPassedTests": 81
+      }
+    },
+    "archivedCodeExecuted": false,
+    "attempt": 1,
+    "kind": "D24-independent-input-bindings",
+    "nativeProgramsInvoked": false,
+    "runID": 42609635410,
+    "schema": 1,
+    "sourceCommit": "73464e30f278203cbd129025f1db814b6c549b2b",
+    "sourceTree": "0d0b8c476fb052cd7b3a5b7ac98d0c6977069bf5"
+  },
+  "limitations": [
+    "A completed diagnostic is not successful recorder completion or a qualified sampler stack.",
+    "Final no-live-group observations establish cleanup at their observation time; they do not retrospectively timestamp every descendant exit at the sampler deadline.",
+    "Parent-observed stream clocks are observation bounds, not exact internal tool event times. Native callback deltas use only the helper continuous-clock domain.",
+    "A Darwin notification callback does not authenticate its sender or establish a trace epoch.",
+    "Trace archive identity and bounded packaging do not establish semantic validity, recording completeness, exported tables, or application-route coverage.",
+    "No retained sampler report/stack identifies task acquisition, early symbol discovery, capture, report processing, or authorization as the cause.",
+    "The D24 notification-only helper differs from D21; these results do not establish D21 causality."
+  ],
+  "nativeReceiptOwnershipTimingAudit": {
+    "allChecksPassed": true,
+    "architectures": {
+      "arm64": {
+        "allChecksPassed": true,
+        "checkCount": 97,
+        "checks": [
+          {
+            "invariant": "Exact native diagnostic revision/architecture",
+            "passed": true
+          },
+          {
+            "invariant": "Native receipt common identity preserved",
+            "passed": true
+          },
+          {
+            "invariant": "Exact ready bytes bound by completion",
+            "passed": true
+          },
+          {
+            "invariant": "Native helper identity binds retained build and owned PID",
+            "passed": true
+          },
+          {
+            "invariant": "Notification name/registration retained exactly",
+            "passed": true
+          },
+          {
+            "invariant": "Declared native execution probe",
+            "passed": true
+          },
+          {
+            "invariant": "Helper never declares out-of-scope operations",
+            "passed": true
+          },
+          {
+            "invariant": "Native clock brackets and uptime arithmetic",
+            "passed": true
+          },
+          {
+            "invariant": "Native lifecycle clocks ordered",
+            "passed": true
+          },
+          {
+            "invariant": "Fixed native window completed and receipts agree with exit",
+            "passed": true
+          },
+          {
+            "invariant": "Notification registration cancelled and count snapshot clean",
+            "passed": true
+          },
+          {
+            "invariant": "Zero callback has no fabricated first token/clock",
+            "passed": true
+          },
+          {
+            "invariant": "Exactly one primary and one secondary invocation",
+            "passed": true
+          },
+          {
+            "invariant": "helper: raw command receipt matches summary",
+            "passed": true
+          },
+          {
+            "invariant": "helper: lease acquired, nonreaping exit seen, lease released without loss",
+            "passed": true
+          },
+          {
+            "invariant": "helper: operation/collection clocks ordered",
+            "passed": true
+          },
+          {
+            "invariant": "helper: direct child and streams completed within effective total budget",
+            "passed": true
+          },
+          {
+            "invariant": "helper: native wait status agrees with exit code",
+            "passed": true
+          },
+          {
+            "invariant": "helper: retained stdout identity",
+            "passed": true
+          },
+          {
+            "invariant": "helper: retained stderr identity",
+            "passed": true
+          },
+          {
+            "invariant": "helper: streams not truncated",
+            "passed": true
+          },
+          {
+            "invariant": "record: raw command receipt matches summary",
+            "passed": true
+          },
+          {
+            "invariant": "record: lease acquired, nonreaping exit seen, lease released without loss",
+            "passed": true
+          },
+          {
+            "invariant": "record: operation/collection clocks ordered",
+            "passed": true
+          },
+          {
+            "invariant": "record: direct child and streams completed within effective total budget",
+            "passed": true
+          },
+          {
+            "invariant": "record: native wait status agrees with exit code",
+            "passed": true
+          },
+          {
+            "invariant": "record: retained stdout identity",
+            "passed": true
+          },
+          {
+            "invariant": "record: retained stderr identity",
+            "passed": true
+          },
+          {
+            "invariant": "record: streams not truncated",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: raw command receipt matches summary",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: lease acquired, nonreaping exit seen, lease released without loss",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: operation/collection clocks ordered",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: direct child and streams completed within effective total budget",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: native wait status agrees with exit code",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: retained stdout identity",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: retained stderr identity",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: streams not truncated",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: raw command receipt matches summary",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: lease acquired, nonreaping exit seen, lease released without loss",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: operation/collection clocks ordered",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: direct child and streams completed within effective total budget",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: native wait status agrees with exit code",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: retained stdout identity",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: retained stderr identity",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: streams not truncated",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: raw command receipt matches summary",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: lease acquired, nonreaping exit seen, lease released without loss",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: operation/collection clocks ordered",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: direct child and streams completed within effective total budget",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: native wait status agrees with exit code",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: retained stdout identity",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: retained stderr identity",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: streams not truncated",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: raw command receipt matches summary",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: lease acquired, nonreaping exit seen, lease released without loss",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: operation/collection clocks ordered",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: direct child and streams completed within effective total budget",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: native wait status agrees with exit code",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: retained stdout identity",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: retained stderr identity",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: streams not truncated",
+            "passed": true
+          },
+          {
+            "invariant": "owned-groups: raw command receipt matches summary",
+            "passed": true
+          },
+          {
+            "invariant": "owned-groups: lease acquired, nonreaping exit seen, lease released without loss",
+            "passed": true
+          },
+          {
+            "invariant": "owned-groups: operation/collection clocks ordered",
+            "passed": true
+          },
+          {
+            "invariant": "owned-groups: direct child and streams completed within effective total budget",
+            "passed": true
+          },
+          {
+            "invariant": "owned-groups: native wait status agrees with exit code",
+            "passed": true
+          },
+          {
+            "invariant": "owned-groups: retained stdout identity",
+            "passed": true
+          },
+          {
+            "invariant": "owned-groups: retained stderr identity",
+            "passed": true
+          },
+          {
+            "invariant": "owned-groups: streams not truncated",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: exact live owned PID/parent/group/uid in raw ps",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: target stayed unreaped/live through snapshot",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: exact live owned PID/parent/group/uid in raw ps",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: target stayed unreaped/live through snapshot",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: fixed sampling argv targets held lease",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: only complete expected 84-byte banner retained",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: observer finished and collected before target collection",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: fixed sampling argv targets held lease",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: only complete expected 84-byte banner retained",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: observer finished and collected before target collection",
+            "passed": true
+          },
+          {
+            "invariant": "Primary full normal budget retained; stop observed within total bound",
+            "passed": true
+          },
+          {
+            "invariant": "Secondary effective budget remains clamped to primary",
+            "passed": true
+          },
+          {
+            "invariant": "Both observations finished before parent cutoff",
+            "passed": true
+          },
+          {
+            "invariant": "Banner/metadata/secondary ordering is causal",
+            "passed": true
+          },
+          {
+            "invariant": "Helper completion triggers recorder interrupt",
+            "passed": true
+          },
+          {
+            "invariant": "Raw group inventory has unambiguous PID rows",
+            "passed": true
+          },
+          {
+            "invariant": "helper: final group witness is only unreaped zombie leader",
+            "passed": true
+          },
+          {
+            "invariant": "record: final group witness is only unreaped zombie leader",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: final group witness is only unreaped zombie leader",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: final group witness is only unreaped zombie leader",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: cleanup-only EPERM resolution supported",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: final group witness is only unreaped zombie leader",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: final group witness is only unreaped zombie leader",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: cleanup-only EPERM resolution supported",
+            "passed": true
+          },
+          {
+            "invariant": "No lost-lease or outstanding stream/group cleanup in receipts",
+            "passed": true
+          },
+          {
+            "invariant": "No stack/after-metadata claim without reports",
+            "passed": true
+          },
+          {
+            "invariant": "No trace archive falsely declared",
+            "passed": true
+          },
+          {
+            "invariant": "HOLD and no product coverage claims preserved",
+            "passed": true
+          }
+        ],
+        "commands": {
+          "helper": {
+            "effectiveTotalBudgetSeconds": 17.0,
+            "exitCode": 0,
+            "normalDeadlineOvershootSeconds": null,
+            "operationSeconds": 15.027118250000001,
+            "ownershipSeconds": 15.129548540999991,
+            "pid": 2104,
+            "signalErrors": [],
+            "signals": [],
+            "streamBytes": {
+              "stderr": 0,
+              "stdout": 0
+            },
+            "waitidCode": 1,
+            "waitidStatus": 0
+          },
+          "owned-groups": {
+            "effectiveTotalBudgetSeconds": 2.0,
+            "exitCode": 0,
+            "normalDeadlineOvershootSeconds": null,
+            "operationSeconds": 0.05613908300000503,
+            "ownershipSeconds": 0.35931608300001017,
+            "pid": 2225,
+            "signalErrors": [],
+            "signals": [],
+            "streamBytes": {
+              "stderr": 0,
+              "stdout": 7888
+            },
+            "waitidCode": 1,
+            "waitidStatus": 0
+          },
+          "primary-before": {
+            "effectiveTotalBudgetSeconds": 1.0,
+            "exitCode": 0,
+            "normalDeadlineOvershootSeconds": null,
+            "operationSeconds": 0.0890939579999781,
+            "ownershipSeconds": 11.763688915999978,
+            "pid": 2127,
+            "signalErrors": [],
+            "signals": [],
+            "streamBytes": {
+              "stderr": 0,
+              "stdout": 207
+            },
+            "waitidCode": 1,
+            "waitidStatus": 0
+          },
+          "primary-sample": {
+            "effectiveTotalBudgetSeconds": 4.0,
+            "exitCode": -15,
+            "normalDeadlineOvershootSeconds": 0.028398792000018602,
+            "operationSeconds": 3.7854312500000162,
+            "ownershipSeconds": 12.107427125000015,
+            "pid": 2121,
+            "signalErrors": [
+              {
+                "errno": 1,
+                "signal": "SIGKILL",
+                "target": "owned-group"
+              }
+            ],
+            "signals": [
+              {
+                "afterSeconds": 3.529331959000018,
+                "signal": "SIGTERM",
+                "target": "owned-group"
+              }
+            ],
+            "streamBytes": {
+              "stderr": 84,
+              "stdout": 0
+            },
+            "waitidCode": 2,
+            "waitidStatus": 15
+          },
+          "record": {
+            "effectiveTotalBudgetSeconds": 45.0,
+            "exitCode": -2,
+            "normalDeadlineOvershootSeconds": null,
+            "operationSeconds": 15.023669374999997,
+            "ownershipSeconds": 15.111654041000008,
+            "pid": 2105,
+            "signalErrors": [],
+            "signals": [
+              {
+                "afterSeconds": 15.004796207999988,
+                "signal": "SIGINT",
+                "target": "owned-process"
+              }
+            ],
+            "streamBytes": {
+              "stderr": 0,
+              "stdout": 0
+            },
+            "waitidCode": 2,
+            "waitidStatus": 2
+          },
+          "recorder-before": {
+            "effectiveTotalBudgetSeconds": 1.0,
+            "exitCode": 0,
+            "normalDeadlineOvershootSeconds": null,
+            "operationSeconds": 0.044519625000020824,
+            "ownershipSeconds": 12.117086208000018,
+            "pid": 2119,
+            "signalErrors": [],
+            "signals": [],
+            "streamBytes": {
+              "stderr": 0,
+              "stdout": 402
+            },
+            "waitidCode": 1,
+            "waitidStatus": 0
+          },
+          "secondary-sample": {
+            "effectiveTotalBudgetSeconds": 3.410945374999983,
+            "exitCode": -15,
+            "normalDeadlineOvershootSeconds": 0.018374417000018184,
+            "operationSeconds": 3.196440874999979,
+            "ownershipSeconds": 11.724926041999993,
+            "pid": 2128,
+            "signalErrors": [
+              {
+                "errno": 1,
+                "signal": "SIGKILL",
+                "target": "owned-group"
+              }
+            ],
+            "signals": [
+              {
+                "afterSeconds": 2.93911483399998,
+                "signal": "SIGTERM",
+                "target": "owned-group"
+              }
+            ],
+            "streamBytes": {
+              "stderr": 84,
+              "stdout": 0
+            },
+            "waitidCode": 2,
+            "waitidStatus": 15
+          }
+        },
+        "completionSHA256": "ef60c19d5edd89a2e5b318f1536a68cf22cc718c5db222e1c57d51d5d47c99f8",
+        "finalGroupWitness": {
+          "helper": [
+            {
+              "pgid": 2104,
+              "pid": 2104,
+              "state": "Z<"
+            }
+          ],
+          "primary-before": [
+            {
+              "pgid": 2127,
+              "pid": 2127,
+              "state": "Z<"
+            }
+          ],
+          "primary-sample": [
+            {
+              "pgid": 2121,
+              "pid": 2121,
+              "state": "Z<"
+            }
+          ],
+          "record": [
+            {
+              "pgid": 2105,
+              "pid": 2105,
+              "state": "Z<"
+            }
+          ],
+          "recorder-before": [
+            {
+              "pgid": 2119,
+              "pid": 2119,
+              "state": "Z<"
+            }
+          ],
+          "secondary-sample": [
+            {
+              "pgid": 2128,
+              "pid": 2128,
+              "state": "Z<"
+            }
+          ]
+        },
+        "helper": {
+          "counterDoesNotAuthenticateSender": true,
+          "firstCallbackAfterNativeStartSeconds": null,
+          "nativeElapsedSeconds": 15.015726999999998,
+          "notificationClosedAfterNativeStartSeconds": 15.015466208333331,
+          "parentPID": 2062,
+          "pid": 2104,
+          "receivedCount": 0
+        },
+        "interpretation": {
+          "diagnosticTransportCompleted": true,
+          "phaseCauseIdentified": false,
+          "qualifiedSamplerStack": false,
+          "recorderExitObservedAfterSeconds": 15.023659916000014,
+          "recorderExitSignal": 2,
+          "recordingCompletedSuccessfully": false
+        },
+        "readySHA256": "013d592e807079d254ca3cebda1bb8989716a2626d2c1dd8c04d9b3ce5c8577f",
+        "recorderStdoutProgress": [],
+        "summarySHA256": "318abb407f30b5a57414d9d6457a2afbe6f6afea3479695cfb403200c104a422",
+        "trace": {
+          "semanticTraceValidationPerformed": false,
+          "status": "unavailable"
+        }
+      },
+      "x86_64": {
+        "allChecksPassed": true,
+        "checkCount": 98,
+        "checks": [
+          {
+            "invariant": "Exact native diagnostic revision/architecture",
+            "passed": true
+          },
+          {
+            "invariant": "Native receipt common identity preserved",
+            "passed": true
+          },
+          {
+            "invariant": "Exact ready bytes bound by completion",
+            "passed": true
+          },
+          {
+            "invariant": "Native helper identity binds retained build and owned PID",
+            "passed": true
+          },
+          {
+            "invariant": "Notification name/registration retained exactly",
+            "passed": true
+          },
+          {
+            "invariant": "Declared native execution probe",
+            "passed": true
+          },
+          {
+            "invariant": "Helper never declares out-of-scope operations",
+            "passed": true
+          },
+          {
+            "invariant": "Native clock brackets and uptime arithmetic",
+            "passed": true
+          },
+          {
+            "invariant": "Native lifecycle clocks ordered",
+            "passed": true
+          },
+          {
+            "invariant": "Fixed native window completed and receipts agree with exit",
+            "passed": true
+          },
+          {
+            "invariant": "Notification registration cancelled and count snapshot clean",
+            "passed": true
+          },
+          {
+            "invariant": "First callback token and native interval qualified",
+            "passed": true
+          },
+          {
+            "invariant": "Exactly one primary and one secondary invocation",
+            "passed": true
+          },
+          {
+            "invariant": "helper: raw command receipt matches summary",
+            "passed": true
+          },
+          {
+            "invariant": "helper: lease acquired, nonreaping exit seen, lease released without loss",
+            "passed": true
+          },
+          {
+            "invariant": "helper: operation/collection clocks ordered",
+            "passed": true
+          },
+          {
+            "invariant": "helper: direct child and streams completed within effective total budget",
+            "passed": true
+          },
+          {
+            "invariant": "helper: native wait status agrees with exit code",
+            "passed": true
+          },
+          {
+            "invariant": "helper: retained stdout identity",
+            "passed": true
+          },
+          {
+            "invariant": "helper: retained stderr identity",
+            "passed": true
+          },
+          {
+            "invariant": "helper: streams not truncated",
+            "passed": true
+          },
+          {
+            "invariant": "record: raw command receipt matches summary",
+            "passed": true
+          },
+          {
+            "invariant": "record: lease acquired, nonreaping exit seen, lease released without loss",
+            "passed": true
+          },
+          {
+            "invariant": "record: operation/collection clocks ordered",
+            "passed": true
+          },
+          {
+            "invariant": "record: direct child and streams completed within effective total budget",
+            "passed": true
+          },
+          {
+            "invariant": "record: native wait status agrees with exit code",
+            "passed": true
+          },
+          {
+            "invariant": "record: retained stdout identity",
+            "passed": true
+          },
+          {
+            "invariant": "record: retained stderr identity",
+            "passed": true
+          },
+          {
+            "invariant": "record: streams not truncated",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: raw command receipt matches summary",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: lease acquired, nonreaping exit seen, lease released without loss",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: operation/collection clocks ordered",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: direct child and streams completed within effective total budget",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: native wait status agrees with exit code",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: retained stdout identity",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: retained stderr identity",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: streams not truncated",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: raw command receipt matches summary",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: lease acquired, nonreaping exit seen, lease released without loss",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: operation/collection clocks ordered",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: direct child and streams completed within effective total budget",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: native wait status agrees with exit code",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: retained stdout identity",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: retained stderr identity",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: streams not truncated",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: raw command receipt matches summary",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: lease acquired, nonreaping exit seen, lease released without loss",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: operation/collection clocks ordered",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: direct child and streams completed within effective total budget",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: native wait status agrees with exit code",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: retained stdout identity",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: retained stderr identity",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: streams not truncated",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: raw command receipt matches summary",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: lease acquired, nonreaping exit seen, lease released without loss",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: operation/collection clocks ordered",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: direct child and streams completed within effective total budget",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: native wait status agrees with exit code",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: retained stdout identity",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: retained stderr identity",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: streams not truncated",
+            "passed": true
+          },
+          {
+            "invariant": "owned-groups: raw command receipt matches summary",
+            "passed": true
+          },
+          {
+            "invariant": "owned-groups: lease acquired, nonreaping exit seen, lease released without loss",
+            "passed": true
+          },
+          {
+            "invariant": "owned-groups: operation/collection clocks ordered",
+            "passed": true
+          },
+          {
+            "invariant": "owned-groups: direct child and streams completed within effective total budget",
+            "passed": true
+          },
+          {
+            "invariant": "owned-groups: native wait status agrees with exit code",
+            "passed": true
+          },
+          {
+            "invariant": "owned-groups: retained stdout identity",
+            "passed": true
+          },
+          {
+            "invariant": "owned-groups: retained stderr identity",
+            "passed": true
+          },
+          {
+            "invariant": "owned-groups: streams not truncated",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: exact live owned PID/parent/group/uid in raw ps",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: target stayed unreaped/live through snapshot",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: exact live owned PID/parent/group/uid in raw ps",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: target stayed unreaped/live through snapshot",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: fixed sampling argv targets held lease",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: only complete expected 84-byte banner retained",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: observer finished and collected before target collection",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: fixed sampling argv targets held lease",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: only complete expected 84-byte banner retained",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: observer finished and collected before target collection",
+            "passed": true
+          },
+          {
+            "invariant": "Primary full normal budget retained; stop observed within total bound",
+            "passed": true
+          },
+          {
+            "invariant": "Secondary effective budget remains clamped to primary",
+            "passed": true
+          },
+          {
+            "invariant": "Both observations finished before parent cutoff",
+            "passed": true
+          },
+          {
+            "invariant": "Banner/metadata/secondary ordering is causal",
+            "passed": true
+          },
+          {
+            "invariant": "Helper completion triggers recorder interrupt",
+            "passed": true
+          },
+          {
+            "invariant": "Raw group inventory has unambiguous PID rows",
+            "passed": true
+          },
+          {
+            "invariant": "helper: final group witness is only unreaped zombie leader",
+            "passed": true
+          },
+          {
+            "invariant": "record: final group witness is only unreaped zombie leader",
+            "passed": true
+          },
+          {
+            "invariant": "record: cleanup-only EPERM resolution supported",
+            "passed": true
+          },
+          {
+            "invariant": "recorder-before: final group witness is only unreaped zombie leader",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: final group witness is only unreaped zombie leader",
+            "passed": true
+          },
+          {
+            "invariant": "primary-sample: cleanup-only EPERM resolution supported",
+            "passed": true
+          },
+          {
+            "invariant": "primary-before: final group witness is only unreaped zombie leader",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: final group witness is only unreaped zombie leader",
+            "passed": true
+          },
+          {
+            "invariant": "secondary-sample: cleanup-only EPERM resolution supported",
+            "passed": true
+          },
+          {
+            "invariant": "No lost-lease or outstanding stream/group cleanup in receipts",
+            "passed": true
+          },
+          {
+            "invariant": "No stack/after-metadata claim without reports",
+            "passed": true
+          },
+          {
+            "invariant": "Trace archive receipt matches retained bytes",
+            "passed": true
+          },
+          {
+            "invariant": "HOLD and no product coverage claims preserved",
+            "passed": true
+          }
+        ],
+        "commands": {
+          "helper": {
+            "effectiveTotalBudgetSeconds": 17.0,
+            "exitCode": 0,
+            "normalDeadlineOvershootSeconds": null,
+            "operationSeconds": 15.053124948999994,
+            "ownershipSeconds": 27.12902545099999,
+            "pid": 2039,
+            "signalErrors": [],
+            "signals": [],
+            "streamBytes": {
+              "stderr": 0,
+              "stdout": 0
+            },
+            "waitidCode": 1,
+            "waitidStatus": 0
+          },
+          "owned-groups": {
+            "effectiveTotalBudgetSeconds": 2.0,
+            "exitCode": 0,
+            "normalDeadlineOvershootSeconds": null,
+            "operationSeconds": 0.04171425299998077,
+            "ownershipSeconds": 0.1704406109999752,
+            "pid": 2981,
+            "signalErrors": [],
+            "signals": [],
+            "streamBytes": {
+              "stderr": 0,
+              "stdout": 8296
+            },
+            "waitidCode": 1,
+            "waitidStatus": 0
+          },
+          "primary-before": {
+            "effectiveTotalBudgetSeconds": 1.0,
+            "exitCode": 0,
+            "normalDeadlineOvershootSeconds": null,
+            "operationSeconds": 0.027590404000022772,
+            "ownershipSeconds": 23.79129432800002,
+            "pid": 2148,
+            "signalErrors": [],
+            "signals": [],
+            "streamBytes": {
+              "stderr": 0,
+              "stdout": 207
+            },
+            "waitidCode": 1,
+            "waitidStatus": 0
+          },
+          "primary-sample": {
+            "effectiveTotalBudgetSeconds": 4.0,
+            "exitCode": -15,
+            "normalDeadlineOvershootSeconds": 0.005057174999990366,
+            "operationSeconds": 3.7669499079999866,
+            "ownershipSeconds": 24.103179249999982,
+            "pid": 2147,
+            "signalErrors": [
+              {
+                "errno": 1,
+                "signal": "SIGKILL",
+                "target": "owned-group"
+              }
+            ],
+            "signals": [
+              {
+                "afterSeconds": 3.5083900949999816,
+                "signal": "SIGTERM",
+                "target": "owned-group"
+              }
+            ],
+            "streamBytes": {
+              "stderr": 84,
+              "stdout": 0
+            },
+            "waitidCode": 2,
+            "waitidStatus": 15
+          },
+          "record": {
+            "effectiveTotalBudgetSeconds": 45.0,
+            "exitCode": -11,
+            "normalDeadlineOvershootSeconds": 0.0,
+            "operationSeconds": 27.060266813,
+            "ownershipSeconds": 27.145746597,
+            "pid": 2040,
+            "signalErrors": [
+              {
+                "errno": 1,
+                "signal": "SIGKILL",
+                "target": "owned-group"
+              }
+            ],
+            "signals": [
+              {
+                "afterSeconds": 15.043193694999985,
+                "signal": "SIGINT",
+                "target": "owned-process"
+              },
+              {
+                "afterSeconds": 25.059165770999982,
+                "signal": "SIGTERM",
+                "target": "owned-group"
+              }
+            ],
+            "streamBytes": {
+              "stderr": 0,
+              "stdout": 146
+            },
+            "waitidCode": 2,
+            "waitidStatus": 11
+          },
+          "recorder-before": {
+            "effectiveTotalBudgetSeconds": 1.0,
+            "exitCode": 0,
+            "normalDeadlineOvershootSeconds": null,
+            "operationSeconds": 0.042993497999987085,
+            "ownershipSeconds": 24.145747935999992,
+            "pid": 2146,
+            "signalErrors": [],
+            "signals": [],
+            "streamBytes": {
+              "stderr": 0,
+              "stdout": 402
+            },
+            "waitidCode": 1,
+            "waitidStatus": 0
+          },
+          "secondary-sample": {
+            "effectiveTotalBudgetSeconds": 3.6198705589999918,
+            "exitCode": -15,
+            "normalDeadlineOvershootSeconds": 0.0029121519999932843,
+            "operationSeconds": 3.37311606199998,
+            "ownershipSeconds": 23.803936960999977,
+            "pid": 2149,
+            "signalErrors": [
+              {
+                "errno": 1,
+                "signal": "SIGKILL",
+                "target": "owned-group"
+              }
+            ],
+            "signals": [
+              {
+                "afterSeconds": 3.1229030889999763,
+                "signal": "SIGTERM",
+                "target": "owned-group"
+              }
+            ],
+            "streamBytes": {
+              "stderr": 84,
+              "stdout": 0
+            },
+            "waitidCode": 2,
+            "waitidStatus": 15
+          }
+        },
+        "completionSHA256": "23c9e41dafd83bf0efc51d4b170f5fdc7f8c0fd3bc819449732d3ae2e8a020d0",
+        "finalGroupWitness": {
+          "helper": [
+            {
+              "pgid": 2039,
+              "pid": 2039,
+              "state": "Z<"
+            }
+          ],
+          "primary-before": [
+            {
+              "pgid": 2148,
+              "pid": 2148,
+              "state": "Z<"
+            }
+          ],
+          "primary-sample": [
+            {
+              "pgid": 2147,
+              "pid": 2147,
+              "state": "Z<"
+            }
+          ],
+          "record": [
+            {
+              "pgid": 2040,
+              "pid": 2040,
+              "state": "Z<"
+            }
+          ],
+          "recorder-before": [
+            {
+              "pgid": 2146,
+              "pid": 2146,
+              "state": "Z<"
+            }
+          ],
+          "secondary-sample": [
+            {
+              "pgid": 2149,
+              "pid": 2149,
+              "state": "Z<"
+            }
+          ]
+        },
+        "helper": {
+          "counterDoesNotAuthenticateSender": true,
+          "firstCallbackAfterNativeStartSeconds": 14.109751739,
+          "nativeElapsedSeconds": 15.001778552000001,
+          "notificationClosedAfterNativeStartSeconds": 15.001408808,
+          "parentPID": 1994,
+          "pid": 2039,
+          "receivedCount": 1
+        },
+        "interpretation": {
+          "diagnosticTransportCompleted": true,
+          "phaseCauseIdentified": false,
+          "qualifiedSamplerStack": false,
+          "recorderExitObservedAfterSeconds": 25.18895659499998,
+          "recorderExitSignal": 11,
+          "recordingCompletedSuccessfully": false
+        },
+        "readySHA256": "302974899adf9fbe379a86d4eaf2e172741db581194d1802a964006c922cddfe",
+        "recorderStdoutProgress": [
+          {
+            "newStdoutText": "Starting recording with the System Trace template. Targeting All Processes. Time limit: 30.0 s\n",
+            "parentObservedSecondsAfterRecorderStartInterval": [
+              11.308487709,
+              11.310647169
+            ]
+          },
+          {
+            "newStdoutText": "Ctrl-C to stop the recording\n",
+            "parentObservedSecondsAfterRecorderStartInterval": [
+              14.120461796,
+              14.122621425
+            ]
+          },
+          {
+            "newStdoutText": "Stopping recording...\n",
+            "parentObservedSecondsAfterRecorderStartInterval": [
+              15.220145421,
+              15.222305069
+            ]
+          }
+        ],
+        "summarySHA256": "cf8d0d7e0b45397b4718a8e420211087867b28162796f7a36cafa2076003a42c",
+        "trace": {
+          "bytes": 13283084,
+          "crcIndependentlyRechecked": false,
+          "entries": [
+            {
+              "bytes": 0,
+              "directory": true,
+              "path": "recording.trace/"
+            },
+            {
+              "bytes": 0,
+              "directory": true,
+              "path": "recording.trace/Trace1.run/"
+            },
+            {
+              "bytes": 0,
+              "directory": true,
+              "path": "recording.trace/Trace1.run/Attachments/"
+            },
+            {
+              "bytes": 115782056,
+              "directory": false,
+              "path": "recording.trace/Trace1.run/Attachments/trace-data.atrc"
+            },
+            {
+              "bytes": 53248,
+              "directory": false,
+              "path": "recording.trace/Trace1.run/RunIssues.storedata"
+            }
+          ],
+          "semanticTraceValidationPerformed": false,
+          "sha256": "d4a6e955f18b79d99530ec92690fad043422cb4897c0fb303f3066150cfb4bde",
+          "status": "packaged",
+          "successfulRecordingCompletionEstablished": false
+        }
+      }
+    },
+    "audit": "D24-R2-independent-native-receipt-lease-timing-cleanup",
+    "createdUTC": "2026-11-09T11:41:00.728333+00:00",
+    "experimentCommit": "73464e30f278203cbd129025f1db814b6c549b2b",
+    "experimentTree": "0d0b8c476fb052cd7b3a5b7ac98d0c6977069bf5",
+    "limits": [
+      "A completed diagnostic is not successful recorder completion or a qualified sampler stack.",
+      "Final no-live-group observations establish cleanup at their observation time; they do not retrospectively timestamp every descendant exit at the sampler deadline.",
+      "Parent-observed stream clocks are observation bounds, not exact internal tool event times. Native callback deltas use only the helper continuous-clock domain.",
+      "A Darwin notification callback does not authenticate its sender or establish a trace epoch.",
+      "Trace archive identity and bounded packaging do not establish semantic validity, recording completeness, exported tables, or application-route coverage.",
+      "No retained sampler report/stack identifies task acquisition, early symbol discovery, capture, report processing, or authorization as the cause.",
+      "The D24 notification-only helper differs from D21; these results do not establish D21 causality."
+    ],
+    "method": {
+      "archivedCodeImported": false,
+      "basis": "Raw JSON/stream bytes and retained native helper source read as data; no archived module imports.",
+      "nativeExecutableInvoked": false,
+      "repositoryEdited": false
+    },
+    "runID": 42609635410,
+    "schema": 1
+  },
+  "portableTests": {
+    "command": [
+      "python3",
+      "script/test_run_native_recorder_progress_observation.py",
+      "-v"
+    ],
+    "diagnostic": "D24-R2-portable-tests",
+    "elapsedSeconds": 35.30630085600205,
+    "evidenceKind": "synthetic-portable-test",
+    "exitCode": 0,
+    "files": {
+      "stderr": {
+        "bytes": 8716,
+        "sha256": "93101a46292718fd2c216fcf3c407abdd164139572ba3bc66d8cd92f94b3ada4"
+      },
+      "stdout": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "platform": {
+      "machine": "x86_64",
+      "release": "6.18.57",
+      "system": "Linux"
+    },
+    "privateAbsolutePathsOmitted": true,
+    "runtimeVersion": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+    "schema": 1,
+    "sourceHashesUnchanged": true,
+    "sourceSHA256": {
+      "script/native_sampler_tool_identity.py": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78",
+      "script/native_ui/NativeRecorderProgressNotify.c": "0be62710b8242409a79e53c5a961a29d21dafb755f1129985156074749947260",
+      "script/run_native_recorder_progress_observation.py": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f",
+      "script/test_run_native_recorder_progress_observation.py": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a"
+    },
+    "sourcesAfterSHA256": {
+      "script/native_sampler_tool_identity.py": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78",
+      "script/native_ui/NativeRecorderProgressNotify.c": "0be62710b8242409a79e53c5a961a29d21dafb755f1129985156074749947260",
+      "script/run_native_recorder_progress_observation.py": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f",
+      "script/test_run_native_recorder_progress_observation.py": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a"
+    },
+    "testCount": 50,
+    "unittestElapsedSeconds": 35.216,
+    "utcEnd": "2026-11-09T11:29:44.347279+00:00",
+    "utcStart": "2026-11-09T11:29:09.041630+00:00"
+  },
+  "preExecutionCorrection": {
+    "change": "Canonicalize the synthetic fixture temporary root before helper/provenance paths are derived; add a symbolic-link-parent regression.",
+    "changedCode": "script/test_run_native_recorder_progress_observation.py",
+    "correctedTestSourceSHA256": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a",
+    "nativeMeasurementsInFailedRun": 0,
+    "originalTestSourceSHA256": "1e14295d522a6294a6a0dc7192b9e59d045d9946c91d1794b0030fdccd70243e",
+    "runtimeHelperWorkflowChangedByCorrection": false
+  },
+  "preExecutionFailure": {
+    "architectures": {
+      "arm64": {
+        "archiveBytes": 3257,
+        "archiveSHA256": "d308baf2c07968f972f60a4a0ed3fce6ab24981f35d7b01cfd4bfa879f668d6b",
+        "artifactID": 13668673595,
+        "inventory": {
+          "build/bounded-command-tests.stderr.txt": {
+            "bytes": 104,
+            "sha256": "afce98e9add2e5a4cf78d63c887ba2f553c8082533fee6d0d6c29498071d7484"
+          },
+          "build/bounded-command-tests.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/experiment-commit.txt": {
+            "bytes": 41,
+            "sha256": "b66be566048aa087bfc0512dcc268b231de931680e8d781716be850682ac1ecd"
+          },
+          "build/experiment-tree.txt": {
+            "bytes": 41,
+            "sha256": "a2b582bc0a707dedb32b8eef4b43806ba3c6ef57fd638784a0cf63ce699b4850"
+          },
+          "build/observer-tests.stderr.txt": {
+            "bytes": 114,
+            "sha256": "6dd92c18a325b15f2f8a6131a1e7198c6d25b7e99fd3f5b2bc679e8ad0ad2088"
+          },
+          "build/observer-tests.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/progress-tests.stderr.txt": {
+            "bytes": 12889,
+            "sha256": "47c7d81170d6e360aceab9c34181c94ba8e789ac4ee57b947ba071619d6d6598"
+          },
+          "build/progress-tests.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/transport-tests.stderr.txt": {
+            "bytes": 109,
+            "sha256": "66631cf2e7d55d9e6ad2be28e7498ac6dee95735a1a76c72f72d8fcd4e20e994"
+          },
+          "build/transport-tests.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "tests": {
+          "bounded-command": {
+            "passed": 6
+          },
+          "observer": {
+            "passed": 15
+          },
+          "progress": {
+            "complete": false,
+            "errors": 1,
+            "failures": 15,
+            "run": 49
+          },
+          "transport": {
+            "passed": 10
+          }
+        }
+      },
+      "x86_64": {
+        "archiveBytes": 3257,
+        "archiveSHA256": "d3b33674a0a7a8e1a89de629465f68befe27a06b33676b86db1876e8a7d05b33",
+        "artifactID": 13669421626,
+        "inventory": {
+          "build/bounded-command-tests.stderr.txt": {
+            "bytes": 104,
+            "sha256": "6566ec341b45bcb0379a8eceef61d46643ff374187d11e30b0a4ab6b817631ee"
+          },
+          "build/bounded-command-tests.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/experiment-commit.txt": {
+            "bytes": 41,
+            "sha256": "b66be566048aa087bfc0512dcc268b231de931680e8d781716be850682ac1ecd"
+          },
+          "build/experiment-tree.txt": {
+            "bytes": 41,
+            "sha256": "a2b582bc0a707dedb32b8eef4b43806ba3c6ef57fd638784a0cf63ce699b4850"
+          },
+          "build/observer-tests.stderr.txt": {
+            "bytes": 114,
+            "sha256": "41c59ec7d1233a8bca3ffc5b24187d8a71ee0ba359578ac8216ddc217385c1df"
+          },
+          "build/observer-tests.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/progress-tests.stderr.txt": {
+            "bytes": 12889,
+            "sha256": "3ca39848d131f2975134bae6b4a77dd1c87662377e95c1e70404da4a9b00a769"
+          },
+          "build/progress-tests.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "build/transport-tests.stderr.txt": {
+            "bytes": 109,
+            "sha256": "184428a8a61127ae0be847d74c97e62d2d9f4ea74073e087849f6ca7d26e27d7"
+          },
+          "build/transport-tests.stdout.txt": {
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          }
+        },
+        "tests": {
+          "bounded-command": {
+            "passed": 6
+          },
+          "observer": {
+            "passed": 15
+          },
+          "progress": {
+            "complete": false,
+            "errors": 1,
+            "failures": 15,
+            "run": 49
+          },
+          "transport": {
+            "passed": 10
+          }
+        }
+      }
+    },
+    "attempt": 1,
+    "nativeHelperBuilt": false,
+    "nativeSamplerInvocations": 0,
+    "recorderInvocations": 0,
+    "runID": 42608920236,
+    "sourceCommit": "dc877e28778a24c0a36a509ddc0bc107322b8dde",
+    "sourceTree": "3310a49b84a96677fba117ed43de000d22e92107"
+  },
+  "preExecutionReproduction": {
+    "diagnostic": "D24-R1-synthetic-path-alias-reproduction",
+    "diagnosticExecutionComplete": false,
+    "errors": [
+      "EvidenceError: Helper build identity is invalid"
+    ],
+    "evidenceKind": "synthetic-portable-test",
+    "launchCount": 0,
+    "privateAbsolutePathsOmitted": true,
+    "schema": 1,
+    "testSourceSHA256": "1e14295d522a6294a6a0dc7192b9e59d045d9946c91d1794b0030fdccd70243e",
+    "utc": "2026-11-09T11:28:15.874545+00:00"
+  },
+  "publicationOmissions": [
+    "Absolute workspace/helper paths and advisory command argument text are omitted; original artifact identities and relative member hashes are retained.",
+    "Native boot UUIDs are omitted; independent identity-equality checks remain.",
+    "Full installed manual passages are omitted; byte identities and semantic checks remain.",
+    "Prior-run sampler stderr text is omitted from the comparison because it includes private output paths; milestone counts and raw stream hashes remain.",
+    "Private local audit-root, runtime executable and temporary fixture paths are omitted from projections; the original audit hashes identify the unchanged source records."
+  ],
+  "qualification": {
+    "C12": "HOLD",
+    "activationRouteCoverageEstablished": false,
+    "diagnosticExecutionComplete": true,
+    "eventTimeRangeEstablished": false,
+    "ipcRequestChainEstablished": false,
+    "nativeEvidenceEstablished": false,
+    "phaseEstablished": false,
+    "recordingCompletedNormally": false,
+    "recordingCompletionEstablished": false,
+    "releaseReady": false,
+    "retrospectiveAllDescendantsExitedBySamplerDeadlineEstablished": false,
+    "samplerStackQualified": false,
+    "samplerWindowCoverageEstablished": false,
+    "traceExportabilityEstablished": false,
+    "usableClockMappingEstablished": false
+  },
+  "rawAuditIdentities": [
+    {
+      "bytes": 39482,
+      "name": "d24-independent-input-audit.json",
+      "sha256": "0fa56594e9168c3fa4cbbc593ffceed5109ca347ad49abbb07a6863e22ff6239"
+    },
+    {
+      "bytes": 40670,
+      "name": "d24-r2-native-receipt-audit.json",
+      "sha256": "5f344f92b88d5665418a6e8a1e07f40f3083ecaab22c45ef6200d81db03dfb0a"
+    },
+    {
+      "bytes": 33654,
+      "name": "d24-r2-retained-comparison-audit.json",
+      "sha256": "c39917eb93344287ff5b477073cc6154acd71c471c4527a678d118c5e80eb4f6"
+    },
+    {
+      "bytes": 5502,
+      "name": "d24-trace-audit.json",
+      "sha256": "b75c92ceccbe0104df2878767becf339a0679c3615086cf89ce394cf6c4f4804"
+    },
+    {
+      "bytes": 4684,
+      "name": "d24-r1-preexecution-review.json",
+      "sha256": "5498572582e78dd32f3c62d9c6437a8204c26d0b5179722f0ad13f0a863d5f5e"
+    },
+    {
+      "bytes": 913,
+      "name": "d24-r1-path-alias-reproduction.json",
+      "sha256": "0897f56abe155704a97e69db96ce3cf0a8e62b01b4ac802892403ce8f00fa34a"
+    },
+    {
+      "bytes": 2343,
+      "name": "d24-r2-portable-execution.json",
+      "sha256": "166fd0cd6ffc8a831315a67abd96e6060262e3e31cc282789d425796e88f01a4"
+    },
+    {
+      "bytes": 2334,
+      "name": "d24-portable-execution.json",
+      "sha256": "26dad7eddbd96eee03fc158822f757b0cb401a3324d6dbbd439e48270dc04f2d"
+    }
+  ],
+  "review": "D24-recorder-progress-observation",
+  "run": {
+    "artifactExpiryDateUTC": "2026-11-23",
+    "artifactRetentionDays": 14,
+    "attempt": 1,
+    "conclusion": "success",
+    "earlierRunHadNativeMeasurements": false,
+    "id": 42609635410,
+    "jobs": {
+      "arm64": 129134432522,
+      "x86_64": 129134432671
+    },
+    "nativeMeasurementsPerArchitecture": 1,
+    "sourceCommit": "73464e30f278203cbd129025f1db814b6c549b2b",
+    "sourceTree": "0d0b8c476fb052cd7b3a5b7ac98d0c6977069bf5",
+    "url": "https://github.com/osmankaankars/lemulip/actions/runs/42609635410"
+  },
+  "schema": 1,
+  "scope": "Independent read-only retained-byte and exact-Git-object checks; archived code or native executables were not executed during the audit.",
+  "summary": {
+    "archiveMembersVerified": 189,
+    "immutableBuildSourceEntriesReconstructed": 126,
+    "nativeEvidenceEstablished": false,
+    "nativeExecutionAfterR2": false,
+    "nativeInputPreservationStepsPassed": true,
+    "nativeMacOSTestsPassed": {
+      "arm64": 81,
+      "x86_64": 81
+    },
+    "nativeMeasurementsPerArchitecture": 1,
+    "nativeReceiptOwnershipTimingChecks": 195,
+    "nativeReceiptOwnershipTimingChecksPassed": true,
+    "nativeWorktreeDiffStepsPassed": true,
+    "newRecordingOrExportDuringAudit": false,
+    "portableTestsAtFinalRuntimeSource": 50,
+    "releaseReady": false,
+    "runtimeInputBindingsReconstructed": 32,
+    "samplerInvocationsPerArchitecture": {
+      "primary": 1,
+      "secondary": 1
+    },
+    "sourceCopiesMatchedExactGitObjects": 26
+  }
+}

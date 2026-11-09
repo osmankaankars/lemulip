@@ -1,0 +1,3813 @@
+{
+  "architectures": {
+    "arm64": {
+      "archive": {
+        "bytes": 226836,
+        "sha256": "44b9438155713c42bcadee75d3359a4a6659bf3027e9f2056fb1f115dd58041f"
+      },
+      "artifactID": 13668694448,
+      "bounds": {
+        "helperNativeWindowSeconds": 15.0,
+        "helperParentHardSeconds": 17.0,
+        "observationCutoffAfterHelperSpawnSeconds": 14.0,
+        "observeAfterRecorderSeconds": 3.0,
+        "reportBytes": 8388608,
+        "sampleNormalSeconds": 3.5,
+        "sampleTotalSeconds": 4.0,
+        "snapshotBytes": 65536,
+        "streamBytes": 2097152,
+        "testOnlyTimeScale": null
+      },
+      "commands": {
+        "helper": {
+          "cleanupFailed": false,
+          "cleanupFailureReasons": [],
+          "clockAtSpawn": {
+            "monotonicAfterNS": 129703761125,
+            "monotonicBeforeNS": 129703760000,
+            "wallTimeNS": 1794223916145247000
+          },
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 129702017833,
+            "monotonicBeforeNS": 129702017333,
+            "wallTimeNS": 1794223916143504000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 144831332750,
+            "monotonicBeforeNS": 144831332500,
+            "wallTimeNS": 1794223931272819000
+          },
+          "collectionStartedClock": {
+            "monotonicAfterNS": 144831317125,
+            "monotonicBeforeNS": 144831317000,
+            "wallTimeNS": 1794223931272804000
+          },
+          "completionObservedWithinTotalBudget": true,
+          "elapsedSeconds": 15.027118250000001,
+          "exitCode": 0,
+          "exitObservedAfterSeconds": 15.027040249999999,
+          "exitObservedWithoutReap": true,
+          "files": {
+            "stderr": {
+              "bytes": 0,
+              "name": "helper.stderr.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "stdout": {
+              "bytes": 0,
+              "name": "helper.stdout.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "inheritedStreamsStillOpen": false,
+          "maximumCombinedBytes": 2097152,
+          "normalOperationBudgetSeconds": 16.5,
+          "observedBytes": 0,
+          "operationDoneClock": {
+            "monotonicAfterNS": 144729143375,
+            "monotonicBeforeNS": 144729142916,
+            "wallTimeNS": 1794223931170630000
+          },
+          "operationElapsedSeconds": 15.027118250000001,
+          "operationTerminalClock": {
+            "monotonicAfterNS": 144729099833,
+            "monotonicBeforeNS": 144729093791,
+            "wallTimeNS": 1794223931170586000
+          },
+          "ownershipElapsedSeconds": 15.129548540999991,
+          "pid": 2104,
+          "pidDirectedActionsRevoked": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseLost": false,
+          "pidLeaseReleased": true,
+          "retainedBytes": 0,
+          "signalErrors": [],
+          "signals": [],
+          "status": "completed",
+          "stopReason": null,
+          "streamErrors": [],
+          "streamProgress": [],
+          "totalBudgetSeconds": 17.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "waitidCode": 1,
+          "waitidStatus": 0
+        },
+        "owned-groups": {
+          "cleanupFailed": false,
+          "cleanupFailureReasons": [],
+          "clockAtSpawn": {
+            "monotonicAfterNS": 144766879833,
+            "monotonicBeforeNS": 144766877791,
+            "wallTimeNS": 1794223931208366000
+          },
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 144757412208,
+            "monotonicBeforeNS": 144757411416,
+            "wallTimeNS": 1794223931198899000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 144831337541,
+            "monotonicBeforeNS": 144831337416,
+            "wallTimeNS": 1794223931272824000
+          },
+          "collectionStartedClock": {
+            "monotonicAfterNS": 144831335500,
+            "monotonicBeforeNS": 144831335375,
+            "wallTimeNS": 1794223931272822000
+          },
+          "completionObservedWithinTotalBudget": true,
+          "elapsedSeconds": 0.05613908300000503,
+          "exitCode": 0,
+          "exitObservedAfterSeconds": 0.03578545799999233,
+          "exitObservedWithoutReap": true,
+          "files": {
+            "stderr": {
+              "bytes": 0,
+              "name": "owned-groups.stderr.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "stdout": {
+              "bytes": 7888,
+              "name": "owned-groups.stdout.txt",
+              "sha256": "0f9abfbd780a00da3c35e21b7f821f0a11b04a1f42a44f5a67dac77cb7cf5406"
+            }
+          },
+          "inheritedStreamsStillOpen": false,
+          "maximumCombinedBytes": 65536,
+          "normalOperationBudgetSeconds": 1.5,
+          "observedBytes": 7888,
+          "operationDoneClock": {
+            "monotonicAfterNS": 144813568958,
+            "monotonicBeforeNS": 144813568000,
+            "wallTimeNS": 1794223931255055000
+          },
+          "operationElapsedSeconds": 0.05613908300000503,
+          "operationTerminalClock": {
+            "monotonicAfterNS": 144793217125,
+            "monotonicBeforeNS": 144793216875,
+            "wallTimeNS": 1794223931234704000
+          },
+          "ownershipElapsedSeconds": 0.35931608300001017,
+          "pid": 2225,
+          "pidDirectedActionsRevoked": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseLost": false,
+          "pidLeaseReleased": true,
+          "retainedBytes": 7888,
+          "signalErrors": [],
+          "signals": [],
+          "status": "completed",
+          "stopReason": null,
+          "streamErrors": [],
+          "streamProgress": [
+            {
+              "clock": {
+                "monotonicAfterNS": 144793174958,
+                "monotonicBeforeNS": 144793173791,
+                "wallTimeNS": 1794223931234661000
+              },
+              "observedBytes": 7888,
+              "stderrBytes": 0,
+              "stdoutBytes": 7888
+            }
+          ],
+          "totalBudgetSeconds": 2.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "waitidCode": 1,
+          "waitidStatus": 0
+        },
+        "primary-before": {
+          "cleanupFailed": false,
+          "cleanupFailureReasons": [],
+          "clockAtSpawn": {
+            "monotonicAfterNS": 133289832416,
+            "monotonicBeforeNS": 133289830666,
+            "wallTimeNS": 1794223919731319000
+          },
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 133284780333,
+            "monotonicBeforeNS": 133284780000,
+            "wallTimeNS": 1794223919726267000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 144831296750,
+            "monotonicBeforeNS": 144831296666,
+            "wallTimeNS": 1794223931272783000
+          },
+          "collectionStartedClock": {
+            "monotonicAfterNS": 144831292875,
+            "monotonicBeforeNS": 144831292708,
+            "wallTimeNS": 1794223931272779000
+          },
+          "completionObservedWithinTotalBudget": true,
+          "elapsedSeconds": 0.0890939579999781,
+          "exitCode": 0,
+          "exitObservedAfterSeconds": 0.063902832999986,
+          "exitObservedWithoutReap": true,
+          "files": {
+            "stderr": {
+              "bytes": 0,
+              "name": "primary-before.stderr.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "stdout": {
+              "bytes": 207,
+              "name": "primary-before.stdout.txt",
+              "sha256": "1741569974cd1b7d9a6d8b23e6dcf56f7e2a1fdf561b6369a0778ae1b828a090"
+            }
+          },
+          "inheritedStreamsStillOpen": false,
+          "maximumCombinedBytes": 65536,
+          "normalOperationBudgetSeconds": 0.5,
+          "observedBytes": 207,
+          "operationDoneClock": {
+            "monotonicAfterNS": 133373877333,
+            "monotonicBeforeNS": 133373875875,
+            "wallTimeNS": 1794223919815364000
+          },
+          "operationElapsedSeconds": 0.0890939579999781,
+          "operationTerminalClock": {
+            "monotonicAfterNS": 133348690666,
+            "monotonicBeforeNS": 133348690291,
+            "wallTimeNS": 1794223919790177000
+          },
+          "ownershipElapsedSeconds": 11.763688915999978,
+          "pid": 2127,
+          "pidDirectedActionsRevoked": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseLost": false,
+          "pidLeaseReleased": true,
+          "retainedBytes": 207,
+          "signalErrors": [],
+          "signals": [],
+          "status": "completed",
+          "stopReason": null,
+          "streamErrors": [],
+          "streamProgress": [
+            {
+              "clock": {
+                "monotonicAfterNS": 133348652291,
+                "monotonicBeforeNS": 133348650291,
+                "wallTimeNS": 1794223919790139000
+              },
+              "observedBytes": 207,
+              "stderrBytes": 0,
+              "stdoutBytes": 207
+            }
+          ],
+          "targetOwnerPID": 2062,
+          "targetPID": 2121,
+          "targetPIDLeaseHeld": true,
+          "targetSpawnClock": {
+            "monotonicAfterNS": 132787356458,
+            "monotonicBeforeNS": 132787355458,
+            "wallTimeNS": 1794223919228843000
+          },
+          "totalBudgetSeconds": 1.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "waitidCode": 1,
+          "waitidStatus": 0
+        },
+        "primary-sample": {
+          "cleanupFailed": false,
+          "cleanupFailureReasons": [],
+          "clockAtSpawn": {
+            "monotonicAfterNS": 132787356458,
+            "monotonicBeforeNS": 132787355458,
+            "wallTimeNS": 1794223919228843000
+          },
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 132785195916,
+            "monotonicBeforeNS": 132785195375,
+            "wallTimeNS": 1794223919226682000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 144831303583,
+            "monotonicBeforeNS": 144831303458,
+            "wallTimeNS": 1794223931272790000
+          },
+          "collectionStartedClock": {
+            "monotonicAfterNS": 144831300375,
+            "monotonicBeforeNS": 144831300250,
+            "wallTimeNS": 1794223931272787000
+          },
+          "completionObservedWithinTotalBudget": true,
+          "elapsedSeconds": 3.7854312500000162,
+          "exitCode": -15,
+          "exitObservedAfterSeconds": 3.587933208999999,
+          "exitObservedWithoutReap": true,
+          "files": {
+            "stderr": {
+              "bytes": 84,
+              "name": "primary-sample.stderr.txt",
+              "sha256": "1f21fb91268b05170edeaa91dd722d4c41ea91fba4df5783030ead89af160d50"
+            },
+            "stdout": {
+              "bytes": 0,
+              "name": "primary-sample.stdout.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "inheritedStreamsStillOpen": false,
+          "maximumCombinedBytes": 2097152,
+          "normalDeadlineOvershootSeconds": 0.028398792000018602,
+          "normalOperationBudgetSeconds": 3.5,
+          "observedBytes": 84,
+          "operationDoneClock": {
+            "monotonicAfterNS": 136570630958,
+            "monotonicBeforeNS": 136570629458,
+            "wallTimeNS": 1794223923012117000
+          },
+          "operationElapsedSeconds": 3.7854312500000162,
+          "operationTerminalClock": {
+            "monotonicAfterNS": 136373138833,
+            "monotonicBeforeNS": 136373136583,
+            "wallTimeNS": 1794223922814625000
+          },
+          "ownershipElapsedSeconds": 12.107427125000015,
+          "pid": 2121,
+          "pidDirectedActionsRevoked": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseLost": false,
+          "pidLeaseReleased": true,
+          "retainedBytes": 84,
+          "signalErrors": [
+            {
+              "errno": 1,
+              "signal": "SIGKILL",
+              "target": "owned-group"
+            }
+          ],
+          "signalFailureResolvedByNoLiveOwnedGroup": true,
+          "signals": [
+            {
+              "afterSeconds": 3.529331959000018,
+              "signal": "SIGTERM",
+              "target": "owned-group"
+            }
+          ],
+          "status": "command-budget",
+          "stopReason": "command-budget",
+          "stopRequestedClock": {
+            "monotonicAfterNS": 136313602583,
+            "monotonicBeforeNS": 136313601458,
+            "wallTimeNS": 1794223922755089000
+          },
+          "streamErrors": [],
+          "streamProgress": [
+            {
+              "clock": {
+                "monotonicAfterNS": 133284518583,
+                "monotonicBeforeNS": 133284517166,
+                "wallTimeNS": 1794223919726005000
+              },
+              "observedBytes": 84,
+              "stderrBytes": 84,
+              "stdoutBytes": 0
+            }
+          ],
+          "targetOwnerPID": 2062,
+          "targetPID": 2105,
+          "targetPIDLeaseHeld": true,
+          "totalBudgetSeconds": 4.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "waitidCode": 2,
+          "waitidStatus": 15
+        },
+        "record": {
+          "cleanupFailed": false,
+          "cleanupFailureReasons": [],
+          "clockAtSpawn": {
+            "monotonicAfterNS": 129734718791,
+            "monotonicBeforeNS": 129734718000,
+            "wallTimeNS": 1794223916176205000
+          },
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 129733364916,
+            "monotonicBeforeNS": 129733364500,
+            "wallTimeNS": 1794223916174851000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 144831315583,
+            "monotonicBeforeNS": 144831315458,
+            "wallTimeNS": 1794223931272802000
+          },
+          "collectionStartedClock": {
+            "monotonicAfterNS": 144831311708,
+            "monotonicBeforeNS": 144831311583,
+            "wallTimeNS": 1794223931272798000
+          },
+          "completionObservedWithinTotalBudget": true,
+          "elapsedSeconds": 15.023669374999997,
+          "exitCode": -2,
+          "exitObservedAfterSeconds": 15.023659916000014,
+          "exitObservedWithoutReap": true,
+          "files": {
+            "stderr": {
+              "bytes": 0,
+              "name": "record.stderr.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "stdout": {
+              "bytes": 0,
+              "name": "record.stdout.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "helperReadyObservedClock": {
+            "monotonicAfterNS": 129733020875,
+            "monotonicBeforeNS": 129733019875,
+            "wallTimeNS": 1794223916174507000
+          },
+          "inheritedStreamsStillOpen": false,
+          "interruptClock": {
+            "monotonicAfterNS": 144734599000,
+            "monotonicBeforeNS": 144734597708,
+            "wallTimeNS": 1794223931176085000
+          },
+          "interruptReason": "helper-operation-ended",
+          "maximumCombinedBytes": 2097152,
+          "normalOperationBudgetSeconds": 41.0,
+          "observedBytes": 0,
+          "operationDoneClock": {
+            "monotonicAfterNS": 144757036500,
+            "monotonicBeforeNS": 144757036333,
+            "wallTimeNS": 1794223931198523000
+          },
+          "operationElapsedSeconds": 15.023669374999997,
+          "operationTerminalClock": {
+            "monotonicAfterNS": 144757030375,
+            "monotonicBeforeNS": 144757029416,
+            "wallTimeNS": 1794223931198517000
+          },
+          "ownershipElapsedSeconds": 15.111654041000008,
+          "pid": 2105,
+          "pidDirectedActionsRevoked": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseLost": false,
+          "pidLeaseReleased": true,
+          "retainedBytes": 0,
+          "signalErrors": [],
+          "signals": [
+            {
+              "afterSeconds": 15.004796207999988,
+              "signal": "SIGINT",
+              "target": "owned-process"
+            }
+          ],
+          "status": "nonzero",
+          "stopReason": null,
+          "streamErrors": [],
+          "streamProgress": [],
+          "totalBudgetSeconds": 45.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "waitidCode": 2,
+          "waitidStatus": 2
+        },
+        "recorder-before": {
+          "cleanupFailed": false,
+          "cleanupFailureReasons": [],
+          "clockAtSpawn": {
+            "monotonicAfterNS": 132743426291,
+            "monotonicBeforeNS": 132743425041,
+            "wallTimeNS": 1794223919184913000
+          },
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 132739914708,
+            "monotonicBeforeNS": 132739909208,
+            "wallTimeNS": 1794223919181401000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 144831309416,
+            "monotonicBeforeNS": 144831309333,
+            "wallTimeNS": 1794223931272796000
+          },
+          "collectionStartedClock": {
+            "monotonicAfterNS": 144831305416,
+            "monotonicBeforeNS": 144831305291,
+            "wallTimeNS": 1794223931272792000
+          },
+          "completionObservedWithinTotalBudget": true,
+          "elapsedSeconds": 0.044519625000020824,
+          "exitCode": 0,
+          "exitObservedAfterSeconds": 0.026793416000003845,
+          "exitObservedWithoutReap": true,
+          "files": {
+            "stderr": {
+              "bytes": 0,
+              "name": "recorder-before.stderr.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "stdout": {
+              "bytes": 402,
+              "name": "recorder-before.stdout.txt",
+              "sha256": "d9a4268d6854a736270b3c0a5bbdb82d428c566fce37ae6da5efdd6a4245e5e1"
+            }
+          },
+          "inheritedStreamsStillOpen": false,
+          "maximumCombinedBytes": 65536,
+          "normalOperationBudgetSeconds": 0.5,
+          "observedBytes": 402,
+          "operationDoneClock": {
+            "monotonicAfterNS": 132784462833,
+            "monotonicBeforeNS": 132784461625,
+            "wallTimeNS": 1794223919225949000
+          },
+          "operationElapsedSeconds": 0.044519625000020824,
+          "operationTerminalClock": {
+            "monotonicAfterNS": 132766738791,
+            "monotonicBeforeNS": 132766738458,
+            "wallTimeNS": 1794223919208225000
+          },
+          "ownershipElapsedSeconds": 12.117086208000018,
+          "pid": 2119,
+          "pidDirectedActionsRevoked": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseLost": false,
+          "pidLeaseReleased": true,
+          "retainedBytes": 402,
+          "signalErrors": [],
+          "signals": [],
+          "status": "completed",
+          "stopReason": null,
+          "streamErrors": [],
+          "streamProgress": [
+            {
+              "clock": {
+                "monotonicAfterNS": 132766687500,
+                "monotonicBeforeNS": 132766686416,
+                "wallTimeNS": 1794223919208174000
+              },
+              "observedBytes": 402,
+              "stderrBytes": 0,
+              "stdoutBytes": 402
+            }
+          ],
+          "targetOwnerPID": 2062,
+          "targetPID": 2105,
+          "targetPIDLeaseHeld": true,
+          "targetSpawnClock": {
+            "monotonicAfterNS": 129734718791,
+            "monotonicBeforeNS": 129734718000,
+            "wallTimeNS": 1794223916176205000
+          },
+          "totalBudgetSeconds": 1.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "waitidCode": 1,
+          "waitidStatus": 0
+        },
+        "secondary-sample": {
+          "cleanupFailed": false,
+          "cleanupFailureReasons": [],
+          "clockAtSpawn": {
+            "monotonicAfterNS": 133381687166,
+            "monotonicBeforeNS": 133381684708,
+            "wallTimeNS": 1794223919823173000
+          },
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 133374246541,
+            "monotonicBeforeNS": 133374245541,
+            "wallTimeNS": 1794223919815733000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 144831287500,
+            "monotonicBeforeNS": 144831287166,
+            "wallTimeNS": 1794223931272774000
+          },
+          "collectionStartedClock": {
+            "monotonicAfterNS": 144831223541,
+            "monotonicBeforeNS": 144831222166,
+            "wallTimeNS": 1794223931272710000
+          },
+          "completionObservedWithinTotalBudget": true,
+          "deadlineBoundedByPrimary": true,
+          "effectiveNormalBudgetSeconds": 2.910945374999983,
+          "effectiveTotalBudgetSeconds": 3.410945374999983,
+          "elapsedSeconds": 3.196440874999979,
+          "exitCode": -15,
+          "exitObservedAfterSeconds": 2.9664882499999976,
+          "exitObservedWithoutReap": true,
+          "files": {
+            "stderr": {
+              "bytes": 84,
+              "name": "secondary-sample.stderr.txt",
+              "sha256": "b45a0d8dd72be75b77f948f71ea8956393fa52dfbb5413ad4e8dfd730d78475a"
+            },
+            "stdout": {
+              "bytes": 0,
+              "name": "secondary-sample.stdout.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "inheritedStreamsStillOpen": false,
+          "maximumCombinedBytes": 2097152,
+          "normalDeadlineOvershootSeconds": 0.018374417000018184,
+          "normalOperationBudgetSeconds": 3.5,
+          "observedBytes": 84,
+          "operationDoneClock": {
+            "monotonicAfterNS": 136570695833,
+            "monotonicBeforeNS": 136570695625,
+            "wallTimeNS": 1794223923012182000
+          },
+          "operationElapsedSeconds": 3.196440874999979,
+          "operationTerminalClock": {
+            "monotonicAfterNS": 136340748833,
+            "monotonicBeforeNS": 136340746666,
+            "wallTimeNS": 1794223922782235000
+          },
+          "ownershipElapsedSeconds": 11.724926041999993,
+          "pid": 2128,
+          "pidDirectedActionsRevoked": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseLost": false,
+          "pidLeaseReleased": true,
+          "retainedBytes": 84,
+          "signalErrors": [
+            {
+              "errno": 1,
+              "signal": "SIGKILL",
+              "target": "owned-group"
+            }
+          ],
+          "signalFailureResolvedByNoLiveOwnedGroup": true,
+          "signals": [
+            {
+              "afterSeconds": 2.93911483399998,
+              "signal": "SIGTERM",
+              "target": "owned-group"
+            }
+          ],
+          "status": "primary-operation-boundary",
+          "stopReason": "primary-operation-boundary",
+          "stopRequestedClock": {
+            "monotonicAfterNS": 136303585375,
+            "monotonicBeforeNS": 136303581958,
+            "wallTimeNS": 1794223922745071000
+          },
+          "streamErrors": [],
+          "streamProgress": [
+            {
+              "clock": {
+                "monotonicAfterNS": 133537744583,
+                "monotonicBeforeNS": 133537743625,
+                "wallTimeNS": 1794223919979231000
+              },
+              "observedBytes": 84,
+              "stderrBytes": 84,
+              "stdoutBytes": 0
+            }
+          ],
+          "targetOwnerPID": 2062,
+          "targetPID": 2121,
+          "targetPIDLeaseHeld": true,
+          "totalBudgetSeconds": 4.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "waitidCode": 2,
+          "waitidStatus": 15
+        }
+      },
+      "finalOwnedGroups": {
+        "helper": {
+          "members": [
+            {
+              "pgid": 2104,
+              "pid": 2104,
+              "state": "Z<"
+            }
+          ],
+          "noLiveMembersObserved": true,
+          "pgid": 2104,
+          "pidLeaseHeldAtSnapshot": true
+        },
+        "primary-before": {
+          "members": [
+            {
+              "pgid": 2127,
+              "pid": 2127,
+              "state": "Z<"
+            }
+          ],
+          "noLiveMembersObserved": true,
+          "pgid": 2127,
+          "pidLeaseHeldAtSnapshot": true
+        },
+        "primary-sample": {
+          "members": [
+            {
+              "pgid": 2121,
+              "pid": 2121,
+              "state": "Z<"
+            }
+          ],
+          "noLiveMembersObserved": true,
+          "pgid": 2121,
+          "pidLeaseHeldAtSnapshot": true
+        },
+        "record": {
+          "members": [
+            {
+              "pgid": 2105,
+              "pid": 2105,
+              "state": "Z<"
+            }
+          ],
+          "noLiveMembersObserved": true,
+          "pgid": 2105,
+          "pidLeaseHeldAtSnapshot": true
+        },
+        "recorder-before": {
+          "members": [
+            {
+              "pgid": 2119,
+              "pid": 2119,
+              "state": "Z<"
+            }
+          ],
+          "noLiveMembersObserved": true,
+          "pgid": 2119,
+          "pidLeaseHeldAtSnapshot": true
+        },
+        "secondary-sample": {
+          "members": [
+            {
+              "pgid": 2128,
+              "pid": 2128,
+              "state": "Z<"
+            }
+          ],
+          "noLiveMembersObserved": true,
+          "pgid": 2128,
+          "pidLeaseHeldAtSnapshot": true
+        }
+      },
+      "helperReceipts": {
+        "completion": {
+          "identity": {
+            "bytes": 3045,
+            "name": "evidence/D24-R2-arm64/helper-completion.json",
+            "sha256": "ef60c19d5edd89a2e5b318f1536a68cf22cc718c5db222e1c57d51d5d47c99f8"
+          },
+          "receipt": {
+            "applicationLaunchRequested": false,
+            "architecture": "arm64",
+            "completionClock": {
+              "machAbsoluteAfter": 3473309192,
+              "machAbsoluteBefore": 3473309188,
+              "machContinuousAfter": 3473309192,
+              "machContinuousBefore": 3473309189,
+              "systemUptime": 144.721216167,
+              "wallTimeUnixNS": 1794223931162703000
+            },
+            "cooperativeAbortObserved": false,
+            "elapsedSeconds": 15.015727,
+            "euid": 501,
+            "executableSHA256": "56ab614170aee88890767ce275745671ecac90e095434059d3feb87de53fe2ae",
+            "exitCode": 0,
+            "experimentCommit": "73464e30f278203cbd129025f1db814b6c549b2b",
+            "experimentTree": "0d0b8c476fb052cd7b3a5b7ac98d0c6977069bf5",
+            "finalIdentityMatches": true,
+            "identityValidated": true,
+            "kind": "d24-recorder-progress-complete",
+            "machOUUID": "2A49A55D-ACBB-47CD-A760-E151A35B2EE4",
+            "machTimebaseDenom": 3,
+            "machTimebaseNumer": 125,
+            "nativeInputExecuted": false,
+            "nativeStartClock": {
+              "machAbsoluteAfter": 3112931754,
+              "machAbsoluteBefore": 3112931739,
+              "machContinuousAfter": 3112931754,
+              "machContinuousBefore": 3112931744,
+              "systemUptime": 129.705489125,
+              "wallTimeUnixNS": 1794223916146976000
+            },
+            "nonce": "F1E4ED32-9FC8-4B37-900B-CF31DDC4E439",
+            "normalWindowCompleted": true,
+            "notification": {
+              "callbackClockFailed": false,
+              "cancelStatus": 0,
+              "cancelled": true,
+              "closedClock": {
+                "machAbsoluteAfter": 3473302936,
+                "machAbsoluteBefore": 3473302932,
+                "machContinuousAfter": 3473302935,
+                "machContinuousBefore": 3473302933,
+                "systemUptime": 144.7209555,
+                "wallTimeUnixNS": 1794223931162442000
+              },
+              "countOverflow": false,
+              "firstReceivedClock": null,
+              "firstReceivedToken": null,
+              "name": "app.lemulip.d24.recording.F1E4ED32-9FC8-4B37-900B-CF31DDC4E439",
+              "receivedCount": 0,
+              "registered": true,
+              "registrationAfterClock": {
+                "machAbsoluteAfter": 3112945031,
+                "machAbsoluteBefore": 3112945025,
+                "machContinuousAfter": 3112945030,
+                "machContinuousBefore": 3112945026,
+                "systemUptime": 129.706042708,
+                "wallTimeUnixNS": 1794223916147529000
+              },
+              "registrationBeforeClock": {
+                "machAbsoluteAfter": 3112936142,
+                "machAbsoluteBefore": 3112936139,
+                "machContinuousAfter": 3112936142,
+                "machContinuousBefore": 3112936139,
+                "systemUptime": 129.705672458,
+                "wallTimeUnixNS": 1794223916147159000
+              },
+              "registrationStatus": 0,
+              "token": 3
+            },
+            "pgid": 2104,
+            "pid": 2104,
+            "ppid": 2062,
+            "readinessClock": {
+              "machAbsoluteAfter": 3112945034,
+              "machAbsoluteBefore": 3112945032,
+              "machContinuousAfter": 3112945034,
+              "machContinuousBefore": 3112945033,
+              "systemUptime": 129.706043,
+              "wallTimeUnixNS": 1794223916147530000
+            },
+            "readyReceiptBytes": 2111,
+            "readyReceiptSHA256": "013d592e807079d254ca3cebda1bb8989716a2626d2c1dd8c04d9b3ce5c8577f",
+            "reason": "window-complete",
+            "recordingRequested": false,
+            "schema": 1,
+            "settingsChanged": false,
+            "sourceSHA256": "0be62710b8242409a79e53c5a961a29d21dafb755f1129985156074749947260",
+            "translationProbe": {
+              "errno": 0,
+              "returnCode": 0,
+              "value": 0
+            },
+            "windowSeconds": 15
+          }
+        },
+        "ready": {
+          "identity": {
+            "bytes": 2111,
+            "name": "evidence/D24-R2-arm64/helper-ready.json",
+            "sha256": "013d592e807079d254ca3cebda1bb8989716a2626d2c1dd8c04d9b3ce5c8577f"
+          },
+          "receipt": {
+            "applicationLaunchRequested": false,
+            "architecture": "arm64",
+            "euid": 501,
+            "executableSHA256": "56ab614170aee88890767ce275745671ecac90e095434059d3feb87de53fe2ae",
+            "experimentCommit": "73464e30f278203cbd129025f1db814b6c549b2b",
+            "experimentTree": "0d0b8c476fb052cd7b3a5b7ac98d0c6977069bf5",
+            "identityValidated": true,
+            "kind": "d24-recorder-progress-ready",
+            "machOUUID": "2A49A55D-ACBB-47CD-A760-E151A35B2EE4",
+            "machTimebaseDenom": 3,
+            "machTimebaseNumer": 125,
+            "nativeInputExecuted": false,
+            "nativeStartClock": {
+              "machAbsoluteAfter": 3112931754,
+              "machAbsoluteBefore": 3112931739,
+              "machContinuousAfter": 3112931754,
+              "machContinuousBefore": 3112931744,
+              "systemUptime": 129.705489125,
+              "wallTimeUnixNS": 1794223916146976000
+            },
+            "nonce": "F1E4ED32-9FC8-4B37-900B-CF31DDC4E439",
+            "notification": {
+              "name": "app.lemulip.d24.recording.F1E4ED32-9FC8-4B37-900B-CF31DDC4E439",
+              "registered": true,
+              "registrationAfterClock": {
+                "machAbsoluteAfter": 3112945031,
+                "machAbsoluteBefore": 3112945025,
+                "machContinuousAfter": 3112945030,
+                "machContinuousBefore": 3112945026,
+                "systemUptime": 129.706042708,
+                "wallTimeUnixNS": 1794223916147529000
+              },
+              "registrationBeforeClock": {
+                "machAbsoluteAfter": 3112936142,
+                "machAbsoluteBefore": 3112936139,
+                "machContinuousAfter": 3112936142,
+                "machContinuousBefore": 3112936139,
+                "systemUptime": 129.705672458,
+                "wallTimeUnixNS": 1794223916147159000
+              },
+              "registrationStatus": 0,
+              "token": 3
+            },
+            "pgid": 2104,
+            "pid": 2104,
+            "ppid": 2062,
+            "readinessClock": {
+              "machAbsoluteAfter": 3112945034,
+              "machAbsoluteBefore": 3112945032,
+              "machContinuousAfter": 3112945034,
+              "machContinuousBefore": 3112945033,
+              "systemUptime": 129.706043,
+              "wallTimeUnixNS": 1794223916147530000
+            },
+            "recordingRequested": false,
+            "schema": 1,
+            "settingsChanged": false,
+            "sourceSHA256": "0be62710b8242409a79e53c5a961a29d21dafb755f1129985156074749947260",
+            "translationProbe": {
+              "errno": 0,
+              "returnCode": 0,
+              "value": 0
+            },
+            "windowSeconds": 15
+          }
+        }
+      },
+      "independentTimeline": {
+        "experimentCommit": "73464e30f278203cbd129025f1db814b6c549b2b",
+        "firstReceivedToken": null,
+        "helperElapsedSeconds": 15.015727,
+        "nativeClockOrigin": "Helper nativeStartClock machContinuous bracket, converted using the helper numer/denom. No parent/native epoch equality is asserted.",
+        "nativeHelperIntervalsSeconds": {
+          "completion": [
+            15.015726458333335,
+            15.015727
+          ],
+          "firstCallback": null,
+          "notificationClosed": [
+            15.015465791666665,
+            15.015466291666666
+          ],
+          "readiness": [
+            0.0005532916666666667,
+            0.00055375
+          ]
+        },
+        "notificationCount": 0,
+        "notificationEstablishesTraceEpoch": false,
+        "notificationSenderEstablished": false,
+        "notificationToken": 3,
+        "parentClockOrigin": "Recorder transport.started, reconstructed from stored recorderTriggerMonotonic minus fixed3s. All entries below remain in the parent monotonic clock domain.",
+        "parentTimeline": {
+          "primary-before": {
+            "operationDoneBracket": [
+              3.64050850000001,
+              3.6405099579999955
+            ],
+            "spawnAfterBracket": [
+              3.556463291,
+              3.5564650409999956
+            ],
+            "spawnBeforeBracket": [
+              3.5514126250000118,
+              3.551412957999986
+            ],
+            "streamProgress": [
+              {
+                "clockBracket": [
+                  3.6152829160000124,
+                  3.6152849160000073
+                ],
+                "observedBytes": 207
+              }
+            ]
+          },
+          "primary-sample": {
+            "operationDoneBracket": [
+              6.837262083000013,
+              6.837263583000009
+            ],
+            "spawnAfterBracket": [
+              3.0539880830000072,
+              3.0539890830000047
+            ],
+            "spawnBeforeBracket": [
+              3.0518280000000004,
+              3.051828540999992
+            ],
+            "stopRequestBracket": [
+              6.5802340829999935,
+              6.580235208000005
+            ],
+            "streamProgress": [
+              {
+                "clockBracket": [
+                  3.5511497910000003,
+                  3.551151207999993
+                ],
+                "observedBytes": 84
+              }
+            ]
+          },
+          "record": {
+            "operationDoneBracket": [
+              15.023668958000002,
+              15.023669124999998
+            ],
+            "spawnAfterBracket": [
+              0.001350624999986394,
+              0.0013514160000056563
+            ],
+            "spawnBeforeBracket": [
+              -2.8750000069521775e-06,
+              -2.4590000009538926e-06
+            ],
+            "streamProgress": []
+          },
+          "recorder-before": {
+            "operationDoneBracket": [
+              3.0510942500000056,
+              3.051095457999992
+            ],
+            "spawnAfterBracket": [
+              3.0100576659999945,
+              3.0100589159999913
+            ],
+            "spawnBeforeBracket": [
+              3.006541833,
+              3.006547332999986
+            ],
+            "streamProgress": [
+              {
+                "clockBracket": [
+                  3.0333190409999986,
+                  3.033320124999989
+                ],
+                "observedBytes": 402
+              }
+            ]
+          },
+          "secondary-sample": {
+            "operationDoneBracket": [
+              6.837328250000013,
+              6.837328458000002
+            ],
+            "spawnAfterBracket": [
+              3.6483173329999943,
+              3.648319791000006
+            ],
+            "spawnBeforeBracket": [
+              3.640878165999993,
+              3.6408791659999906
+            ],
+            "stopRequestBracket": [
+              6.570214582999995,
+              6.570218000000011
+            ],
+            "streamProgress": [
+              {
+                "clockBracket": [
+                  3.80437624999999,
+                  3.8043772080000053
+                ],
+                "observedBytes": 84
+              }
+            ]
+          }
+        },
+        "primaryAfter": null,
+        "primaryBefore": {
+          "commandTextProvesImage": false,
+          "pgid": 2121,
+          "pid": 2121,
+          "ppid": 2062,
+          "startTime": "Mon Nov 9 11:31:59 2026",
+          "state": "S<s",
+          "uid": 501
+        },
+        "primaryBeforeStdout": "2121  2062  2121   501 Mon Nov  9 11:31:59 2026     S<s",
+        "pythonVersion": "Python 3.13.17",
+        "recorderBeforeState": "U<s",
+        "recorderExitCode": -2,
+        "recorderExitObservedAfterSeconds": 15.023659916000014,
+        "recorderSignals": [
+          {
+            "afterSeconds": 15.004796207999988,
+            "signal": "SIGINT",
+            "target": "owned-process"
+          }
+        ],
+        "recorderStderrBytes": 0,
+        "recorderStdout": "",
+        "reportProgress": {
+          "primary": [],
+          "secondary": []
+        },
+        "secondaryCancellationReason": "primary-operation-boundary",
+        "summary": {
+          "cleanupComplete": true,
+          "diagnosticExecutionComplete": true,
+          "errors": [],
+          "nativeEvidenceEstablished": false,
+          "samplerStackQualified": false,
+          "status": "diagnostic-complete-stack-unqualified"
+        },
+        "testTotal": 81,
+        "tests": {
+          "bounded-command": {
+            "count": 6,
+            "ok": true,
+            "seconds": 2.577
+          },
+          "observer": {
+            "count": 15,
+            "ok": true,
+            "seconds": 4.762
+          },
+          "progress": {
+            "count": 50,
+            "ok": true,
+            "seconds": 37.623
+          },
+          "transport": {
+            "count": 10,
+            "ok": true,
+            "seconds": 1.119
+          }
+        }
+      },
+      "installedManualContract": {
+        "manuals": {
+          "ps": {
+            "bytes": 21557,
+            "normalizedBytes": 14656,
+            "normalizedSHA256": "5f41da82e89607a1a302df2c2206085d947b919480323da6e56ffed55af2867e",
+            "sha256": "736b7fcbe577152cda17b992f06d4ff2c7e1a5caa5ffbfadf13936cab29e5204"
+          },
+          "sample": {
+            "bytes": 4485,
+            "normalizedBytes": 3724,
+            "normalizedSHA256": "2f3f31c6a538583361e7aec18d3352fa77227ec1581d2debf269f40a80163dbf",
+            "sha256": "42f138d9d867958a2c4ee7cf6d89f111d16a0691990a3a7521bb84cd188656cd"
+          }
+        },
+        "passed": true,
+        "recognizedArguments": {
+          "cleanupPS": [
+            "-A",
+            "-o",
+            "pid=,pgid=,stat="
+          ],
+          "ps": [
+            "-ww",
+            "-p",
+            "PID",
+            "-o",
+            "pid=,ppid=,pgid=,uid=,lstart=,stat=,comm=,args="
+          ],
+          "sample": [
+            "PID",
+            "1",
+            "10",
+            "-mayDie",
+            "-file",
+            "EXCLUSIVE_REPORT_PATH"
+          ]
+        },
+        "schema": 1,
+        "semanticChecks": {
+          "durationSeconds": true,
+          "explicitReportFile": true,
+          "intervalMilliseconds": true,
+          "mayDieSymbolsFirst": true,
+          "psAllSelection": true,
+          "psArgsField": true,
+          "psCommandField": true,
+          "psEmptyHeaders": true,
+          "psGroupField": true,
+          "psKeywordFormat": true,
+          "psPIDField": true,
+          "psPIDSelection": true,
+          "psParentField": true,
+          "psRepeatedWide": true,
+          "psStartField": true,
+          "psStateField": true,
+          "psUIDField": true,
+          "sampleArgumentDefinitionOrder": true,
+          "samplePID": true,
+          "sampleSynopsisOrder": true
+        }
+      },
+      "observation": {
+        "bannerEstablishesCapturePhase": false,
+        "bannerTrigger": {
+          "ambiguous": false,
+          "bannerEstablishesCapturePhase": false,
+          "clock": {
+            "monotonicAfterNS": 133284749166,
+            "monotonicBeforeNS": 133284748833,
+            "wallTimeNS": 1794223919726236000
+          },
+          "expectedBannerCount": 1,
+          "expectedBannerEndByte": 84,
+          "expectedBannerObserved": true,
+          "observedTextOnly": true,
+          "reportWrittenMarkerObserved": false,
+          "samplingCompletedMarkerObserved": false,
+          "stderrBytesObserved": 84,
+          "stderrSHA256AtTrigger": "1f21fb91268b05170edeaa91dd722d4c41ea91fba4df5783030ead89af160d50"
+        },
+        "cutoffMonotonic": 143.7019885,
+        "nativeClockCorrelation": {
+          "machTimebaseDenom": 3,
+          "machTimebaseNumer": 125,
+          "nativeCompletionClock": {
+            "machAbsoluteAfter": 3473309192,
+            "machAbsoluteBefore": 3473309188,
+            "machContinuousAfter": 3473309192,
+            "machContinuousBefore": 3473309189,
+            "systemUptime": 144.721216167,
+            "wallTimeUnixNS": 1794223931162703000
+          },
+          "nativeReadyClock": {
+            "machAbsoluteAfter": 3112945034,
+            "machAbsoluteBefore": 3112945032,
+            "machContinuousAfter": 3112945034,
+            "machContinuousBefore": 3112945033,
+            "systemUptime": 129.706043,
+            "wallTimeUnixNS": 1794223916147530000
+          },
+          "nativeStartClock": {
+            "machAbsoluteAfter": 3112931754,
+            "machAbsoluteBefore": 3112931739,
+            "machContinuousAfter": 3112931754,
+            "machContinuousBefore": 3112931744,
+            "systemUptime": 129.705489125,
+            "wallTimeUnixNS": 1794223916146976000
+          },
+          "notificationEstablishesTraceEpoch": false,
+          "notificationSenderEstablished": false,
+          "parentBeforeHelperSpawnClock": {
+            "monotonicAfterNS": 129701995375,
+            "monotonicBeforeNS": 129701992583,
+            "wallTimeNS": 1794223916143482000
+          },
+          "parentCompletionReceiptObservedClock": {
+            "monotonicAfterNS": 145134559416,
+            "monotonicBeforeNS": 145134558291,
+            "wallTimeNS": 1794223931576046000
+          },
+          "parentReadyReceiptObservedClock": {
+            "monotonicAfterNS": 129733020875,
+            "monotonicBeforeNS": 129733019875,
+            "wallTimeNS": 1794223916174507000
+          },
+          "wallTimeEquatesClockDomains": false
+        },
+        "primaryAfter": null,
+        "primaryBefore": {
+          "commandTextProvesImage": false,
+          "pgid": 2121,
+          "pid": 2121,
+          "ppid": 2062,
+          "startTime": "Mon Nov 9 11:31:59 2026",
+          "state": "S<s",
+          "uid": 501
+        },
+        "primaryGroupID": 2121,
+        "primaryInvocationCount": 1,
+        "primaryPID": 2121,
+        "primaryParentPID": 2062,
+        "primaryProgressEvents": [
+          {
+            "clock": {
+              "monotonicAfterNS": 133284589750,
+              "monotonicBeforeNS": 133284589375,
+              "wallTimeNS": 1794223919726076000
+            },
+            "marker": "expectedBannerObserved",
+            "observedTextOnly": true,
+            "stderrBytesObserved": 84,
+            "stderrSHA256AtObservation": "1f21fb91268b05170edeaa91dd722d4c41ea91fba4df5783030ead89af160d50"
+          }
+        ],
+        "primaryProgressText": {
+          "ambiguous": false,
+          "bannerEstablishesCapturePhase": false,
+          "expectedBannerCount": 1,
+          "expectedBannerEndByte": 84,
+          "expectedBannerObserved": true,
+          "observedTextOnly": true,
+          "reportWrittenMarkerObserved": false,
+          "samplingCompletedMarkerObserved": false
+        },
+        "primaryReport": {
+          "status": "absent"
+        },
+        "recorderBefore": {
+          "commandTextProvesImage": false,
+          "pgid": 2105,
+          "pid": 2105,
+          "ppid": 2062,
+          "startTime": "Mon Nov 9 11:31:56 2026",
+          "state": "U<s",
+          "uid": 501
+        },
+        "recorderGroupID": 2105,
+        "recorderPID": 2105,
+        "recorderParentPID": 2062,
+        "recorderTriggerMonotonic": 132.733367375,
+        "reportProgress": {
+          "primary": [],
+          "secondary": []
+        },
+        "samePrimaryObservedBeforeAfter": false,
+        "secondaryCancellationReason": "primary-operation-boundary",
+        "secondaryInvocationCount": 1,
+        "secondaryPID": 2128,
+        "secondaryReport": {
+          "status": "absent"
+        },
+        "stack": null,
+        "unqualifiedReasons": [
+          "secondary-ended-without-admissible-after-snapshot"
+        ]
+      },
+      "provenance": {
+        "C12": "HOLD",
+        "activationRouteCoverageEstablished": false,
+        "architecture": "arm64",
+        "dependencyBase": "c1844a1ecb1650336d2cd584d23e2c3c6ed33a29",
+        "diagnostic": "D24-recorder-progress-observation",
+        "diagnosticOnly": true,
+        "experimentCommit": "73464e30f278203cbd129025f1db814b6c549b2b",
+        "experimentTree": "0d0b8c476fb052cd7b3a5b7ac98d0c6977069bf5",
+        "frozenCandidate": {
+          "commit": "d821d7343675e2850705d141ef9b3b93a6aee945",
+          "tree": "425baa28f00ec24551dd70c0cc874a75fa3be0c1"
+        },
+        "helper": {
+          "architecture": "arm64",
+          "architectures": [
+            "arm64"
+          ],
+          "bytes": 56480,
+          "sha256": "56ab614170aee88890767ce275745671ecac90e095434059d3feb87de53fe2ae",
+          "uuid": "2A49A55D-ACBB-47CD-A760-E151A35B2EE4"
+        },
+        "nativeInputExecuted": false,
+        "pythonVersion": "3.13.17 (v3.13.17:64e080d3815, Oct 21 2026, 07:24:09) [Clang 21.0.0 (clang-2100.1.1.101)]",
+        "releaseReady": false,
+        "retainedDiagnosticSourcesSHA256": {
+          "NATIVE_RECORDER_PROGRESS_OBSERVATION.md": "acfc511747c4ecae7bb0bfcaf9632842453c3b97bf194a5c37c9350d3b9fd0b9",
+          "NativeRecorderProgressNotify.c": "0be62710b8242409a79e53c5a961a29d21dafb755f1129985156074749947260",
+          "collect_native_trace_capabilities.py": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7",
+          "native-recorder-progress-observation.yml": "2b8939648cc1806731132728b3b8d650da9df20adc2179c442ebe9426646feab",
+          "native_sampler_tool_identity.py": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78",
+          "privacy_check.py": "3924cd779956cee1575489ae4f724d3bfd15ebbd8d166ae62cb17d3cf99294a6",
+          "run_native_recorder_progress_observation.py": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f",
+          "run_native_recorder_startup_observation.py": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7",
+          "run_native_system_trace_startup.py": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010",
+          "test_collect_native_trace_capabilities.py": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055",
+          "test_run_native_recorder_progress_observation.py": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a",
+          "test_run_native_recorder_startup_observation.py": "a7615f8a62777b5e073e3b231d79931906385db36b28c6d1a14f9b2116b45bb7",
+          "test_run_native_system_trace_startup.py": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7"
+        },
+        "sampleTool": {
+          "architecture": "arm64",
+          "bytes": 175056,
+          "container": "fat",
+          "nativeSlices": [
+            {
+              "architecture": "arm64",
+              "bytes": 93136,
+              "cpuSubtype": 2147483650,
+              "cpuType": 16777228,
+              "offset": 81920,
+              "sha256": "c081daa3152f15927f1cab92eaddc1ef536881ebfe3120fd965cf7fd7f094b70",
+              "uuid": "2C1EC2AB-0C9B-31F2-8D87-FC418BFE3961"
+            }
+          ],
+          "nativeUUIDs": [
+            "2C1EC2AB-0C9B-31F2-8D87-FC418BFE3961"
+          ],
+          "path": "/usr/bin/sample",
+          "sha256": "18a555fada1dd3687348164c2a97df9156e40ee83d2f7980a38843fd533f320f",
+          "slices": [
+            {
+              "architecture": "x86_64",
+              "bytes": 63872,
+              "cpuSubtype": 3,
+              "cpuType": 16777223,
+              "offset": 16384,
+              "sha256": "dc3c162e0b08427786fdecd122ce3d36de922f717796250df63cb013e73f7ed7",
+              "uuid": "6F3FFC9A-AB5D-3D4E-869B-8F087588F729"
+            },
+            {
+              "architecture": "arm64",
+              "bytes": 93136,
+              "cpuSubtype": 2147483650,
+              "cpuType": 16777228,
+              "offset": 81920,
+              "sha256": "c081daa3152f15927f1cab92eaddc1ef536881ebfe3120fd965cf7fd7f094b70",
+              "uuid": "2C1EC2AB-0C9B-31F2-8D87-FC418BFE3961"
+            }
+          ]
+        },
+        "schema": 1,
+        "settingsChanged": false,
+        "sourceSHA256": "0be62710b8242409a79e53c5a961a29d21dafb755f1129985156074749947260",
+        "translationProbe": {
+          "errno": 0,
+          "returnCode": 0,
+          "value": 0
+        }
+      },
+      "sourceSummary": {
+        "C12": "HOLD",
+        "activationRouteCoverageEstablished": false,
+        "applicationLaunchRequested": false,
+        "cleanupComplete": true,
+        "diagnosticExecutionComplete": true,
+        "errors": [],
+        "ipcRequestChainEstablished": false,
+        "nativeEvidenceEstablished": false,
+        "nativeInputExecuted": false,
+        "perturbsObservedProcess": true,
+        "releaseReady": false,
+        "samplerStackQualified": false,
+        "settingsChanged": false,
+        "status": "diagnostic-complete-stack-unqualified"
+      },
+      "summaryIdentity": {
+        "bytes": 63661,
+        "name": "evidence/D24-R2-arm64/recorder-progress-observation.json",
+        "sha256": "318abb407f30b5a57414d9d6457a2afbe6f6afea3479695cfb403200c104a422"
+      },
+      "trace": {
+        "archive": null,
+        "status": "unavailable"
+      },
+      "waitidPreflight": {
+        "available": true,
+        "exitCode": 23,
+        "peekDidNotReap": true,
+        "pythonVersion": "3.13.17"
+      }
+    },
+    "x86_64": {
+      "archive": {
+        "bytes": 12948336,
+        "sha256": "5e80502e00e9da7cd857ab45b5324d637c4c09195dfe6e70b2d5569976e7b041"
+      },
+      "artifactID": 13669502448,
+      "bounds": {
+        "helperNativeWindowSeconds": 15.0,
+        "helperParentHardSeconds": 17.0,
+        "observationCutoffAfterHelperSpawnSeconds": 14.0,
+        "observeAfterRecorderSeconds": 3.0,
+        "reportBytes": 8388608,
+        "sampleNormalSeconds": 3.5,
+        "sampleTotalSeconds": 4.0,
+        "snapshotBytes": 65536,
+        "streamBytes": 2097152,
+        "testOnlyTimeScale": null
+      },
+      "commands": {
+        "helper": {
+          "cleanupFailed": false,
+          "cleanupFailureReasons": [],
+          "clockAtSpawn": {
+            "monotonicAfterNS": 154771225487,
+            "monotonicBeforeNS": 154771223943,
+            "wallTimeNS": 1794223922908443000
+          },
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 154768233157,
+            "monotonicBeforeNS": 154768232739,
+            "wallTimeNS": 1794223922905449000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 181897082662,
+            "monotonicBeforeNS": 181897082387,
+            "wallTimeNS": 1794223950047863000
+          },
+          "collectionStartedClock": {
+            "monotonicAfterNS": 181897075066,
+            "monotonicBeforeNS": 181897074693,
+            "wallTimeNS": 1794223950047856000
+          },
+          "completionObservedWithinTotalBudget": true,
+          "elapsedSeconds": 15.053124948999994,
+          "exitCode": 0,
+          "exitObservedAfterSeconds": 15.053100217000008,
+          "exitObservedWithoutReap": true,
+          "files": {
+            "stderr": {
+              "bytes": 0,
+              "name": "helper.stderr.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "stdout": {
+              "bytes": 0,
+              "name": "helper.stdout.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "inheritedStreamsStillOpen": false,
+          "maximumCombinedBytes": 2097152,
+          "normalOperationBudgetSeconds": 16.5,
+          "observedBytes": 0,
+          "operationDoneClock": {
+            "monotonicAfterNS": 169821365693,
+            "monotonicBeforeNS": 169821365266,
+            "wallTimeNS": 1794223937966108000
+          },
+          "operationElapsedSeconds": 15.053124948999994,
+          "operationTerminalClock": {
+            "monotonicAfterNS": 169821344499,
+            "monotonicBeforeNS": 169821343195,
+            "wallTimeNS": 1794223937966087000
+          },
+          "ownershipElapsedSeconds": 27.12902545099999,
+          "pid": 2039,
+          "pidDirectedActionsRevoked": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseLost": false,
+          "pidLeaseReleased": true,
+          "retainedBytes": 0,
+          "signalErrors": [],
+          "signals": [],
+          "status": "completed",
+          "stopReason": null,
+          "streamErrors": [],
+          "streamProgress": [],
+          "totalBudgetSeconds": 17.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "waitidCode": 1,
+          "waitidStatus": 0
+        },
+        "owned-groups": {
+          "cleanupFailed": false,
+          "cleanupFailureReasons": [],
+          "clockAtSpawn": {
+            "monotonicAfterNS": 181845456494,
+            "monotonicBeforeNS": 181845455174,
+            "wallTimeNS": 1794223949996211000
+          },
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 181840225768,
+            "monotonicBeforeNS": 181840224380,
+            "wallTimeNS": 1794223949990978000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 181897092786,
+            "monotonicBeforeNS": 181897092397,
+            "wallTimeNS": 1794223950047873000
+          },
+          "collectionStartedClock": {
+            "monotonicAfterNS": 181897087219,
+            "monotonicBeforeNS": 181897086924,
+            "wallTimeNS": 1794223950047868000
+          },
+          "completionObservedWithinTotalBudget": true,
+          "elapsedSeconds": 0.04171425299998077,
+          "exitCode": 0,
+          "exitObservedAfterSeconds": 0.035230615999978454,
+          "exitObservedWithoutReap": true,
+          "files": {
+            "stderr": {
+              "bytes": 0,
+              "name": "owned-groups.stderr.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "stdout": {
+              "bytes": 8296,
+              "name": "owned-groups.stdout.txt",
+              "sha256": "4888a2893c84dc44acb3ca9c696f99d2588f71eae6470905ceeea3cba178f6c3"
+            }
+          },
+          "inheritedStreamsStillOpen": false,
+          "maximumCombinedBytes": 65536,
+          "normalOperationBudgetSeconds": 1.5,
+          "observedBytes": 8296,
+          "operationDoneClock": {
+            "monotonicAfterNS": 181881945249,
+            "monotonicBeforeNS": 181881943779,
+            "wallTimeNS": 1794223950032718000
+          },
+          "operationElapsedSeconds": 0.04171425299998077,
+          "operationTerminalClock": {
+            "monotonicAfterNS": 181875463616,
+            "monotonicBeforeNS": 181875463313,
+            "wallTimeNS": 1794223950026233000
+          },
+          "ownershipElapsedSeconds": 0.1704406109999752,
+          "pid": 2981,
+          "pidDirectedActionsRevoked": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseLost": false,
+          "pidLeaseReleased": true,
+          "retainedBytes": 8296,
+          "signalErrors": [],
+          "signals": [],
+          "status": "completed",
+          "stopReason": null,
+          "streamErrors": [],
+          "streamProgress": [
+            {
+              "clock": {
+                "monotonicAfterNS": 181875445836,
+                "monotonicBeforeNS": 181875444446,
+                "wallTimeNS": 1794223950026216000
+              },
+              "observedBytes": 8296,
+              "stderrBytes": 0,
+              "stdoutBytes": 8296
+            }
+          ],
+          "totalBudgetSeconds": 2.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "waitidCode": 1,
+          "waitidStatus": 0
+        },
+        "primary-before": {
+          "cleanupFailed": false,
+          "cleanupFailureReasons": [],
+          "clockAtSpawn": {
+            "monotonicAfterNS": 158181277512,
+            "monotonicBeforeNS": 158181276314,
+            "wallTimeNS": 1794223926320200000
+          },
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 158176460938,
+            "monotonicBeforeNS": 158176460644,
+            "wallTimeNS": 1794223926315381000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 181897028093,
+            "monotonicBeforeNS": 181897027749,
+            "wallTimeNS": 1794223950047809000
+          },
+          "collectionStartedClock": {
+            "monotonicAfterNS": 181897016188,
+            "monotonicBeforeNS": 181897015682,
+            "wallTimeNS": 1794223950047797000
+          },
+          "completionObservedWithinTotalBudget": true,
+          "elapsedSeconds": 0.027590404000022772,
+          "exitCode": 0,
+          "exitObservedAfterSeconds": 0.011139362000022857,
+          "exitObservedWithoutReap": true,
+          "files": {
+            "stderr": {
+              "bytes": 0,
+              "name": "primary-before.stderr.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "stdout": {
+              "bytes": 207,
+              "name": "primary-before.stdout.txt",
+              "sha256": "cac5f17aec01b6e5af1fa789a852459b69973728265073674d246ae277d9ffde"
+            }
+          },
+          "inheritedStreamsStillOpen": false,
+          "maximumCombinedBytes": 65536,
+          "normalOperationBudgetSeconds": 0.5,
+          "observedBytes": 207,
+          "operationDoneClock": {
+            "monotonicAfterNS": 158204053392,
+            "monotonicBeforeNS": 158204052250,
+            "wallTimeNS": 1794223926342987000
+          },
+          "operationElapsedSeconds": 0.027590404000022772,
+          "operationTerminalClock": {
+            "monotonicAfterNS": 158187604683,
+            "monotonicBeforeNS": 158187604378,
+            "wallTimeNS": 1794223926326531000
+          },
+          "ownershipElapsedSeconds": 23.79129432800002,
+          "pid": 2148,
+          "pidDirectedActionsRevoked": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseLost": false,
+          "pidLeaseReleased": true,
+          "retainedBytes": 207,
+          "signalErrors": [],
+          "signals": [],
+          "status": "completed",
+          "stopReason": null,
+          "streamErrors": [],
+          "streamProgress": [
+            {
+              "clock": {
+                "monotonicAfterNS": 158187584859,
+                "monotonicBeforeNS": 158187583663,
+                "wallTimeNS": 1794223926326511000
+              },
+              "observedBytes": 207,
+              "stderrBytes": 0,
+              "stdoutBytes": 207
+            }
+          ],
+          "targetOwnerPID": 1994,
+          "targetPID": 2147,
+          "targetPIDLeaseHeld": true,
+          "targetSpawnClock": {
+            "monotonicAfterNS": 157827048201,
+            "monotonicBeforeNS": 157827046950,
+            "wallTimeNS": 1794223925965794000
+          },
+          "totalBudgetSeconds": 1.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "waitidCode": 1,
+          "waitidStatus": 0
+        },
+        "primary-sample": {
+          "cleanupFailed": false,
+          "cleanupFailureReasons": [],
+          "clockAtSpawn": {
+            "monotonicAfterNS": 157827048201,
+            "monotonicBeforeNS": 157827046950,
+            "wallTimeNS": 1794223925965794000
+          },
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 157824040413,
+            "monotonicBeforeNS": 157824039742,
+            "wallTimeNS": 1794223925962784000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 181897041374,
+            "monotonicBeforeNS": 181897041092,
+            "wallTimeNS": 1794223950047822000
+          },
+          "collectionStartedClock": {
+            "monotonicAfterNS": 181897035032,
+            "monotonicBeforeNS": 181897034741,
+            "wallTimeNS": 1794223950047816000
+          },
+          "completionObservedWithinTotalBudget": true,
+          "elapsedSeconds": 3.7669499079999866,
+          "exitCode": -15,
+          "exitObservedAfterSeconds": 3.515238390999997,
+          "exitObservedWithoutReap": true,
+          "files": {
+            "stderr": {
+              "bytes": 84,
+              "name": "primary-sample.stderr.txt",
+              "sha256": "38912c379dad606f49ad8d062b25062ca81067eeadbec5eefc8c75405c7c0571"
+            },
+            "stdout": {
+              "bytes": 0,
+              "name": "primary-sample.stdout.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "inheritedStreamsStillOpen": false,
+          "maximumCombinedBytes": 2097152,
+          "normalDeadlineOvershootSeconds": 0.005057174999990366,
+          "normalOperationBudgetSeconds": 3.5,
+          "observedBytes": 84,
+          "operationDoneClock": {
+            "monotonicAfterNS": 161590993650,
+            "monotonicBeforeNS": 161590992516,
+            "wallTimeNS": 1794223929731621000
+          },
+          "operationElapsedSeconds": 3.7669499079999866,
+          "operationTerminalClock": {
+            "monotonicAfterNS": 161339285747,
+            "monotonicBeforeNS": 161339284375,
+            "wallTimeNS": 1794223929479787000
+          },
+          "ownershipElapsedSeconds": 24.103179249999982,
+          "pid": 2147,
+          "pidDirectedActionsRevoked": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseLost": false,
+          "pidLeaseReleased": true,
+          "retainedBytes": 84,
+          "signalErrors": [
+            {
+              "errno": 1,
+              "signal": "SIGKILL",
+              "target": "owned-group"
+            }
+          ],
+          "signalFailureResolvedByNoLiveOwnedGroup": true,
+          "signals": [
+            {
+              "afterSeconds": 3.5083900949999816,
+              "signal": "SIGTERM",
+              "target": "owned-group"
+            }
+          ],
+          "status": "command-budget",
+          "stopReason": "command-budget",
+          "stopRequestedClock": {
+            "monotonicAfterNS": 161329105931,
+            "monotonicBeforeNS": 161329104269,
+            "wallTimeNS": 1794223929469603000
+          },
+          "streamErrors": [],
+          "streamProgress": [
+            {
+              "clock": {
+                "monotonicAfterNS": 158176303066,
+                "monotonicBeforeNS": 158176301885,
+                "wallTimeNS": 1794223926315223000
+              },
+              "observedBytes": 84,
+              "stderrBytes": 84,
+              "stdoutBytes": 0
+            }
+          ],
+          "targetOwnerPID": 1994,
+          "targetPID": 2040,
+          "targetPIDLeaseHeld": true,
+          "totalBudgetSeconds": 4.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "waitidCode": 2,
+          "waitidStatus": 15
+        },
+        "record": {
+          "cleanupFailed": false,
+          "cleanupFailureReasons": [],
+          "clockAtSpawn": {
+            "monotonicAfterNS": 154780986606,
+            "monotonicBeforeNS": 154780985785,
+            "wallTimeNS": 1794223922918209000
+          },
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 154778827447,
+            "monotonicBeforeNS": 154778826824,
+            "wallTimeNS": 1794223922916049000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 181897069379,
+            "monotonicBeforeNS": 181897069114,
+            "wallTimeNS": 1794223950047850000
+          },
+          "collectionStartedClock": {
+            "monotonicAfterNS": 181897061806,
+            "monotonicBeforeNS": 181897061498,
+            "wallTimeNS": 1794223950047842000
+          },
+          "completionObservedWithinTotalBudget": true,
+          "elapsedSeconds": 27.060266813,
+          "exitCode": -11,
+          "exitObservedAfterSeconds": 25.18895659499998,
+          "exitObservedWithoutReap": true,
+          "files": {
+            "stderr": {
+              "bytes": 0,
+              "name": "record.stderr.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "stdout": {
+              "bytes": 146,
+              "name": "record.stdout.txt",
+              "sha256": "9dfe644af3d8b098a4910cf09c54348c0862a4452484093354b04c272ac653e2"
+            }
+          },
+          "helperReadyObservedClock": {
+            "monotonicAfterNS": 154778429351,
+            "monotonicBeforeNS": 154778428460,
+            "wallTimeNS": 1794223922915651000
+          },
+          "inheritedStreamsStillOpen": false,
+          "interruptClock": {
+            "monotonicAfterNS": 169821972507,
+            "monotonicBeforeNS": 169821971386,
+            "wallTimeNS": 1794223937966715000
+          },
+          "interruptReason": "helper-operation-ended",
+          "maximumCombinedBytes": 2097152,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "normalOperationBudgetSeconds": 41.0,
+          "observedBytes": 146,
+          "operationDoneClock": {
+            "monotonicAfterNS": 181839096381,
+            "monotonicBeforeNS": 181839095094,
+            "wallTimeNS": 1794223949989848000
+          },
+          "operationElapsedSeconds": 27.060266813,
+          "operationTerminalClock": {
+            "monotonicAfterNS": 179967790000,
+            "monotonicBeforeNS": 179967788647,
+            "wallTimeNS": 1794223948117606000
+          },
+          "ownershipElapsedSeconds": 27.145746597,
+          "pid": 2040,
+          "pidDirectedActionsRevoked": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseLost": false,
+          "pidLeaseReleased": true,
+          "retainedBytes": 146,
+          "signalErrors": [
+            {
+              "errno": 1,
+              "signal": "SIGKILL",
+              "target": "owned-group"
+            }
+          ],
+          "signalFailureResolvedByNoLiveOwnedGroup": true,
+          "signals": [
+            {
+              "afterSeconds": 15.043193694999985,
+              "signal": "SIGINT",
+              "target": "owned-process"
+            },
+            {
+              "afterSeconds": 25.059165770999982,
+              "signal": "SIGTERM",
+              "target": "owned-group"
+            }
+          ],
+          "status": "recorder-interrupt-grace-expired",
+          "stopReason": "recorder-interrupt-grace-expired",
+          "stopRequestedClock": {
+            "monotonicAfterNS": 179837954368,
+            "monotonicBeforeNS": 179837951508,
+            "wallTimeNS": 1794223947987705000
+          },
+          "streamErrors": [],
+          "streamProgress": [
+            {
+              "clock": {
+                "monotonicAfterNS": 166089474616,
+                "monotonicBeforeNS": 166089473494,
+                "wallTimeNS": 1794223934232351000
+              },
+              "observedBytes": 95,
+              "stderrBytes": 0,
+              "stdoutBytes": 95
+            },
+            {
+              "clock": {
+                "monotonicAfterNS": 168901448872,
+                "monotonicBeforeNS": 168901447581,
+                "wallTimeNS": 1794223937045732000
+              },
+              "observedBytes": 124,
+              "stderrBytes": 0,
+              "stdoutBytes": 124
+            },
+            {
+              "clock": {
+                "monotonicAfterNS": 170001132516,
+                "monotonicBeforeNS": 170001131206,
+                "wallTimeNS": 1794223938145965000
+              },
+              "observedBytes": 146,
+              "stderrBytes": 0,
+              "stdoutBytes": 146
+            }
+          ],
+          "totalBudgetSeconds": 45.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "waitidCode": 2,
+          "waitidStatus": 11
+        },
+        "recorder-before": {
+          "cleanupFailed": false,
+          "cleanupFailureReasons": [],
+          "clockAtSpawn": {
+            "monotonicAfterNS": 157783087001,
+            "monotonicBeforeNS": 157783086089,
+            "wallTimeNS": 1794223925921811000
+          },
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 157780323901,
+            "monotonicBeforeNS": 157780322708,
+            "wallTimeNS": 1794223925919046000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 181897055822,
+            "monotonicBeforeNS": 181897055537,
+            "wallTimeNS": 1794223950047836000
+          },
+          "collectionStartedClock": {
+            "monotonicAfterNS": 181897045885,
+            "monotonicBeforeNS": 181897045642,
+            "wallTimeNS": 1794223950047826000
+          },
+          "completionObservedWithinTotalBudget": true,
+          "elapsedSeconds": 0.042993497999987085,
+          "exitCode": 0,
+          "exitObservedAfterSeconds": 0.02352218499999026,
+          "exitObservedWithoutReap": true,
+          "files": {
+            "stderr": {
+              "bytes": 0,
+              "name": "recorder-before.stderr.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            "stdout": {
+              "bytes": 402,
+              "name": "recorder-before.stdout.txt",
+              "sha256": "cc64e4c99325bcde9cb80e730c51bae3ca0b6bb9f311531fad13c2e5bf001086"
+            }
+          },
+          "inheritedStreamsStillOpen": false,
+          "maximumCombinedBytes": 65536,
+          "normalOperationBudgetSeconds": 0.5,
+          "observedBytes": 402,
+          "operationDoneClock": {
+            "monotonicAfterNS": 157823322146,
+            "monotonicBeforeNS": 157823321169,
+            "wallTimeNS": 1794223925962066000
+          },
+          "operationElapsedSeconds": 0.042993497999987085,
+          "operationTerminalClock": {
+            "monotonicAfterNS": 157803853755,
+            "monotonicBeforeNS": 157803853234,
+            "wallTimeNS": 1794223925942588000
+          },
+          "ownershipElapsedSeconds": 24.145747935999992,
+          "pid": 2146,
+          "pidDirectedActionsRevoked": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseLost": false,
+          "pidLeaseReleased": true,
+          "retainedBytes": 402,
+          "signalErrors": [],
+          "signals": [],
+          "status": "completed",
+          "stopReason": null,
+          "streamErrors": [],
+          "streamProgress": [
+            {
+              "clock": {
+                "monotonicAfterNS": 157803805774,
+                "monotonicBeforeNS": 157803804633,
+                "wallTimeNS": 1794223925942540000
+              },
+              "observedBytes": 402,
+              "stderrBytes": 0,
+              "stdoutBytes": 402
+            }
+          ],
+          "targetOwnerPID": 1994,
+          "targetPID": 2040,
+          "targetPIDLeaseHeld": true,
+          "targetSpawnClock": {
+            "monotonicAfterNS": 154780986606,
+            "monotonicBeforeNS": 154780985785,
+            "wallTimeNS": 1794223922918209000
+          },
+          "totalBudgetSeconds": 1.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "waitidCode": 1,
+          "waitidStatus": 0
+        },
+        "secondary-sample": {
+          "cleanupFailed": false,
+          "cleanupFailureReasons": [],
+          "clockAtSpawn": {
+            "monotonicAfterNS": 158208022441,
+            "monotonicBeforeNS": 158208021366,
+            "wallTimeNS": 1794223926346959000
+          },
+          "clockBeforeSpawn": {
+            "monotonicAfterNS": 158204169637,
+            "monotonicBeforeNS": 158204169310,
+            "wallTimeNS": 1794223926343104000
+          },
+          "collectedClock": {
+            "monotonicAfterNS": 181897002447,
+            "monotonicBeforeNS": 181897001815,
+            "wallTimeNS": 1794223950047783000
+          },
+          "collectionStartedClock": {
+            "monotonicAfterNS": 181896938733,
+            "monotonicBeforeNS": 181896937377,
+            "wallTimeNS": 1794223950047719000
+          },
+          "completionObservedWithinTotalBudget": true,
+          "deadlineBoundedByPrimary": true,
+          "effectiveNormalBudgetSeconds": 3.1198705589999918,
+          "effectiveTotalBudgetSeconds": 3.6198705589999918,
+          "elapsedSeconds": 3.37311606199998,
+          "exitCode": -15,
+          "exitObservedAfterSeconds": 3.12957215199998,
+          "exitObservedWithoutReap": true,
+          "files": {
+            "stderr": {
+              "bytes": 84,
+              "name": "secondary-sample.stderr.txt",
+              "sha256": "955c4a40f723bbbefb0fe29d5b581c4f3e7a98860e5118b7b3d49f6d9a2f59c9"
+            },
+            "stdout": {
+              "bytes": 0,
+              "name": "secondary-sample.stdout.txt",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          },
+          "inheritedStreamsStillOpen": false,
+          "maximumCombinedBytes": 2097152,
+          "normalDeadlineOvershootSeconds": 0.0029121519999932843,
+          "normalOperationBudgetSeconds": 3.5,
+          "observedBytes": 84,
+          "operationDoneClock": {
+            "monotonicAfterNS": 161577289337,
+            "monotonicBeforeNS": 161577288063,
+            "wallTimeNS": 1794223929717910000
+          },
+          "operationElapsedSeconds": 3.37311606199998,
+          "operationTerminalClock": {
+            "monotonicAfterNS": 161333749760,
+            "monotonicBeforeNS": 161333747976,
+            "wallTimeNS": 1794223929474249000
+          },
+          "ownershipElapsedSeconds": 23.803936960999977,
+          "pid": 2149,
+          "pidDirectedActionsRevoked": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseLost": false,
+          "pidLeaseReleased": true,
+          "retainedBytes": 84,
+          "signalErrors": [
+            {
+              "errno": 1,
+              "signal": "SIGKILL",
+              "target": "owned-group"
+            }
+          ],
+          "signalFailureResolvedByNoLiveOwnedGroup": true,
+          "signals": [
+            {
+              "afterSeconds": 3.1229030889999763,
+              "signal": "SIGTERM",
+              "target": "owned-group"
+            }
+          ],
+          "status": "primary-operation-boundary",
+          "stopReason": "primary-operation-boundary",
+          "stopRequestedClock": {
+            "monotonicAfterNS": 161326963123,
+            "monotonicBeforeNS": 161326960696,
+            "wallTimeNS": 1794223929467459000
+          },
+          "streamErrors": [],
+          "streamProgress": [
+            {
+              "clock": {
+                "monotonicAfterNS": 158370891628,
+                "monotonicBeforeNS": 158370890333,
+                "wallTimeNS": 1794223926509909000
+              },
+              "observedBytes": 84,
+              "stderrBytes": 84,
+              "stdoutBytes": 0
+            }
+          ],
+          "targetOwnerPID": 1994,
+          "targetPID": 2147,
+          "targetPIDLeaseHeld": true,
+          "totalBudgetSeconds": 4.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "waitidCode": 2,
+          "waitidStatus": 15
+        }
+      },
+      "finalOwnedGroups": {
+        "helper": {
+          "members": [
+            {
+              "pgid": 2039,
+              "pid": 2039,
+              "state": "Z<"
+            }
+          ],
+          "noLiveMembersObserved": true,
+          "pgid": 2039,
+          "pidLeaseHeldAtSnapshot": true
+        },
+        "primary-before": {
+          "members": [
+            {
+              "pgid": 2148,
+              "pid": 2148,
+              "state": "Z<"
+            }
+          ],
+          "noLiveMembersObserved": true,
+          "pgid": 2148,
+          "pidLeaseHeldAtSnapshot": true
+        },
+        "primary-sample": {
+          "members": [
+            {
+              "pgid": 2147,
+              "pid": 2147,
+              "state": "Z<"
+            }
+          ],
+          "noLiveMembersObserved": true,
+          "pgid": 2147,
+          "pidLeaseHeldAtSnapshot": true
+        },
+        "record": {
+          "members": [
+            {
+              "pgid": 2040,
+              "pid": 2040,
+              "state": "Z<"
+            }
+          ],
+          "noLiveMembersObserved": true,
+          "pgid": 2040,
+          "pidLeaseHeldAtSnapshot": true
+        },
+        "recorder-before": {
+          "members": [
+            {
+              "pgid": 2146,
+              "pid": 2146,
+              "state": "Z<"
+            }
+          ],
+          "noLiveMembersObserved": true,
+          "pgid": 2146,
+          "pidLeaseHeldAtSnapshot": true
+        },
+        "secondary-sample": {
+          "members": [
+            {
+              "pgid": 2149,
+              "pid": 2149,
+              "state": "Z<"
+            }
+          ],
+          "noLiveMembersObserved": true,
+          "pgid": 2149,
+          "pidLeaseHeldAtSnapshot": true
+        }
+      },
+      "helperReceipts": {
+        "completion": {
+          "identity": {
+            "bytes": 3307,
+            "name": "evidence/D24-R2-x86_64/helper-completion.json",
+            "sha256": "23c9e41dafd83bf0efc51d4b170f5fdc7f8c0fd3bc819449732d3ae2e8a020d0"
+          },
+          "receipt": {
+            "applicationLaunchRequested": false,
+            "architecture": "x86_64",
+            "completionClock": {
+              "machAbsoluteAfter": 169774838030,
+              "machAbsoluteBefore": 169774837626,
+              "machContinuousAfter": 169774838006,
+              "machContinuousBefore": 169774837693,
+              "systemUptime": 169.774837626,
+              "wallTimeUnixNS": 1794223937919558000
+            },
+            "cooperativeAbortObserved": false,
+            "elapsedSeconds": 15.001778552,
+            "euid": 501,
+            "executableSHA256": "24d18c2a946ef882b0ebda46f7df91479a51c2b708206124a1ea4ff80affdd3c",
+            "exitCode": 0,
+            "experimentCommit": "73464e30f278203cbd129025f1db814b6c549b2b",
+            "experimentTree": "0d0b8c476fb052cd7b3a5b7ac98d0c6977069bf5",
+            "finalIdentityMatches": true,
+            "identityValidated": true,
+            "kind": "d24-recorder-progress-complete",
+            "machOUUID": "31708983-6CD5-40B5-AD1E-ED41F332F5F2",
+            "machTimebaseDenom": 1,
+            "machTimebaseNumer": 1,
+            "nativeInputExecuted": false,
+            "nativeStartClock": {
+              "machAbsoluteAfter": 154773059763,
+              "machAbsoluteBefore": 154773059376,
+              "machContinuousAfter": 154773059740,
+              "machContinuousBefore": 154773059454,
+              "systemUptime": 154.773059376,
+              "wallTimeUnixNS": 1794223922910278000
+            },
+            "nonce": "6930DD3F-6180-4CD7-8739-388E2B94DB26",
+            "normalWindowCompleted": true,
+            "notification": {
+              "callbackClockFailed": false,
+              "cancelStatus": 0,
+              "cancelled": true,
+              "closedClock": {
+                "machAbsoluteAfter": 169774468647,
+                "machAbsoluteBefore": 169774468165,
+                "machContinuousAfter": 169774468618,
+                "machContinuousBefore": 169774468262,
+                "systemUptime": 169.774468165,
+                "wallTimeUnixNS": 1794223937919188000
+              },
+              "countOverflow": false,
+              "firstReceivedClock": {
+                "machAbsoluteAfter": 168882811421,
+                "machAbsoluteBefore": 168882811091,
+                "machContinuousAfter": 168882811398,
+                "machContinuousBefore": 168882811193,
+                "systemUptime": 168.882811091,
+                "wallTimeUnixNS": 1794223937027085000
+              },
+              "firstReceivedToken": 3,
+              "name": "app.lemulip.d24.recording.6930DD3F-6180-4CD7-8739-388E2B94DB26",
+              "receivedCount": 1,
+              "registered": true,
+              "registrationAfterClock": {
+                "machAbsoluteAfter": 154773838961,
+                "machAbsoluteBefore": 154773838613,
+                "machContinuousAfter": 154773838938,
+                "machContinuousBefore": 154773838684,
+                "systemUptime": 154.773838613,
+                "wallTimeUnixNS": 1794223922911058000
+              },
+              "registrationBeforeClock": {
+                "machAbsoluteAfter": 154773303339,
+                "machAbsoluteBefore": 154773301817,
+                "machContinuousAfter": 154773303315,
+                "machContinuousBefore": 154773301913,
+                "systemUptime": 154.773301817,
+                "wallTimeUnixNS": 1794223922910522000
+              },
+              "registrationStatus": 0,
+              "token": 3
+            },
+            "pgid": 2039,
+            "pid": 2039,
+            "ppid": 1994,
+            "readinessClock": {
+              "machAbsoluteAfter": 154773839155,
+              "machAbsoluteBefore": 154773839050,
+              "machContinuousAfter": 154773839132,
+              "machContinuousBefore": 154773839074,
+              "systemUptime": 154.77383905,
+              "wallTimeUnixNS": 1794223922911058000
+            },
+            "readyReceiptBytes": 2146,
+            "readyReceiptSHA256": "302974899adf9fbe379a86d4eaf2e172741db581194d1802a964006c922cddfe",
+            "reason": "window-complete",
+            "recordingRequested": false,
+            "schema": 1,
+            "settingsChanged": false,
+            "sourceSHA256": "0be62710b8242409a79e53c5a961a29d21dafb755f1129985156074749947260",
+            "translationProbe": {
+              "errno": 2,
+              "returnCode": -1,
+              "value": null
+            },
+            "windowSeconds": 15
+          }
+        },
+        "ready": {
+          "identity": {
+            "bytes": 2146,
+            "name": "evidence/D24-R2-x86_64/helper-ready.json",
+            "sha256": "302974899adf9fbe379a86d4eaf2e172741db581194d1802a964006c922cddfe"
+          },
+          "receipt": {
+            "applicationLaunchRequested": false,
+            "architecture": "x86_64",
+            "euid": 501,
+            "executableSHA256": "24d18c2a946ef882b0ebda46f7df91479a51c2b708206124a1ea4ff80affdd3c",
+            "experimentCommit": "73464e30f278203cbd129025f1db814b6c549b2b",
+            "experimentTree": "0d0b8c476fb052cd7b3a5b7ac98d0c6977069bf5",
+            "identityValidated": true,
+            "kind": "d24-recorder-progress-ready",
+            "machOUUID": "31708983-6CD5-40B5-AD1E-ED41F332F5F2",
+            "machTimebaseDenom": 1,
+            "machTimebaseNumer": 1,
+            "nativeInputExecuted": false,
+            "nativeStartClock": {
+              "machAbsoluteAfter": 154773059763,
+              "machAbsoluteBefore": 154773059376,
+              "machContinuousAfter": 154773059740,
+              "machContinuousBefore": 154773059454,
+              "systemUptime": 154.773059376,
+              "wallTimeUnixNS": 1794223922910278000
+            },
+            "nonce": "6930DD3F-6180-4CD7-8739-388E2B94DB26",
+            "notification": {
+              "name": "app.lemulip.d24.recording.6930DD3F-6180-4CD7-8739-388E2B94DB26",
+              "registered": true,
+              "registrationAfterClock": {
+                "machAbsoluteAfter": 154773838961,
+                "machAbsoluteBefore": 154773838613,
+                "machContinuousAfter": 154773838938,
+                "machContinuousBefore": 154773838684,
+                "systemUptime": 154.773838613,
+                "wallTimeUnixNS": 1794223922911058000
+              },
+              "registrationBeforeClock": {
+                "machAbsoluteAfter": 154773303339,
+                "machAbsoluteBefore": 154773301817,
+                "machContinuousAfter": 154773303315,
+                "machContinuousBefore": 154773301913,
+                "systemUptime": 154.773301817,
+                "wallTimeUnixNS": 1794223922910522000
+              },
+              "registrationStatus": 0,
+              "token": 3
+            },
+            "pgid": 2039,
+            "pid": 2039,
+            "ppid": 1994,
+            "readinessClock": {
+              "machAbsoluteAfter": 154773839155,
+              "machAbsoluteBefore": 154773839050,
+              "machContinuousAfter": 154773839132,
+              "machContinuousBefore": 154773839074,
+              "systemUptime": 154.77383905,
+              "wallTimeUnixNS": 1794223922911058000
+            },
+            "recordingRequested": false,
+            "schema": 1,
+            "settingsChanged": false,
+            "sourceSHA256": "0be62710b8242409a79e53c5a961a29d21dafb755f1129985156074749947260",
+            "translationProbe": {
+              "errno": 2,
+              "returnCode": -1,
+              "value": null
+            },
+            "windowSeconds": 15
+          }
+        }
+      },
+      "independentTimeline": {
+        "experimentCommit": "73464e30f278203cbd129025f1db814b6c549b2b",
+        "firstReceivedToken": 3,
+        "helperElapsedSeconds": 15.001778552,
+        "nativeClockOrigin": "Helper nativeStartClock machContinuous bracket, converted using the helper numer/denom. No parent/native epoch equality is asserted.",
+        "nativeHelperIntervalsSeconds": {
+          "completion": [
+            15.001777953,
+            15.001778552
+          ],
+          "firstCallback": [
+            14.109751453,
+            14.109751944
+          ],
+          "notificationClosed": [
+            15.001408522,
+            15.001409164
+          ],
+          "readiness": [
+            0.000779334,
+            0.000779678
+          ]
+        },
+        "notificationCount": 1,
+        "notificationEstablishesTraceEpoch": false,
+        "notificationSenderEstablished": false,
+        "notificationToken": 3,
+        "parentClockOrigin": "Recorder transport.started, reconstructed from stored recorderTriggerMonotonic minus fixed3s. All entries below remain in the parent monotonic clock domain.",
+        "parentTimeline": {
+          "primary-before": {
+            "operationDoneBracket": [
+              3.425221831999977,
+              3.425222973999979
+            ],
+            "spawnAfterBracket": [
+              3.402445895999989,
+              3.402447093999996
+            ],
+            "spawnBeforeBracket": [
+              3.3976302259999898,
+              3.3976305199999786
+            ],
+            "streamProgress": [
+              {
+                "clockBracket": [
+                  3.4087532449999856,
+                  3.408754440999985
+                ],
+                "observedBytes": 207
+              }
+            ]
+          },
+          "primary-sample": {
+            "operationDoneBracket": [
+              6.8121620979999875,
+              6.812163231999989
+            ],
+            "spawnAfterBracket": [
+              3.048216531999998,
+              3.048217782999984
+            ],
+            "spawnBeforeBracket": [
+              3.045209323999984,
+              3.0452099949999933
+            ],
+            "stopRequestBracket": [
+              6.550273850999986,
+              6.550275512999974
+            ],
+            "streamProgress": [
+              {
+                "clockBracket": [
+                  3.397471466999974,
+                  3.39747264799999
+                ],
+                "observedBytes": 84
+              }
+            ]
+          },
+          "record": {
+            "operationDoneBracket": [
+              27.060264675999974,
+              27.060265962999978
+            ],
+            "spawnAfterBracket": [
+              0.0021553670000002967,
+              0.002156187999986514
+            ],
+            "spawnBeforeBracket": [
+              -3.5940000202572264e-06,
+              -2.971000014895253e-06
+            ],
+            "stopRequestBracket": [
+              25.05912108999999,
+              25.059123949999986
+            ],
+            "streamProgress": [
+              {
+                "clockBracket": [
+                  11.310643075999991,
+                  11.310644197999977
+                ],
+                "observedBytes": 95
+              },
+              {
+                "clockBracket": [
+                  14.122617163000001,
+                  14.12261845399999
+                ],
+                "observedBytes": 124
+              },
+              {
+                "clockBracket": [
+                  15.222300787999984,
+                  15.222302098
+                ],
+                "observedBytes": 146
+              }
+            ]
+          },
+          "recorder-before": {
+            "operationDoneBracket": [
+              3.0444907509999837,
+              3.044491727999997
+            ],
+            "spawnAfterBracket": [
+              3.0042556709999815,
+              3.004256583
+            ],
+            "spawnBeforeBracket": [
+              3.0014922899999874,
+              3.00149348299999
+            ],
+            "streamProgress": [
+              {
+                "clockBracket": [
+                  3.024974214999986,
+                  3.024975355999999
+                ],
+                "observedBytes": 402
+              }
+            ]
+          },
+          "secondary-sample": {
+            "operationDoneBracket": [
+              6.798457644999985,
+              6.798458918999984
+            ],
+            "spawnAfterBracket": [
+              3.4291909479999845,
+              3.4291920229999846
+            ],
+            "spawnBeforeBracket": [
+              3.425338891999985,
+              3.4253392189999943
+            ],
+            "stopRequestBracket": [
+              6.548130277999974,
+              6.548132705
+            ],
+            "streamProgress": [
+              {
+                "clockBracket": [
+                  3.592059914999993,
+                  3.592061209999997
+                ],
+                "observedBytes": 84
+              }
+            ]
+          }
+        },
+        "primaryAfter": null,
+        "primaryBefore": {
+          "commandTextProvesImage": false,
+          "pgid": 2147,
+          "pid": 2147,
+          "ppid": 1994,
+          "startTime": "Mon Nov 9 11:32:05 2026",
+          "state": "S<s",
+          "uid": 501
+        },
+        "primaryBeforeStdout": "2147  1994  2147   501 Mon Nov  9 11:32:05 2026     S<s",
+        "pythonVersion": "Python 3.13.15",
+        "recorderBeforeState": "R<s",
+        "recorderExitCode": -11,
+        "recorderExitObservedAfterSeconds": 25.18895659499998,
+        "recorderSignals": [
+          {
+            "afterSeconds": 15.043193694999985,
+            "signal": "SIGINT",
+            "target": "owned-process"
+          },
+          {
+            "afterSeconds": 25.059165770999982,
+            "signal": "SIGTERM",
+            "target": "owned-group"
+          }
+        ],
+        "recorderStderrBytes": 0,
+        "recorderStdout": "Starting recording with the System Trace template. Targeting All Processes. Time limit: 30.0 s\nCtrl-C to stop the recording\nStopping recording...\n",
+        "reportProgress": {
+          "primary": [],
+          "secondary": []
+        },
+        "secondaryCancellationReason": "primary-operation-boundary",
+        "summary": {
+          "cleanupComplete": true,
+          "diagnosticExecutionComplete": true,
+          "errors": [],
+          "nativeEvidenceEstablished": false,
+          "samplerStackQualified": false,
+          "status": "diagnostic-complete-stack-unqualified"
+        },
+        "testTotal": 81,
+        "tests": {
+          "bounded-command": {
+            "count": 6,
+            "ok": true,
+            "seconds": 2.612
+          },
+          "observer": {
+            "count": 15,
+            "ok": true,
+            "seconds": 4.208
+          },
+          "progress": {
+            "count": 50,
+            "ok": true,
+            "seconds": 40.047
+          },
+          "transport": {
+            "count": 10,
+            "ok": true,
+            "seconds": 1.081
+          }
+        }
+      },
+      "installedManualContract": {
+        "manuals": {
+          "ps": {
+            "bytes": 21557,
+            "normalizedBytes": 14656,
+            "normalizedSHA256": "beb6a20f41da7852a512b236b94e9285d847dfbb67411299941a317b51c718c8",
+            "sha256": "e9fafd92c1b709c723fe7e357c7cb272c453d9bab31a30532e3a260873043083"
+          },
+          "sample": {
+            "bytes": 4485,
+            "normalizedBytes": 3724,
+            "normalizedSHA256": "fb30fb77fd997beb3037b36946b5bee01acff6b10a80ea370c82816ecc901b27",
+            "sha256": "97b8e5a61847577b9eb3a82708b273881f1e008eeb0223c75a9b40e20f226940"
+          }
+        },
+        "passed": true,
+        "recognizedArguments": {
+          "cleanupPS": [
+            "-A",
+            "-o",
+            "pid=,pgid=,stat="
+          ],
+          "ps": [
+            "-ww",
+            "-p",
+            "PID",
+            "-o",
+            "pid=,ppid=,pgid=,uid=,lstart=,stat=,comm=,args="
+          ],
+          "sample": [
+            "PID",
+            "1",
+            "10",
+            "-mayDie",
+            "-file",
+            "EXCLUSIVE_REPORT_PATH"
+          ]
+        },
+        "schema": 1,
+        "semanticChecks": {
+          "durationSeconds": true,
+          "explicitReportFile": true,
+          "intervalMilliseconds": true,
+          "mayDieSymbolsFirst": true,
+          "psAllSelection": true,
+          "psArgsField": true,
+          "psCommandField": true,
+          "psEmptyHeaders": true,
+          "psGroupField": true,
+          "psKeywordFormat": true,
+          "psPIDField": true,
+          "psPIDSelection": true,
+          "psParentField": true,
+          "psRepeatedWide": true,
+          "psStartField": true,
+          "psStateField": true,
+          "psUIDField": true,
+          "sampleArgumentDefinitionOrder": true,
+          "samplePID": true,
+          "sampleSynopsisOrder": true
+        }
+      },
+      "observation": {
+        "bannerEstablishesCapturePhase": false,
+        "bannerTrigger": {
+          "ambiguous": false,
+          "bannerEstablishesCapturePhase": false,
+          "clock": {
+            "monotonicAfterNS": 158176426943,
+            "monotonicBeforeNS": 158176426675,
+            "wallTimeNS": 1794223926315347000
+          },
+          "expectedBannerCount": 1,
+          "expectedBannerEndByte": 84,
+          "expectedBannerObserved": true,
+          "observedTextOnly": true,
+          "reportWrittenMarkerObserved": false,
+          "samplingCompletedMarkerObserved": false,
+          "stderrBytesObserved": 84,
+          "stderrSHA256AtTrigger": "38912c379dad606f49ad8d062b25062ca81067eeadbec5eefc8c75405c7c0571"
+        },
+        "cutoffMonotonic": 168.768205757,
+        "nativeClockCorrelation": {
+          "machTimebaseDenom": 1,
+          "machTimebaseNumer": 1,
+          "nativeCompletionClock": {
+            "machAbsoluteAfter": 169774838030,
+            "machAbsoluteBefore": 169774837626,
+            "machContinuousAfter": 169774838006,
+            "machContinuousBefore": 169774837693,
+            "systemUptime": 169.774837626,
+            "wallTimeUnixNS": 1794223937919558000
+          },
+          "nativeReadyClock": {
+            "machAbsoluteAfter": 154773839155,
+            "machAbsoluteBefore": 154773839050,
+            "machContinuousAfter": 154773839132,
+            "machContinuousBefore": 154773839074,
+            "systemUptime": 154.77383905,
+            "wallTimeUnixNS": 1794223922911058000
+          },
+          "nativeStartClock": {
+            "machAbsoluteAfter": 154773059763,
+            "machAbsoluteBefore": 154773059376,
+            "machContinuousAfter": 154773059740,
+            "machContinuousBefore": 154773059454,
+            "systemUptime": 154.773059376,
+            "wallTimeUnixNS": 1794223922910278000
+          },
+          "notificationEstablishesTraceEpoch": false,
+          "notificationSenderEstablished": false,
+          "parentBeforeHelperSpawnClock": {
+            "monotonicAfterNS": 154768214821,
+            "monotonicBeforeNS": 154768213212,
+            "wallTimeNS": 1794223922905431000
+          },
+          "parentCompletionReceiptObservedClock": {
+            "monotonicAfterNS": 182011761970,
+            "monotonicBeforeNS": 182011760320,
+            "wallTimeNS": 1794223950162600000
+          },
+          "parentReadyReceiptObservedClock": {
+            "monotonicAfterNS": 154778429351,
+            "monotonicBeforeNS": 154778428460,
+            "wallTimeNS": 1794223922915651000
+          },
+          "wallTimeEquatesClockDomains": false
+        },
+        "primaryAfter": null,
+        "primaryBefore": {
+          "commandTextProvesImage": false,
+          "pgid": 2147,
+          "pid": 2147,
+          "ppid": 1994,
+          "startTime": "Mon Nov 9 11:32:05 2026",
+          "state": "S<s",
+          "uid": 501
+        },
+        "primaryGroupID": 2147,
+        "primaryInvocationCount": 1,
+        "primaryPID": 2147,
+        "primaryParentPID": 1994,
+        "primaryProgressEvents": [
+          {
+            "clock": {
+              "monotonicAfterNS": 158176402826,
+              "monotonicBeforeNS": 158176402183,
+              "wallTimeNS": 1794223926315323000
+            },
+            "marker": "expectedBannerObserved",
+            "observedTextOnly": true,
+            "stderrBytesObserved": 84,
+            "stderrSHA256AtObservation": "38912c379dad606f49ad8d062b25062ca81067eeadbec5eefc8c75405c7c0571"
+          }
+        ],
+        "primaryProgressText": {
+          "ambiguous": false,
+          "bannerEstablishesCapturePhase": false,
+          "expectedBannerCount": 1,
+          "expectedBannerEndByte": 84,
+          "expectedBannerObserved": true,
+          "observedTextOnly": true,
+          "reportWrittenMarkerObserved": false,
+          "samplingCompletedMarkerObserved": false
+        },
+        "primaryReport": {
+          "status": "absent"
+        },
+        "recorderBefore": {
+          "commandTextProvesImage": false,
+          "pgid": 2040,
+          "pid": 2040,
+          "ppid": 1994,
+          "startTime": "Mon Nov 9 11:32:02 2026",
+          "state": "R<s",
+          "uid": 501
+        },
+        "recorderGroupID": 2040,
+        "recorderPID": 2040,
+        "recorderParentPID": 1994,
+        "recorderTriggerMonotonic": 157.778830418,
+        "reportProgress": {
+          "primary": [],
+          "secondary": []
+        },
+        "samePrimaryObservedBeforeAfter": false,
+        "secondaryCancellationReason": "primary-operation-boundary",
+        "secondaryInvocationCount": 1,
+        "secondaryPID": 2149,
+        "secondaryReport": {
+          "status": "absent"
+        },
+        "stack": null,
+        "unqualifiedReasons": [
+          "secondary-ended-without-admissible-after-snapshot"
+        ]
+      },
+      "provenance": {
+        "C12": "HOLD",
+        "activationRouteCoverageEstablished": false,
+        "architecture": "x86_64",
+        "dependencyBase": "c1844a1ecb1650336d2cd584d23e2c3c6ed33a29",
+        "diagnostic": "D24-recorder-progress-observation",
+        "diagnosticOnly": true,
+        "experimentCommit": "73464e30f278203cbd129025f1db814b6c549b2b",
+        "experimentTree": "0d0b8c476fb052cd7b3a5b7ac98d0c6977069bf5",
+        "frozenCandidate": {
+          "commit": "d821d7343675e2850705d141ef9b3b93a6aee945",
+          "tree": "425baa28f00ec24551dd70c0cc874a75fa3be0c1"
+        },
+        "helper": {
+          "architecture": "x86_64",
+          "architectures": [
+            "x86_64"
+          ],
+          "bytes": 31360,
+          "sha256": "24d18c2a946ef882b0ebda46f7df91479a51c2b708206124a1ea4ff80affdd3c",
+          "uuid": "31708983-6CD5-40B5-AD1E-ED41F332F5F2"
+        },
+        "nativeInputExecuted": false,
+        "pythonVersion": "3.13.15 (v3.13.15:4061bc4c35f, Aug  5 2026, 09:08:51) [Clang 21.0.0 (clang-2100.1.1.101)]",
+        "releaseReady": false,
+        "retainedDiagnosticSourcesSHA256": {
+          "NATIVE_RECORDER_PROGRESS_OBSERVATION.md": "acfc511747c4ecae7bb0bfcaf9632842453c3b97bf194a5c37c9350d3b9fd0b9",
+          "NativeRecorderProgressNotify.c": "0be62710b8242409a79e53c5a961a29d21dafb755f1129985156074749947260",
+          "collect_native_trace_capabilities.py": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7",
+          "native-recorder-progress-observation.yml": "2b8939648cc1806731132728b3b8d650da9df20adc2179c442ebe9426646feab",
+          "native_sampler_tool_identity.py": "0e7ce335e00a2aa3cf9dd2f7f2f0eeb8c92d277be4be602b01b4f4f3c544bc78",
+          "privacy_check.py": "3924cd779956cee1575489ae4f724d3bfd15ebbd8d166ae62cb17d3cf99294a6",
+          "run_native_recorder_progress_observation.py": "d5c852a6439ae6ac361613331451b1f0261e5adf8ad2aabc2e53bb06e16ab02f",
+          "run_native_recorder_startup_observation.py": "1b9abc933111a6698910fb68e98ba8310efd122f417efd706b2233f4ffda7ed7",
+          "run_native_system_trace_startup.py": "05816674c8b7d4e3c96b5edea30bed143012ae09718b4139d0b9c394966e7010",
+          "test_collect_native_trace_capabilities.py": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055",
+          "test_run_native_recorder_progress_observation.py": "f09dce527f0c1f658349ba4a9dce89f292c922e9b536b4b9583d095219732c1a",
+          "test_run_native_recorder_startup_observation.py": "a7615f8a62777b5e073e3b231d79931906385db36b28c6d1a14f9b2116b45bb7",
+          "test_run_native_system_trace_startup.py": "be962deb6e5d8d1156ffbb9f28d5912e0712462a8dc080af3f4ed73c0d769ec7"
+        },
+        "sampleTool": {
+          "architecture": "x86_64",
+          "bytes": 175056,
+          "container": "fat",
+          "nativeSlices": [
+            {
+              "architecture": "x86_64",
+              "bytes": 63872,
+              "cpuSubtype": 3,
+              "cpuType": 16777223,
+              "offset": 16384,
+              "sha256": "016a407f2d48070359adaa0755ee025ee23b3c679d279a070524692cdfb4eca7",
+              "uuid": "8D2C556F-F414-3017-9B02-C98F9CEE6C2A"
+            }
+          ],
+          "nativeUUIDs": [
+            "8D2C556F-F414-3017-9B02-C98F9CEE6C2A"
+          ],
+          "path": "/usr/bin/sample",
+          "sha256": "49eca4608cfeb6a0fcebcde9ef9ab5dc74cc841bac13ae6b668058c61e576e5c",
+          "slices": [
+            {
+              "architecture": "x86_64",
+              "bytes": 63872,
+              "cpuSubtype": 3,
+              "cpuType": 16777223,
+              "offset": 16384,
+              "sha256": "016a407f2d48070359adaa0755ee025ee23b3c679d279a070524692cdfb4eca7",
+              "uuid": "8D2C556F-F414-3017-9B02-C98F9CEE6C2A"
+            },
+            {
+              "architecture": "arm64",
+              "bytes": 93136,
+              "cpuSubtype": 2147483650,
+              "cpuType": 16777228,
+              "offset": 81920,
+              "sha256": "1c99f4003d1ce20c43c1dd73324098073b21e4c77603763d7a4c5c67ca0bf071",
+              "uuid": "DAA14585-5522-3D71-8196-2D576E826508"
+            }
+          ]
+        },
+        "schema": 1,
+        "settingsChanged": false,
+        "sourceSHA256": "0be62710b8242409a79e53c5a961a29d21dafb755f1129985156074749947260",
+        "translationProbe": {
+          "errno": 2,
+          "returnCode": -1,
+          "value": null
+        }
+      },
+      "sourceSummary": {
+        "C12": "HOLD",
+        "activationRouteCoverageEstablished": false,
+        "applicationLaunchRequested": false,
+        "cleanupComplete": true,
+        "diagnosticExecutionComplete": true,
+        "errors": [],
+        "ipcRequestChainEstablished": false,
+        "nativeEvidenceEstablished": false,
+        "nativeInputExecuted": false,
+        "perturbsObservedProcess": true,
+        "releaseReady": false,
+        "samplerStackQualified": false,
+        "settingsChanged": false,
+        "status": "diagnostic-complete-stack-unqualified"
+      },
+      "summaryIdentity": {
+        "bytes": 66603,
+        "name": "evidence/D24-R2-x86_64/recorder-progress-observation.json",
+        "sha256": "cf8d0d7e0b45397b4718a8e420211087867b28162796f7a36cafa2076003a42c"
+      },
+      "trace": {
+        "archive": {
+          "bytes": 13283084,
+          "name": "recording.trace.zip",
+          "sha256": "d4a6e955f18b79d99530ec92690fad043422cb4897c0fb303f3066150cfb4bde"
+        },
+        "crcVerified": true,
+        "entries": [
+          {
+            "bytes": 0,
+            "kind": "directory",
+            "path": "recording.trace/"
+          },
+          {
+            "bytes": 0,
+            "kind": "directory",
+            "path": "recording.trace/Trace1.run/"
+          },
+          {
+            "bytes": 0,
+            "kind": "directory",
+            "path": "recording.trace/Trace1.run/Attachments/"
+          },
+          {
+            "bytes": 115782056,
+            "crc32": 3125956842,
+            "kind": "file",
+            "path": "recording.trace/Trace1.run/Attachments/trace-data.atrc",
+            "sha256": "dd55ca66c46a4651df145287d2db8573e6dcf5f9387dcea73bec21a7a37719f0"
+          },
+          {
+            "bytes": 53248,
+            "crc32": 1480474241,
+            "kind": "file",
+            "path": "recording.trace/Trace1.run/RunIssues.storedata",
+            "sha256": "50e5b458ca4dcfa54f0186c41195fb90ee85ed733eb55e5f64017251182593e0"
+          }
+        ],
+        "entryCount": 5,
+        "maximumEntries": 16384,
+        "maximumUncompressedBytes": 268435456,
+        "status": "packaged",
+        "uncompressedBytes": 115835304
+      },
+      "waitidPreflight": {
+        "available": true,
+        "exitCode": 23,
+        "peekDidNotReap": true,
+        "pythonVersion": "3.13.15"
+      }
+    }
+  },
+  "diagnostic": "D24-recorder-progress-observation",
+  "evidenceKind": "public-projection-of-retained-native-evidence",
+  "intelTraceReadOnlyInspection": {
+    "audit": "D24-R2-retained-intel-trace",
+    "innerArchive": {
+      "allEntriesUseDeflate": true,
+      "allFileHashesMatchRetainedReceipt": true,
+      "entries": [
+        {
+          "bytes": 0,
+          "compressedBytes": 2,
+          "crc32": 0,
+          "kind": "directory",
+          "path": "recording.trace/"
+        },
+        {
+          "bytes": 0,
+          "compressedBytes": 2,
+          "crc32": 0,
+          "kind": "directory",
+          "path": "recording.trace/Trace1.run/"
+        },
+        {
+          "bytes": 0,
+          "compressedBytes": 2,
+          "crc32": 0,
+          "kind": "directory",
+          "path": "recording.trace/Trace1.run/Attachments/"
+        },
+        {
+          "bytes": 115782056,
+          "compressedBytes": 13277640,
+          "crc32": 3125956842,
+          "kind": "file",
+          "path": "recording.trace/Trace1.run/Attachments/trace-data.atrc",
+          "sha256": "dd55ca66c46a4651df145287d2db8573e6dcf5f9387dcea73bec21a7a37719f0"
+        },
+        {
+          "bytes": 53248,
+          "compressedBytes": 4672,
+          "crc32": 1480474241,
+          "kind": "file",
+          "path": "recording.trace/Trace1.run/RunIssues.storedata",
+          "sha256": "50e5b458ca4dcfa54f0186c41195fb90ee85ed733eb55e5f64017251182593e0"
+        }
+      ],
+      "entryCount": 5,
+      "expandedFileBytes": 115835304,
+      "fullReadsCompletedWithoutCRCError": true,
+      "noEncryptedEntries": true,
+      "noSymlinks": true,
+      "uniqueSafeRelativeNames": true
+    },
+    "input": {
+      "archiveHashMatchesRetainedReceipt": true,
+      "bytes": 13283084,
+      "relativePath": "evidence/D24-R2-x86_64/recording.trace.zip",
+      "sha256": "d4a6e955f18b79d99530ec92690fad043422cb4897c0fb303f3066150cfb4bde"
+    },
+    "issuesDatabase": {
+      "copySHA256UnchangedAfterQueries": true,
+      "header": {
+        "declaredPages": 13,
+        "encoding": 1,
+        "format": "SQLite format 3",
+        "pageSize": 4096,
+        "readVersion": 1,
+        "schemaFormat": 4,
+        "sqliteVersionNumber": 3043002,
+        "writeVersion": 1
+      },
+      "issueRowCount": 1,
+      "issueRows": [
+        {
+          "ZCOUNT": 1,
+          "ZMESSAGE": "Data stream: Time Mapping",
+          "ZPARENT": null,
+          "ZRELATIVETIMESTAMP": 0,
+          "ZSUBTYPE": 0,
+          "ZTYPE": 2,
+          "Z_ENT": 1,
+          "Z_FOK_PARENT": null,
+          "Z_OPT": 1,
+          "Z_PK": 1
+        }
+      ],
+      "readOnlyControls": {
+        "archivedObjectsDeserialized": false,
+        "ddlExecuted": false,
+        "extensionsEnabled": false,
+        "immutable": true,
+        "queryOnly": true,
+        "trustedSchema": false,
+        "uriMode": "ro"
+      },
+      "relativeTimestampZeroEstablishesTraceEpoch": false,
+      "sourceSHA256": "50e5b458ca4dcfa54f0186c41195fb90ee85ed733eb55e5f64017251182593e0",
+      "sqliteLibraryVersion": "3.53.1",
+      "tables": [
+        "ZISSUE",
+        "Z_METADATA",
+        "Z_MODELCACHE",
+        "Z_PRIMARYKEY"
+      ],
+      "temporaryCopyOutsideRepositoryRemoved": true,
+      "typeEnumSeverityQualified": false
+    },
+    "limits": {
+      "binaryPlistMaximumBytes": 4096,
+      "binaryPlistMaximumDepth": 8,
+      "binaryPlistMaximumObjects": 512,
+      "binaryPlistMaximumPrimitiveNodes": 2048,
+      "databaseMaximumReadBytes": 53249,
+      "databaseProgressIntervalInstructions": 1000,
+      "databaseProgressMaximumCallbacks": 100,
+      "databaseQueryWallLimitSeconds": 2,
+      "databaseSelectRowLimit": 32,
+      "headerReadBytes": 65536,
+      "maximumEntries": 16384,
+      "maximumExpandedAggregateBytes": 268435456,
+      "streamReadBytes": 65536,
+      "unrelated64MiBPerFileExtractionLimitApplied": false
+    },
+    "nextQuestion": {
+      "diagnostic": "D25-read-only-retained-trace-export",
+      "firstCommand": [
+        "/usr/bin/xcrun",
+        "xctrace",
+        "export",
+        "--input",
+        "<bounded-retained-copy>/recording.trace",
+        "--toc"
+      ],
+      "ifAccepted": "Use only actual exported schemas to establish issue semantics, decoded time range and clock mapping before asking whether any rows overlap the primary or secondary sampler window.",
+      "ifRejected": "Retain the bounded refusal as the result; do not silently reconstruct, import, repair, or record again.",
+      "question": "Can a version-recorded installed Xcode tool export a complete table of contents from this exact retained Intel trace package?"
+    },
+    "noNativeExecution": true,
+    "noNewRecordingOrExport": true,
+    "noRetainedBinariesExecuted": true,
+    "qualification": {
+      "C12": "HOLD",
+      "activationRouteCoverageEstablished": false,
+      "eventTimeRangeEstablished": false,
+      "ipcRequestChainEstablished": false,
+      "recordingCompletedNormally": false,
+      "recordingCompletionEstablished": false,
+      "releaseReady": false,
+      "retainedByteIntegrityVerified": true,
+      "samplerStackQualified": false,
+      "samplerWindowCoverageEstablished": false,
+      "traceExportabilityEstablished": false,
+      "usableClockMappingEstablished": false
+    },
+    "repositoryModified": false,
+    "safeHeaderMetadata": {
+      "binaryPlist": {
+        "activeCPUs": 4,
+        "bootUUIDMatchesHelperReceipt": true,
+        "bytes": 1057,
+        "cpuSubtype": 8,
+        "maximumCPUs": 4,
+        "objectCount": 64,
+        "offset": 72,
+        "offsetTableOffset": 897,
+        "osBuild": "24G830",
+        "osVersion": "15.7.9",
+        "physicalCPUs": 4,
+        "primitiveNodeCount": 43,
+        "primitiveTypesOnly": true,
+        "sha256": "3c19922da8d12231e7cd6465e139da23bf441c6876a3d94873aab9c03a27cca3",
+        "trailerAndOffsetTableExtentValidated": true
+      },
+      "containerTimingSemanticsQualified": false,
+      "eventsDecoded": false,
+      "observedMagicHex": "0x55aa0300"
+    },
+    "schema": 1,
+    "status": "bounded-read-only-audit-complete"
+  },
+  "limits": [
+    "A completed diagnostic is not successful recorder completion or a qualified sampler stack.",
+    "Final no-live-group observations establish cleanup at their observation time; they do not retrospectively timestamp every descendant exit at the sampler deadline.",
+    "Parent-observed stream clocks are observation bounds, not exact internal tool event times. Native callback deltas use only the helper continuous-clock domain.",
+    "A Darwin notification callback does not authenticate its sender or establish a trace epoch.",
+    "Trace archive identity and bounded packaging do not establish semantic validity, recording completeness, exported tables, or application-route coverage.",
+    "No retained sampler report/stack identifies task acquisition, early symbol discovery, capture, report processing, or authorization as the cause.",
+    "The D24 notification-only helper differs from D21; these results do not establish D21 causality."
+  ],
+  "next": {
+    "diagnostic": "D25-read-only-retained-trace-export",
+    "firstCommand": [
+      "/usr/bin/xcrun",
+      "xctrace",
+      "export",
+      "--input",
+      "<bounded-retained-copy>/recording.trace",
+      "--toc"
+    ],
+    "ifAccepted": "Use only actual exported schemas to establish issue semantics, decoded time range and clock mapping before asking whether any rows overlap the primary or secondary sampler window.",
+    "ifRejected": "Retain the bounded refusal as the result; do not silently reconstruct, import, repair, or record again.",
+    "question": "Can a version-recorded installed Xcode tool export a complete table of contents from this exact retained Intel trace package?"
+  },
+  "outcome": "diagnostic-complete-stack-unqualified",
+  "publication": {
+    "clockIntegersPreserved": true,
+    "omissions": [
+      "Absolute workspace/helper paths and advisory command argument text are omitted; original artifact identities and relative member hashes are retained.",
+      "Native boot UUIDs are omitted; independent identity-equality checks remain.",
+      "Full installed manual passages are omitted; byte identities and semantic checks remain.",
+      "Prior-run sampler stderr text is omitted from the comparison because it includes private output paths; milestone counts and raw stream hashes remain."
+    ],
+    "rawArtifactsRewritten": false,
+    "sourceClassificationPreserved": true
+  },
+  "qualification": {
+    "C12": "HOLD",
+    "activationRouteCoverageEstablished": false,
+    "diagnosticExecutionComplete": true,
+    "eventTimeRangeEstablished": false,
+    "ipcRequestChainEstablished": false,
+    "nativeEvidenceEstablished": false,
+    "phaseEstablished": false,
+    "recordingCompletedNormally": false,
+    "recordingCompletionEstablished": false,
+    "releaseReady": false,
+    "retrospectiveAllDescendantsExitedBySamplerDeadlineEstablished": false,
+    "samplerStackQualified": false,
+    "samplerWindowCoverageEstablished": false,
+    "traceExportabilityEstablished": false,
+    "usableClockMappingEstablished": false
+  },
+  "retainedComparison": {
+    "clockCaveat": "Parent monotonic progress and helper-native callback clocks are reported separately. Within the parent clock, Intel recorder stdout follows both sampler operations by at least4.498479844s. The helper-native callback is late in its15s window (~14.109752s), but this audit does not assert an exact parent/native epoch transform, callback sender, trace epoch, or IPC order.",
+    "externalMilestoneTotals": {
+      "completionProcessingSymbolsText": 2,
+      "initialBanner": 8,
+      "invocations": 8,
+      "reportWrittenText": 2,
+      "retainedReports": 2
+    },
+    "inputByteIdentities": {
+      "D21-R2-arm64/observer-sample.json": {
+        "bytes": 1568,
+        "sha256": "80456a05700626e05466df0d158b89de5bd9d809185f8fe0de24bafd96e2408c"
+      },
+      "D21-R2-arm64/observer-sample.stderr.txt": {
+        "bytes": 84,
+        "sha256": "506a87d5f42625227d73e38be61bd0f730eb17780df3adf4c8cd468cfc986666"
+      },
+      "D21-R2-arm64/observer-sample.stdout.txt": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "D21-R2-arm64/recorder-observation.json": {
+        "bytes": 6966,
+        "sha256": "d460471dca68b2707a4a8582490bb770e15cbd252c0926553fe706d3f200d3f7"
+      },
+      "D21-R2-x86_64/observer-sample.json": {
+        "bytes": 1568,
+        "sha256": "15665f83bacb9397c1ffcfdca9f275918bf5cf1be52b2843c654469861a84d7c"
+      },
+      "D21-R2-x86_64/observer-sample.stderr.txt": {
+        "bytes": 84,
+        "sha256": "3281e6abf8ba36f384ac528971abfe38d4064ac61f756d9652ad5d00c2a9a982"
+      },
+      "D21-R2-x86_64/observer-sample.stdout.txt": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "D21-R2-x86_64/recorder-observation.json": {
+        "bytes": 6963,
+        "sha256": "02d4fdddcfaca16e373037b9e8fb190af4193b931cb7bf3c11aead2007639f85"
+      },
+      "D22-R1-arm64/controlled-sample.txt": {
+        "bytes": 7988,
+        "sha256": "b3cf4841c437a03a94b56354f9fa946f64a51ec6792d385a61cb4150102087d7"
+      },
+      "D22-R1-arm64/sample.json": {
+        "bytes": 1285,
+        "sha256": "5d03a829562dc356d5f880d4c9b4a40978e63ff7be6a3a549b4e4f5cb8d83d2b"
+      },
+      "D22-R1-arm64/sample.stderr.txt": {
+        "bytes": 253,
+        "sha256": "ede9be3c8e60c9d80019d371bd89c0b57cf8484fc78abf984f4383a4d010fdbc"
+      },
+      "D22-R1-arm64/sample.stdout.txt": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "D22-R1-arm64/sampler-calibration.json": {
+        "bytes": 12687,
+        "sha256": "81cbd122e3bb78e06871fb2785c13f48e72c1d4ab847346f6e556b0bf6ccd025"
+      },
+      "D22-R1-x86_64/controlled-sample.txt": {
+        "bytes": 7983,
+        "sha256": "16c03839ed3b965b3c48ad94b1c0f01f846e2c0dac792cc310aa1289928b106c"
+      },
+      "D22-R1-x86_64/sample.json": {
+        "bytes": 1285,
+        "sha256": "1481f096fdcf5150eb0964780870c4cf776994c7952a3e9c9bf7f2fe0f327c26"
+      },
+      "D22-R1-x86_64/sample.stderr.txt": {
+        "bytes": 253,
+        "sha256": "9d9eef31d0451816c2dd33b2145aba0039c261bae9729b4b2686c23c3c9c2d69"
+      },
+      "D22-R1-x86_64/sample.stdout.txt": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "D22-R1-x86_64/sampler-calibration.json": {
+        "bytes": 12695,
+        "sha256": "9221678c8c90a0ce5240ffc4cd67ef3413fc53ccbcb0de5fd2703256eed4647a"
+      },
+      "D24-R2-arm64/build/bounded-command-tests.stderr.txt": {
+        "bytes": 104,
+        "sha256": "459798b9f6529963d8b7e38c3ba2a9e7873b8da852e8cf6925cf19d60d94417f"
+      },
+      "D24-R2-arm64/build/experiment-commit.txt": {
+        "bytes": 41,
+        "sha256": "8cb613ea484dd56d7f166879e086414f69039c02b5171546b4ea2479f84423ad"
+      },
+      "D24-R2-arm64/build/observer-tests.stderr.txt": {
+        "bytes": 114,
+        "sha256": "9b590610c570eeb31d4af39767ac61151bb5f90415a87ed59e265789a033c6f9"
+      },
+      "D24-R2-arm64/build/progress-tests.stderr.txt": {
+        "bytes": 150,
+        "sha256": "616a0cc2629114a15e7c4b5ddb772a2f65c95561675cfb4337824690dac26e15"
+      },
+      "D24-R2-arm64/build/python-version.stdout.txt": {
+        "bytes": 15,
+        "sha256": "d62a8f9cf44ca81c8ac6545117bbee8ad62521799745acf8148ef9068d61ac7b"
+      },
+      "D24-R2-arm64/build/transport-tests.stderr.txt": {
+        "bytes": 109,
+        "sha256": "451b5d6c8b16c0717cc54662c16ef95cf80d2853395bdd06a34336455382f262"
+      },
+      "D24-R2-arm64/helper-completion.json": {
+        "bytes": 3045,
+        "sha256": "ef60c19d5edd89a2e5b318f1536a68cf22cc718c5db222e1c57d51d5d47c99f8"
+      },
+      "D24-R2-arm64/helper-ready.json": {
+        "bytes": 2111,
+        "sha256": "013d592e807079d254ca3cebda1bb8989716a2626d2c1dd8c04d9b3ce5c8577f"
+      },
+      "D24-R2-arm64/observer-manual-ps.normalized.txt": {
+        "bytes": 14656,
+        "sha256": "5f41da82e89607a1a302df2c2206085d947b919480323da6e56ffed55af2867e"
+      },
+      "D24-R2-arm64/observer-manual-sample.normalized.txt": {
+        "bytes": 3724,
+        "sha256": "2f3f31c6a538583361e7aec18d3352fa77227ec1581d2debf269f40a80163dbf"
+      },
+      "D24-R2-arm64/primary-before.json": {
+        "bytes": 2835,
+        "sha256": "a2176b7c6fba38e60dbaf4b302f838d03c031413863ccec87541df5f7abed34e"
+      },
+      "D24-R2-arm64/primary-before.stdout.txt": {
+        "bytes": 207,
+        "sha256": "1741569974cd1b7d9a6d8b23e6dcf56f7e2a1fdf561b6369a0778ae1b828a090"
+      },
+      "D24-R2-arm64/primary-sample.json": {
+        "bytes": 3304,
+        "sha256": "d69275e654b6f2f53fe23347fc5f0123d6c449489704fb47fb5456bda9b8aa35"
+      },
+      "D24-R2-arm64/primary-sample.stderr.txt": {
+        "bytes": 84,
+        "sha256": "1f21fb91268b05170edeaa91dd722d4c41ea91fba4df5783030ead89af160d50"
+      },
+      "D24-R2-arm64/primary-sample.stdout.txt": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "D24-R2-arm64/record.json": {
+        "bytes": 3335,
+        "sha256": "c683c030d6f78183483c4fbaebee7c76fa1aa34f4528b98cc65341e4aa11e29d"
+      },
+      "D24-R2-arm64/record.stderr.txt": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "D24-R2-arm64/record.stdout.txt": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "D24-R2-arm64/recorder-before.json": {
+        "bytes": 2844,
+        "sha256": "d655519c602439cee2ace1b46f22896bfd9207d728950b8afbf1c8572e0c343f"
+      },
+      "D24-R2-arm64/recorder-progress-observation.json": {
+        "bytes": 63661,
+        "sha256": "318abb407f30b5a57414d9d6457a2afbe6f6afea3479695cfb403200c104a422"
+      },
+      "D24-R2-arm64/secondary-sample.json": {
+        "bytes": 3475,
+        "sha256": "fa76b780d8d3aea4ed128ee2d0e16451e9ddc7eb3dcca95b2b66e544ce9673cc"
+      },
+      "D24-R2-arm64/secondary-sample.stderr.txt": {
+        "bytes": 84,
+        "sha256": "b45a0d8dd72be75b77f948f71ea8956393fa52dfbb5413ad4e8dfd730d78475a"
+      },
+      "D24-R2-arm64/secondary-sample.stdout.txt": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "D24-R2-x86_64/build/bounded-command-tests.stderr.txt": {
+        "bytes": 104,
+        "sha256": "2b1e8e130bea22d3a2b2cf5258b03280eb75ebd738e91c6f53fc8682b5bf1796"
+      },
+      "D24-R2-x86_64/build/experiment-commit.txt": {
+        "bytes": 41,
+        "sha256": "8cb613ea484dd56d7f166879e086414f69039c02b5171546b4ea2479f84423ad"
+      },
+      "D24-R2-x86_64/build/observer-tests.stderr.txt": {
+        "bytes": 114,
+        "sha256": "8b6fab4a8315134b32e58050ed89afc45d571e9dcaf6ff53b8c5be338253bc28"
+      },
+      "D24-R2-x86_64/build/progress-tests.stderr.txt": {
+        "bytes": 150,
+        "sha256": "0cbc3b68f891e6d6478b917f98190d23cbc9f0bd296dd3afb69495dcd520b8aa"
+      },
+      "D24-R2-x86_64/build/python-version.stdout.txt": {
+        "bytes": 15,
+        "sha256": "322f765b04793d55160c8788550761630087e4847a77ed7a1090d79791f73c3b"
+      },
+      "D24-R2-x86_64/build/transport-tests.stderr.txt": {
+        "bytes": 109,
+        "sha256": "ee31baa27eb7462ff25db34bcb22a36f2d9493c67ae9d5d22dad8c88d9c318b4"
+      },
+      "D24-R2-x86_64/helper-completion.json": {
+        "bytes": 3307,
+        "sha256": "23c9e41dafd83bf0efc51d4b170f5fdc7f8c0fd3bc819449732d3ae2e8a020d0"
+      },
+      "D24-R2-x86_64/helper-ready.json": {
+        "bytes": 2146,
+        "sha256": "302974899adf9fbe379a86d4eaf2e172741db581194d1802a964006c922cddfe"
+      },
+      "D24-R2-x86_64/primary-before.json": {
+        "bytes": 2841,
+        "sha256": "8b4a9d6fc2a355add4b883297b63e9a8a5781e1e9aa1cef8d19a2ad2b9c3f81d"
+      },
+      "D24-R2-x86_64/primary-before.stdout.txt": {
+        "bytes": 207,
+        "sha256": "cac5f17aec01b6e5af1fa789a852459b69973728265073674d246ae277d9ffde"
+      },
+      "D24-R2-x86_64/primary-sample.json": {
+        "bytes": 3305,
+        "sha256": "647721600de27d71006d05e38fe6f6120897d416821c03418bab910b1b5c7f42"
+      },
+      "D24-R2-x86_64/primary-sample.stderr.txt": {
+        "bytes": 84,
+        "sha256": "38912c379dad606f49ad8d062b25062ca81067eeadbec5eefc8c75405c7c0571"
+      },
+      "D24-R2-x86_64/primary-sample.stdout.txt": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "D24-R2-x86_64/record.json": {
+        "bytes": 4548,
+        "sha256": "713ddab7b3912433eb7e2cf179f01e51e743c7f933071a2806583451340934a4"
+      },
+      "D24-R2-x86_64/record.stderr.txt": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "D24-R2-x86_64/record.stdout.txt": {
+        "bytes": 146,
+        "sha256": "9dfe644af3d8b098a4910cf09c54348c0862a4452484093354b04c272ac653e2"
+      },
+      "D24-R2-x86_64/recorder-before.json": {
+        "bytes": 2843,
+        "sha256": "e6a20c2d6b6676ab0c6c17b1d93b724486329f4f8a1eff4e148bfaad8e8ef949"
+      },
+      "D24-R2-x86_64/recorder-progress-observation.json": {
+        "bytes": 66603,
+        "sha256": "cf8d0d7e0b45397b4718a8e420211087867b28162796f7a36cafa2076003a42c"
+      },
+      "D24-R2-x86_64/secondary-sample.json": {
+        "bytes": 3476,
+        "sha256": "152c7466af642f2116f83f415e8c478773be15025d22a796fbb4f59ccee947a8"
+      },
+      "D24-R2-x86_64/secondary-sample.stderr.txt": {
+        "bytes": 84,
+        "sha256": "955c4a40f723bbbefb0fe29d5b581c4f3e7a98860e5118b7b3d49f6d9a2f59c9"
+      },
+      "D24-R2-x86_64/secondary-sample.stdout.txt": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "interpretation": [
+      "All four D24 sampler streams end after one exact initial banner; no completion/processing-symbols marker, report-written marker, report-file progress or final report is retained.",
+      "D21 has the same external one-of-three milestone shape. D22 has all three milestones plus a report under the same logical sample arguments, but a different controlled target; its original calibration-incomplete result is preserved.",
+      "The installed -mayDie documentation describes immediately collecting symbol locations. Missing later processing-symbols text cannot exclude eager symbol work or locate an internal wait.",
+      "S<s primary ps snapshots establish a live sleeping process/session leader at the before snapshots, not a stack or wait subsystem. No primary-after identity or stack was obtained.",
+      "Successful finite diagnostic/cleanup bookkeeping is separate from recording success: Intel recorder ended with exit-11 after SIGINT then SIGTERM; this ordering does not establish why it faulted.",
+      "A notification callback is a receipt on the registered name/token. It does not identify its sender or prove a trace capture epoch."
+    ],
+    "invocations": [
+      {
+        "architecture": "arm64",
+        "argvFixedPrefix": [
+          "/usr/bin/sample",
+          "3636",
+          "1",
+          "10",
+          "-mayDie",
+          "-file"
+        ],
+        "effectiveNormalBudgetSeconds": null,
+        "effectiveTotalBudgetSeconds": null,
+        "exitCode": -15,
+        "experiment": "D21-R2",
+        "firstTermAfterSeconds": 3.51313404199999,
+        "milestones": {
+          "completionProcessingSymbolsText": false,
+          "initialExpectedPIDBannerCount": 1,
+          "reportWrittenText": false
+        },
+        "nominalNormalBudgetSeconds": 3.5,
+        "nominalTotalBudgetSeconds": 4.0,
+        "observedMilestoneCount": 1,
+        "operationSeconds": 3.8058009590000097,
+        "originalSummaryStatus": "observation-incomplete",
+        "pid": 3659,
+        "retainedReportBytes": 0,
+        "role": "observer-sample",
+        "stderrBytes": 84,
+        "stdoutBytes": 0,
+        "stopReason": "command-budget",
+        "targetPID": 3636,
+        "totalDefinedExternalMilestones": 3
+      },
+      {
+        "architecture": "x86_64",
+        "argvFixedPrefix": [
+          "/usr/bin/sample",
+          "8866",
+          "1",
+          "10",
+          "-mayDie",
+          "-file"
+        ],
+        "effectiveNormalBudgetSeconds": null,
+        "effectiveTotalBudgetSeconds": null,
+        "exitCode": -15,
+        "experiment": "D21-R2",
+        "firstTermAfterSeconds": 3.525102111000024,
+        "milestones": {
+          "completionProcessingSymbolsText": false,
+          "initialExpectedPIDBannerCount": 1,
+          "reportWrittenText": false
+        },
+        "nominalNormalBudgetSeconds": 3.5,
+        "nominalTotalBudgetSeconds": 4.0,
+        "observedMilestoneCount": 1,
+        "operationSeconds": 3.795072377999986,
+        "originalSummaryStatus": "observation-incomplete",
+        "pid": 9011,
+        "retainedReportBytes": 0,
+        "role": "observer-sample",
+        "stderrBytes": 84,
+        "stdoutBytes": 0,
+        "stopReason": "command-budget",
+        "targetPID": 8866,
+        "totalDefinedExternalMilestones": 3
+      },
+      {
+        "architecture": "arm64",
+        "argvFixedPrefix": [
+          "/usr/bin/sample",
+          "2421",
+          "1",
+          "10",
+          "-mayDie",
+          "-file"
+        ],
+        "effectiveNormalBudgetSeconds": null,
+        "effectiveTotalBudgetSeconds": null,
+        "exitCode": 0,
+        "experiment": "D22-R1",
+        "firstTermAfterSeconds": null,
+        "milestones": {
+          "completionProcessingSymbolsText": true,
+          "initialExpectedPIDBannerCount": 1,
+          "reportWrittenText": true
+        },
+        "nominalNormalBudgetSeconds": 3.5,
+        "nominalTotalBudgetSeconds": 4.0,
+        "observedMilestoneCount": 3,
+        "operationSeconds": 1.4706218750000062,
+        "originalSummaryStatus": "calibration-incomplete",
+        "pid": 2433,
+        "retainedReportBytes": 7988,
+        "role": "sample",
+        "stderrBytes": 253,
+        "stdoutBytes": 0,
+        "stopReason": null,
+        "targetPID": 2421,
+        "totalDefinedExternalMilestones": 3
+      },
+      {
+        "architecture": "x86_64",
+        "argvFixedPrefix": [
+          "/usr/bin/sample",
+          "1972",
+          "1",
+          "10",
+          "-mayDie",
+          "-file"
+        ],
+        "effectiveNormalBudgetSeconds": null,
+        "effectiveTotalBudgetSeconds": null,
+        "exitCode": 0,
+        "experiment": "D22-R1",
+        "firstTermAfterSeconds": null,
+        "milestones": {
+          "completionProcessingSymbolsText": true,
+          "initialExpectedPIDBannerCount": 1,
+          "reportWrittenText": true
+        },
+        "nominalNormalBudgetSeconds": 3.5,
+        "nominalTotalBudgetSeconds": 4.0,
+        "observedMilestoneCount": 3,
+        "operationSeconds": 1.4704604010000253,
+        "originalSummaryStatus": "calibration-incomplete",
+        "pid": 1985,
+        "retainedReportBytes": 7983,
+        "role": "sample",
+        "stderrBytes": 253,
+        "stdoutBytes": 0,
+        "stopReason": null,
+        "targetPID": 1972,
+        "totalDefinedExternalMilestones": 3
+      },
+      {
+        "architecture": "arm64",
+        "argvFixedPrefix": [
+          "/usr/bin/sample",
+          "2105",
+          "1",
+          "10",
+          "-mayDie",
+          "-file"
+        ],
+        "effectiveNormalBudgetSeconds": null,
+        "effectiveTotalBudgetSeconds": null,
+        "exitCode": -15,
+        "experiment": "D24-R2",
+        "finalReportStatus": "absent",
+        "firstTermAfterSeconds": 3.529331959000018,
+        "milestones": {
+          "completionProcessingSymbolsText": false,
+          "initialExpectedPIDBannerCount": 1,
+          "reportWrittenText": false
+        },
+        "nominalNormalBudgetSeconds": 3.5,
+        "nominalTotalBudgetSeconds": 4.0,
+        "observedMilestoneCount": 1,
+        "operationSeconds": 3.7854312500000162,
+        "pid": 2121,
+        "retainedReportBytes": 0,
+        "role": "primary-sample",
+        "stderrBytes": 84,
+        "stdoutBytes": 0,
+        "stopReason": "command-budget",
+        "targetPID": 2105,
+        "totalDefinedExternalMilestones": 3
+      },
+      {
+        "architecture": "x86_64",
+        "argvFixedPrefix": [
+          "/usr/bin/sample",
+          "2040",
+          "1",
+          "10",
+          "-mayDie",
+          "-file"
+        ],
+        "effectiveNormalBudgetSeconds": null,
+        "effectiveTotalBudgetSeconds": null,
+        "exitCode": -15,
+        "experiment": "D24-R2",
+        "finalReportStatus": "absent",
+        "firstTermAfterSeconds": 3.5083900949999816,
+        "milestones": {
+          "completionProcessingSymbolsText": false,
+          "initialExpectedPIDBannerCount": 1,
+          "reportWrittenText": false
+        },
+        "nominalNormalBudgetSeconds": 3.5,
+        "nominalTotalBudgetSeconds": 4.0,
+        "observedMilestoneCount": 1,
+        "operationSeconds": 3.7669499079999866,
+        "pid": 2147,
+        "retainedReportBytes": 0,
+        "role": "primary-sample",
+        "stderrBytes": 84,
+        "stdoutBytes": 0,
+        "stopReason": "command-budget",
+        "targetPID": 2040,
+        "totalDefinedExternalMilestones": 3
+      },
+      {
+        "architecture": "arm64",
+        "argvFixedPrefix": [
+          "/usr/bin/sample",
+          "2121",
+          "1",
+          "10",
+          "-mayDie",
+          "-file"
+        ],
+        "effectiveNormalBudgetSeconds": 2.910945374999983,
+        "effectiveTotalBudgetSeconds": 3.410945374999983,
+        "exitCode": -15,
+        "experiment": "D24-R2",
+        "finalReportStatus": "absent",
+        "firstTermAfterSeconds": 2.93911483399998,
+        "milestones": {
+          "completionProcessingSymbolsText": false,
+          "initialExpectedPIDBannerCount": 1,
+          "reportWrittenText": false
+        },
+        "nominalNormalBudgetSeconds": 3.5,
+        "nominalTotalBudgetSeconds": 4.0,
+        "observedMilestoneCount": 1,
+        "operationSeconds": 3.196440874999979,
+        "pid": 2128,
+        "retainedReportBytes": 0,
+        "role": "secondary-sample",
+        "stderrBytes": 84,
+        "stdoutBytes": 0,
+        "stopReason": "primary-operation-boundary",
+        "targetPID": 2121,
+        "totalDefinedExternalMilestones": 3
+      },
+      {
+        "architecture": "x86_64",
+        "argvFixedPrefix": [
+          "/usr/bin/sample",
+          "2147",
+          "1",
+          "10",
+          "-mayDie",
+          "-file"
+        ],
+        "effectiveNormalBudgetSeconds": 3.1198705589999918,
+        "effectiveTotalBudgetSeconds": 3.6198705589999918,
+        "exitCode": -15,
+        "experiment": "D24-R2",
+        "finalReportStatus": "absent",
+        "firstTermAfterSeconds": 3.1229030889999763,
+        "milestones": {
+          "completionProcessingSymbolsText": false,
+          "initialExpectedPIDBannerCount": 1,
+          "reportWrittenText": false
+        },
+        "nominalNormalBudgetSeconds": 3.5,
+        "nominalTotalBudgetSeconds": 4.0,
+        "observedMilestoneCount": 1,
+        "operationSeconds": 3.37311606199998,
+        "pid": 2149,
+        "retainedReportBytes": 0,
+        "role": "secondary-sample",
+        "stderrBytes": 84,
+        "stdoutBytes": 0,
+        "stopReason": "primary-operation-boundary",
+        "targetPID": 2147,
+        "totalDefinedExternalMilestones": 3
+      }
+    ],
+    "source": {
+      "bytes": 33654,
+      "name": "d24-r2-retained-comparison-audit.json",
+      "sha256": "c39917eb93344287ff5b477073cc6154acd71c471c4527a678d118c5e80eb4f6"
+    }
+  },
+  "run": {
+    "artifactExpiryDateUTC": "2026-11-23",
+    "artifactRetentionDays": 14,
+    "attempt": 1,
+    "conclusion": "success",
+    "earlierRunHadNativeMeasurements": false,
+    "id": 42609635410,
+    "jobs": {
+      "arm64": 129134432522,
+      "x86_64": 129134432671
+    },
+    "nativeMeasurementsPerArchitecture": 1,
+    "sourceCommit": "73464e30f278203cbd129025f1db814b6c549b2b",
+    "sourceTree": "0d0b8c476fb052cd7b3a5b7ac98d0c6977069bf5",
+    "url": "https://github.com/osmankaankars/lemulip/actions/runs/42609635410"
+  },
+  "schema": 1,
+  "verification": "D24-verification.json"
+}

@@ -315,3 +315,21 @@ The next recorder-specific question is which startup stage prevents readiness
 and whether sampling stalls before capture or during report/symbol processing;
 a later observation must preserve the current ownership/time bounds and the
 original task 07 acceptance condition.
+
+### Subsequent D24 result and retained-input next step
+
+[D24 R2](NATIVE_RECORDER_PROGRESS_OBSERVATION.md) completed the separate
+recorder/primary/secondary observation in
+[run 42609635410](https://github.com/osmankaankars/lemulip/actions/runs/42609635410).
+All 81 tests passed per macOS architecture, but each of the four sampler
+invocations retained only its 84-byte initial banner and no report. This leaves
+the recorder-specific stack and internal phase unqualified while preserving
+D22's controlled reports and D23's narrow offline identity/frame result.
+
+ARM retained zero callbacks and no trace. Intel retained one late helper-native
+callback and a partial trace; recorder output appeared after the sampler window
+in the parent clock domain, and recorder exit -11 followed stopping without
+normal completion. The next D25 step is a bounded read-only installed
+`xctrace export --input … --toc` on an exact retained copy. It has not run;
+preserve any refusal without repairing the package or recording again. The
+original D22 omissions, C12/HOLD and task 07/08 acceptance gates are unchanged.

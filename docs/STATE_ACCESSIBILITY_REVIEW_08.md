@@ -221,6 +221,22 @@ snapshot. It adds no native input or original acceptance result. C12, the
 completed source/twelve-image review, physical check and v4 result retain their
 status; task 08's final closure remains dependent on task 07.
 
+[D24 R2](NATIVE_RECORDER_PROGRESS_OBSERVATION.md) subsequently completed the
+bounded recorder/primary/secondary observation in
+[run 42609635410](https://github.com/osmankaankars/lemulip/actions/runs/42609635410),
+with 81 passing tests per macOS architecture. All four samplers retained only
+their 84-byte initial banners, with no report or qualified internal phase.
+ARM retained zero callbacks and no trace. Intel retained one late helper-native
+callback and a partial trace; recorder output appeared after the sampler window
+in the parent clock domain, and recorder exit -11 followed stopping without
+normal completion. This adds no original acceptance case or product repair.
+
+The next D25 step is a bounded read-only installed-tool TOC export of an exact
+retained Intel trace copy. It has not run; preserve any refusal without package
+repair or another recording. PR #45 remains draft/unmerged and C12 remains
+HOLD. The original full Finder sequence, completed source/twelve-image review,
+physical/v4 evidence and task 08's dependency on task 07 remain unchanged.
+
 To complete task 08, close or explicitly resolve task 07's remaining CI gate on
 the final candidate, review any resulting production changes, and retain the
 final source/run/artifact identity. The candidate is still on hold.

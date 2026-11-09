@@ -1,9 +1,16 @@
 # D24 — Observe the recorder's primary sampler
 
-**Protocol prepared; no D24 native result is asserted in this revision.** This
-diagnostic follows the [D23 retained identity review](NATIVE_SAMPLER_IDENTITY_REVIEW.md).
-Its question is whether a bounded stack observation of the primary sampler can
-distinguish the stage that has not completed while it observes the recorder.
+**D24 completed: the bounded diagnostic passed on ARM64 and Intel, but neither
+architecture produced a qualified sampler stack.** Both primary and secondary
+samplers retained only their initial banners. Intel additionally retained late
+recorder progress, one notification callback and a partial trace package; its
+recorder subsequently exited on signal 11. The internal waiting phase remains
+unidentified. The next evidence question is a read-only export of that exact
+retained Intel package, described below.
+
+This diagnostic follows the [D23 retained identity review](NATIVE_SAMPLER_IDENTITY_REVIEW.md).
+It asks whether a bounded stack observation of the primary sampler can distinguish
+the stage that has not completed while it observes the recorder.
 Task 07, C12 and [PR #45](https://github.com/osmankaankars/lemulip/pull/45) remain
 **HOLD**. This diagnostic supplies neither a product fix nor a release gate.
 
@@ -25,6 +32,154 @@ before deriving helper, output and provenance paths, and an explicit alias-paren
 regression checks that binding. Runtime identity checks and sampling bounds
 remain as defined below. This corrects test setup before the first native
 measurement; it does not repeat or reinterpret a recorder observation.
+
+## Executed result — 9 November 2026
+
+[R2, attempt 1](https://github.com/osmankaankars/lemulip/actions/runs/42609635410)
+completed both native jobs successfully. Each architecture ran **one recorder,
+one primary sampler and one secondary sampler**. The earlier R1 failure above
+occurred before any native measurement. There was no additional recording or
+export during the retained-byte review.
+
+The public [result projection](evidence/D24-recorder-progress-observation.json)
+preserves the original classifications, command clocks, helper receipts, tool
+identities and observed output milestones. The [verification record](evidence/D24-verification.json)
+binds the raw artifacts, exact Git source objects, tests and independent audits.
+Private absolute paths and full installed manuals are omitted from these public
+projections; the raw artifact bytes were not rewritten.
+
+| Run identity | Value |
+| --- | --- |
+| Executed source commit | `73464e30f278203cbd129025f1db814b6c549b2b` |
+| Executed source tree | `0d0b8c476fb052cd7b3a5b7ac98d0c6977069bf5` |
+| Native run / attempt | `42609635410` / `1` |
+| ARM64 / Intel job | `129134432522` / `129134432671` |
+| Native tests | 81 passed per architecture: 6 bounded command + 10 transport + 15 D21 observer + 50 D24 |
+| Final portable D24 tests | 50 passed, Linux x86_64, CPython 3.12.14; 35.306 seconds wall time |
+| Native Python | ARM64 3.13.17; Intel 3.13.15 |
+| Native compiler gate | Helper compiled with `-Wall -Wextra -Werror` on each architecture |
+| Input preservation / worktree diff | Passed on both jobs |
+
+| Retained artifact | ARM64 | Intel |
+| --- | --- | --- |
+| Artifact ID | `13668694448` | `13669502448` |
+| ZIP bytes | 226,836 | 12,948,336 |
+| ZIP SHA-256 | `44b9438155713c42bcadee75d3359a4a6659bf3027e9f2056fb1f115dd58041f` | `5e80502e00e9da7cd857ab45b5324d637c4c09195dfe6e70b2d5569976e7b041` |
+| Files / expanded bytes | 94 / 803,311 | 95 / 14,067,380 |
+
+Artifacts use the workflow's 14-day retention and are scheduled to expire on
+23 November 2026. Archive size, digest, safe relative names, types, bounds and
+CRC were checked independently. All **189 retained files**, **26 source copies**,
+**126 immutable build/source entries** and **32 runtime input bindings** matched.
+An independent native receipt, ownership, timing and cleanup audit passed
+**195 cross-checks**. These checks validate the evidence and execution contract;
+they do not turn missing sampler reports into a positive witness.
+
+### Sampler and notification observations
+
+| Observation | ARM64 | Intel |
+| --- | --- | --- |
+| Original status | `diagnostic-complete-stack-unqualified` | `diagnostic-complete-stack-unqualified` |
+| Diagnostic / cleanup complete | true / true | true / true |
+| Qualified sampler stack / native evidence established | false / false | false / false |
+| Recorder / primary / secondary PID | 2105 / 2121 / 2128 | 2040 / 2147 / 2149 |
+| Primary-before state | `S<s` | `S<s` |
+| Primary stderr / report | 84-byte initial banner / absent | 84-byte initial banner / absent |
+| Secondary stderr / report | 84-byte initial banner / absent | 84-byte initial banner / absent |
+| Primary TERM after its start | 3.529332 s | 3.508390 s |
+| Primary operation completion | 3.785431 s | 3.766950 s |
+| Secondary operation completion | 3.196441 s | 3.373116 s |
+| Secondary stopping reason | `primary-operation-boundary` | `primary-operation-boundary` |
+| Native helper elapsed time | 15.015727 s | 15.001779 s |
+| Notification callbacks | 0 | 1 |
+| Recorder observed exit | −2, SIGINT | −11, SIGSEGV |
+| Trace package | absent | retained; successful recording completion unestablished |
+
+All four sampler stdout streams are empty. No sampler retained a completion /
+symbol-processing marker, report-written marker, report-file progress or final
+report. Neither architecture obtained a primary-after snapshot. The original
+reason remains `secondary-ended-without-admissible-after-snapshot`; there is no
+qualified stack or identified phase to substitute for it.
+
+The primary normal-operation boundary was 3.5 seconds; the actual TERM times in
+the table retain its scheduling overshoot. Direct-child and stream operations
+completed within their effective total budgets. At the later final group
+inventory, each of the six targeted groups contained only its unreaped zombie
+leader. This establishes no live members **at that snapshot**; it does not
+retrospectively timestamp every possible descendant's exit at the four-second
+sampler boundary. Recorded group `SIGKILL` attempts returning `EPERM` were
+resolved by that positive cleanup evidence. They do not establish a sampler
+authorization denial.
+
+### Intel's later recorder progress
+
+Within the **parent monotonic clock**, relative to recorder transport start,
+the primary sampler launched at approximately +3.045 seconds and completed at
++6.812162–6.812163 seconds. The secondary completed at +6.798458 seconds. The
+first recorder stdout increment was observed at +11.310643–11.310644 seconds,
+**at least 4.498480 seconds after both sampler operations ended**. It announced
+recording startup; subsequent output offered Ctrl-C and then reported stopping.
+There was no recording-complete or saved-trace announcement.
+
+Separately, within the **helper native continuous-clock domain**, the one
+callback was bracketed at helper start +14.109751453–14.109751944 seconds. Its
+token matched the registration. A notification does not authenticate its sender
+or establish a trace epoch. Parent observations and native callback clocks are
+not equated, and the callback is not used to backdate event coverage.
+
+The recorder received SIGINT at +15.043194 seconds and SIGTERM at +25.059166
+seconds. Exit −11 was observed at +25.188957 seconds. This establishes sequence,
+not that SIGTERM caused the fault. The 27.060267-second recorder operation time
+includes cleanup/escalation; it does not extend the helper's 15-second native
+window. ARM64 retained no recorder output, notification callback or trace.
+
+### Retained Intel trace: integrity established, coverage unresolved
+
+The inner `recording.trace.zip` is **13,283,084 bytes**, SHA-256
+`d4a6e955f18b79d99530ec92690fad043422cb4897c0fb303f3066150cfb4bde`.
+Its five entries contain three directories and two files totaling
+**115,835,304 expanded bytes**. Streaming hash/CRC checks matched the retained
+packaging receipt under the original 256 MiB aggregate and 16,384-entry limits.
+
+| Inner file | Bytes | SHA-256 |
+| --- | --- | --- |
+| `Trace1.run/Attachments/trace-data.atrc` | 115,782,056 | `dd55ca66c46a4651df145287d2db8573e6dcf5f9387dcea73bec21a7a37719f0` |
+| `Trace1.run/RunIssues.storedata` | 53,248 | `50e5b458ca4dcfa54f0186c41195fb90ee85ed733eb55e5f64017251182593e0` |
+
+A bounded primitive-only header read found OS 15.7.9 / build 24G830 and a boot
+identity matching the helper. No event payload or trace timing was decoded.
+A bounded read-only SQLite query found one issue row whose message is
+`Data stream: Time Mapping`, with `ZTYPE=2` and `ZRELATIVETIMESTAMP=0`.
+Neither the severity meaning of 2 nor an epoch meaning for 0 is established.
+Archived objects and executables were not loaded. The temporary database copy
+was unchanged and removed after inspection.
+
+The package's byte integrity does **not** establish normal recording completion,
+exportability, usable clock mapping, event range, sampler-window coverage,
+activation routing or an IPC request chain. All those qualifications remain
+false or unestablished in the public result.
+
+### Decision after D24: D25 reads this existing package
+
+The next finite question is whether a version-recorded installed Xcode tool can
+export an identifiable table of contents from the **exact retained Intel trace**:
+
+```text
+/usr/bin/xcrun xctrace export --input <bounded-retained-copy>/recording.trace --toc
+```
+
+D25 must bind the input hash, bound extraction and command/output handling, and
+retain installed tool/version documentation. If accepted, only actual exported
+schemas may guide subsequent time-map, event-range and process/scheduling row
+queries. The later question is whether rows cover recorder-relative
+approximately +3.045–6.812 seconds and bind recorder PID 2040, primary PID 2147
+or secondary PID 2149. A matching time domain must be established first.
+
+If the retained package is rejected, preserve that bounded refusal as the
+result. No silent reconstruction, import, repair or new recording is part of
+this next question. D24 itself performed **no trace export**. Its new partial
+Intel trace gives a concrete retained input to inspect; it does not resolve the
+sampler phase, D21 causality, the original drag route or C12 acceptance.
 
 ## Evidence motivating this observation
 
@@ -190,9 +345,9 @@ python3 script/test_run_native_recorder_progress_observation.py
 The branch-specific [workflow](../.github/workflows/native-recorder-progress-observation.yml)
 retains compiler/test output, runtime versions, installed manual bytes, executable
 identity, source copies, native receipts, command records, progress observations,
-metadata, available report bytes and cleanup evidence. A follow-up result entry
-must record the exact run, attempt, source revision, artifact hashes and observed
-outcome before describing this protocol as executed.
+metadata, available report bytes and cleanup evidence. The executed-result
+section above and its two linked data files record the run, attempt, exact
+source revision, artifact hashes and observed outcome.
 
 Production, the original D20/D21/D22 diagnostics and acceptance comparator stay
 at the [D23 result base](https://github.com/osmankaankars/lemulip/commit/c1844a1ecb1650336d2cd584d23e2c3c6ed33a29).

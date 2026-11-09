@@ -1,5 +1,10 @@
 # Held Drag Cancellation: Evidence and Remaining Boundary
 
+**Current status, 9 November 2026:** [D24's bounded recorder-progress observation](NATIVE_RECORDER_PROGRESS_OBSERVATION.md)
+completed without a qualified sampler stack. Intel retained a partial trace;
+the next D25 step is a bounded read-only TOC export of an exact retained copy,
+which has not run. C12, draft/unmerged PR #45 and the task 07/08 gates remain HOLD.
+
 ## Decision on 7 November 2026
 
 Task 07 and [PR #45](https://github.com/osmankaankars/lemulip/pull/45) remain
@@ -133,6 +138,27 @@ and independent reconstruction of all output values. Exact-path and post-sample
 omissions remain explicit. This supplies no new held gesture, recorder stack,
 activation requester, product repair or original acceptance result. Task 07 and
 task 08 retain their existing gates.
+
+### Subsequent D24 recorder-progress result
+
+[D24 R2](NATIVE_RECORDER_PROGRESS_OBSERVATION.md) completed in
+[run 42609635410](https://github.com/osmankaankars/lemulip/actions/runs/42609635410)
+at `73464e30f278203cbd129025f1db814b6c549b2b`, tree
+`0d0b8c476fb052cd7b3a5b7ac98d0c6977069bf5`. All 81 tests passed on each
+macOS architecture. Each primary and secondary sampler retained only its
+84-byte initial banner; no report or internal sampler phase was qualified.
+
+ARM received zero callbacks and retained no trace. Intel received one callback
+at helper-native +14.109752 seconds; its first recorder output was observed at
+parent recorder-relative +11.31 seconds, after both sampler operations ended.
+Those clock domains remain separate. Intel retained a partial trace, but the
+recorder exited -11 after stopping and normal recording completion is unproven.
+Read-only inspection verifies the retained bytes, not their event-time coverage.
+
+D25 is limited to a bounded installed-tool `xctrace export --input … --toc`
+against an exact retained copy. It has not run; a refusal must be retained
+without repairing the package or starting another recording. No held gesture,
+activation requester or original acceptance result is added by D24.
 
 ## Symptom and impact
 
@@ -389,10 +415,12 @@ acceptance relaxation.
 | 07 | Blocked on a supported cancellation repair and the original Finder enter → exit → reenter → Escape → release → distinct fresh-drop gate on both architectures and all three themes |
 | 08 | Source and twelve-image review completed; final review follows task 07 on the exact final candidate and includes any resulting code changes |
 | 09 | Not opened without a new brief |
+| D24 diagnostic | Bounded execution and cleanup completed; four banner-only sampler streams, no qualified stack/phase and an Intel partial trace; see the [D24 result](NATIVE_RECORDER_PROGRESS_OBSERVATION.md) |
+| D25 next evidence step | Not run; bounded read-only installed-tool TOC export of an exact retained Intel trace copy, preserving any refusal without repair or recording |
 
-The evidence packet is the completed deliverable of this phase. Production
-sources, existing diagnostic inputs, classifiers, and workflows are unchanged.
-The investigation has reached a technical escalation point: the available
-observations establish association but not the missing native mechanism.
-There is no verified narrow fix to ship. No native rerun is claimed, and no
-additional owner test is needed to restate the completed local results.
+The original read-only routing review remains complete. Subsequent D24
+diagnostic work leaves C12 production and the original acceptance gate unchanged;
+its partial Intel trace does not yet establish event-time coverage or the
+missing native mechanism. D25's retained-input TOC check remains unrun. There
+is no verified narrow fix to ship, and no additional owner test is needed to
+restate the completed local results.

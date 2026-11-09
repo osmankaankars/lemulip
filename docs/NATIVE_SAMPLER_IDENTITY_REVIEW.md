@@ -230,3 +230,21 @@ report/symbol processing**. D21's retained initial banner cannot distinguish
 those stages. A subsequent recorder-specific observation needs to answer that
 question while preserving the existing ownership and time bounds. D23 itself
 ends here, without another sampler/recorder run or a changed task 07 gate.
+
+### Subsequent D24 recorder-progress result
+
+The later [D24 R2 unit](NATIVE_RECORDER_PROGRESS_OBSERVATION.md) ran separately
+in [run 42609635410](https://github.com/osmankaankars/lemulip/actions/runs/42609635410).
+It leaves the completed D23 review and every original D22 omission unchanged.
+All 81 tests passed per macOS architecture, but all four primary/secondary
+sampler invocations retained only 84-byte initial banners, with no report or
+qualified internal phase.
+
+ARM retained no callback or trace. Intel retained one late helper-native
+callback and a partial trace, with recorder output observed after the sampler
+window in the separate parent clock domain. Recorder exit -11 after stopping
+does not establish normal recording completion; byte integrity does not
+establish trace-time coverage. D25's next bounded read-only installed-tool TOC
+export of an exact retained copy has not run. Preserve any refusal without
+repair or another recording. C12 remains HOLD and PR #45 remains draft and
+unmerged. The original Finder sequence and task 08 dependency remain unchanged.
