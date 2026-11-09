@@ -292,8 +292,11 @@ and [launch-metrics guide](https://developer.apple.com/library/archive/documenta
 document PID-targeted stack sampling; the published
 [`ps` manual](https://github.com/apple-oss-distributions/adv_cmds/blob/main/ps/ps.1)
 describes process selection and identity fields. The installed manuals must
-confirm the current arguments before implementation. This observation has not
-been implemented or run in D20. It would need its own finite sampler deadline,
+confirm the current arguments before execution. This observation has not
+been implemented or run in D20. The subsequent
+[D21 protocol](NATIVE_RECORDER_STARTUP_OBSERVATION.md) implements that check as
+a fail-closed installed-manual preflight before creating its helper or recorder.
+The observation needs its own finite sampler deadline,
 output bounds, exact PID/instance binding and an explicit account of timing
 perturbation. A sample can expose observed initialization or request callers;
 a generic IPC wait cannot establish authorization denial, deadlock or the

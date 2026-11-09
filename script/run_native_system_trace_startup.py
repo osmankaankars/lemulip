@@ -276,6 +276,9 @@ class MonitoredCommand:
         self.streams = {"stdout": bytearray(), "stderr": bytearray()}
         self.selector = selectors.DefaultSelector()
         self.process = None
+        # Optional D21 PID lease: a numeric-PID observer must finish before this
+        # sole child owner may reap the recorder and permit PID reuse.
+        self.reap_deferred = False
         self.closed = False
         self.selector_failed = False
         self.receipt = {"argv": list(argv), "pid": None, "status": "running", "exitCode": None,
@@ -341,6 +344,8 @@ class MonitoredCommand:
     def poll(self) -> int | None:
         if self.process is None:
             return None
+        if self.reap_deferred:
+            return self.process.returncode
         code = self.process.poll()
         if code is not None and self.receipt["exitCode"] is None:
             self.receipt.update(exitCode=code, exitObservedAfterSeconds=time.monotonic() - self.started)
@@ -496,7 +501,7 @@ def package_trace(trace: Path, output: Path, work: Path, *, limit: int = TRACE_L
     return result
 
 
-def run(staged: Path, output: Path, helper: Path) -> dict:
+def run(staged: Path, output: Path, helper: Path, *, observer=None) -> dict:
     reserved = ["orchestration.json", "orchestration-scope.json", "helper-prepared.json",
                 "helper-prepared.json.pending", "startup-run.json", "startup-run.json.pending",
                 "trace-package.json", "recording.trace.zip"]
@@ -593,6 +598,9 @@ def run(staged: Path, output: Path, helper: Path) -> dict:
                         if recorder.process is None:
                             report["errors"].append("recorder-spawn-error")
                             fatal = True
+                        elif observer is not None:
+                            observer.attach(recorder, helper_started=helper_process.started,
+                                            prepared=prepared, cwd=work, env=env)
                     except (OSError, ValueError) as error:
                         report["errors"].append(str(error))
                         fatal = True
@@ -674,7 +682,12 @@ def run(staged: Path, output: Path, helper: Path) -> dict:
                 recorder_finished = True
                 recorder_unresolved = False
             helper_finished = helper_code is not None or helper_process.receipt["cleanupFailed"]
-            if helper_finished and (recorder_finished or recorder_unresolved):
+            if observer is not None:
+                # Existing helper/recorder stop decisions above take priority;
+                # this nonblocking tick cannot postpone their signal boundary.
+                observer.tick(helper_running=not helper_finished,
+                              recorder_stopping=recorder_interrupt_at is not None)
+            if helper_finished and (recorder_finished or recorder_unresolved) and (observer is None or observer.done):
                 break
             time.sleep(0.02)
         # Drain bytes already buffered after child exit, without waiting forever
@@ -716,6 +729,13 @@ def run(staged: Path, output: Path, helper: Path) -> dict:
         report["recordingComplete"] = False
         abort_helper("orchestration-exception")
         stop_recorder("orchestration-exception")
+        observer_cleanup_fault = False
+        if observer is not None:
+            try:
+                observer.cancel("orchestration-exception")
+            except Exception as observer_error:
+                report["errors"].append("Observer cancellation: " + type(observer_error).__name__ + ": " + str(observer_error))
+                observer_cleanup_fault = True
         end = time.monotonic() + HELPER_ABORT_GRACE
         force_at = None
         force_killed = False
@@ -736,7 +756,13 @@ def run(staged: Path, output: Path, helper: Path) -> dict:
                         recorder.signal(signal.SIGKILL, group=True)
                         force_killed = True
                     record_done = recorder.poll() is not None
-            if helper_done and record_done:
+            if observer is not None and not observer_cleanup_fault:
+                try:
+                    observer.tick(helper_running=False, recorder_stopping=True)
+                except Exception as observer_error:
+                    report["errors"].append("Observer cleanup tick: " + type(observer_error).__name__ + ": " + str(observer_error))
+                    observer_cleanup_fault = True
+            if helper_done and record_done and (observer is None or observer.done or observer_cleanup_fault):
                 break
             time.sleep(0.02)
         # Exceptional completion is not promoted to normal cleanup without the
@@ -745,6 +771,17 @@ def run(staged: Path, output: Path, helper: Path) -> dict:
         if recorder is not None:
             recorder.receipt["cleanupFailed"] = True
     finally:
+        if observer is not None:
+            # The recorder has already received its original stop request.
+            # Exceptional observer cleanup never precedes or delays that signal.
+            try:
+                observer.finish()
+            except Exception as error:
+                report["errors"].append("Observer finalization: " + type(error).__name__ + ": " + str(error))
+                report["recordingComplete"] = False
+                helper_process.receipt["cleanupFailed"] = True
+                if recorder is not None:
+                    recorder.receipt["cleanupFailed"] = True
         # Close both transports even if a later evidence write fails.
         for command in (helper_process, recorder):
             if command is not None:
