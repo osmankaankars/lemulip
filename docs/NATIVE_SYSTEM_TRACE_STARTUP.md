@@ -132,7 +132,7 @@ recording/export success.
 
 ## Interpretation and current status
 
-At protocol preparation, D20 has **not run**. Local checks can verify bounded
+At initial protocol preparation, D20 had **not run**. Local checks can verify bounded
 orchestration, process handling, archive parsing and command selection; this
 Linux workspace cannot compile AppKit or establish native tracing access. The
 native matrix is the compile, recording and export gate.
@@ -149,3 +149,39 @@ enter → exit → reenter → Escape → release → distinct fresh-drop accept
 three themes and both architectures is unchanged. Task 08's source/screenshot
 review and the owner's completed physical/v4 evidence remain valid; its final
 closure still depends on task 07. This prerequisite adds no acceptance case.
+
+### R1: native helper compilation stopped before recording
+
+[Run 42567416345](https://github.com/osmankaankars/lemulip/actions/runs/42567416345),
+attempt 1, executed `f1c29401fcf747bbe96a97d938a4c02b534ca0ca`, tree
+`98f82088ea4ef0bd224aee7a881ce0a5fcfa76ae`, on 9 November 2026,
+05:27:23–05:30:32 UTC. ARM job `128996858327` and Intel job `128996858546`
+both passed source/privacy checks, the six bounded-command tests and ten
+orchestration tests, C12 build/staging, and original source/control compilation.
+The new helper then failed to compile: `notify_register_dispatch`, `notify_cancel`
+and `NOTIFY_STATUS_OK` were not visible through its Swift imports. Preparation,
+recording, export and source/control startup did not run. This is a build result,
+not a native behavior or tracing-access result.
+
+Apple's public [Libnotify header](https://github.com/apple-oss-distributions/Libnotify/blob/main/notify.h)
+declares these APIs; its [manual synopsis](https://github.com/apple-oss-distributions/Libnotify/blob/main/notify.3)
+specifies `#include <notify.h>`, and its
+[module map](https://github.com/apple-oss-distributions/Libnotify/blob/main/notify.modulemap)
+defines a separate `notify` module. The narrow R2 correction exposes the actual
+installed SDK headers to this helper with Swift's `-import-objc-header` option.
+It includes `<dispatch/dispatch.h>` and `<notify.h>` without handwritten ABI
+declarations. The Swift behavior, notification mechanism, original applications,
+recording command, resource bounds and qualification gates are unchanged. The
+bridge header is retained with the diagnostic sources and triggers the same
+isolated workflow when edited. Actual compilation remains the native SDK gate.
+
+R1 retained bootstrap test outputs and the two original app build products;
+job logs retain the compiler diagnostics. Its artifact identities are:
+
+| Architecture | Artifact | ZIP bytes | ZIP SHA-256 |
+| --- | ---: | ---: | --- |
+| ARM64 | `13652485177` | 2,225,064 | `5f6bdf4af84d24a29079d59649980a8d3981b39242008497ef551ee8660467f9` |
+| Intel | `13652191507` | 2,242,987 | `33370c9e4b47d3b1bc961a48fc801896c459617b7e9f40e3666dda37a906d768` |
+
+R1 produced no completed recording to retry. R2 is the first opportunity for the
+specified notification-gated recording to execute after the header import fix.

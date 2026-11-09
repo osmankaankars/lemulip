@@ -6,6 +6,7 @@ on:
     paths:
       - '.github/workflows/native-system-trace-startup.yml'
       - 'script/native_ui/NativeSystemTraceStartup.swift'
+      - 'script/native_ui/NativeSystemTraceNotifyBridge.h'
       - 'script/run_native_system_trace_startup.py'
       - 'script/test_run_native_system_trace_startup.py'
 
@@ -111,6 +112,7 @@ jobs:
             codesign --verify --strict "$RUNNER_TEMP/lemulip-native-ui/Native Drag $role.app"
           done
           xcrun swiftc -parse-as-library -g -module-name NativeSystemTraceStartup \
+            -import-objc-header script/native_ui/NativeSystemTraceNotifyBridge.h \
             script/native_ui/NativeSystemTraceStartup.swift \
             -o "$RUNNER_TEMP/drag-system-trace-startup/evidence/build/NativeSystemTraceStartup"
           codesign --force --sign - "$RUNNER_TEMP/drag-system-trace-startup/evidence/build/NativeSystemTraceStartup"
@@ -164,6 +166,7 @@ jobs:
           sources = out / 'sources'
           sources.mkdir(exist_ok=False)
           names = ['script/native_ui/NativeSystemTraceStartup.swift',
+                   'script/native_ui/NativeSystemTraceNotifyBridge.h',
                    'script/native_ui/NativeDragControl.swift', 'script/native_ui/NativeDragSource.swift',
                    'script/run_native_system_trace_startup.py', 'script/test_run_native_system_trace_startup.py',
                    'script/collect_native_trace_capabilities.py', 'script/test_collect_native_trace_capabilities.py',
