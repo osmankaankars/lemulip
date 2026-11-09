@@ -169,7 +169,9 @@ class TemplateAvailabilityTests(unittest.TestCase):
 
 class ProtectedInputTests(unittest.TestCase):
     def fixture(self, root):
-        trace = root / "recording.trace"
+        # Match prepare_input's canonical existing-parent contract even when
+        # the host temporary directory is reached through a filesystem alias.
+        trace = root.resolve(strict=True) / "recording.trace"
         raw = trace / subject.RAW_MEMBER
         raw.parent.mkdir(parents=True)
         # This tests the contract between the frozen full-hash preparer and the
@@ -191,6 +193,24 @@ class ProtectedInputTests(unittest.TestCase):
             self.assertEqual(selected["sha256"], subject.RAW_IDENTITY["sha256"])
             self.assertEqual(selected["mode"], 0o400)
             self.assertFalse(selected["retainedCodeExecuted"])
+
+    def test_directory_alias_fixture_matches_the_preparers_canonical_parent_contract(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve(strict=True)
+            actual = root / "actual"
+            actual.mkdir()
+            alias = root / "alias"
+            alias.symlink_to(actual, target_is_directory=True)
+            prepared = self.fixture(alias)
+            selected = subject.inspect_prepared_input(prepared)
+            self.assertEqual(Path(prepared["tracePath"]), actual / "recording.trace")
+            self.assertEqual(Path(selected["path"]), actual / "recording.trace" / subject.RAW_MEMBER)
+            # The preparer normalizes existing parent aliases. The production
+            # selector must still reject a manifest that violates that contract.
+            noncanonical = copy.deepcopy(prepared)
+            noncanonical["tracePath"] = str(alias / "recording.trace")
+            with self.assertRaisesRegex(ValueError, "canonical regular-file location"):
+                subject.inspect_prepared_input(noncanonical)
 
     def test_changed_raw_identity_or_missing_member_prevents_selection(self):
         with tempfile.TemporaryDirectory() as directory:

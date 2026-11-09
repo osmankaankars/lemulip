@@ -8,6 +8,32 @@ document? The exact payload is not prequalified by its suffix, prefix, or
 general file family. C12, task 07 and draft/unmerged
 [PR #45](https://github.com/osmankaankars/lemulip/pull/45) remain **HOLD**.
 
+## Pre-import test failure and fixture correction
+
+[R1, attempt 1](https://github.com/osmankaankars/lemulip/actions/runs/42638786998)
+at `8d02338e9248af73518c68eb53f2bfb01b27b939`, tree
+`0b68ce8086fc2a4ffd44b88836b7ea5135951198`, stopped in its test gate.
+The first 75 cases passed; the collector suite then reported 22 passes and one
+error in its positive protected-input fixture. The source-artifact download
+and actual import steps were skipped: **zero native import invocations**.
+Artifact `13683238109` retains the 12 build-evidence files and exact failing
+stderr; it is not a native import result.
+
+The fixture passed its temporary parent spelling directly to the selector,
+whereas the frozen input preparer resolves the existing parent before returning
+the protected trace path. An explicit directory-alias regression reproduced the
+same canonical-path exception on Linux with the original fixture. Changing only
+the fixture to resolve that parent made all 24 collector tests pass. The new
+test also deliberately restores an alias spelling and confirms that the
+production selector still rejects it. No runtime path check was weakened,
+test skipped, input renamed, or import attempted by this correction.
+
+The exact native temporary alias was not recorded in R1, so a particular host
+path mapping is not claimed as directly observed. The controlled reproduction
+establishes the fixture defect and predicts that the corrected canonical fixture
+will pass the native gate. R2 must verify that prediction before any import.
+All other Python sources and tests remain byte-identical to R1.
+
 ## Question and fixed command
 
 D25's single document TOC export ended with exit 10 and
@@ -156,7 +182,7 @@ its exact new identity.
 
 The native workflow runs the 19 D24 primitives actually used here, the 9 D25
 owned-command adapter tests, the 23 D25 pinned-input tests, and the 24 output
-guard plus 23 collector tests added for D27: 98 expected native cases. The old
+guard plus 24 collector tests added for D27: 99 expected native cases. The old
 full D24 synthetic-suite failure remains open; selecting
 the used primitives does not repair or reclassify it.
 
