@@ -149,6 +149,18 @@ The [D18 result](NATIVE_ACTIVATION_ENTRY_CALIBRATION.md) and
 that observation and its limits. This adds no acceptance result or product fix;
 the completed source/screenshot review and the owner's physical/v4 results remain valid.
 
+D19 R2 completed tool discovery on both architectures in
+[run 42565052135](https://github.com/osmankaankars/lemulip/actions/runs/42565052135)
+on 9 November 2026 at `daf90a14cbe0e5855e2e4a3e69dc8c170700635d`.
+All fifteen read-only inventory commands and six subprocess checks passed per
+architecture. The [D19 report](NATIVE_TRACE_CAPABILITIES.md) and
+[retained capability evidence](evidence/D19-trace-capabilities.json) establish
+the installed System Trace and related CLI contracts. No trace, native app
+startup, drag, or keyboard input ran. Recording access, actual export schemas
+and causal coverage remain unobserved; the next bounded recording/export
+prerequisite is separate. This inventory does not close task 07 or change C12,
+PR #45's HOLD, or task 08's dependency. The physical/v4 evidence remains complete.
+
 To complete task 08, close or explicitly resolve task 07's remaining CI gate on
 the final candidate, review any resulting production changes, and retain the
 final source/run/artifact identity. The candidate is still on hold.

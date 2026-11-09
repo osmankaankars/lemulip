@@ -59,6 +59,25 @@ was stopped at the predeclared calibration gate. The
 the retained evidence and the missing requester/consumer boundary; production and
 acceptance remain unchanged.
 
+### Subsequent D19 tool inventory
+
+[D19 R2](NATIVE_TRACE_CAPABILITIES.md#r2-completed-tool-inventory) completed on
+9 November 2026, 05:03:00–05:03:38 UTC, at
+`daf90a14cbe0e5855e2e4a3e69dc8c170700635d` in
+[run 42565052135](https://github.com/osmankaankars/lemulip/actions/runs/42565052135).
+All fifteen metadata/help/list commands and six subprocess checks passed per
+architecture. Both Xcode 26.3 installations list System Trace, Thread State Trace
+and System Call Trace. The [retained inventory](evidence/D19-trace-capabilities.json)
+binds the complete capability objects, exact selected outputs and all original
+file identities to the executed revision.
+
+This establishes installed tool contracts only. No trace or source/control app
+ran, no native input was sent, and no settings changed. Recording access, actual
+export schemas, event stacks and causal coverage remain unobserved. A separate
+bounded System Trace recording/export prerequisite is the next investigation;
+D19 did not execute it. D18's uncalibrated route and the original acceptance gate
+remain closed. No case is added to either native outcome population.
+
 ## Symptom and impact
 
 The original C12 [run 41803346911](https://github.com/osmankaankars/lemulip/actions/runs/41803346911)
@@ -221,8 +240,15 @@ as returning before the drag starts on a later run-loop turn. The retained
 source chronology agrees with that contract. Neither control view implements
 the enabling callbacks described by
 [springLoadingEntered](https://developer.apple.com/documentation/appkit/nsspringloadingdestination/springloadingentered(_:)).
-An internal window-hover behavior remains possible, but labeling this an owned
-spring-loading handler is unsupported.
+Apple's historical [AppKit release notes](https://developer.apple.com/library/archive/releasenotes/AppKit/RN-AppKitOlderNotes/),
+under **OS X 10.10.3 → Spring Loaded Drag & Drop**, document automatic window
+spring-forward on hover separately from optional spring-loaded controls. Missing
+owned enabling callbacks therefore do not exclude automatic window behavior.
+The notes warn that later releases may supersede them; they establish neither
+the runtime path on D17's macOS builds nor a requester/IPC connection to its
+global foreground transition. Labeling the observed transition an owned
+spring-loading handler, or treating that historical description as its proven
+cause, remains unsupported.
 
 The observer has one explicit, retained HID `CGEventSource` and does not
 release it during the gesture. Earlier failures cover nil sources, HID and

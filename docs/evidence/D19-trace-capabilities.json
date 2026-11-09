@@ -1,0 +1,2373 @@
+{
+  "architectures": {
+    "arm64": {
+      "archiveFileIndex": {
+        "drag-trace-capabilities-bootstrap/experiment-commit.txt": {
+          "bytes": 41,
+          "sha256": "469ba3be425f322c6c6cb89f885f2c31c0676e87ddde71da93f3804a25e1c35d"
+        },
+        "drag-trace-capabilities-bootstrap/tests.stderr.txt": {
+          "bytes": 104,
+          "sha256": "e292f44e05c54b04ad0472261ed2ad62d4219ed0bb1305908df2ae5055158439"
+        },
+        "drag-trace-capabilities-bootstrap/tests.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/capabilities.json": {
+          "bytes": 15945,
+          "sha256": "f1396ceb3975b65eb267ed6e1db0b21c06fa7b094bff608c64892461a818d56c"
+        },
+        "drag-trace-capabilities/cpu-brand.json": {
+          "bytes": 809,
+          "sha256": "d1c94b13b291f1d7f8f9b773fd26efcda9044c4809357dd16606edfee6139df8"
+        },
+        "drag-trace-capabilities/cpu-brand.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/cpu-brand.stdout.txt": {
+          "bytes": 19,
+          "sha256": "ff76851c55aca2697f22e6534c9378088cae0334bbb5d13675e90a9097fc2713"
+        },
+        "drag-trace-capabilities/developer-tools-status.json": {
+          "bytes": 831,
+          "sha256": "e5f81b32f70355ee54d228a5591a0ec44dbd5cb658b9e1c43d749bb86396c28d"
+        },
+        "drag-trace-capabilities/developer-tools-status.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/developer-tools-status.stdout.txt": {
+          "bytes": 37,
+          "sha256": "729bd4ba57383e06cede5759b2b92c8192d2d682352c8b78ebac1e3b1462dbda"
+        },
+        "drag-trace-capabilities/hardware-model.json": {
+          "bytes": 808,
+          "sha256": "72700aa166c4e84c5bbad80b189b84a9406f6ba9c59318195e1532cea3305e2b"
+        },
+        "drag-trace-capabilities/hardware-model.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/hardware-model.stdout.txt": {
+          "bytes": 14,
+          "sha256": "89ec503a97fe44e0427f4b470006d152f8df0d2797f393363c46ecaf2d20ceaa"
+        },
+        "drag-trace-capabilities/kernel-version.json": {
+          "bytes": 815,
+          "sha256": "c9b33438e77aa59552f6b09195c5f8e57b77569bd03f09554cd9f5bdee951065"
+        },
+        "drag-trace-capabilities/kernel-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/kernel-version.stdout.txt": {
+          "bytes": 113,
+          "sha256": "ff95b22f6cfe5f6a90b4c7093d86ae0fe40880d42b9888eb60d81e376aa80b5d"
+        },
+        "drag-trace-capabilities/os-version.json": {
+          "bytes": 769,
+          "sha256": "58d800ef44c40f18865102353fd5677b7ac1662484411573457584e7966e7875"
+        },
+        "drag-trace-capabilities/os-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/os-version.stdout.txt": {
+          "bytes": 66,
+          "sha256": "e0a9e270c507499fb163b6bb80e62f10c6fca344ce2c93fa2987fe42caf94b29"
+        },
+        "drag-trace-capabilities/scope.json": {
+          "bytes": 1560,
+          "sha256": "0d2e711b01335be0e564f9c8d7b55a100b8238f98a04e472f6d8842bf6f692bb"
+        },
+        "drag-trace-capabilities/sources/NATIVE_TRACE_CAPABILITIES.md": {
+          "bytes": 7375,
+          "sha256": "e2791aebc3d81e37639353162de3bded7455df642fc9b27b0da87f0416aa0b6e"
+        },
+        "drag-trace-capabilities/sources/collect_native_trace_capabilities.py": {
+          "bytes": 12855,
+          "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+        },
+        "drag-trace-capabilities/sources/native-trace-capabilities.yml": {
+          "bytes": 2925,
+          "sha256": "22f487098b8fb7ff7c397df2d6b7218940a0320f00387b0df267d8a1f6507557"
+        },
+        "drag-trace-capabilities/sources/test_collect_native_trace_capabilities.py": {
+          "bytes": 7343,
+          "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+        },
+        "drag-trace-capabilities/virtual-machine.json": {
+          "bytes": 820,
+          "sha256": "5a45394a09440dc2a67749394d295f085625ac85d2f36dc8bc5c4c3845d40d40"
+        },
+        "drag-trace-capabilities/virtual-machine.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/virtual-machine.stdout.txt": {
+          "bytes": 2,
+          "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+        },
+        "drag-trace-capabilities/xcode-version.json": {
+          "bytes": 795,
+          "sha256": "b5dfd59257ee007cdab2adb8f9082ad2768568509b22b19bca4561049424df83"
+        },
+        "drag-trace-capabilities/xcode-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xcode-version.stdout.txt": {
+          "bytes": 32,
+          "sha256": "bb7fc9a8f5e063e81975b33054b3a526c91bcccff263ad11d5bd8bcdbe8f0973"
+        },
+        "drag-trace-capabilities/xctrace-export-help.json": {
+          "bytes": 840,
+          "sha256": "8cc5f842e2e57f7422505f41abdbc8c2f6ee03d43a2d9e2553187d3df387c8bd"
+        },
+        "drag-trace-capabilities/xctrace-export-help.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xctrace-export-help.stdout.txt": {
+          "bytes": 1100,
+          "sha256": "953fc6079baaffd9d66b7d0f02aa3cfeed12c728425a9c1584120657cf4d8e9d"
+        },
+        "drag-trace-capabilities/xctrace-help.json": {
+          "bytes": 801,
+          "sha256": "3e23ad06c6e81f2057100a1f819f53c202c9323d574bf325e4c79ee7f338b70b"
+        },
+        "drag-trace-capabilities/xctrace-help.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xctrace-help.stdout.txt": {
+          "bytes": 753,
+          "sha256": "7b643e7c4b095efb6fadd88591de27ca38ba3101212945de7e717b3603723e6c"
+        },
+        "drag-trace-capabilities/xctrace-instruments.json": {
+          "bytes": 841,
+          "sha256": "2e976b6ec0b594a5e622f6098e7749f3b859b848975dab2340e5b11680804136"
+        },
+        "drag-trace-capabilities/xctrace-instruments.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xctrace-instruments.stdout.txt": {
+          "bytes": 952,
+          "sha256": "1eaaa1a8a9b6636efb1b2cb2045faebf25ed5c92b403133215b4a48382b8e8f5"
+        },
+        "drag-trace-capabilities/xctrace-list-help.json": {
+          "bytes": 828,
+          "sha256": "caa32555b65043ae2021d2c61924231b9fe43c5824162328eeefb248239f1ecf"
+        },
+        "drag-trace-capabilities/xctrace-list-help.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xctrace-list-help.stdout.txt": {
+          "bytes": 222,
+          "sha256": "ca2163f0a1d03faf8e7bfc13ddefb533dd359e7e7932f6cd0887c32efaf8b934"
+        },
+        "drag-trace-capabilities/xctrace-manual.json": {
+          "bytes": 813,
+          "sha256": "d5a5e08dbc9a4c1494c32c3742b7b9d9a558f48b591d94c31b2074ba02d583f2"
+        },
+        "drag-trace-capabilities/xctrace-manual.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xctrace-manual.stdout.txt": {
+          "bytes": 17550,
+          "sha256": "ab1063df8a48b141d1f533eac513c89ab587afef26b91ab44856158362054e68"
+        },
+        "drag-trace-capabilities/xctrace-path.json": {
+          "bytes": 800,
+          "sha256": "299e9b13696fdeb234f6bc1653957f35eefe7cd8b4db0ef7e80bbf5a95c81f96"
+        },
+        "drag-trace-capabilities/xctrace-path.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xctrace-path.stdout.txt": {
+          "bytes": 64,
+          "sha256": "fced716e12a27e0cbca2dd5cdb966bd2536657b6a4db58785ae79c210059bfa8"
+        },
+        "drag-trace-capabilities/xctrace-record-help.json": {
+          "bytes": 840,
+          "sha256": "9a6dbf7facf95e51664cddcb1d2272db7c806b3f066b1dbc631303359a4c7b17"
+        },
+        "drag-trace-capabilities/xctrace-record-help.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xctrace-record-help.stdout.txt": {
+          "bytes": 3113,
+          "sha256": "bf49e4335bbf747b830f7a37d16e848385d3c865591833e0e77123dd29bf4525"
+        },
+        "drag-trace-capabilities/xctrace-templates.json": {
+          "bytes": 833,
+          "sha256": "05789d82df638c2b6684aa9cd9557f6bf7e1a0a843deddc03020d2f7b7e39a1b"
+        },
+        "drag-trace-capabilities/xctrace-templates.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xctrace-templates.stdout.txt": {
+          "bytes": 373,
+          "sha256": "93eeae90861c44f3682a086d06ef9644a669bc71dd6350a8aff052f907bebe0a"
+        }
+      },
+      "artifact": {
+        "artifactID": 13651171058,
+        "bytes": 38289,
+        "jobID": 128989654018,
+        "sha256": "a19ba873757d42146ae43b1b984b7dad1f650d422afe4c9a6cd3c6a284a663da"
+      },
+      "capabilities": {
+        "C12": "HOLD",
+        "activationRouteCoverageEstablished": false,
+        "architecture": "arm64",
+        "commands": [
+          {
+            "argv": [
+              "/usr/bin/sw_vers"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.007995499999992717,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "os-version.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 66,
+                "name": "os-version.stdout.txt",
+                "sha256": "e0a9e270c507499fb163b6bb80e62f10c6fca344ce2c93fa2987fe42caf94b29"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "os-version",
+            "observedBytes": 66,
+            "pid": 2806,
+            "required": true,
+            "retainedBytes": 66,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/sbin/sysctl",
+              "-n",
+              "kern.version"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.0030512090000058834,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "kernel-version.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 113,
+                "name": "kernel-version.stdout.txt",
+                "sha256": "ff95b22f6cfe5f6a90b4c7093d86ae0fe40880d42b9888eb60d81e376aa80b5d"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "kernel-version",
+            "observedBytes": 113,
+            "pid": 2807,
+            "required": true,
+            "retainedBytes": 113,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/sbin/sysctl",
+              "-n",
+              "hw.model"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.0023059999999759384,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "hardware-model.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 14,
+                "name": "hardware-model.stdout.txt",
+                "sha256": "89ec503a97fe44e0427f4b470006d152f8df0d2797f393363c46ecaf2d20ceaa"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "hardware-model",
+            "observedBytes": 14,
+            "pid": 2808,
+            "required": true,
+            "retainedBytes": 14,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/sbin/sysctl",
+              "-n",
+              "machdep.cpu.brand_string"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.002124791999989384,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "cpu-brand.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 19,
+                "name": "cpu-brand.stdout.txt",
+                "sha256": "ff76851c55aca2697f22e6534c9378088cae0334bbb5d13675e90a9097fc2713"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "cpu-brand",
+            "observedBytes": 19,
+            "pid": 2809,
+            "required": false,
+            "retainedBytes": 19,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/sbin/sysctl",
+              "-n",
+              "kern.hv_vmm_present"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.0021074999999939337,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "virtual-machine.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 2,
+                "name": "virtual-machine.stdout.txt",
+                "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "virtual-machine",
+            "observedBytes": 2,
+            "pid": 2810,
+            "required": false,
+            "retainedBytes": 2,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/sbin/DevToolsSecurity",
+              "-status"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.007506541999987348,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "developer-tools-status.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 37,
+                "name": "developer-tools-status.stdout.txt",
+                "sha256": "729bd4ba57383e06cede5759b2b92c8192d2d682352c8b78ebac1e3b1462dbda"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "developer-tools-status",
+            "observedBytes": 37,
+            "pid": 2811,
+            "required": false,
+            "retainedBytes": 37,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcodebuild",
+              "-version"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 1.7944994160000078,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xcode-version.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 32,
+                "name": "xcode-version.stdout.txt",
+                "sha256": "bb7fc9a8f5e063e81975b33054b3a526c91bcccff263ad11d5bd8bcdbe8f0973"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xcode-version",
+            "observedBytes": 32,
+            "pid": 2812,
+            "required": true,
+            "retainedBytes": 32,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcrun",
+              "--find",
+              "xctrace"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 1.0150716249999903,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xctrace-path.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 64,
+                "name": "xctrace-path.stdout.txt",
+                "sha256": "fced716e12a27e0cbca2dd5cdb966bd2536657b6a4db58785ae79c210059bfa8"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xctrace-path",
+            "observedBytes": 64,
+            "pid": 2817,
+            "required": true,
+            "retainedBytes": 64,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcrun",
+              "xctrace",
+              "help"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.3056286670000077,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xctrace-help.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 753,
+                "name": "xctrace-help.stdout.txt",
+                "sha256": "7b643e7c4b095efb6fadd88591de27ca38ba3101212945de7e717b3603723e6c"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xctrace-help",
+            "observedBytes": 753,
+            "pid": 2823,
+            "required": true,
+            "retainedBytes": 753,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcrun",
+              "xctrace",
+              "help",
+              "record"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.14650837499999625,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xctrace-record-help.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 3113,
+                "name": "xctrace-record-help.stdout.txt",
+                "sha256": "bf49e4335bbf747b830f7a37d16e848385d3c865591833e0e77123dd29bf4525"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xctrace-record-help",
+            "observedBytes": 3113,
+            "pid": 2824,
+            "required": true,
+            "retainedBytes": 3113,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcrun",
+              "xctrace",
+              "help",
+              "export"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.14355941700000585,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xctrace-export-help.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 1100,
+                "name": "xctrace-export-help.stdout.txt",
+                "sha256": "953fc6079baaffd9d66b7d0f02aa3cfeed12c728425a9c1584120657cf4d8e9d"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xctrace-export-help",
+            "observedBytes": 1100,
+            "pid": 2825,
+            "required": true,
+            "retainedBytes": 1100,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcrun",
+              "xctrace",
+              "help",
+              "list"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.1393858749999879,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xctrace-list-help.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 222,
+                "name": "xctrace-list-help.stdout.txt",
+                "sha256": "ca2163f0a1d03faf8e7bfc13ddefb533dd359e7e7932f6cd0887c32efaf8b934"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xctrace-list-help",
+            "observedBytes": 222,
+            "pid": 2827,
+            "required": true,
+            "retainedBytes": 222,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcrun",
+              "xctrace",
+              "list",
+              "templates"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.9241892499999835,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xctrace-templates.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 373,
+                "name": "xctrace-templates.stdout.txt",
+                "sha256": "93eeae90861c44f3682a086d06ef9644a669bc71dd6350a8aff052f907bebe0a"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xctrace-templates",
+            "observedBytes": 373,
+            "pid": 2828,
+            "required": true,
+            "retainedBytes": 373,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcrun",
+              "xctrace",
+              "list",
+              "instruments"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.6200483329999997,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xctrace-instruments.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 952,
+                "name": "xctrace-instruments.stdout.txt",
+                "sha256": "1eaaa1a8a9b6636efb1b2cb2045faebf25ed5c92b403133215b4a48382b8e8f5"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xctrace-instruments",
+            "observedBytes": 952,
+            "pid": 2830,
+            "required": true,
+            "retainedBytes": 952,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcrun",
+              "man",
+              "xctrace"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.7821916249999958,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xctrace-manual.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 17550,
+                "name": "xctrace-manual.stdout.txt",
+                "sha256": "ab1063df8a48b141d1f533eac513c89ab587afef26b91ab44856158362054e68"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xctrace-manual",
+            "observedBytes": 17550,
+            "pid": 2831,
+            "required": false,
+            "retainedBytes": 17550,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          }
+        ],
+        "developerDirectory": "/Applications/Xcode_26.3.app/Contents/Developer",
+        "diagnostic": "D19-trace-tool-capabilities",
+        "experimentCommit": "daf90a14cbe0e5855e2e4a3e69dc8c170700635d",
+        "experimentTree": "7b3cf73162aff5612fa7f5b97bf2729df6f68d55",
+        "inventoryComplete": true,
+        "ipcRequestChainEstablished": false,
+        "limitations": [
+          "Inventory completion is not tracing permission or path coverage.",
+          "DevToolsSecurity status is not per-tool TCC authorization.",
+          "A listed template is not proof its recording/export succeeds.",
+          "Kernel version identifies the runner build, not an unverified XNU source match."
+        ],
+        "nativeApplicationsLaunched": false,
+        "nativeInputExecuted": false,
+        "releaseReady": false,
+        "schema": 1,
+        "settingsChanged": false,
+        "sourceIdentities": {
+          ".github/workflows/native-trace-capabilities.yml": {
+            "bytes": 2925,
+            "sha256": "22f487098b8fb7ff7c397df2d6b7218940a0320f00387b0df267d8a1f6507557"
+          },
+          "docs/NATIVE_TRACE_CAPABILITIES.md": {
+            "bytes": 7375,
+            "sha256": "e2791aebc3d81e37639353162de3bded7455df642fc9b27b0da87f0416aa0b6e"
+          },
+          "script/collect_native_trace_capabilities.py": {
+            "bytes": 12855,
+            "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+          },
+          "script/test_collect_native_trace_capabilities.py": {
+            "bytes": 7343,
+            "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+          }
+        },
+        "status": "inventory-complete",
+        "traceRecordingExecuted": false
+      },
+      "capabilitiesOriginal": {
+        "archivePath": "drag-trace-capabilities/capabilities.json",
+        "bytes": 15945,
+        "sha256": "f1396ceb3975b65eb267ed6e1db0b21c06fa7b094bff608c64892461a818d56c"
+      },
+      "hostSummary": {
+        "BuildVersion": "24H232",
+        "ProductName": "macOS",
+        "ProductVersion": "15.8.2",
+        "cpuBrand": "Apple M1 (Virtual)",
+        "developerToolsStatus": "Developer mode is currently enabled.",
+        "hardwareModel": "VirtualMac2,1",
+        "kern.hv_vmm_present": 1,
+        "xcodeVersion": "Xcode 26.3\nBuild version 17C529"
+      },
+      "omittedFileBodies": [
+        "drag-trace-capabilities/cpu-brand.json",
+        "drag-trace-capabilities/developer-tools-status.json",
+        "drag-trace-capabilities/hardware-model.json",
+        "drag-trace-capabilities/kernel-version.json",
+        "drag-trace-capabilities/os-version.json",
+        "drag-trace-capabilities/scope.json",
+        "drag-trace-capabilities/sources/NATIVE_TRACE_CAPABILITIES.md",
+        "drag-trace-capabilities/sources/collect_native_trace_capabilities.py",
+        "drag-trace-capabilities/sources/native-trace-capabilities.yml",
+        "drag-trace-capabilities/sources/test_collect_native_trace_capabilities.py",
+        "drag-trace-capabilities/virtual-machine.json",
+        "drag-trace-capabilities/xcode-version.json",
+        "drag-trace-capabilities/xctrace-export-help.json",
+        "drag-trace-capabilities/xctrace-help.json",
+        "drag-trace-capabilities/xctrace-instruments.json",
+        "drag-trace-capabilities/xctrace-list-help.json",
+        "drag-trace-capabilities/xctrace-manual.json",
+        "drag-trace-capabilities/xctrace-manual.stderr.txt",
+        "drag-trace-capabilities/xctrace-manual.stdout.txt",
+        "drag-trace-capabilities/xctrace-path.json",
+        "drag-trace-capabilities/xctrace-record-help.json",
+        "drag-trace-capabilities/xctrace-templates.json"
+      ],
+      "relevantInstalledContract": {
+        "exportHelpOptionsObserved": [
+          "--toc",
+          "--xpath"
+        ],
+        "listedInstruments": [
+          "Activity Monitor",
+          "Advanced Graphics Statistics",
+          "Allocations",
+          "Audio Client",
+          "Audio Server",
+          "Audio Statistics",
+          "CPU Counters",
+          "CPU Profiler",
+          "Core Animation Activity",
+          "Core Animation Commits",
+          "Core Animation FPS",
+          "Core Animation Server",
+          "Core ML",
+          "Data Faults",
+          "Data Fetches",
+          "Data Saves",
+          "Disk I/O Latency",
+          "Disk Usage",
+          "Display",
+          "Filesystem Activity",
+          "Filesystem Suggestions",
+          "Foundation Models",
+          "Frame Lifetimes",
+          "GCD Performance",
+          "GPU",
+          "HTTP Traffic",
+          "Hangs",
+          "Hitches",
+          "Leaks",
+          "Location Energy Model",
+          "Metal Application",
+          "Metal GPU Counters",
+          "Metal Performance Overview",
+          "Metal Resource Events",
+          "Network Connections",
+          "Neural Engine",
+          "Points of Interest",
+          "Power Profiler",
+          "Processor Trace",
+          "RealityKit Frames",
+          "RealityKit Metrics",
+          "Runloops",
+          "Sampler",
+          "SceneKit Application",
+          "Swift Actors",
+          "Swift Tasks",
+          "SwiftUI",
+          "System Call Trace",
+          "System Load",
+          "Thermal State",
+          "Thread State Trace",
+          "Time Profiler",
+          "VM Tracker",
+          "View Body (Legacy)",
+          "View Properties (Legacy)",
+          "Virtual Memory Trace",
+          "dyld Activity",
+          "os_log",
+          "os_signpost",
+          "stdout/stderr"
+        ],
+        "listedTemplates": [
+          "Activity Monitor",
+          "Allocations",
+          "Animation Hitches",
+          "App Launch",
+          "Audio System Trace",
+          "CPU Counters",
+          "CPU Profiler",
+          "Core ML",
+          "Data Persistence",
+          "File Activity",
+          "Game Memory",
+          "Game Performance",
+          "Game Performance Overview",
+          "Leaks",
+          "Logging",
+          "Metal System Trace",
+          "Network",
+          "Power Profiler",
+          "Processor Trace",
+          "RealityKit Trace",
+          "Swift Concurrency",
+          "SwiftUI",
+          "System Trace",
+          "Tailspin",
+          "Time Profiler"
+        ],
+        "recordHelpOptionsNotAdvertised": [
+          "--show-recording-options",
+          "--recording-options"
+        ],
+        "recordHelpOptionsObserved": [
+          "--no-prompt",
+          "--all-processes",
+          "--time-limit",
+          "--template",
+          "--instrument"
+        ]
+      },
+      "retainedSources": {
+        ".github/workflows/native-trace-capabilities.yml": {
+          "bytes": 2925,
+          "exactGitBytesVerified": true,
+          "immutableGitURL": "https://github.com/osmankaankars/lemulip/blob/daf90a14cbe0e5855e2e4a3e69dc8c170700635d/.github/workflows/native-trace-capabilities.yml",
+          "retainedArchivePath": "drag-trace-capabilities/sources/native-trace-capabilities.yml",
+          "sha256": "22f487098b8fb7ff7c397df2d6b7218940a0320f00387b0df267d8a1f6507557"
+        },
+        "docs/NATIVE_TRACE_CAPABILITIES.md": {
+          "bytes": 7375,
+          "exactGitBytesVerified": true,
+          "immutableGitURL": "https://github.com/osmankaankars/lemulip/blob/daf90a14cbe0e5855e2e4a3e69dc8c170700635d/docs/NATIVE_TRACE_CAPABILITIES.md",
+          "retainedArchivePath": "drag-trace-capabilities/sources/NATIVE_TRACE_CAPABILITIES.md",
+          "sha256": "e2791aebc3d81e37639353162de3bded7455df642fc9b27b0da87f0416aa0b6e"
+        },
+        "script/collect_native_trace_capabilities.py": {
+          "bytes": 12855,
+          "exactGitBytesVerified": true,
+          "immutableGitURL": "https://github.com/osmankaankars/lemulip/blob/daf90a14cbe0e5855e2e4a3e69dc8c170700635d/script/collect_native_trace_capabilities.py",
+          "retainedArchivePath": "drag-trace-capabilities/sources/collect_native_trace_capabilities.py",
+          "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+        },
+        "script/test_collect_native_trace_capabilities.py": {
+          "bytes": 7343,
+          "exactGitBytesVerified": true,
+          "immutableGitURL": "https://github.com/osmankaankars/lemulip/blob/daf90a14cbe0e5855e2e4a3e69dc8c170700635d/script/test_collect_native_trace_capabilities.py",
+          "retainedArchivePath": "drag-trace-capabilities/sources/test_collect_native_trace_capabilities.py",
+          "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+        }
+      },
+      "selectedRawText": {
+        "drag-trace-capabilities-bootstrap/experiment-commit.txt": {
+          "bytes": 41,
+          "encoding": "UTF-8",
+          "sha256": "469ba3be425f322c6c6cb89f885f2c31c0676e87ddde71da93f3804a25e1c35d",
+          "text": "daf90a14cbe0e5855e2e4a3e69dc8c170700635d\n"
+        },
+        "drag-trace-capabilities-bootstrap/tests.stderr.txt": {
+          "bytes": 104,
+          "encoding": "UTF-8",
+          "sha256": "e292f44e05c54b04ad0472261ed2ad62d4219ed0bb1305908df2ae5055158439",
+          "text": "......\n----------------------------------------------------------------------\nRan 6 tests in 2.565s\n\nOK\n"
+        },
+        "drag-trace-capabilities-bootstrap/tests.stdout.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/cpu-brand.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/cpu-brand.stdout.txt": {
+          "bytes": 19,
+          "encoding": "UTF-8",
+          "sha256": "ff76851c55aca2697f22e6534c9378088cae0334bbb5d13675e90a9097fc2713",
+          "text": "Apple M1 (Virtual)\n"
+        },
+        "drag-trace-capabilities/developer-tools-status.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/developer-tools-status.stdout.txt": {
+          "bytes": 37,
+          "encoding": "UTF-8",
+          "sha256": "729bd4ba57383e06cede5759b2b92c8192d2d682352c8b78ebac1e3b1462dbda",
+          "text": "Developer mode is currently enabled.\n"
+        },
+        "drag-trace-capabilities/hardware-model.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/hardware-model.stdout.txt": {
+          "bytes": 14,
+          "encoding": "UTF-8",
+          "sha256": "89ec503a97fe44e0427f4b470006d152f8df0d2797f393363c46ecaf2d20ceaa",
+          "text": "VirtualMac2,1\n"
+        },
+        "drag-trace-capabilities/kernel-version.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/kernel-version.stdout.txt": {
+          "bytes": 113,
+          "encoding": "UTF-8",
+          "sha256": "ff95b22f6cfe5f6a90b4c7093d86ae0fe40880d42b9888eb60d81e376aa80b5d",
+          "text": "Darwin Kernel Version 24.6.0: Sun Oct 11 23:44:11 PDT 2026; root:xnu-11417.140.69.713.47~2/RELEASE_ARM64_VMAPPLE\n"
+        },
+        "drag-trace-capabilities/os-version.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/os-version.stdout.txt": {
+          "bytes": 66,
+          "encoding": "UTF-8",
+          "sha256": "e0a9e270c507499fb163b6bb80e62f10c6fca344ce2c93fa2987fe42caf94b29",
+          "text": "ProductName:\t\tmacOS\nProductVersion:\t\t15.8.2\nBuildVersion:\t\t24H232\n"
+        },
+        "drag-trace-capabilities/virtual-machine.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/virtual-machine.stdout.txt": {
+          "bytes": 2,
+          "encoding": "UTF-8",
+          "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+          "text": "1\n"
+        },
+        "drag-trace-capabilities/xcode-version.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/xcode-version.stdout.txt": {
+          "bytes": 32,
+          "encoding": "UTF-8",
+          "sha256": "bb7fc9a8f5e063e81975b33054b3a526c91bcccff263ad11d5bd8bcdbe8f0973",
+          "text": "Xcode 26.3\nBuild version 17C529\n"
+        },
+        "drag-trace-capabilities/xctrace-export-help.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/xctrace-export-help.stdout.txt": {
+          "bytes": 1100,
+          "encoding": "UTF-8",
+          "sha256": "953fc6079baaffd9d66b7d0f02aa3cfeed12c728425a9c1584120657cf4d8e9d",
+          "text": "usage: xctrace export [<options>] [--toc | --xpath expression]\n\ndescription:\n\tExport given .trace using supplied query to the XML file format that can be later read and post-processed\n\noptions:\n\t--input <file>              Export data from the given .trace file\n\t--output <path>             Command output is written to the given path, if specified\n\t--toc                       Present entities to export in the table of contents form\n\t--xpath <expression>        Choose elements to export using specified XPath expression\n\t--har                       Export data as the HTTP Archive file\n\nglobal options:\n\t--quiet        Make terminal ouput less verbose\n\nnotes:\n\tIf output path is not specified, the export operation output will be written to the standard output.\n\tTable of Contents and XPath query are two separate modes and they cannot be specified together.\n\nexamples:\n\txctrace export --input input.trace --toc\n\txctrace export --input input.trace --toc --output table_of_contents.xml\n\txctrace export --input input.trace --xpath '/trace-toc/run[@number=\"1\"]/data/table[@schema=\"my-table-schema\"]'\n"
+        },
+        "drag-trace-capabilities/xctrace-help.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/xctrace-help.stdout.txt": {
+          "bytes": 753,
+          "encoding": "UTF-8",
+          "sha256": "7b643e7c4b095efb6fadd88591de27ca38ba3101212945de7e717b3603723e6c",
+          "text": "usage:\n\txctrace <command> [options]\n\nglobal options:\n\t-q, --quiet\n\ncommands:\n\trecord                                      Perform new recording using specified template\n\timport                                      Import file of a supported format into .trace file\n\texport                                      Export .trace file content to an external format\n\tremodel                                     Remodel .trace using currently installed modelers\n\tsymbolicate                                 Symbolicate .trace file using specified dSYM\n\tlist [devices|templates|instruments]        List capabilities of the current running environment\n\tversion                                     Print version of the tool\n\nfurther help:\n\t xctrace help <command>\n"
+        },
+        "drag-trace-capabilities/xctrace-instruments.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/xctrace-instruments.stdout.txt": {
+          "bytes": 952,
+          "encoding": "UTF-8",
+          "sha256": "1eaaa1a8a9b6636efb1b2cb2045faebf25ed5c92b403133215b4a48382b8e8f5",
+          "text": "== Standard Instruments ==\nActivity Monitor\nAdvanced Graphics Statistics\nAllocations\nAudio Client\nAudio Server\nAudio Statistics\nCPU Counters\nCPU Profiler\nCore Animation Activity\nCore Animation Commits\nCore Animation FPS\nCore Animation Server\nCore ML\nData Faults\nData Fetches\nData Saves\nDisk I/O Latency\nDisk Usage\nDisplay\nFilesystem Activity\nFilesystem Suggestions\nFoundation Models\nFrame Lifetimes\nGCD Performance\nGPU\nHTTP Traffic\nHangs\nHitches\nLeaks\nLocation Energy Model\nMetal Application\nMetal GPU Counters\nMetal Performance Overview\nMetal Resource Events\nNetwork Connections\nNeural Engine\nPoints of Interest\nPower Profiler\nProcessor Trace\nRealityKit Frames\nRealityKit Metrics\nRunloops\nSampler\nSceneKit Application\nSwift Actors\nSwift Tasks\nSwiftUI\nSystem Call Trace\nSystem Load\nThermal State\nThread State Trace\nTime Profiler\nVM Tracker\nView Body (Legacy)\nView Properties (Legacy)\nVirtual Memory Trace\ndyld Activity\nos_log\nos_signpost\nstdout/stderr\n"
+        },
+        "drag-trace-capabilities/xctrace-list-help.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/xctrace-list-help.stdout.txt": {
+          "bytes": 222,
+          "encoding": "UTF-8",
+          "sha256": "ca2163f0a1d03faf8e7bfc13ddefb533dd359e7e7932f6cd0887c32efaf8b934",
+          "text": "usage: xctrace list [devices|templates|instruments]\n\ndescription:\n\tList capabilities of the current running environment: devices, templates and instruments\n\nglobal options:\n\t--quiet        Make terminal ouput less verbose\n"
+        },
+        "drag-trace-capabilities/xctrace-path.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/xctrace-path.stdout.txt": {
+          "bytes": 64,
+          "encoding": "UTF-8",
+          "sha256": "fced716e12a27e0cbca2dd5cdb966bd2536657b6a4db58785ae79c210059bfa8",
+          "text": "/Applications/Xcode_26.3.app/Contents/Developer/usr/bin/xctrace\n"
+        },
+        "drag-trace-capabilities/xctrace-record-help.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/xctrace-record-help.stdout.txt": {
+          "bytes": 3113,
+          "encoding": "UTF-8",
+          "sha256": "bf49e4335bbf747b830f7a37d16e848385d3c865591833e0e77123dd29bf4525",
+          "text": "usage: xctrace record [<options>] [--attach | --all-processes | --launch -- command ]\n\ndescription:\n\tPerform a new recording on the specified device and target with the given template\n\noptions:\n\t--output <path>                        Output .trace file to the given path\n\t--append-run                           Appends a new run to an existing trace file\n\t--run-name <name>                      Names the run\n\t--template <path|name>                 Record using given trace template name or path\n\t--device <name|UDID>                   Record on device with the given name or UDID\n\t--instrument <name>                    Add Instrument with the given name to the recording\n\t--time-limit <time[ms|s|m|h]>          Limit recording time to the specified value\n\t--window <duration[ms|s|m]>            Keep only events from the specified end time window\n\t--package <file>                       Load Instruments Package from given path for duration of the command\n\t--all-processes                        Record all processes\n\t--attach <pid|name>                    Attach and record process with the given name or pid\n\t--launch -- command [arguments]        Launch process with the given name or path\n\t--target-stdin <name>                  Redirect standard input of the launched process\n\t--target-stdout <name>                 Redirect standard output of the launched process\n\t--env <VAR=value>                      Set specified environment variable for the launched process\n\t--notify-tracing-started               Send Darwin notification with this name when a recording has started\n\t--no-prompt                            Skip any prompts that would be otherwise presented (like privacy warnings)\n\nglobal options:\n\t--quiet        Make terminal ouput less verbose\n\nnotes:\n\tIf an output path is not specified, a uniquely named file will be created in the current directory.\n\tIf the output path is a directory, then a unique file is created in it. If the path contains the .trace\n\textension, a file will be created at the specified path. If trace file already exists, then --append-run\n\tneeds to be specified to add a run to it. In this case, specified template will be ignored\n\tand the one used to record original trace file will be used.\n\t\n\tIf target device UDID or name is not specified — host device is used for the recording.\n\tSpecifying environment variables or stream redirection is only available when using launch option.\n\nexamples:\n\txctrace record --template 'Time Profiler' --all-processes --time-limit 5s\n\txctrace record --template 'Time Profiler' --all-processes --output 'recording.trace'\n\txctrace record --all-processes --append-run --run-name Fix#2 --output 'existing.trace'\n\txctrace record --template 'System Trace' --attach 4215\n\txctrace record --template 'Time Profiler' --device-name \"Chad's iPhone\" --attach 'Trailblazer'\n\txctrace record --template 'Metal System Trace' --device-name 'iPhone SE Simulator' --all-processes\n\txctrace record --template 'Allocations' --env KEY=VALUE --launch -- MyApp.app\n\txctrace record --template 'Time Profiler' --target-stdout - --launch -- /tmp/tool arg1 arg2\n"
+        },
+        "drag-trace-capabilities/xctrace-templates.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/xctrace-templates.stdout.txt": {
+          "bytes": 373,
+          "encoding": "UTF-8",
+          "sha256": "93eeae90861c44f3682a086d06ef9644a669bc71dd6350a8aff052f907bebe0a",
+          "text": "== Standard Templates ==\nActivity Monitor\nAllocations\nAnimation Hitches\nApp Launch\nAudio System Trace\nCPU Counters\nCPU Profiler\nCore ML\nData Persistence\nFile Activity\nGame Memory\nGame Performance\nGame Performance Overview\nLeaks\nLogging\nMetal System Trace\nNetwork\nPower Profiler\nProcessor Trace\nRealityKit Trace\nSwift Concurrency\nSwiftUI\nSystem Trace\nTailspin\nTime Profiler\n"
+        }
+      },
+      "verification": {
+        "archiveDigestVerified": true,
+        "commandStreamIdentitiesChecked": 30,
+        "commandsCompletedExitZero": 15,
+        "commandsWithErrorsOrCaps": 0,
+        "extractedFilesByteComparedWithArchive": 54,
+        "portableTestsPassed": 6,
+        "retainedSourcesByteComparedWithExecutedGitRevision": 4
+      }
+    },
+    "x86_64": {
+      "archiveFileIndex": {
+        "drag-trace-capabilities-bootstrap/experiment-commit.txt": {
+          "bytes": 41,
+          "sha256": "469ba3be425f322c6c6cb89f885f2c31c0676e87ddde71da93f3804a25e1c35d"
+        },
+        "drag-trace-capabilities-bootstrap/tests.stderr.txt": {
+          "bytes": 104,
+          "sha256": "1a4982186bc5b9dd0fbf742b7aa1ad92645e4f72ff203f3bf63502b4dcab5432"
+        },
+        "drag-trace-capabilities-bootstrap/tests.stdout.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/capabilities.json": {
+          "bytes": 15940,
+          "sha256": "6fb33d039c5001c440dd13a47322a1a9a19a10fb19c255a500fda2486455185a"
+        },
+        "drag-trace-capabilities/cpu-brand.json": {
+          "bytes": 809,
+          "sha256": "8136ca89576e0cfb8612a4cb1b32142930e0003f683f5bec37f0a7876d2b1b22"
+        },
+        "drag-trace-capabilities/cpu-brand.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/cpu-brand.stdout.txt": {
+          "bytes": 41,
+          "sha256": "8654db3d299186d3074bea1db036d2b0937f406974389fbd19e4ee2bad90ab20"
+        },
+        "drag-trace-capabilities/developer-tools-status.json": {
+          "bytes": 831,
+          "sha256": "9bf740ecbd7044513924af9a1baf5050fdfd773ac3be582dfa495a2984346cbc"
+        },
+        "drag-trace-capabilities/developer-tools-status.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/developer-tools-status.stdout.txt": {
+          "bytes": 37,
+          "sha256": "729bd4ba57383e06cede5759b2b92c8192d2d682352c8b78ebac1e3b1462dbda"
+        },
+        "drag-trace-capabilities/hardware-model.json": {
+          "bytes": 807,
+          "sha256": "05da6a87b8c52c8bac55e3dab0661dc5eff0c5efa66add065d5e022ab1a355cd"
+        },
+        "drag-trace-capabilities/hardware-model.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/hardware-model.stdout.txt": {
+          "bytes": 11,
+          "sha256": "399ba86596026bf0c0a83f88cc65582b470185b6b3dd1271fd9fe05d2f0084f2"
+        },
+        "drag-trace-capabilities/kernel-version.json": {
+          "bytes": 814,
+          "sha256": "5cbe21f47a81947daa670a039df2ac24521a407d514a93304ee0ed70af7dd461"
+        },
+        "drag-trace-capabilities/kernel-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/kernel-version.stdout.txt": {
+          "bytes": 106,
+          "sha256": "24ffab3ffa929d41530d290182bff82b4531cfc4c50ad94425fc28d237faf8e3"
+        },
+        "drag-trace-capabilities/os-version.json": {
+          "bytes": 768,
+          "sha256": "e533ada98d8a84bd08a7917e49a061c1673098e97fcf0a635debba835f5ccf90"
+        },
+        "drag-trace-capabilities/os-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/os-version.stdout.txt": {
+          "bytes": 66,
+          "sha256": "31fd674ddb951680692d7b68cafdeab5baa6b3e82aae843269dad73b53f25fc5"
+        },
+        "drag-trace-capabilities/scope.json": {
+          "bytes": 1561,
+          "sha256": "c4a14eebd6f81dda69dfffb328cd603d4d32c99a71b4d7e95b02cad3868ccf56"
+        },
+        "drag-trace-capabilities/sources/NATIVE_TRACE_CAPABILITIES.md": {
+          "bytes": 7375,
+          "sha256": "e2791aebc3d81e37639353162de3bded7455df642fc9b27b0da87f0416aa0b6e"
+        },
+        "drag-trace-capabilities/sources/collect_native_trace_capabilities.py": {
+          "bytes": 12855,
+          "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+        },
+        "drag-trace-capabilities/sources/native-trace-capabilities.yml": {
+          "bytes": 2925,
+          "sha256": "22f487098b8fb7ff7c397df2d6b7218940a0320f00387b0df267d8a1f6507557"
+        },
+        "drag-trace-capabilities/sources/test_collect_native_trace_capabilities.py": {
+          "bytes": 7343,
+          "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+        },
+        "drag-trace-capabilities/virtual-machine.json": {
+          "bytes": 820,
+          "sha256": "e47d46b2a0498f0360524f2db8e4ed56d95cca72385ff0bbe45e308a28a20ce4"
+        },
+        "drag-trace-capabilities/virtual-machine.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/virtual-machine.stdout.txt": {
+          "bytes": 2,
+          "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+        },
+        "drag-trace-capabilities/xcode-version.json": {
+          "bytes": 794,
+          "sha256": "c8545d02bda86f56971636775a6ead2605fc4c20d98d01cb5ad8ee1086fc6902"
+        },
+        "drag-trace-capabilities/xcode-version.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xcode-version.stdout.txt": {
+          "bytes": 32,
+          "sha256": "bb7fc9a8f5e063e81975b33054b3a526c91bcccff263ad11d5bd8bcdbe8f0973"
+        },
+        "drag-trace-capabilities/xctrace-export-help.json": {
+          "bytes": 840,
+          "sha256": "6de410ffbbb305ceeea0b408a2cb82f5471c8c781e79cc98e6e2f8dd9eeacd6e"
+        },
+        "drag-trace-capabilities/xctrace-export-help.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xctrace-export-help.stdout.txt": {
+          "bytes": 1100,
+          "sha256": "953fc6079baaffd9d66b7d0f02aa3cfeed12c728425a9c1584120657cf4d8e9d"
+        },
+        "drag-trace-capabilities/xctrace-help.json": {
+          "bytes": 801,
+          "sha256": "083a8de4b1e380f22ae8bb371f04f047639ee2f13011523f4eed5aa96d091200"
+        },
+        "drag-trace-capabilities/xctrace-help.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xctrace-help.stdout.txt": {
+          "bytes": 753,
+          "sha256": "7b643e7c4b095efb6fadd88591de27ca38ba3101212945de7e717b3603723e6c"
+        },
+        "drag-trace-capabilities/xctrace-instruments.json": {
+          "bytes": 840,
+          "sha256": "dae04f57a88dcdf1adfc580b6673873ae2260b4d7327d1c64ac8d059e42e57a5"
+        },
+        "drag-trace-capabilities/xctrace-instruments.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xctrace-instruments.stdout.txt": {
+          "bytes": 952,
+          "sha256": "1eaaa1a8a9b6636efb1b2cb2045faebf25ed5c92b403133215b4a48382b8e8f5"
+        },
+        "drag-trace-capabilities/xctrace-list-help.json": {
+          "bytes": 828,
+          "sha256": "0e994808c771b3859ee44dccdb1bfa3dfcb2ad4b9217bb21429a839a18d69f40"
+        },
+        "drag-trace-capabilities/xctrace-list-help.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xctrace-list-help.stdout.txt": {
+          "bytes": 222,
+          "sha256": "ca2163f0a1d03faf8e7bfc13ddefb533dd359e7e7932f6cd0887c32efaf8b934"
+        },
+        "drag-trace-capabilities/xctrace-manual.json": {
+          "bytes": 813,
+          "sha256": "1d1b9df5d5d24d724c3005cc657a799d850946ef2d0608791e86c67dfd68830a"
+        },
+        "drag-trace-capabilities/xctrace-manual.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xctrace-manual.stdout.txt": {
+          "bytes": 17550,
+          "sha256": "ab1063df8a48b141d1f533eac513c89ab587afef26b91ab44856158362054e68"
+        },
+        "drag-trace-capabilities/xctrace-path.json": {
+          "bytes": 799,
+          "sha256": "438ed14317336eb4e8498eda5cea47ea0f8aee522e6a54ffc9468d8df6e7a58c"
+        },
+        "drag-trace-capabilities/xctrace-path.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xctrace-path.stdout.txt": {
+          "bytes": 64,
+          "sha256": "fced716e12a27e0cbca2dd5cdb966bd2536657b6a4db58785ae79c210059bfa8"
+        },
+        "drag-trace-capabilities/xctrace-record-help.json": {
+          "bytes": 840,
+          "sha256": "3df050e64aca88a19d756bc867df6bef0d4911a8ca26d11319da49316f1c7afc"
+        },
+        "drag-trace-capabilities/xctrace-record-help.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xctrace-record-help.stdout.txt": {
+          "bytes": 3113,
+          "sha256": "bf49e4335bbf747b830f7a37d16e848385d3c865591833e0e77123dd29bf4525"
+        },
+        "drag-trace-capabilities/xctrace-templates.json": {
+          "bytes": 833,
+          "sha256": "bba053d74abebf145a684860ad37d0b92e12e94554ece0b63d22396e9fe1ac45"
+        },
+        "drag-trace-capabilities/xctrace-templates.stderr.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        "drag-trace-capabilities/xctrace-templates.stdout.txt": {
+          "bytes": 373,
+          "sha256": "93eeae90861c44f3682a086d06ef9644a669bc71dd6350a8aff052f907bebe0a"
+        }
+      },
+      "artifact": {
+        "artifactID": 13650748741,
+        "bytes": 38343,
+        "jobID": 128989654392,
+        "sha256": "5467a0bc0d801e93281bf79f7335362efeab1996c748ae6479e6ff1c37665240"
+      },
+      "capabilities": {
+        "C12": "HOLD",
+        "activationRouteCoverageEstablished": false,
+        "architecture": "x86_64",
+        "commands": [
+          {
+            "argv": [
+              "/usr/bin/sw_vers"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.13841920999999502,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "os-version.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 66,
+                "name": "os-version.stdout.txt",
+                "sha256": "31fd674ddb951680692d7b68cafdeab5baa6b3e82aae843269dad73b53f25fc5"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "os-version",
+            "observedBytes": 66,
+            "pid": 1568,
+            "required": true,
+            "retainedBytes": 66,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/sbin/sysctl",
+              "-n",
+              "kern.version"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.007371388999985129,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "kernel-version.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 106,
+                "name": "kernel-version.stdout.txt",
+                "sha256": "24ffab3ffa929d41530d290182bff82b4531cfc4c50ad94425fc28d237faf8e3"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "kernel-version",
+            "observedBytes": 106,
+            "pid": 1571,
+            "required": true,
+            "retainedBytes": 106,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/sbin/sysctl",
+              "-n",
+              "hw.model"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.008152494000000843,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "hardware-model.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 11,
+                "name": "hardware-model.stdout.txt",
+                "sha256": "399ba86596026bf0c0a83f88cc65582b470185b6b3dd1271fd9fe05d2f0084f2"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "hardware-model",
+            "observedBytes": 11,
+            "pid": 1572,
+            "required": true,
+            "retainedBytes": 11,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/sbin/sysctl",
+              "-n",
+              "machdep.cpu.brand_string"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.006384655999994493,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "cpu-brand.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 41,
+                "name": "cpu-brand.stdout.txt",
+                "sha256": "8654db3d299186d3074bea1db036d2b0937f406974389fbd19e4ee2bad90ab20"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "cpu-brand",
+            "observedBytes": 41,
+            "pid": 1573,
+            "required": false,
+            "retainedBytes": 41,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/sbin/sysctl",
+              "-n",
+              "kern.hv_vmm_present"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.0076868719999936275,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "virtual-machine.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 2,
+                "name": "virtual-machine.stdout.txt",
+                "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "virtual-machine",
+            "observedBytes": 2,
+            "pid": 1574,
+            "required": false,
+            "retainedBytes": 2,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/sbin/DevToolsSecurity",
+              "-status"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.020071307000023353,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "developer-tools-status.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 37,
+                "name": "developer-tools-status.stdout.txt",
+                "sha256": "729bd4ba57383e06cede5759b2b92c8192d2d682352c8b78ebac1e3b1462dbda"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "developer-tools-status",
+            "observedBytes": 37,
+            "pid": 1575,
+            "required": false,
+            "retainedBytes": 37,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcodebuild",
+              "-version"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 7.017180630000013,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xcode-version.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 32,
+                "name": "xcode-version.stdout.txt",
+                "sha256": "bb7fc9a8f5e063e81975b33054b3a526c91bcccff263ad11d5bd8bcdbe8f0973"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xcode-version",
+            "observedBytes": 32,
+            "pid": 1576,
+            "required": true,
+            "retainedBytes": 32,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcrun",
+              "--find",
+              "xctrace"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 2.921341152000025,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xctrace-path.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 64,
+                "name": "xctrace-path.stdout.txt",
+                "sha256": "fced716e12a27e0cbca2dd5cdb966bd2536657b6a4db58785ae79c210059bfa8"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xctrace-path",
+            "observedBytes": 64,
+            "pid": 1673,
+            "required": true,
+            "retainedBytes": 64,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcrun",
+              "xctrace",
+              "help"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.8594328270000062,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xctrace-help.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 753,
+                "name": "xctrace-help.stdout.txt",
+                "sha256": "7b643e7c4b095efb6fadd88591de27ca38ba3101212945de7e717b3603723e6c"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xctrace-help",
+            "observedBytes": 753,
+            "pid": 1691,
+            "required": true,
+            "retainedBytes": 753,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcrun",
+              "xctrace",
+              "help",
+              "record"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.31366024900000866,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xctrace-record-help.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 3113,
+                "name": "xctrace-record-help.stdout.txt",
+                "sha256": "bf49e4335bbf747b830f7a37d16e848385d3c865591833e0e77123dd29bf4525"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xctrace-record-help",
+            "observedBytes": 3113,
+            "pid": 1698,
+            "required": true,
+            "retainedBytes": 3113,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcrun",
+              "xctrace",
+              "help",
+              "export"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.31994714800001134,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xctrace-export-help.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 1100,
+                "name": "xctrace-export-help.stdout.txt",
+                "sha256": "953fc6079baaffd9d66b7d0f02aa3cfeed12c728425a9c1584120657cf4d8e9d"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xctrace-export-help",
+            "observedBytes": 1100,
+            "pid": 1705,
+            "required": true,
+            "retainedBytes": 1100,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcrun",
+              "xctrace",
+              "help",
+              "list"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 0.4733724809999842,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xctrace-list-help.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 222,
+                "name": "xctrace-list-help.stdout.txt",
+                "sha256": "ca2163f0a1d03faf8e7bfc13ddefb533dd359e7e7932f6cd0887c32efaf8b934"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xctrace-list-help",
+            "observedBytes": 222,
+            "pid": 1706,
+            "required": true,
+            "retainedBytes": 222,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcrun",
+              "xctrace",
+              "list",
+              "templates"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 3.2085879379999938,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xctrace-templates.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 373,
+                "name": "xctrace-templates.stdout.txt",
+                "sha256": "93eeae90861c44f3682a086d06ef9644a669bc71dd6350a8aff052f907bebe0a"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xctrace-templates",
+            "observedBytes": 373,
+            "pid": 1758,
+            "required": true,
+            "retainedBytes": 373,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcrun",
+              "xctrace",
+              "list",
+              "instruments"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 2.038013762999981,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xctrace-instruments.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 952,
+                "name": "xctrace-instruments.stdout.txt",
+                "sha256": "1eaaa1a8a9b6636efb1b2cb2045faebf25ed5c92b403133215b4a48382b8e8f5"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xctrace-instruments",
+            "observedBytes": 952,
+            "pid": 1828,
+            "required": true,
+            "retainedBytes": 952,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          },
+          {
+            "argv": [
+              "/usr/bin/xcrun",
+              "man",
+              "xctrace"
+            ],
+            "cleanupErrors": [],
+            "cleanupFailed": false,
+            "cleanupSignals": [],
+            "elapsedSeconds": 1.8552890889999958,
+            "exitCode": 0,
+            "files": {
+              "stderr": {
+                "bytes": 0,
+                "name": "xctrace-manual.stderr.txt",
+                "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              },
+              "stdout": {
+                "bytes": 17550,
+                "name": "xctrace-manual.stdout.txt",
+                "sha256": "ab1063df8a48b141d1f533eac513c89ab587afef26b91ab44856158362054e68"
+              }
+            },
+            "groupEscalationAttempted": false,
+            "maximumCombinedBytes": 2097152,
+            "name": "xctrace-manual",
+            "observedBytes": 17550,
+            "pid": 1868,
+            "required": false,
+            "retainedBytes": 17550,
+            "status": "completed",
+            "stopReason": null,
+            "timeoutSeconds": 20.0
+          }
+        ],
+        "developerDirectory": "/Applications/Xcode_26.3.app/Contents/Developer",
+        "diagnostic": "D19-trace-tool-capabilities",
+        "experimentCommit": "daf90a14cbe0e5855e2e4a3e69dc8c170700635d",
+        "experimentTree": "7b3cf73162aff5612fa7f5b97bf2729df6f68d55",
+        "inventoryComplete": true,
+        "ipcRequestChainEstablished": false,
+        "limitations": [
+          "Inventory completion is not tracing permission or path coverage.",
+          "DevToolsSecurity status is not per-tool TCC authorization.",
+          "A listed template is not proof its recording/export succeeds.",
+          "Kernel version identifies the runner build, not an unverified XNU source match."
+        ],
+        "nativeApplicationsLaunched": false,
+        "nativeInputExecuted": false,
+        "releaseReady": false,
+        "schema": 1,
+        "settingsChanged": false,
+        "sourceIdentities": {
+          ".github/workflows/native-trace-capabilities.yml": {
+            "bytes": 2925,
+            "sha256": "22f487098b8fb7ff7c397df2d6b7218940a0320f00387b0df267d8a1f6507557"
+          },
+          "docs/NATIVE_TRACE_CAPABILITIES.md": {
+            "bytes": 7375,
+            "sha256": "e2791aebc3d81e37639353162de3bded7455df642fc9b27b0da87f0416aa0b6e"
+          },
+          "script/collect_native_trace_capabilities.py": {
+            "bytes": 12855,
+            "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+          },
+          "script/test_collect_native_trace_capabilities.py": {
+            "bytes": 7343,
+            "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+          }
+        },
+        "status": "inventory-complete",
+        "traceRecordingExecuted": false
+      },
+      "capabilitiesOriginal": {
+        "archivePath": "drag-trace-capabilities/capabilities.json",
+        "bytes": 15940,
+        "sha256": "6fb33d039c5001c440dd13a47322a1a9a19a10fb19c255a500fda2486455185a"
+      },
+      "hostSummary": {
+        "BuildVersion": "24G830",
+        "ProductName": "macOS",
+        "ProductVersion": "15.7.9",
+        "cpuBrand": "Intel(R) Core(TM) i7-8700B CPU @ 3.20GHz",
+        "developerToolsStatus": "Developer mode is currently enabled.",
+        "hardwareModel": "Macmini6,2",
+        "kern.hv_vmm_present": 1,
+        "xcodeVersion": "Xcode 26.3\nBuild version 17C529"
+      },
+      "omittedFileBodies": [
+        "drag-trace-capabilities/cpu-brand.json",
+        "drag-trace-capabilities/developer-tools-status.json",
+        "drag-trace-capabilities/hardware-model.json",
+        "drag-trace-capabilities/kernel-version.json",
+        "drag-trace-capabilities/os-version.json",
+        "drag-trace-capabilities/scope.json",
+        "drag-trace-capabilities/sources/NATIVE_TRACE_CAPABILITIES.md",
+        "drag-trace-capabilities/sources/collect_native_trace_capabilities.py",
+        "drag-trace-capabilities/sources/native-trace-capabilities.yml",
+        "drag-trace-capabilities/sources/test_collect_native_trace_capabilities.py",
+        "drag-trace-capabilities/virtual-machine.json",
+        "drag-trace-capabilities/xcode-version.json",
+        "drag-trace-capabilities/xctrace-export-help.json",
+        "drag-trace-capabilities/xctrace-help.json",
+        "drag-trace-capabilities/xctrace-instruments.json",
+        "drag-trace-capabilities/xctrace-list-help.json",
+        "drag-trace-capabilities/xctrace-manual.json",
+        "drag-trace-capabilities/xctrace-manual.stderr.txt",
+        "drag-trace-capabilities/xctrace-manual.stdout.txt",
+        "drag-trace-capabilities/xctrace-path.json",
+        "drag-trace-capabilities/xctrace-record-help.json",
+        "drag-trace-capabilities/xctrace-templates.json"
+      ],
+      "relevantInstalledContract": {
+        "exportHelpOptionsObserved": [
+          "--toc",
+          "--xpath"
+        ],
+        "listedInstruments": [
+          "Activity Monitor",
+          "Advanced Graphics Statistics",
+          "Allocations",
+          "Audio Client",
+          "Audio Server",
+          "Audio Statistics",
+          "CPU Counters",
+          "CPU Profiler",
+          "Core Animation Activity",
+          "Core Animation Commits",
+          "Core Animation FPS",
+          "Core Animation Server",
+          "Core ML",
+          "Data Faults",
+          "Data Fetches",
+          "Data Saves",
+          "Disk I/O Latency",
+          "Disk Usage",
+          "Display",
+          "Filesystem Activity",
+          "Filesystem Suggestions",
+          "Foundation Models",
+          "Frame Lifetimes",
+          "GCD Performance",
+          "GPU",
+          "HTTP Traffic",
+          "Hangs",
+          "Hitches",
+          "Leaks",
+          "Location Energy Model",
+          "Metal Application",
+          "Metal GPU Counters",
+          "Metal Performance Overview",
+          "Metal Resource Events",
+          "Network Connections",
+          "Neural Engine",
+          "Points of Interest",
+          "Power Profiler",
+          "Processor Trace",
+          "RealityKit Frames",
+          "RealityKit Metrics",
+          "Runloops",
+          "Sampler",
+          "SceneKit Application",
+          "Swift Actors",
+          "Swift Tasks",
+          "SwiftUI",
+          "System Call Trace",
+          "System Load",
+          "Thermal State",
+          "Thread State Trace",
+          "Time Profiler",
+          "VM Tracker",
+          "View Body (Legacy)",
+          "View Properties (Legacy)",
+          "Virtual Memory Trace",
+          "dyld Activity",
+          "os_log",
+          "os_signpost",
+          "stdout/stderr"
+        ],
+        "listedTemplates": [
+          "Activity Monitor",
+          "Allocations",
+          "Animation Hitches",
+          "App Launch",
+          "Audio System Trace",
+          "CPU Counters",
+          "CPU Profiler",
+          "Core ML",
+          "Data Persistence",
+          "File Activity",
+          "Game Memory",
+          "Game Performance",
+          "Game Performance Overview",
+          "Leaks",
+          "Logging",
+          "Metal System Trace",
+          "Network",
+          "Power Profiler",
+          "Processor Trace",
+          "RealityKit Trace",
+          "Swift Concurrency",
+          "SwiftUI",
+          "System Trace",
+          "Tailspin",
+          "Time Profiler"
+        ],
+        "recordHelpOptionsNotAdvertised": [
+          "--show-recording-options",
+          "--recording-options"
+        ],
+        "recordHelpOptionsObserved": [
+          "--no-prompt",
+          "--all-processes",
+          "--time-limit",
+          "--template",
+          "--instrument"
+        ]
+      },
+      "retainedSources": {
+        ".github/workflows/native-trace-capabilities.yml": {
+          "bytes": 2925,
+          "exactGitBytesVerified": true,
+          "immutableGitURL": "https://github.com/osmankaankars/lemulip/blob/daf90a14cbe0e5855e2e4a3e69dc8c170700635d/.github/workflows/native-trace-capabilities.yml",
+          "retainedArchivePath": "drag-trace-capabilities/sources/native-trace-capabilities.yml",
+          "sha256": "22f487098b8fb7ff7c397df2d6b7218940a0320f00387b0df267d8a1f6507557"
+        },
+        "docs/NATIVE_TRACE_CAPABILITIES.md": {
+          "bytes": 7375,
+          "exactGitBytesVerified": true,
+          "immutableGitURL": "https://github.com/osmankaankars/lemulip/blob/daf90a14cbe0e5855e2e4a3e69dc8c170700635d/docs/NATIVE_TRACE_CAPABILITIES.md",
+          "retainedArchivePath": "drag-trace-capabilities/sources/NATIVE_TRACE_CAPABILITIES.md",
+          "sha256": "e2791aebc3d81e37639353162de3bded7455df642fc9b27b0da87f0416aa0b6e"
+        },
+        "script/collect_native_trace_capabilities.py": {
+          "bytes": 12855,
+          "exactGitBytesVerified": true,
+          "immutableGitURL": "https://github.com/osmankaankars/lemulip/blob/daf90a14cbe0e5855e2e4a3e69dc8c170700635d/script/collect_native_trace_capabilities.py",
+          "retainedArchivePath": "drag-trace-capabilities/sources/collect_native_trace_capabilities.py",
+          "sha256": "336787b0e9a7fb84bb6dc663d326c950c5a45317a9736e38a6a28c76df655ec7"
+        },
+        "script/test_collect_native_trace_capabilities.py": {
+          "bytes": 7343,
+          "exactGitBytesVerified": true,
+          "immutableGitURL": "https://github.com/osmankaankars/lemulip/blob/daf90a14cbe0e5855e2e4a3e69dc8c170700635d/script/test_collect_native_trace_capabilities.py",
+          "retainedArchivePath": "drag-trace-capabilities/sources/test_collect_native_trace_capabilities.py",
+          "sha256": "3fb84784573797217c7a012fe7e24a7b94799a15a42758fc91ec1006ca203055"
+        }
+      },
+      "selectedRawText": {
+        "drag-trace-capabilities-bootstrap/experiment-commit.txt": {
+          "bytes": 41,
+          "encoding": "UTF-8",
+          "sha256": "469ba3be425f322c6c6cb89f885f2c31c0676e87ddde71da93f3804a25e1c35d",
+          "text": "daf90a14cbe0e5855e2e4a3e69dc8c170700635d\n"
+        },
+        "drag-trace-capabilities-bootstrap/tests.stderr.txt": {
+          "bytes": 104,
+          "encoding": "UTF-8",
+          "sha256": "1a4982186bc5b9dd0fbf742b7aa1ad92645e4f72ff203f3bf63502b4dcab5432",
+          "text": "......\n----------------------------------------------------------------------\nRan 6 tests in 2.668s\n\nOK\n"
+        },
+        "drag-trace-capabilities-bootstrap/tests.stdout.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/cpu-brand.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/cpu-brand.stdout.txt": {
+          "bytes": 41,
+          "encoding": "UTF-8",
+          "sha256": "8654db3d299186d3074bea1db036d2b0937f406974389fbd19e4ee2bad90ab20",
+          "text": "Intel(R) Core(TM) i7-8700B CPU @ 3.20GHz\n"
+        },
+        "drag-trace-capabilities/developer-tools-status.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/developer-tools-status.stdout.txt": {
+          "bytes": 37,
+          "encoding": "UTF-8",
+          "sha256": "729bd4ba57383e06cede5759b2b92c8192d2d682352c8b78ebac1e3b1462dbda",
+          "text": "Developer mode is currently enabled.\n"
+        },
+        "drag-trace-capabilities/hardware-model.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/hardware-model.stdout.txt": {
+          "bytes": 11,
+          "encoding": "UTF-8",
+          "sha256": "399ba86596026bf0c0a83f88cc65582b470185b6b3dd1271fd9fe05d2f0084f2",
+          "text": "Macmini6,2\n"
+        },
+        "drag-trace-capabilities/kernel-version.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/kernel-version.stdout.txt": {
+          "bytes": 106,
+          "encoding": "UTF-8",
+          "sha256": "24ffab3ffa929d41530d290182bff82b4531cfc4c50ad94425fc28d237faf8e3",
+          "text": "Darwin Kernel Version 24.6.0: Tue Jul 21 20:50:07 PDT 2026; root:xnu-11417.140.69.711.44~1/RELEASE_X86_64\n"
+        },
+        "drag-trace-capabilities/os-version.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/os-version.stdout.txt": {
+          "bytes": 66,
+          "encoding": "UTF-8",
+          "sha256": "31fd674ddb951680692d7b68cafdeab5baa6b3e82aae843269dad73b53f25fc5",
+          "text": "ProductName:\t\tmacOS\nProductVersion:\t\t15.7.9\nBuildVersion:\t\t24G830\n"
+        },
+        "drag-trace-capabilities/virtual-machine.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/virtual-machine.stdout.txt": {
+          "bytes": 2,
+          "encoding": "UTF-8",
+          "sha256": "4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865",
+          "text": "1\n"
+        },
+        "drag-trace-capabilities/xcode-version.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/xcode-version.stdout.txt": {
+          "bytes": 32,
+          "encoding": "UTF-8",
+          "sha256": "bb7fc9a8f5e063e81975b33054b3a526c91bcccff263ad11d5bd8bcdbe8f0973",
+          "text": "Xcode 26.3\nBuild version 17C529\n"
+        },
+        "drag-trace-capabilities/xctrace-export-help.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/xctrace-export-help.stdout.txt": {
+          "bytes": 1100,
+          "encoding": "UTF-8",
+          "sha256": "953fc6079baaffd9d66b7d0f02aa3cfeed12c728425a9c1584120657cf4d8e9d",
+          "text": "usage: xctrace export [<options>] [--toc | --xpath expression]\n\ndescription:\n\tExport given .trace using supplied query to the XML file format that can be later read and post-processed\n\noptions:\n\t--input <file>              Export data from the given .trace file\n\t--output <path>             Command output is written to the given path, if specified\n\t--toc                       Present entities to export in the table of contents form\n\t--xpath <expression>        Choose elements to export using specified XPath expression\n\t--har                       Export data as the HTTP Archive file\n\nglobal options:\n\t--quiet        Make terminal ouput less verbose\n\nnotes:\n\tIf output path is not specified, the export operation output will be written to the standard output.\n\tTable of Contents and XPath query are two separate modes and they cannot be specified together.\n\nexamples:\n\txctrace export --input input.trace --toc\n\txctrace export --input input.trace --toc --output table_of_contents.xml\n\txctrace export --input input.trace --xpath '/trace-toc/run[@number=\"1\"]/data/table[@schema=\"my-table-schema\"]'\n"
+        },
+        "drag-trace-capabilities/xctrace-help.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/xctrace-help.stdout.txt": {
+          "bytes": 753,
+          "encoding": "UTF-8",
+          "sha256": "7b643e7c4b095efb6fadd88591de27ca38ba3101212945de7e717b3603723e6c",
+          "text": "usage:\n\txctrace <command> [options]\n\nglobal options:\n\t-q, --quiet\n\ncommands:\n\trecord                                      Perform new recording using specified template\n\timport                                      Import file of a supported format into .trace file\n\texport                                      Export .trace file content to an external format\n\tremodel                                     Remodel .trace using currently installed modelers\n\tsymbolicate                                 Symbolicate .trace file using specified dSYM\n\tlist [devices|templates|instruments]        List capabilities of the current running environment\n\tversion                                     Print version of the tool\n\nfurther help:\n\t xctrace help <command>\n"
+        },
+        "drag-trace-capabilities/xctrace-instruments.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/xctrace-instruments.stdout.txt": {
+          "bytes": 952,
+          "encoding": "UTF-8",
+          "sha256": "1eaaa1a8a9b6636efb1b2cb2045faebf25ed5c92b403133215b4a48382b8e8f5",
+          "text": "== Standard Instruments ==\nActivity Monitor\nAdvanced Graphics Statistics\nAllocations\nAudio Client\nAudio Server\nAudio Statistics\nCPU Counters\nCPU Profiler\nCore Animation Activity\nCore Animation Commits\nCore Animation FPS\nCore Animation Server\nCore ML\nData Faults\nData Fetches\nData Saves\nDisk I/O Latency\nDisk Usage\nDisplay\nFilesystem Activity\nFilesystem Suggestions\nFoundation Models\nFrame Lifetimes\nGCD Performance\nGPU\nHTTP Traffic\nHangs\nHitches\nLeaks\nLocation Energy Model\nMetal Application\nMetal GPU Counters\nMetal Performance Overview\nMetal Resource Events\nNetwork Connections\nNeural Engine\nPoints of Interest\nPower Profiler\nProcessor Trace\nRealityKit Frames\nRealityKit Metrics\nRunloops\nSampler\nSceneKit Application\nSwift Actors\nSwift Tasks\nSwiftUI\nSystem Call Trace\nSystem Load\nThermal State\nThread State Trace\nTime Profiler\nVM Tracker\nView Body (Legacy)\nView Properties (Legacy)\nVirtual Memory Trace\ndyld Activity\nos_log\nos_signpost\nstdout/stderr\n"
+        },
+        "drag-trace-capabilities/xctrace-list-help.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/xctrace-list-help.stdout.txt": {
+          "bytes": 222,
+          "encoding": "UTF-8",
+          "sha256": "ca2163f0a1d03faf8e7bfc13ddefb533dd359e7e7932f6cd0887c32efaf8b934",
+          "text": "usage: xctrace list [devices|templates|instruments]\n\ndescription:\n\tList capabilities of the current running environment: devices, templates and instruments\n\nglobal options:\n\t--quiet        Make terminal ouput less verbose\n"
+        },
+        "drag-trace-capabilities/xctrace-path.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/xctrace-path.stdout.txt": {
+          "bytes": 64,
+          "encoding": "UTF-8",
+          "sha256": "fced716e12a27e0cbca2dd5cdb966bd2536657b6a4db58785ae79c210059bfa8",
+          "text": "/Applications/Xcode_26.3.app/Contents/Developer/usr/bin/xctrace\n"
+        },
+        "drag-trace-capabilities/xctrace-record-help.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/xctrace-record-help.stdout.txt": {
+          "bytes": 3113,
+          "encoding": "UTF-8",
+          "sha256": "bf49e4335bbf747b830f7a37d16e848385d3c865591833e0e77123dd29bf4525",
+          "text": "usage: xctrace record [<options>] [--attach | --all-processes | --launch -- command ]\n\ndescription:\n\tPerform a new recording on the specified device and target with the given template\n\noptions:\n\t--output <path>                        Output .trace file to the given path\n\t--append-run                           Appends a new run to an existing trace file\n\t--run-name <name>                      Names the run\n\t--template <path|name>                 Record using given trace template name or path\n\t--device <name|UDID>                   Record on device with the given name or UDID\n\t--instrument <name>                    Add Instrument with the given name to the recording\n\t--time-limit <time[ms|s|m|h]>          Limit recording time to the specified value\n\t--window <duration[ms|s|m]>            Keep only events from the specified end time window\n\t--package <file>                       Load Instruments Package from given path for duration of the command\n\t--all-processes                        Record all processes\n\t--attach <pid|name>                    Attach and record process with the given name or pid\n\t--launch -- command [arguments]        Launch process with the given name or path\n\t--target-stdin <name>                  Redirect standard input of the launched process\n\t--target-stdout <name>                 Redirect standard output of the launched process\n\t--env <VAR=value>                      Set specified environment variable for the launched process\n\t--notify-tracing-started               Send Darwin notification with this name when a recording has started\n\t--no-prompt                            Skip any prompts that would be otherwise presented (like privacy warnings)\n\nglobal options:\n\t--quiet        Make terminal ouput less verbose\n\nnotes:\n\tIf an output path is not specified, a uniquely named file will be created in the current directory.\n\tIf the output path is a directory, then a unique file is created in it. If the path contains the .trace\n\textension, a file will be created at the specified path. If trace file already exists, then --append-run\n\tneeds to be specified to add a run to it. In this case, specified template will be ignored\n\tand the one used to record original trace file will be used.\n\t\n\tIf target device UDID or name is not specified — host device is used for the recording.\n\tSpecifying environment variables or stream redirection is only available when using launch option.\n\nexamples:\n\txctrace record --template 'Time Profiler' --all-processes --time-limit 5s\n\txctrace record --template 'Time Profiler' --all-processes --output 'recording.trace'\n\txctrace record --all-processes --append-run --run-name Fix#2 --output 'existing.trace'\n\txctrace record --template 'System Trace' --attach 4215\n\txctrace record --template 'Time Profiler' --device-name \"Chad's iPhone\" --attach 'Trailblazer'\n\txctrace record --template 'Metal System Trace' --device-name 'iPhone SE Simulator' --all-processes\n\txctrace record --template 'Allocations' --env KEY=VALUE --launch -- MyApp.app\n\txctrace record --template 'Time Profiler' --target-stdout - --launch -- /tmp/tool arg1 arg2\n"
+        },
+        "drag-trace-capabilities/xctrace-templates.stderr.txt": {
+          "bytes": 0,
+          "encoding": "UTF-8",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "text": ""
+        },
+        "drag-trace-capabilities/xctrace-templates.stdout.txt": {
+          "bytes": 373,
+          "encoding": "UTF-8",
+          "sha256": "93eeae90861c44f3682a086d06ef9644a669bc71dd6350a8aff052f907bebe0a",
+          "text": "== Standard Templates ==\nActivity Monitor\nAllocations\nAnimation Hitches\nApp Launch\nAudio System Trace\nCPU Counters\nCPU Profiler\nCore ML\nData Persistence\nFile Activity\nGame Memory\nGame Performance\nGame Performance Overview\nLeaks\nLogging\nMetal System Trace\nNetwork\nPower Profiler\nProcessor Trace\nRealityKit Trace\nSwift Concurrency\nSwiftUI\nSystem Trace\nTailspin\nTime Profiler\n"
+        }
+      },
+      "verification": {
+        "archiveDigestVerified": true,
+        "commandStreamIdentitiesChecked": 30,
+        "commandsCompletedExitZero": 15,
+        "commandsWithErrorsOrCaps": 0,
+        "extractedFilesByteComparedWithArchive": 54,
+        "portableTestsPassed": 6,
+        "retainedSourcesByteComparedWithExecutedGitRevision": 4
+      }
+    }
+  },
+  "diagnostic": "D19-trace-tool-capabilities",
+  "interpretation": {
+    "C12": "HOLD",
+    "PR45": "open-draft-unmerged-HOLD",
+    "activationRouteCoverageEstablished": false,
+    "actualExportSchemasObserved": false,
+    "ipcRequestChainEstablished": false,
+    "limits": [
+      "All fifteen commands per architecture are read-only metadata/help/list commands. Help for record/export did not execute record/export.",
+      "A listed template or instrument does not establish recording access, exported fields, stacks, or caller coverage.",
+      "DevToolsSecurity status is not per-tool TCC authorization; --no-prompt does not grant access.",
+      "The installed 26.3 help lacks --show-recording-options and --recording-options; the later Xcode 27 contract cannot be assumed.",
+      "Processor Trace is listed, but the reported M1 and Intel hosts do not meet Apple's M4-or-later Mac hardware requirement.",
+      "The historical AppKit automatic window spring-forward description does not identify the modern D17 requester or explain failed cancellation.",
+      "D18's selected public C route remains uncalibrated and closed."
+    ],
+    "nativeApplicationsLaunched": false,
+    "nativeInputExecuted": false,
+    "nextPrerequisite": "Separate bounded input-free System Trace recording/export qualification; not executed in D19. Recording/export success alone would not establish natural activation or Escape-consumer coverage.",
+    "physicalAndV4Evidence": "Completed and preserved; not repeated.",
+    "settingsChanged": false,
+    "task07": "HOLD",
+    "task08": "Final acceptance depends on task 07; completed source/screenshot review preserved.",
+    "toolInventoryComplete": true,
+    "traceRecordingAccessEstablished": false,
+    "traceRecordingExecuted": false
+  },
+  "primarySources": [
+    {
+      "section": "Notes specific to OS X 10.10.3 / Spring Loaded Drag & Drop",
+      "supports": "Historical automatic window spring-forward behavior distinct from optional custom controls. Later releases may supersede these notes; no modern request trace is defined.",
+      "url": "https://developer.apple.com/library/archive/releasenotes/AppKit/RN-AppKitOlderNotes/"
+    },
+    {
+      "supports": "M4-or-later Mac hardware requirement; tool-list presence alone does not establish usable Processor Trace hardware.",
+      "url": "https://developer.apple.com/documentation/xcode/analyzing-cpu-usage-with-processor-trace"
+    },
+    {
+      "section": "Instruments / New Features",
+      "supports": "Later --show-recording-options and --recording-options CLI features; absent in the observed 26.3 help.",
+      "url": "https://developer.apple.com/documentation/xcode-release-notes/xcode-27-release-notes"
+    }
+  ],
+  "projection": {
+    "capabilitiesObjects": "Complete original parsed capabilities.json objects, with no omitted or altered fields. Original byte identities are retained; JSON serialization formatting is not preserved.",
+    "fileIndex": "All 54 files in each downloaded archive, using original archive-relative names, sizes and SHA-256 digests.",
+    "localRunnerHomePathsIncluded": false,
+    "omissions": "The manual streams, duplicate per-command receipt and scope bodies, and retained source bodies are omitted from this projection. Their identities are preserved. Complete originals remain in the archives; source bodies also have immutable Git URLs.",
+    "selectedText": "All stdout/stderr streams except the xctrace-manual streams, plus all three bootstrap files. Omitted file bodies are enumerated per architecture.",
+    "textEncoding": "Strict UTF-8 decoding. Included text round-trips to the original bytes without trimming, normalization, redaction, or substitution."
+  },
+  "reportDateUTC": "2026-11-09",
+  "run": {
+    "completedAtUTC": "2026-11-09T05:03:38Z",
+    "experimentCommit": "daf90a14cbe0e5855e2e4a3e69dc8c170700635d",
+    "experimentTree": "7b3cf73162aff5612fa7f5b97bf2729df6f68d55",
+    "id": 42565052135,
+    "startedAtUTC": "2026-11-09T05:03:00Z",
+    "url": "https://github.com/osmankaankars/lemulip/actions/runs/42565052135",
+    "workflowAtExecutedRevision": "https://github.com/osmankaankars/lemulip/blob/daf90a14cbe0e5855e2e4a3e69dc8c170700635d/.github/workflows/native-trace-capabilities.yml"
+  },
+  "schema": 1,
+  "status": "inventory-complete"
+}

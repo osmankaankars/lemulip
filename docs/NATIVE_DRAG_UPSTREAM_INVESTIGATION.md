@@ -2,7 +2,7 @@
 
 ## Issue card
 
-**Status, 8 November 2026 Europe/Istanbul:** automated drag cancellation remains unresolved. PR #45 is open, draft and unmerged; C12 and task 07 remain HOLD. This packet assembles existing reproducible code and retained evidence for investigation across the AppKit/system request boundary. It records no new drag, production change, gate exception, or external submission.
+**Status, 9 November 2026 Europe/Istanbul:** automated drag cancellation remains unresolved. PR #45 is open, draft and unmerged; C12 and task 07 remain HOLD. D19 has completed installed tracing-tool discovery on both architectures; recording access, actual exported schemas and causal coverage remain unobserved. This packet assembles existing reproducible code and retained evidence for investigation across the AppKit/system request boundary. It records no new drag, production change, gate exception, or external submission.
 
 **Expected behavior:** Escape cancels the first held drag, release leaves only Existing in the destination, and a distinct fresh drag accepts Single exactly once. **Observed failure:** after injected Escape and release, the destination accepts Single from the first session and the native source ends that session with COPY. The original product candidate passed its general/native XCTest suite but failed the separate held-Finder acceptance step. The [routing report](NATIVE_DRAG_ROUTING_EVIDENCE.md#symptom-and-impact) preserves that distinction.
 
@@ -18,8 +18,12 @@
 | D17 run / jobs | [42357652748](https://github.com/osmankaankars/lemulip/actions/runs/42357652748), attempt 1; ARM `128359171366`, Intel `128359171490` |
 | D18 executed code / tree | `80f92e41ccfedb54a15b0a5ef9572a5a57a88c4d` / `e159ad30d8ad0ef0443a0ee04dc74b515f739ddb` |
 | D18 run / jobs | [42419686902](https://github.com/osmankaankars/lemulip/actions/runs/42419686902), attempt 1; ARM `128545233709`, Intel `128545233926` |
+| D19 executed code / tree | `daf90a14cbe0e5855e2e4a3e69dc8c170700635d` / `7b3cf73162aff5612fa7f5b97bf2729df6f68d55` |
+| D19 run / jobs | [42565052135](https://github.com/osmankaankars/lemulip/actions/runs/42565052135); ARM `128989654018`, Intel `128989654392` |
 
 The [integrity manifest](evidence/D17-D18-investigation-manifest.json) gives immutable Git URLs and SHA-256 values for **all 36 D17 and eight D18 retained source copies**, as well as both runs' archive identities and verification limits. It includes the original source/control, complete build/staging workflow, observers/input producers, classifiers, tests, and candidate staging sources. An investigator does not need the original chat to identify the executed code.
+
+The separate [D19 capability projection](evidence/D19-trace-capabilities.json) indexes all 54 archive files and four exact retained source copies per architecture. It preserves both complete capability objects and selected exact help/list/host output, with every omitted file body declared.
 
 ## Recorded reproduction
 
@@ -83,9 +87,19 @@ D18 artifacts contain `calibration-run.json`, `control.json`, `source.json`, bot
 
 The library loaded and contains the expected two-entry table and imports. This does not establish dyld's runtime patching decision, AMFI policy, or traversal of those exports by natural activation. An extra synthetic direct-C call would test its own binding. D18 supplies no basis for extending this selected mechanism into the held gesture.
 
+### D19: installed tool contracts established, recording still unqualified
+
+The [completed D19 inventory](NATIVE_TRACE_CAPABILITIES.md#r2-completed-tool-inventory) ran on 9 November 2026, 05:03:00–05:03:38 UTC. All fifteen read-only commands and six subprocess checks passed on each architecture. Both results are `inventory-complete`; neither ran a trace, launched the native source/control apps, sent input, or changed settings.
+
+Both Xcode 26.3 (`17C529`) installations list System Trace, Thread State Trace and System Call Trace, and document bounded recording with `--no-prompt` plus `--toc` / `--xpath` export. Their help does not advertise the recording-options CLI added in Xcode 27. The ARM host reports `VirtualMac2,1` / Apple M1 (Virtual), macOS 15.8.2 (`24H232`); Intel reports `Macmini6,2` / Core i7-8700B with virtualization, macOS 15.7.9 (`24G830`). Processor Trace is listed, but neither reported CPU meets Apple's documented M4-or-later Mac requirement. The [D19 report](NATIVE_TRACE_CAPABILITIES.md) links the primary contracts and exact retained output.
+
+Enabled developer-tools status does not establish per-tool recording authorization. A listed instrument does not establish an exported schema, event-specific stack, or request relationship. The next separate prerequisite is an input-free, bounded System Trace recording/export qualification; it was not executed in D19. A successful qualification would still need a positive natural-path witness before supporting a held-drag extension or identifying the requester/consumer.
+
 ### Retention and verification scope
 
 The manifest identifies D17 artifacts `13568960184` / `13568149451` and D18 artifacts `13592893180` / `13592938122`, with their advertised sizes and checked SHA-256 digests. The workflow artifact retention is 14 days; preserve required archives before expiration. Canonical reports, source revisions, public evidence projections and the integrity index remain in Git.
+
+The [D19 evidence](evidence/D19-trace-capabilities.json) separately binds artifacts `13651171058` / `13650748741` to their verified ZIP digests. All 54 files per architecture match the archive bytes, and all four source copies per architecture match the executed Git revision. Its public projection includes no runner-home paths. Complete original command receipts and the manual's terminal-formatted bytes remain in the archives; their public identities and body omissions are explicit.
 
 D17's source/control/observer executable bytes were not archived; their provenance links are not fresh binary rehashes. Its clock executable was retained. D18 archives the exact executables and loaded library bytes, and all 128 immutable input entries were rechecked. These verification scopes must remain distinct. Archived executables need not be run to validate either packet.
 
@@ -101,6 +115,13 @@ D17's source/control/observer executable bytes were not archived; their provenan
 | Is per-record receiver synchronization necessary? | [D16](NATIVE_DRAG_RECEIVER_SYNC_DIAGNOSTIC.md) retained a PASS and FAIL per architecture under lifecycle-only synchronization. |
 | Does a public retrieval/responder hook certify the Escape consumer? | [Routing review](NATIVE_DRAG_ROUTING_EVIDENCE.md) found no supported coverage contract; the proposed `nextEvent` probe was not run. |
 | Do the selected public C wrappers observe a natural startup request? | [D18](NATIVE_ACTIVATION_ENTRY_CALIBRATION.md) returned four complete zero-call receipts, so the prerequisite coverage gate remained closed. |
+| Which tracing tools and CLI contracts are installed? | [D19](NATIVE_TRACE_CAPABILITIES.md) completed both inventories. System Trace and the relevant instruments are listed, but recording access, actual export schemas and causal coverage remain unobserved. |
+
+## Automatic window behavior: a documented question, not a traced cause
+
+Apple's [historical AppKit release notes](https://developer.apple.com/library/archive/releasenotes/AppKit/RN-AppKitOlderNotes/), under **OS X 10.10.3 → Spring Loaded Drag & Drop**, describe automatic window spring-forward during a hover, separately from optional spring-loaded controls. The owned views' lack of enabling `NSSpringLoadingDestination` callbacks therefore does not exclude automatic framework/window behavior. Those notes warn that later releases may supersede earlier behavior; they do not identify the current macOS requester, activation API, IPC transaction, or cancellation consumer. Nor does window ordering alone prove the global foreground request recorded in D17.
+
+The platform question is now more specific: on the recorded macOS builds, which component makes that window decision while an `NSDraggingSession` is still open, and which supported observation connects its request, target and drag/client context to the subsequent `SETFRONT`? Across that transition, what positively identifies the same Escape's disposition in the source's native cancellation consumer? Historical behavior and temporal association do not answer those request/consumer questions.
 
 ## Concrete question for a platform investigator
 
