@@ -1,0 +1,210 @@
+name: Native Sampler Calibration
+
+on:
+  push:
+    branches: ['codex/native-sampler-calibration-07']
+    paths:
+      - '.github/workflows/native-sampler-calibration.yml'
+      - 'script/native_ui/NativeSamplerCalibration.c'
+      - 'script/run_native_sampler_calibration.py'
+      - 'script/test_run_native_sampler_calibration.py'
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+  CANDIDATE_COMMIT: d821d7343675e2850705d141ef9b3b93a6aee945
+  CANDIDATE_TREE: 425baa28f00ec24551dd70c0cc874a75fa3be0c1
+  SAMPLER_BASE: d20b6b59430856b4bf0dd46dc7220fc1492186b6
+
+concurrency:
+  group: native-sampler-calibration-${{ github.ref }}
+  cancel-in-progress: false
+
+# One controlled-child sample per architecture. No recorder, applications,
+# native input, settings changes, entitlements, elevation or automatic retry.
+jobs:
+  calibration:
+    name: Sampler Calibration (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    steps:
+      - name: Check Out Exact Diagnostic
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Bind Source And Portable Gates
+        run: |
+          mkdir -p "$RUNNER_TEMP/native-sampler-calibration/evidence/build"
+          printf '%s\n' "$GITHUB_SHA" > "$RUNNER_TEMP/native-sampler-calibration/evidence/build/experiment-commit.txt"
+          git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/native-sampler-calibration/evidence/build/experiment-tree.txt"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+          test "$(uname -m)" = '${{ matrix.arch }}'
+          test "$(git rev-parse "$CANDIDATE_COMMIT^{tree}")" = "$CANDIDATE_TREE"
+          git merge-base --is-ancestor "$SAMPLER_BASE" HEAD
+          python3 - <<'PYCODE'
+          import os, subprocess
+          allowed = {'.github/workflows/native-sampler-calibration.yml',
+                     'script/native_ui/NativeSamplerCalibration.c',
+                     'script/run_native_sampler_calibration.py',
+                     'script/test_run_native_sampler_calibration.py',
+                     'docs/NATIVE_SAMPLER_CALIBRATION.md'}
+          changed = set(subprocess.check_output(['git', 'diff', '--name-only', os.environ['SAMPLER_BASE'], 'HEAD'], text=True).splitlines())
+          assert changed and changed <= allowed, sorted(changed - allowed)
+          PYCODE
+          python3 script/privacy_check.py
+          python3 script/test_collect_native_trace_capabilities.py \
+            > "$RUNNER_TEMP/native-sampler-calibration/evidence/build/bounded-command-tests.stdout.txt" \
+            2> "$RUNNER_TEMP/native-sampler-calibration/evidence/build/bounded-command-tests.stderr.txt"
+          python3 script/test_run_native_system_trace_startup.py \
+            > "$RUNNER_TEMP/native-sampler-calibration/evidence/build/orchestrator-tests.stdout.txt" \
+            2> "$RUNNER_TEMP/native-sampler-calibration/evidence/build/orchestrator-tests.stderr.txt"
+          python3 script/test_run_native_recorder_startup_observation.py \
+            > "$RUNNER_TEMP/native-sampler-calibration/evidence/build/observer-tests.stdout.txt" \
+            2> "$RUNNER_TEMP/native-sampler-calibration/evidence/build/observer-tests.stderr.txt"
+          python3 script/test_run_native_sampler_calibration.py \
+            > "$RUNNER_TEMP/native-sampler-calibration/evidence/build/calibration-tests.stdout.txt" \
+            2> "$RUNNER_TEMP/native-sampler-calibration/evidence/build/calibration-tests.stderr.txt"
+      - name: Build Owned Native Control
+        run: |
+          source_sha=$(shasum -a 256 script/native_ui/NativeSamplerCalibration.c | cut -d ' ' -f 1)
+          xcrun clang -std=c11 -O0 -g -fno-omit-frame-pointer -fno-optimize-sibling-calls \
+            -Wall -Wextra -Werror "-DD22_SOURCE_SHA256=\"$source_sha\"" \
+            script/native_ui/NativeSamplerCalibration.c \
+            -o "$RUNNER_TEMP/native-sampler-calibration/evidence/build/NativeSamplerCalibration" \
+            > "$RUNNER_TEMP/native-sampler-calibration/evidence/build/compile.stdout.txt" \
+            2> "$RUNNER_TEMP/native-sampler-calibration/evidence/build/compile.stderr.txt"
+          xcrun dsymutil "$RUNNER_TEMP/native-sampler-calibration/evidence/build/NativeSamplerCalibration" \
+            -o "$RUNNER_TEMP/native-sampler-calibration/evidence/build/NativeSamplerCalibration.dSYM" \
+            > "$RUNNER_TEMP/native-sampler-calibration/evidence/build/dsymutil.stdout.txt" \
+            2> "$RUNNER_TEMP/native-sampler-calibration/evidence/build/dsymutil.stderr.txt"
+      - name: Preserve Build And Immutable Input Identities
+        id: provenance
+        run: |
+          python3 - <<'PYCODE'
+          import ctypes, errno, hashlib, json, os, pathlib, platform, re, shutil, stat, subprocess
+          out = (pathlib.Path(os.environ['RUNNER_TEMP']) / 'native-sampler-calibration/evidence').resolve(strict=True)
+          binary = out / 'build/NativeSamplerCalibration'
+          digest = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+          architecture = platform.machine()
+          assert architecture == '${{ matrix.arch }}'
+          libc = ctypes.CDLL(None, use_errno=True)
+          probe = libc.sysctlbyname
+          probe.argtypes = [ctypes.c_char_p, ctypes.c_void_p, ctypes.POINTER(ctypes.c_size_t), ctypes.c_void_p, ctypes.c_size_t]
+          probe.restype = ctypes.c_int
+          translated, length = ctypes.c_int(-1), ctypes.c_size_t(ctypes.sizeof(ctypes.c_int))
+          ctypes.set_errno(0)
+          rc = probe(b'sysctl.proc_translated', ctypes.byref(translated), ctypes.byref(length), None, 0)
+          err = ctypes.get_errno()
+          assert (rc == 0 and err == 0 and length.value == ctypes.sizeof(translated) and translated.value == 0) or (rc == -1 and err == errno.ENOENT)
+          archs = subprocess.check_output(['xcrun', 'lipo', '-archs', str(binary)], text=True).strip().split()
+          assert archs == [architecture]
+          identity = subprocess.check_output(['xcrun', 'dwarfdump', '--uuid', str(binary)], text=True)
+          dsym_identity = subprocess.check_output(['xcrun', 'dwarfdump', '--uuid', str(binary) + '.dSYM'], text=True)
+          uuid_rows = re.findall(r'^UUID: ([0-9A-Fa-f-]{36}) \(([^)]+)\)', identity, re.M)
+          dsym_rows = re.findall(r'^UUID: ([0-9A-Fa-f-]{36}) \(([^)]+)\)', dsym_identity, re.M)
+          assert len(uuid_rows) == 1 and uuid_rows == dsym_rows and uuid_rows[0][1] == architecture
+          uuid = uuid_rows[0][0].upper()
+          outputs = {
+              'helper-uuid.txt': identity, 'helper-dsym-uuid.txt': dsym_identity,
+              'helper-load-commands.txt': subprocess.check_output(['xcrun', 'otool', '-l', str(binary)], text=True),
+              'helper-dependencies.txt': subprocess.check_output(['xcrun', 'otool', '-L', str(binary)], text=True),
+              'helper-symbols.txt': subprocess.check_output(['xcrun', 'nm', '-g', str(binary)], text=True),
+          }
+          assert re.search(r'\bT _lemulip_d22_wait_for_release\s*$', outputs['helper-symbols.txt'], re.M)
+          for name, value in outputs.items():
+              (out / 'build' / name).write_text(value)
+          sources = out / 'sources'
+          sources.mkdir(exist_ok=False)
+          names = ['script/native_ui/NativeSamplerCalibration.c',
+                   'script/run_native_sampler_calibration.py', 'script/test_run_native_sampler_calibration.py',
+                   'script/run_native_recorder_startup_observation.py', 'script/test_run_native_recorder_startup_observation.py',
+                   'script/run_native_system_trace_startup.py', 'script/test_run_native_system_trace_startup.py',
+                   'script/collect_native_trace_capabilities.py', 'script/test_collect_native_trace_capabilities.py',
+                   'script/privacy_check.py', '.github/workflows/native-sampler-calibration.yml',
+                   'docs/NATIVE_SAMPLER_CALIBRATION.md']
+          for name in names:
+              shutil.copyfile(name, sources / pathlib.Path(name).name)
+          record = {'schema': 1, 'diagnostic': 'D22-native-sampler-calibration',
+                    'experimentCommit': os.environ['GITHUB_SHA'],
+                    'experimentTree': subprocess.check_output(['git', 'rev-parse', 'HEAD^{tree}'], text=True).strip(),
+                    'architecture': architecture,
+                    'sourceSHA256': digest(pathlib.Path('script/native_ui/NativeSamplerCalibration.c')),
+                    'helper': {'path': str(binary), 'sha256': digest(binary), 'uuid': uuid,
+                               'architecture': architecture, 'architectures': archs, 'uuidOutput': identity},
+                    'expectedFrame': 'lemulip_d22_wait_for_release',
+                    'frozenCandidate': {'commit': os.environ['CANDIDATE_COMMIT'], 'tree': os.environ['CANDIDATE_TREE']},
+                    'dependencyBase': os.environ['SAMPLER_BASE'],
+                    'translationProbe': {'returnCode': rc, 'errno': err, 'value': translated.value if rc == 0 else None},
+                    'retainedDiagnosticSourcesSHA256': {p.name: digest(p) for p in sorted(sources.iterdir())},
+                    'diagnosticOnly': True, 'releaseReady': False, 'C12': 'HOLD',
+                    'recorderInvoked': False, 'nativeInputExecuted': False, 'settingsChanged': False,
+                    'activationRouteCoverageEstablished': False}
+          (out / 'build-provenance.json').write_text(json.dumps(record, indent=2) + '\n')
+          for name, args in [('os-version', ['sw_vers']), ('kernel-version', ['sysctl', '-n', 'kern.version']),
+                             ('cpu-brand', ['sysctl', '-n', 'machdep.cpu.brand_string']),
+                             ('xcode-version', ['xcodebuild', '-version']), ('clang-version', ['xcrun', 'clang', '--version'])]:
+              completed = subprocess.run(args, capture_output=True, timeout=20, check=True)
+              (out / 'build' / (name + '.stdout.txt')).write_bytes(completed.stdout)
+              (out / 'build' / (name + '.stderr.txt')).write_bytes(completed.stderr)
+          inventory = {}
+          for directory in (out / 'build', out / 'sources'):
+              for p in sorted(directory.rglob('*')):
+                  mode, relative = p.lstat().st_mode, p.relative_to(out).as_posix()
+                  assert not stat.S_ISLNK(mode)
+                  if stat.S_ISDIR(mode): inventory[relative] = {'kind': 'directory'}
+                  else:
+                      assert stat.S_ISREG(mode)
+                      inventory[relative] = {'kind': 'file', 'bytes': p.stat().st_size, 'sha256': digest(p)}
+          (out / 'inputs-before.json').write_text(json.dumps(inventory, indent=2) + '\n')
+          PYCODE
+      - name: Calibrate One Owned Native Child
+        id: calibration
+        run: >-
+          python3 script/run_native_sampler_calibration.py
+          --helper "$RUNNER_TEMP/native-sampler-calibration/evidence/build/NativeSamplerCalibration"
+          --output "$RUNNER_TEMP/native-sampler-calibration/evidence"
+          --provenance "$RUNNER_TEMP/native-sampler-calibration/evidence/build-provenance.json"
+      - name: Verify Immutable Inputs
+        if: always() && steps.provenance.outcome == 'success'
+        run: |
+          python3 - <<'PYCODE'
+          import hashlib, json, os, pathlib, stat
+          out = pathlib.Path(os.environ['RUNNER_TEMP']) / 'native-sampler-calibration/evidence'
+          before, after = json.loads((out / 'inputs-before.json').read_text()), {}
+          for directory in (out / 'build', out / 'sources'):
+              for p in sorted(directory.rglob('*')):
+                  relative, mode = p.relative_to(out).as_posix(), p.lstat().st_mode
+                  assert not stat.S_ISLNK(mode)
+                  if stat.S_ISDIR(mode): after[relative] = {'kind': 'directory'}
+                  else:
+                      assert stat.S_ISREG(mode)
+                      after[relative] = {'kind': 'file', 'bytes': p.stat().st_size,
+                                         'sha256': hashlib.sha256(p.read_bytes()).hexdigest()}
+          (out / 'inputs-after.json').write_text(json.dumps(after, indent=2) + '\n')
+          (out / 'input-preservation.json').write_text(json.dumps({'schema': 1, 'inputsUnchanged': before == after,
+              'beforeEntries': len(before), 'afterEntries': len(after)}, indent=2) + '\n')
+          assert before == after
+          PYCODE
+      - name: Confirm Source Remains Unchanged
+        if: always()
+        run: git diff --exit-code HEAD --
+      - name: Retain Bounded Calibration Evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: Lemulip-Native-Sampler-Calibration-${{ matrix.arch }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/native-sampler-calibration/evidence
+          if-no-files-found: error
+          retention-days: 14
