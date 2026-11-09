@@ -2,7 +2,7 @@
 
 ## Issue card
 
-**Status, 9 November 2026 Europe/Istanbul:** automated drag cancellation remains unresolved. PR #45 is open, draft and unmerged; C12 and task 07 remain HOLD. D19 has completed installed tracing-tool discovery on both architectures; recording access, actual exported schemas and causal coverage remain unobserved. This packet assembles existing reproducible code and retained evidence for investigation across the AppKit/system request boundary. It records no new drag, production change, gate exception, or external submission.
+**Status, 9 November 2026 Europe/Istanbul:** automated drag cancellation remains unresolved. PR #45 is open, draft and unmerged; C12 and task 07 remain HOLD. D19 completed installed tracing-tool discovery. D20 R2 then attempted its bounded recording prerequisite on both architectures, but neither helper received the recording-start callback: no source/control launch, trace package or export followed. The recorder's initial tool-start state remains unobserved; its pre-start silence has no established cause. This packet assembles existing reproducible code and retained evidence for investigation across the AppKit/system request boundary. It records no new drag, production change, gate exception, or external submission.
 
 **Expected behavior:** Escape cancels the first held drag, release leaves only Existing in the destination, and a distinct fresh drag accepts Single exactly once. **Observed failure:** after injected Escape and release, the destination accepts Single from the first session and the native source ends that session with COPY. The original product candidate passed its general/native XCTest suite but failed the separate held-Finder acceptance step. The [routing report](NATIVE_DRAG_ROUTING_EVIDENCE.md#symptom-and-impact) preserves that distinction.
 
@@ -20,10 +20,14 @@
 | D18 run / jobs | [42419686902](https://github.com/osmankaankars/lemulip/actions/runs/42419686902), attempt 1; ARM `128545233709`, Intel `128545233926` |
 | D19 executed code / tree | `daf90a14cbe0e5855e2e4a3e69dc8c170700635d` / `7b3cf73162aff5612fa7f5b97bf2729df6f68d55` |
 | D19 run / jobs | [42565052135](https://github.com/osmankaankars/lemulip/actions/runs/42565052135); ARM `128989654018`, Intel `128989654392` |
+| D20 R2 executed code / tree | `1462bf597c52727ede7ee20991c65016e8b3086a` / `071467586f6b95d1b5ad5ab57ac5c97349a3526f` |
+| D20 R2 run / jobs | [42567849171](https://github.com/osmankaankars/lemulip/actions/runs/42567849171), attempt 1; ARM `128998197463`, Intel `128998197228` |
 
 The [integrity manifest](evidence/D17-D18-investigation-manifest.json) gives immutable Git URLs and SHA-256 values for **all 36 D17 and eight D18 retained source copies**, as well as both runs' archive identities and verification limits. It includes the original source/control, complete build/staging workflow, observers/input producers, classifiers, tests, and candidate staging sources. An investigator does not need the original chat to identify the executed code.
 
 The separate [D19 capability projection](evidence/D19-trace-capabilities.json) indexes all 54 archive files and four exact retained source copies per architecture. It preserves both complete capability objects and selected exact help/list/host output, with every omitted file body declared.
+
+The [D20 evidence projection](evidence/D20-system-trace-startup.json) binds the subsequent recording prerequisite and its failure before source/control startup. The [D20 protocol and results](NATIVE_SYSTEM_TRACE_STARTUP.md) retain the earlier header-import build failure separately from R2's observed notification timeout.
 
 ## Recorded reproduction
 
@@ -93,7 +97,15 @@ The [completed D19 inventory](NATIVE_TRACE_CAPABILITIES.md#r2-completed-tool-inv
 
 Both Xcode 26.3 (`17C529`) installations list System Trace, Thread State Trace and System Call Trace, and document bounded recording with `--no-prompt` plus `--toc` / `--xpath` export. Their help does not advertise the recording-options CLI added in Xcode 27. The ARM host reports `VirtualMac2,1` / Apple M1 (Virtual), macOS 15.8.2 (`24H232`); Intel reports `Macmini6,2` / Core i7-8700B with virtualization, macOS 15.7.9 (`24G830`). Processor Trace is listed, but neither reported CPU meets Apple's documented M4-or-later Mac requirement. The [D19 report](NATIVE_TRACE_CAPABILITIES.md) links the primary contracts and exact retained output.
 
-Enabled developer-tools status does not establish per-tool recording authorization. A listed instrument does not establish an exported schema, event-specific stack, or request relationship. The next separate prerequisite is an input-free, bounded System Trace recording/export qualification; it was not executed in D19. A successful qualification would still need a positive natural-path witness before supporting a held-drag extension or identifying the requester/consumer.
+Enabled developer-tools status does not establish per-tool recording authorization. A listed instrument does not establish an exported schema, event-specific stack, or request relationship. D19 did not execute the separate input-free System Trace recording/export prerequisite. D20's subsequent attempt is recorded below. A successful qualification would still need a positive natural-path witness before supporting a held-drag extension or identifying the requester/consumer.
+
+### D20: start notification absent; natural startup did not run
+
+[D20 R2](NATIVE_SYSTEM_TRACE_STARTUP.md#r2-recording-start-notification-not-observed) ran on 9 November 2026, 05:31:57–05:35:12 UTC. The public SDK header correction built successfully on both architectures; all six bounded-command and ten orchestration tests passed per architecture. Each helper registered its unique notification successfully and published a prepared receipt before the single recorder command was invoked.
+
+Both helpers observed zero callbacks in the fixed 15-second wait, cancelled their registrations successfully and returned `recording-notification-timeout`. Neither source nor control was launched: all launch-request flags are false, all app PIDs are null, and native journals are absent. Each recorder retained zero stdout/stderr bytes and produced no trace package. After the helper failed, the orchestrator sent only one direct SIGINT to the owned recorder; it exited -2, with complete cleanup and an empty final process-group snapshot. Both 124-entry immutable-input inventories remained unchanged. No export ran and activation calibration remains unproven.
+
+This result does not establish a permission denial or explain why the recorder was silent. Recording access, actual exported fields and caller/consumer coverage remain unqualified. The missing initial tool-start observation is now the prerequisite: identify a supported way to distinguish recorder start progress and notification delivery before designing another attempt. Widening the timeout, blindly repeating the command or changing permissions is not supported by the retained evidence. No held gesture follows from this result.
 
 ### Retention and verification scope
 
@@ -116,6 +128,7 @@ D17's source/control/observer executable bytes were not archived; their provenan
 | Does a public retrieval/responder hook certify the Escape consumer? | [Routing review](NATIVE_DRAG_ROUTING_EVIDENCE.md) found no supported coverage contract; the proposed `nextEvent` probe was not run. |
 | Do the selected public C wrappers observe a natural startup request? | [D18](NATIVE_ACTIVATION_ENTRY_CALIBRATION.md) returned four complete zero-call receipts, so the prerequisite coverage gate remained closed. |
 | Which tracing tools and CLI contracts are installed? | [D19](NATIVE_TRACE_CAPABILITIES.md) completed both inventories. System Trace and the relevant instruments are listed, but recording access, actual export schemas and causal coverage remain unobserved. |
+| Did the bounded System Trace prerequisite observe natural startup? | [D20 R2](NATIVE_SYSTEM_TRACE_STARTUP.md#r2-recording-start-notification-not-observed) retained successful registration but zero callbacks, no app launches, empty recorder streams and no trace. The missing initial tool-start state remains unexplained; no export or activation calibration followed. |
 
 ## Automatic window behavior: a documented question, not a traced cause
 

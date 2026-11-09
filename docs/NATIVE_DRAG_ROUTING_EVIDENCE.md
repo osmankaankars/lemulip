@@ -73,10 +73,38 @@ file identities to the executed revision.
 
 This establishes installed tool contracts only. No trace or source/control app
 ran, no native input was sent, and no settings changed. Recording access, actual
-export schemas, event stacks and causal coverage remain unobserved. A separate
-bounded System Trace recording/export prerequisite is the next investigation;
-D19 did not execute it. D18's uncalibrated route and the original acceptance gate
+export schemas, event stacks and causal coverage remained unobserved at D19's
+completion. D19 did not execute the separate bounded System Trace prerequisite;
+its subsequent D20 attempt is recorded below. D18's uncalibrated route and the original acceptance gate
 remain closed. No case is added to either native outcome population.
+
+### Subsequent D20 recording-start prerequisite
+
+[D20 R2](NATIVE_SYSTEM_TRACE_STARTUP.md#r2-recording-start-notification-not-observed)
+ran on 9 November 2026, 05:31:57–05:35:12 UTC, in
+[run 42567849171](https://github.com/osmankaankars/lemulip/actions/runs/42567849171),
+at `1462bf597c52727ede7ee20991c65016e8b3086a`, tree
+`071467586f6b95d1b5ad5ab57ac5c97349a3526f`. Both architectures passed the
+public-header helper build correction, six bounded-command tests and ten
+orchestration tests. Each then attempted the single specified System Trace
+recording after its helper published a successfully registered notification.
+
+Both registered helpers received zero start callbacks within the fixed 15-second
+wait and returned an error before any source/control launch. App PIDs are null,
+launch-request flags are false and native journals are absent. The recorder
+streams contain zero bytes, and no trace package or export exists. Only a direct
+SIGINT was sent to each recorder after its helper failed; recorder exit status
+is -2, cleanup is complete and all 124 staged input entries remain unchanged.
+The [retained D20 evidence](evidence/D20-system-trace-startup.json) binds this
+`evidence-incomplete` result and its source/artifact identities.
+
+The reason for the recorder's silence before the notification boundary is not
+established. This is not a demonstrated tracing-permission denial or an observed
+activation/cancellation failure. The next prerequisite is a concrete initial
+tool-start observation with a discriminating outcome and stopping condition;
+neither timeout widening nor a blind repetition is supported. No held input ran,
+no case is added to D17 or the historical population below, and the original
+Finder gate, C12/PR #45 HOLD and task 08 dependency are unchanged.
 
 ## Symptom and impact
 

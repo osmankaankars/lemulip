@@ -20,8 +20,8 @@ and the acceptance comparator remain byte-identical to D19's executed revision
 debug information and normal ad-hoc signatures; their exact binaries, UUIDs,
 architecture, load commands, dependencies and source hashes are retained.
 
-This is **one recording per architecture, with no drag, keyboard, mouse, AX or
-directed Escape input**. There is no C interposition library, runtime hook,
+The protocol permits **one recording-command invocation per architecture, with
+no drag, keyboard, mouse, AX or directed Escape input**. There is no C interposition library, runtime hook,
 injected activation, debugger attachment, global preference change, authorization
 change, privilege escalation or recording retry. D18's uncalibrated C-entry route
 remains closed. The owned applications follow their existing natural launch and
@@ -132,10 +132,12 @@ recording/export success.
 
 ## Interpretation and current status
 
-At initial protocol preparation, D20 had **not run**. Local checks can verify bounded
-orchestration, process handling, archive parsing and command selection; this
-Linux workspace cannot compile AppKit or establish native tracing access. The
-native matrix is the compile, recording and export gate.
+D20 R2 has completed with **evidence-incomplete on both architectures**. The
+helper compiled, registered its notification and published its prepared receipt,
+but received no recording-start callback within its fixed wait. Neither original
+app was launched; no trace package or export was produced. The exact result and
+its limits follow below. Local checks verify bounded orchestration and parsing;
+the native result determines whether the recording/startup prerequisite occurred.
 
 Results must distinguish: build/infrastructure failure; recording/access failure;
 incomplete startup or cleanup; export/packaging failure; complete recording/export
@@ -183,5 +185,117 @@ job logs retain the compiler diagnostics. Its artifact identities are:
 | ARM64 | `13652485177` | 2,225,064 | `5f6bdf4af84d24a29079d59649980a8d3981b39242008497ef551ee8660467f9` |
 | Intel | `13652191507` | 2,242,987 | `33370c9e4b47d3b1bc961a48fc801896c459617b7e9f40e3666dda37a906d768` |
 
-R1 produced no completed recording to retry. R2 is the first opportunity for the
-specified notification-gated recording to execute after the header import fix.
+R1 produced no completed recording to retry. R2 was the first run that passed
+helper compilation and issued the specified recording command after the header
+import fix.
+
+### R2: recording-start notification not observed
+
+[Run 42567849171](https://github.com/osmankaankars/lemulip/actions/runs/42567849171),
+attempt 1, executed `1462bf597c52727ede7ee20991c65016e8b3086a`, tree
+`071467586f6b95d1b5ad5ab57ac5c97349a3526f`, on 9 November 2026,
+05:31:57–05:35:12 UTC. ARM job `128998197463` and Intel job `128998197228`
+both passed source/privacy checks, all six bounded-command and ten orchestration
+tests, original app compilation, the corrected helper build and provenance
+collection. The recording/orchestration step returned `evidence-incomplete` on
+both; input preservation, staged archiving, source checks and artifact upload
+then completed. The [machine-readable D20 evidence](evidence/D20-system-trace-startup.json)
+binds these results to the executed sources and retained artifacts.
+
+| Retained observation | ARM64 | Intel |
+| --- | ---: | ---: |
+| Helper PID | 3942 | 11445 |
+| Recorder PID | 3943 | 11450 |
+| Notification registration status | 0 | 0 |
+| Received callback count | 0 | 0 |
+| Observed notification wait, seconds | 15.002533 | 15.106861 |
+| Notification cancellation status | 0 | 0 |
+| Control/source launch requests | 0 / 0 | 0 / 0 |
+| Recorder stdout / stderr bytes | 0 / 0 | 0 / 0 |
+| Recorder exit status after direct SIGINT | -2 | -2 |
+| Unchanged staged input entries | 124 | 124 |
+
+Each helper reports `startupNeverRan=true`,
+`startupSkipReason=recording-notification-timeout`, and exit code 1. Both
+process entries retain `launchRequested=false`, null PIDs and empty readiness
+records. Source, receiver and activation journals are absent. These are
+unlaunched applications; this run did not observe their natural activation or
+their drag-session lifecycle.
+
+The orchestrator sent one SIGINT to its exact recorder process after the helper
+returned the timeout error. Both recorder processes exited with status -2. No
+recording-start callback was observed before this interruption; the command's
+nominal 30-second recording cap was not reached. No
+helper signal, forced recorder group cleanup, signal error or stream error was
+recorded. The final bounded group snapshots contain no live members, inherited
+streams are closed, and `cleanupComplete=true`. There were no owned application
+launches requiring termination. The 80-second helper abort path and its
+45-second cleanup grace were not used.
+
+No `recording.trace` package existed at packaging time; its failure receipt
+records that absence. No TOC, process or table export was invoked. Recording,
+startup, export and trace-package completion are all false, and activation
+calibration remains `unproven`. Both 124-entry input inventories remain
+unchanged. No drag, keyboard, mouse or AX input, settings change, permission
+change, hook or held-gesture extension occurred.
+
+#### Retained R2 evidence and verification
+
+| Architecture | Artifact | ZIP bytes | ZIP SHA-256 |
+| --- | ---: | ---: | --- |
+| ARM64 | `13652345999` | 9,156,312 | `79e754abbeb815dd8dd397411874c74e44aa6420f2722b274786236e73f01f54` |
+| Intel | `13652471388` | 9,253,033 | `8f382e26c9421a8e75c6def98a95c2b8f057eae208a95aaad488f1ef0c3531fe` |
+
+Each R2 archive contains 62 files. Its nested staged archive contains 127 entries
+(75 files and 52 directories), including the original empty fixture directories
+and the helper's empty evidence directories. All outer ZIP digests, CRCs and
+extracted bytes, all ten retained sources per architecture against the executed
+Git revision, and all 124 immutable input entries against the actual staged
+archive were checked. Helper/app binary hashes, Mach-O UUIDs, provenance and
+receipt/stream bindings were also independently verified without executing the
+archived binaries. R1's two 14-file bootstrap/build archives were checked
+separately; they contain no completed helper or recording evidence.
+
+The public projection indexes all 152 outer-archive files across R1 and R2 and
+every R2 staged entry. It retains all twelve top-level R2 JSON receipts per
+architecture as parsed objects, with runner-local path strings or maps keyed by
+those paths replaced with null. Every such replacement has an exact JSON
+pointer and a hash of the original value's explicitly defined canonical JSON;
+the original files also retain their separate raw-byte hashes. All other JSON
+values and the selected UTF-8 text bodies are preserved exactly. Binary,
+source-body and local-path text omissions are enumerated. Executed source
+bodies remain available through immutable Git links. Original artifacts have
+14-day retention; the result, identities and public projection persist in Git.
+
+#### Interpretation and next prerequisite
+
+The observation is precise but limited: the recorder command was invoked and
+remained running until the helper failed, while the registered helper observed
+no start callback and the retained recorder streams stayed empty. These bytes
+do not establish why the recorder was silent before that boundary. They do not
+demonstrate a tracing permission denial, a broken notification channel, a
+particular initialization wait, or an activation-path failure. A completed
+System Trace recording and its actual export schema remain unqualified.
+
+The next prerequisite is a supported observation of the recorder's initial
+tool-start state and start-notification path that can distinguish those missing
+states. A concrete observation and stopping condition are needed before another
+qualification attempt. This result supplies no basis for widening the timeout,
+blindly repeating the command, changing permissions, or treating empty output as
+proof of a particular cause. The original Finder acceptance gate, C12/PR #45
+HOLD, task 08's dependency and the completed physical/v4 evidence are unchanged.
+
+The next researched observation is one bounded sample of the exact still-owned
+recorder PID, paired with process metadata, within the existing notification
+window. Apple's archived [sampling guide](https://developer.apple.com/library/archive/documentation/Performance/Conceptual/CodeSpeed/Articles/DiagnosingSlowness.html)
+and [launch-metrics guide](https://developer.apple.com/library/archive/documentation/Performance/Conceptual/LaunchTime/Articles/MeasuringLaunch.html)
+document PID-targeted stack sampling; the published
+[`ps` manual](https://github.com/apple-oss-distributions/adv_cmds/blob/main/ps/ps.1)
+describes process selection and identity fields. The installed manuals must
+confirm the current arguments before implementation. This observation has not
+been implemented or run in D20. It would need its own finite sampler deadline,
+output bounds, exact PID/instance binding and an explicit account of timing
+perturbation. A sample can expose observed initialization or request callers;
+a generic IPC wait cannot establish authorization denial, deadlock or the
+missing drag requester. Sampling access to this Apple-signed process is also
+unproven. No elevated fallback follows from a failure to obtain a sample.

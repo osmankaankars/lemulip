@@ -157,9 +157,32 @@ architecture. The [D19 report](NATIVE_TRACE_CAPABILITIES.md) and
 [retained capability evidence](evidence/D19-trace-capabilities.json) establish
 the installed System Trace and related CLI contracts. No trace, native app
 startup, drag, or keyboard input ran. Recording access, actual export schemas
-and causal coverage remain unobserved; the next bounded recording/export
-prerequisite is separate. This inventory does not close task 07 or change C12,
+and causal coverage remained unobserved at D19's completion; the bounded
+recording/export prerequisite was separate. This inventory does not close task 07 or change C12,
 PR #45's HOLD, or task 08's dependency. The physical/v4 evidence remains complete.
+
+D20 R2 subsequently attempted that prerequisite in
+[run 42567849171](https://github.com/osmankaankars/lemulip/actions/runs/42567849171),
+on 9 November 2026, 05:31:57–05:35:12 UTC, at
+`1462bf597c52727ede7ee20991c65016e8b3086a`, tree
+`071467586f6b95d1b5ad5ab57ac5c97349a3526f`. The public-header helper build
+correction and all six bounded-command plus ten orchestration tests passed on
+each architecture. Both helpers registered their start notification, observed
+zero callbacks during the fixed 15-second wait and failed before launching
+either source/control app. No native journal, trace package or export was
+produced; both recorder streams are empty. Each recorder received only one
+direct SIGINT after helper failure and exited -2, with complete cleanup and
+124 unchanged staged input entries per architecture.
+
+The [D20 result](NATIVE_SYSTEM_TRACE_STARTUP.md#r2-recording-start-notification-not-observed)
+and [retained evidence](evidence/D20-system-trace-startup.json) preserve this
+`evidence-incomplete` boundary. They do not explain the recorder's pre-start
+silence, demonstrate a permission denial, or calibrate an activation path. A
+supported initial tool-start observation is now required before another
+qualification can be designed; timeout widening and blind reruns are not
+supported by this result. No drag or acceptance case was run. The original
+Finder gate, C12/PR #45 HOLD, completed source/screenshot and physical/v4 evidence,
+and task 08's dependency on task 07 remain unchanged.
 
 To complete task 08, close or explicitly resolve task 07's remaining CI gate on
 the final candidate, review any resulting production changes, and retain the
