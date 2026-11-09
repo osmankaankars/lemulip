@@ -1,0 +1,89 @@
+name: Native ATRC Import Contract
+
+on:
+  push:
+    branches: ['codex/retained-atrc-contract-07']
+    paths:
+      - '.github/workflows/native-atrc-import-contract.yml'
+      - 'script/collect_native_atrc_import_contract.py'
+      - 'script/test_collect_native_atrc_import_contract.py'
+
+permissions:
+  contents: read
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+  D26_BASE: 6102d5d209d5918bc6ae61056917fbb9e3b16987
+
+concurrency:
+  group: native-atrc-import-contract-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  import-contract:
+    name: Intel Import Help Contract
+    runs-on: macos-15-intel
+    timeout-minutes: 8
+    steps:
+      - name: Check Out Exact Diagnostic
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Select Python With Nonreaping Child Status
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.13'
+      - name: Bind Source And Run Used Dependency Gates
+        run: |
+          mkdir -p "$RUNNER_TEMP/atrc-import-contract/preflight"
+          printf '%s\n' "$GITHUB_SHA" > "$RUNNER_TEMP/atrc-import-contract/preflight/experiment-commit.txt"
+          git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/atrc-import-contract/preflight/experiment-tree.txt"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+          test "$(uname -m)" = x86_64
+          git merge-base --is-ancestor "$D26_BASE" HEAD
+          python3 - <<'PYCODE'
+          import os, subprocess, sys
+          sys.path.insert(0, 'script')
+          from collect_native_atrc_import_contract import NEW_PATHS
+          assert sys.version_info >= (3, 13)
+          changed = subprocess.check_output(['git', 'diff', '--name-only', os.environ['D26_BASE'], 'HEAD'], text=True).splitlines()
+          assert set(changed) <= set(NEW_PATHS), changed
+          assert subprocess.check_output(['git', 'rev-parse', 'd821d7343675e2850705d141ef9b3b93a6aee945^{tree}'], text=True).strip() == '425baa28f00ec24551dd70c0cc874a75fa3be0c1'
+          PYCODE
+          python3 script/test_run_native_recorder_progress_observation.py -v \
+            OwnedCommandTests NonreapingCapabilityTests BoundedFileTests InstalledToolIdentityTests \
+            > "$RUNNER_TEMP/atrc-import-contract/preflight/d24-used-primitives.stdout.txt" \
+            2> "$RUNNER_TEMP/atrc-import-contract/preflight/d24-used-primitives.stderr.txt"
+          for suite in native_retained_trace_command collect_native_atrc_import_contract; do
+            python3 "script/test_${suite}.py" -v \
+              > "$RUNNER_TEMP/atrc-import-contract/preflight/${suite}.stdout.txt" \
+              2> "$RUNNER_TEMP/atrc-import-contract/preflight/${suite}.stderr.txt"
+          done
+          python3 script/privacy_check.py --staged > "$RUNNER_TEMP/atrc-import-contract/preflight/privacy.txt"
+      - name: Collect One Installed Import Help
+        run: |
+          python3 script/collect_native_atrc_import_contract.py \
+            --output "$RUNNER_TEMP/atrc-import-contract/evidence" \
+            --experiment-commit "$GITHUB_SHA"
+      - name: Verify Worktree Preservation
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=normal)"
+      - name: Preserve Gate Evidence
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/atrc-import-contract/evidence/build"
+          if [ -d "$RUNNER_TEMP/atrc-import-contract/preflight" ]; then
+            cp -R "$RUNNER_TEMP/atrc-import-contract/preflight/." "$RUNNER_TEMP/atrc-import-contract/evidence/build/"
+          fi
+      - name: Upload Import Contract Evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: native-atrc-import-contract-x86_64
+          path: ${{ runner.temp }}/atrc-import-contract/evidence
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 14
