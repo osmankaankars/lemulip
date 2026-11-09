@@ -6,8 +6,11 @@ completed without a qualified sampler stack. Intel retained a partial trace;
 retained copy with `Document Missing Template Error`. No TOC or time coverage was
 established. [D26](NATIVE_RETAINED_ATRC_CONTRACT.md) completed its contract review
 and one missing import-help request; exact raw-payload acceptance remains open.
-A separate bounded D27 derived-import hypothesis test is proposed and has not
-run. C12, draft/unmerged PR #45 and the task 07/08 gates remain HOLD.
+[D27](NATIVE_RETAINED_ATRC_IMPORT.md) made one import after 99 passing native
+tests, but its output observer stopped the command and no qualified derivative
+was retained. CI did not pass; the diagnostic remains `diagnostic-incomplete`. D28 is proposed as an
+offline observer review. C12, draft/unmerged PR #45 and the task 07/08 gates
+remain HOLD.
 
 ## Decision on 7 November 2026
 
@@ -177,7 +180,7 @@ usable clock mapping or event coverage was established.
 The refusal alone does not establish a missing field, a repair route or the
 original activation mechanism.
 
-### Subsequent D26 import-help result and D27 proposal
+### Subsequent D26 import-help and D27 import results
 
 [D26](NATIVE_RETAINED_ATRC_CONTRACT.md) completed its offline review and one
 import-help request with 45 passing tests. The request exited 0 after
@@ -189,12 +192,23 @@ The help describes conditional, release-dependent UTI defaults but does not
 name ATRC or establish this payload's acceptance. No import/export/recording
 occurred in D26.
 
-The proposed D27 is one separately bounded derived-import compatibility test,
-using the same reader, an exact read-only input copy, fresh observed System
-Trace availability and a separate exclusive output. Exact acceptance is the
-hypothesis to measure; the documented family and actual grammar are its basis.
-No automatic export or original-package repair follows. D27 has not run and
-adds no activation or product-acceptance evidence.
+[D27 R2](NATIVE_RETAINED_ATRC_IMPORT.md) passed **99 native tests** and made one
+import with the exact protected input, same reader and fresh System Trace
+availability. Stdout reported import completion and saving; an output census
+then exceeded its **0.25-second** budget at **0.591878661 seconds**. Parent
+TERM/KILL followed, with exit **-9 after 19.594917998 seconds**, before the
+90-second command deadline. Cleanup completed, input/source/tool identities
+stayed unchanged, and all 19 source copies were retained. CI did not pass; the diagnostic
+remains `diagnostic-incomplete`, with no qualified derivative/archive. The
+[result](evidence/D27-retained-atrc-import.json) and
+[verification](evidence/D27-verification.json) do not establish unsupported
+input, an importer hang, activation causality or product acceptance. No export
+or new recording followed.
+
+The proposed D28 is offline observer review, including classification and the
+omitted-observation counter. Exact per-call timing was not retained. Any
+further native proposal follows that review; no automatic larger threshold or
+import retry is prescribed.
 
 ## Symptom and impact
 
@@ -454,12 +468,14 @@ acceptance relaxation.
 | D24 diagnostic | Bounded execution and cleanup completed; four banner-only sampler streams, no qualified stack/phase and an Intel partial trace; see the [D24 result](NATIVE_RECORDER_PROGRESS_OBSERVATION.md) |
 | D25 diagnostic | Completed; one read-only export refused the exact retained Intel trace with exit 10 / `Document Missing Template Error`; no TOC or time coverage, and input/source/tool identities unchanged |
 | D26 diagnostic | Completed; 45 tests and one successful import-help request establish generic command/selector behavior and conditional UTI defaults, with 13 source copies verified; exact ATRC acceptance remains unestablished |
-| D27 proposed evidence step | One separately bounded derived-import hypothesis test with same reader, fresh System Trace availability, exact read-only input and exclusive output; no automatic export or original repair; not run |
+| D27 diagnostic | One import after 99 passing native tests; observer census exceeded 0.25 seconds and triggered termination; cleanup/input/source/tool preservation completed, 19 source copies retained, but CI did not pass, the diagnostic is incomplete and no qualified derivative/archive exists |
+| D28 proposed evidence step | Offline review of observer timing, classification and omitted-observation counter before any further native proposal; no automatic threshold increase or retry |
 
 The original read-only routing review remains complete. Subsequent D24
 diagnostic work leaves C12 production and the original acceptance gate unchanged;
 its partial Intel trace does not establish event-time coverage or the missing
 native mechanism. D25 preserved the reader's refusal. D26 completed the missing
-help collection; D27 is a separate proposed compatibility test. There is no
+help collection; D27's single compatibility attempt stopped at its observer
+boundary without qualifying a derivative. D28 proposes an offline review. There is no
 verified narrow fix to ship, and no additional owner test is needed to restate
 the completed local results.

@@ -9,8 +9,10 @@ unidentified. The subsequent [D25 read-only export](NATIVE_RETAINED_TRACE_EXPORT
 refused that exact retained Intel package with `Document Missing Template Error`.
 No table of contents or time coverage was established. The subsequent
 [D26 contract review](NATIVE_RETAINED_ATRC_CONTRACT.md) collected the missing
-import help; exact ATRC acceptance remains unestablished. A separate bounded
-D27 derived-import hypothesis test is proposed and has not run.
+import help. [D27](NATIVE_RETAINED_ATRC_IMPORT.md) then attempted one import,
+but its output observer stopped the command and no qualified derivative was
+retained. Exact ATRC acceptance remains unestablished; the next proposed step
+is an offline observer review.
 
 This diagnostic follows the [D23 retained identity review](NATIVE_SAMPLER_IDENTITY_REVIEW.md).
 It asks whether a bounded stack observation of the primary sampler can distinguish
@@ -193,14 +195,24 @@ and [verification](evidence/D26-verification.json) preserve the unchanged reader
 and source evidence. Help describes conditional, release-dependent UTI defaults
 but does not name ATRC or establish this payload's acceptance.
 
-D27 is proposed as one separately bounded compatibility test that creates a new
-analysis document from an exact read-only input copy, with the same reader,
-fresh observed System Trace availability and a separate exclusive output. Exact
-acceptance is its hypothesis, not an already-proven fact; no automatic export or
-original-package repair follows. D27 has not run. D24 itself performed **no
-trace export**, and D26 performed no import, export or recording. These later
-steps do not resolve the sampler phase, D21 causality, the original drag route
-or C12 acceptance.
+[D27 R2](NATIVE_RETAINED_ATRC_IMPORT.md) passed **99 native tests** and made one
+import using the exact protected raw input, same reader and fresh System Trace
+availability. Stdout reported import completion and saving, but an output
+census took **0.591878661 seconds** against a **0.25-second** budget. The parent
+sent TERM/KILL and the importer exited **-9 after 19.594917998 seconds**, before
+its 90-second deadline. Cleanup completed; input/source/tool identities and all
+19 source copies were preserved. CI did not pass; the diagnostic remains `diagnostic-incomplete`,
+with no qualified derivative/archive, export or new recording. The
+[result](evidence/D27-retained-atrc-import.json) and
+[verification](evidence/D27-verification.json) do not establish unsupported
+input, an importer hang, or a cause for D24's abnormal recording.
+
+D28 is proposed as an offline observer/classification/counter review before
+any further native proposal. Per-call timing was not retained; no automatic
+threshold increase or retry follows. D24 itself performed **no trace export**,
+and D26 performed no import, export or recording. These later steps do not
+resolve the sampler phase, D21 causality, the original drag route or C12
+acceptance; the historical full D24 test failure remains open.
 
 ## Evidence motivating this observation
 

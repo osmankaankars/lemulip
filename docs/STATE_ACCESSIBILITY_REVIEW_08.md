@@ -251,13 +251,24 @@ and conditional, release-dependent UTI defaults. The help does not name ATRC
 or establish this exact payload's acceptance. D26 performed no import, export
 or recording.
 
-D27 is proposed as a separate bounded derived-import compatibility test, with
-the same reader, an exact read-only input copy, fresh observed System Trace
-availability and a separate exclusive output. Exact acceptance is its
-hypothesis; no automatic export or original-package repair follows. It has not
-run. PR #45 remains draft/unmerged and C12 remains HOLD. The original full
-Finder sequence, completed source/twelve-image review, physical/v4 evidence
-and task 08's dependency on task 07 remain unchanged.
+[D27 R2](NATIVE_RETAINED_ATRC_IMPORT.md) passed **99 native tests** and made one
+import with the same reader, exact protected input and fresh System Trace
+availability. Stdout reported import completion and saving. Its output census
+took **0.591878661 seconds**, exceeding the **0.25-second** observation budget;
+parent TERM/KILL followed, and the importer exited **-9 after 19.594917998
+seconds**, before its 90-second deadline. Cleanup completed, input/source/tool
+identities stayed unchanged, and all 19 source copies were retained. CI did not pass; the
+diagnostic remains `diagnostic-incomplete`, with no qualified derivative/archive. The
+[result](evidence/D27-retained-atrc-import.json) and
+[verification](evidence/D27-verification.json) supply no unsupported-input,
+importer-hang or product-root-cause conclusion. No export or new recording ran.
+
+D28 is proposed as an offline review of the bounded observer, classification
+and omitted-observation counter; exact per-call timing was not retained.
+Review precedes any further native proposal, with no automatic threshold
+increase or retry. PR #45 remains draft/unmerged and C12 remains HOLD. The
+original full Finder sequence, completed source/twelve-image review,
+physical/v4 evidence and task 08's dependency on task 07 remain unchanged.
 
 To complete task 08, close or explicitly resolve task 07's remaining CI gate on
 the final candidate, review any resulting production changes, and retain the

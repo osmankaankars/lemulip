@@ -1,12 +1,119 @@
 # D27 — One bounded import of the retained ATRC
 
-**Prepared protocol; the native experiment has not yet run.** D27 tests one
-remaining compatibility hypothesis from [D26](NATIVE_RETAINED_ATRC_CONTRACT.md):
-can the same selected reader accept the exact retained raw payload with an
-explicit System Trace selection and create a separately identified analysis
-document? The exact payload is not prequalified by its suffix, prefix, or
-general file family. C12, task 07 and draft/unmerged
+**D27 executed one import; its native result is `diagnostic-incomplete`.** The
+reader reported completion of its import phase and the start of saving, then
+the output observer exceeded its per-census work budget and stopped the owned
+process. No qualified derivative archive was retained. Exact payload acceptance
+and saved-document readability remain unestablished. C12, task 07 and draft/unmerged
 [PR #45](https://github.com/osmankaankars/lemulip/pull/45) remain **HOLD**.
+
+## Executed result — 9 November 2026
+
+[R2, attempt 1](https://github.com/osmankaankars/lemulip/actions/runs/42639700185)
+passed all **99 native tests**, fetched the exact existing input, and made one
+import invocation. The import step and CI conclusion are **failure**, because
+the collector correctly retains an incomplete outcome when an observation gate
+fails. There was no export, recording, sampler, alternate selection or second
+native import. The [public result](evidence/D27-retained-atrc-import.json) and
+[verification record](evidence/D27-verification.json) preserve the exact source,
+input, execution, audit and interpretation bindings.
+
+| Execution identity | Value |
+| --- | --- |
+| Actual import source commit | `50b34b215e1372a46add0f6c67fc8a2b9dc95e06` |
+| Actual import source tree | `1d7db69e5778be3d909188daf8ab0604a4db1a4f` |
+| R2 run / attempt / Intel job | `42639700185` / 1 / `129237191513` |
+| Native artifact | `13685495111` |
+| Artifact bytes / files / expanded bytes | 12,940,445 / 75 / 14,339,706 |
+| Artifact SHA-256 | `03fe68b01b0818d660d4c493ffcf68dc81878046e866b36fbcfc2e9a7115b3a8` |
+| Artifact expiration | 23 November 2026, 14:59:13 UTC |
+| Native tests | 19 D24 primitives + 9 D25 adapter + 23 D25 input + 24 D27 output + 24 D27 collector = 99 passed |
+| Physically retained source copies | 19 / 19, including the visible workflow copy |
+
+The source/reader/input preservation checks passed. The retained inner ZIP and
+the entire 115,782,056-byte ATRC stream still match their pinned identities.
+The independent provenance audit passed **377 checks** over all 75 archive
+members, all source copies, exact Git history, binary/UUID witnesses and the
+retained input. These integrity checks do not qualify import completion.
+
+### What the reader reported, and what stopped the attempt
+
+The command used the freshly listed exact System Trace template. Its 106 stdout
+bytes first announce that selection, then report:
+
+```text
+Import completed. Saving output file...
+```
+
+Stderr is empty. The stdout SHA-256 is
+`420a72529441bd36ffab94479e0b86dd97626f350b6422bd8ba3582b89638415`.
+This is a retained progress message; it does not replace final successful
+process exit, a complete output inventory or a verified saved document.
+
+| Observed event | Measured result |
+| --- | --- |
+| Live census work budget | 0.25 seconds |
+| Failed live census duration / overshoot | 0.591878661 / 0.341878661 seconds |
+| Owned-group TERM request | 19.297913152 seconds after command start |
+| Owned-group KILL request | 19.558746246 seconds after command start |
+| Import operation elapsed / exit | 19.594917998 seconds / -9 |
+| Normal / total import budget | 90 / 95 seconds; neither triggered the stop |
+| Transport / cleanup | incomplete / complete |
+| Emergency cleanup / signal errors | none / none |
+| Final derivative retention | skipped because output observation had failed |
+
+The parent-issued signals explain the observed -9 exit. It is not evidence of a
+spontaneous reader crash, unsupported input, an import deadlock or exhaustion of
+the 90-second import budget. The retained evidence does not identify which
+filesystem operation or scheduling interval caused the slow census. The
+30-second archive-retention budget did not expire: finalization immediately
+skipped reading the unqualified output.
+
+### Observed output growth and evidence limits
+
+The last completed retained census counted **244 entries**, depth **7**,
+**1,569,293 logical bytes** and **2,142,208 allocated bytes** inside the exclusive
+output parent. The independently maintained high-water counters reached
+**1,686,939 logical bytes** and **2,232,320 allocated bytes**, including partial
+work from the failed census. These are observed counters, not a final complete
+inventory or a guarantee about unobserved transient/off-root writes. No measured
+byte, entry or depth threshold caused this stop.
+
+Output growth was therefore observed. The absence of `derived.trace.zip` does
+not mean no files were created. Because the guard failed, no stable final named
+inventory or derivative archive was retained; even the intended document's
+structural qualification remains false. D27 cannot inspect that partial output
+offline from this artifact.
+
+One separate summary-counter defect was found during the audit. The native
+record reports 324 completed scans, retains 256 observations comprising 255
+completed and one failed observation, and reports 68 omitted completed scans.
+The correct derived omitted-completed count is **69**. The source formula
+subtracts the failed retained observation from the completed-scan count too.
+The public record preserves the original 68 and separately annotates the
+derived 69; it does not rewrite executed evidence. This accounting defect did
+not cause the census timeout and does not restore import acceptance.
+
+The independent command/output audit completed **575 checks: 574 passed and
+one failed on this disclosed counter discrepancy**. Its original
+`allChecksPassed=false` remains visible in the verification record. The separate
+semantic review passed all **31 checks** while preserving the incomplete result.
+
+## Next proposed D28 — review the output observer offline
+
+D28 should use the retained receipts, frozen source and controlled synthetic
+fixtures to examine the live census's time accounting and responsiveness. The
+missing per-operation timing witnesses prevent attributing the 0.592-second
+census to a particular filesystem call or scheduler event. The next work must
+make that boundary measurable before proposing another native experiment.
+
+Reproduce delayed census work and history truncation in synthetic tests, correct
+the omitted-completed counter, and assess an observation design that preserves
+the command's cleanup/deadline handling while retaining bounded progress evidence.
+Any change needs its own explicit timing, storage and retention contract. A
+larger timeout or a repeated import is not automatically prescribed. **D28 is
+proposed and has not been executed.** D27 ends with this one retained incomplete
+attempt; no useful trace rows, clock mapping or task 07 acceptance are added.
 
 ## Pre-import test failure and fixture correction
 
@@ -30,9 +137,9 @@ test skipped, input renamed, or import attempted by this correction.
 
 The exact native temporary alias was not recorded in R1, so a particular host
 path mapping is not claimed as directly observed. The controlled reproduction
-establishes the fixture defect and predicts that the corrected canonical fixture
-will pass the native gate. R2 must verify that prediction before any import.
-All other Python sources and tests remain byte-identical to R1.
+establishes the fixture defect. R2 verified the prediction: the corrected case
+and the new alias regression passed in its 99-case native test gate. All other
+Python sources and tests remain byte-identical to R1.
 
 ## Question and fixed command
 
@@ -88,7 +195,7 @@ Mode bits and final hash equality do not establish that no write was attempted
 or no cache was created elsewhere. Equality of the reader binary and version
 text does not establish equality of every linked framework or plugin.
 
-## Finite execution protocol
+## Executed finite protocol
 
 Require native Intel macOS, a non-root account, Python 3.13 or later with a
 successful non-reaping child-status probe, exact Xcode selection, a clean

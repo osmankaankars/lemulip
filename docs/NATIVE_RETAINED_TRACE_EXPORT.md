@@ -251,7 +251,7 @@ D25 did not qualify a TOC, so there is no observed schema for a follow-up XPath
 query. Its proposed D26 contract review subsequently identified the missing
 import-specific help and collected that one response from the same reader.
 
-### Subsequent D26 result and proposed D27 experiment
+### Subsequent D26 contract and D27 import result
 
 [D26](NATIVE_RETAINED_ATRC_CONTRACT.md) completed in
 [run 42629940773](https://github.com/osmankaankars/lemulip/actions/runs/42629940773),
@@ -267,16 +267,23 @@ with an explicit System Trace template, but does not name ATRC, identify this
 payload's UTI/default, or enumerate an accepted format set. D26 made no import,
 export or recording. D25's refusal and all its limits remain unchanged.
 
-The **proposed D27** is one separately bounded derived-import hypothesis test.
-The documented general Apple Trace family and observed 26.3 grammar motivate
-testing compatibility; exact payload acceptance remains the question to be
-measured. This clarifies the earlier prospective format precondition: metadata
-establishes the family/command basis, not full payload validity. The experiment
-must bind the same reader, preserve an exact read-only input copy, observe fresh
-System Trace availability, and use a separate exclusive output with fixed
-transport/output/cleanup bounds. The old D19 inventory is insufficient for
-that fresh selection check. No automatic export, original-package repair or
-recording retry follows. D27 has not run.
+[D27 R2](NATIVE_RETAINED_ATRC_IMPORT.md) subsequently passed **99 native tests**
+and made one import with the exact protected input, same reader and fresh
+System Trace availability. Stdout reported import completion and saving, but
+an output census exceeded its 0.25-second budget at **0.591878661 seconds**.
+Parent TERM/KILL followed; the command exited **-9 after 19.594917998 seconds**,
+before its 90-second deadline. Cleanup completed, input/source/tool identities
+were preserved, and all 19 source copies are retained. CI did not pass; the diagnostic
+remains `diagnostic-incomplete`, with no qualified derivative/archive. The
+[result](evidence/D27-retained-atrc-import.json) and
+[verification](evidence/D27-verification.json) establish no unsupported-format,
+importer-hang or root-cause conclusion. No export or new recording followed.
+
+The next proposed D28 step is an offline review of the bounded observer,
+classification and omitted-observation counter. Per-call timing was not
+retained, so the precise census delay is not localized. That review precedes
+any further native proposal; thresholds are not automatically widened and the
+import is not automatically retried.
 
 Any later derived-data attempt would need its own provenance and finite
 protocol; it would not retroactively complete D24. Only qualified decoded time

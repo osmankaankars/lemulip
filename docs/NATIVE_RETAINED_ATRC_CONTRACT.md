@@ -4,8 +4,10 @@
 request. The exact retained ATRC route remains unestablished.** The help clarifies
 selection options and version-dependent default templates, but does not name
 ATRC or enumerate all accepted formats. The general Apple Trace input family is
-documented; acceptance or rejection of this exact partial payload has not been
-tested. Unsupported input is also unproven. C12, task 07 and draft/unmerged
+documented; D26 itself did not test this exact partial payload. The subsequent
+[D27 attempt](NATIVE_RETAINED_ATRC_IMPORT.md) remains `diagnostic-incomplete`
+after its output observer stopped the importer; neither accepted input nor
+unsupported input is established. C12, task 07 and draft/unmerged
 [PR #45](https://github.com/osmankaankars/lemulip/pull/45) remain **HOLD**.
 
 ## Executed result — 9 November 2026
@@ -70,13 +72,14 @@ The predeclared generic-help stop condition applies: D26 ends without a
 conversion or another metadata/recording retry. No trace rows, time mapping,
 sampler-window coverage or product acceptance are added.
 
-### Next proposed D27: one explicit compatibility experiment
+### Historical D27 proposal at D26 completion
 
-The next finite question is whether this same selected reader accepts one
+The proposed next finite question was whether this same selected reader accepts one
 unchanged copy of the retained raw payload with an explicit System Trace
 selection and creates a separately identified analysis document within fixed
-bounds. This is a proposed hypothesis test, **not a claim that the exact ATRC
-payload is already qualified**. D26 performs no such conversion.
+bounds. This was a proposed hypothesis test, **not a claim that the exact ATRC
+payload was already qualified**. D26 performed no such conversion. The proposal
+below records its original prerequisites; the subsequent outcome follows it.
 
 The basis is the documented general Apple Trace family, the actual installed
 import grammar and its explicit System Trace example for a ktrace input. The
@@ -86,7 +89,7 @@ that remaining uncertainty directly. This clarifies the earlier plan's format
 precondition while preserving its requirement for a documented command shape,
 explicit selection and protected original bytes.
 
-Before any D27 attempt, define one finite protocol that pins the exact input
+The proposal required a finite protocol that pins the exact input
 member/hash and reader, obtains fresh same-run System Trace availability using
 the documented template listing, preserves a protected disposable input copy,
 and writes only to a separate new output path. Bound time, streams, output
@@ -101,6 +104,28 @@ conditions, keep the route unestablished and carry the precise raw-input and
 selection question into the existing upstream evidence packet. No documented
 importer-registry query was identified, so another generic inventory is not
 the next prescribed step.
+
+### Subsequent D27 result and proposed offline D28 review
+
+[D27 R2](NATIVE_RETAINED_ATRC_IMPORT.md) passed **99 native tests** and made one
+import with the same reader, exact protected input and fresh System Trace
+availability. Stdout reported import completion and saving. An output census
+took **0.591878661 seconds**, exceeding its **0.25-second** observation budget;
+the parent then sent TERM/KILL. The importer exited **-9 after 19.594917998
+seconds**, before its 90-second normal-operation deadline. Cleanup completed,
+and input/source/tool identities plus all **19 source copies** were preserved.
+CI did not pass; the diagnostic remains `diagnostic-incomplete`, with no qualified derivative/archive.
+The [D27 result](evidence/D27-retained-atrc-import.json) and
+[verification](evidence/D27-verification.json) preserve this outcome. It proves
+neither unsupported input nor an importer hang or root cause; no export or new
+recording followed. R2's fixture correction is separate from the unresolved
+historical full D24 test failure.
+
+The proposed **D28 is offline observer review**: locate what the retained
+observations and code can establish about the census failure, classification
+and omitted-observation counter. Exact per-call timing was not retained. Any
+further native proposal must follow that review; no automatic threshold
+increase or retry is prescribed.
 
 ## Question and retained failure
 
