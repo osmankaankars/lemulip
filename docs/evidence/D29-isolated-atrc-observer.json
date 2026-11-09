@@ -1,0 +1,2986 @@
+{
+  "schema": 1,
+  "phase": "D29",
+  "outcome": "isolated-observer-implemented-offline",
+  "dated": "2026-11-10 Europe/Istanbul",
+  "baseCommit": "1c1c296e02a5b7866d14fa44d41863947271e086",
+  "baseTree": "ea8468793f0402a9dc6d71bc385b048c4a40013d",
+  "branch": "codex/isolated-atrc-observer-07",
+  "newRuntimeSources": {
+    "script/native_retained_atrc_isolated.py": {
+      "bytes": 45256,
+      "sha256": "4e0abd41326d3d7be8a5e8826a572fcce445250d379659d8a4d1781ec195d103"
+    },
+    "script/native_retained_atrc_worker.py": {
+      "bytes": 15288,
+      "sha256": "585aa89d051f983afadcea7f425064575bd3643357b0e4400c786220771a3b0e"
+    }
+  },
+  "finalVerification": {
+    "tests": 145,
+    "uniqueTestIDs": 145,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "sourceFilesUnchangedDuringRun": 105,
+    "elapsedSeconds": 10.474883495999165
+  },
+  "scope": {
+    "realPythonProcesses": true,
+    "realDisposableFilesystem": true,
+    "pendingMetadataFixture": "Python callback waits after the real operation-start witness; not a kernel-stall experiment.",
+    "realOperatingSystemGroupCensusEstablished": false,
+    "testGroupEvidence": "Synthetic direct-owned-child list from retained real Popen objects, WNOWAIT child status and getpgid identity.",
+    "productionGroupEvidenceFallbackAdded": false,
+    "nativeATRCImportEstablished": false,
+    "D27SlowNativeOperationIdentified": false,
+    "hardSchedulerOrKernelDeadlineClaimed": false
+  },
+  "fixedContract": {
+    "targetNormalSeconds": 90,
+    "targetTotalSeconds": 95,
+    "scanDispatchBudgetSeconds": 0.25,
+    "requestedCadenceSeconds": 0.05,
+    "parentPollSeconds": 0.005,
+    "termGraceSeconds": 0.25,
+    "workerStartupSeconds": 2,
+    "workerCleanupAccountingSeconds": 2,
+    "groupProbeSeconds": 2,
+    "groupProbeStreamBytes": 65536,
+    "targetCombinedStreamBytes": 8388608,
+    "frameBytes": 4096,
+    "undecodedBufferBytes": 65536,
+    "readBytesPerTick": 65536,
+    "messagesPerTick": 16,
+    "workerEvidenceBytes": 8388608,
+    "fixedReceiptReserveBytes": 3145728,
+    "historyFirstCount": 128,
+    "historyTailCount": 128,
+    "logicalBytes": 536870912,
+    "allocatedBytes": 536870912,
+    "entries": 16384,
+    "depth": 32,
+    "relativePathUTF8Bytes": 1024,
+    "finalRetentionSeconds": 30,
+    "retentionChunkBytes": 65536,
+    "cleanupMeaning": "Collection within budget is required for qualification; later probes/cleanup may return after the budget and must report overshoot/failure."
+  },
+  "integrationObservations": [
+    {
+      "test": "test_native_retained_atrc_isolated.IsolatedIntegrationTests.test_guard_cannot_start_a_second_observer_or_target",
+      "outcome": "passed",
+      "elapsedSeconds": 0.16015796499959833,
+      "evidenceKind": "real-python-process-synthetic-fixture",
+      "groupEnumeration": "synthetic-direct-owned-child-list",
+      "result": {
+        "startupComplete": true,
+        "initialScanGeneration": 1,
+        "finalScanGeneration": 2,
+        "finalFreshScanComplete": true,
+        "observationComplete": true,
+        "cleanupComplete": true,
+        "transportComplete": true,
+        "targetCleanupComplete": true,
+        "workerCleanupComplete": true,
+        "workerCleanupDeadlineExceeded": false,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.037602571999741485,
+        "workerCleanupDeadlineOvershootSeconds": 0,
+        "channel": {
+          "observedBytes": 6891,
+          "parsedMessages": 38,
+          "maximumUndecodedBytes": 3259,
+          "maximumReadBytesPerTick": 3259,
+          "maximumMessagesParsedPerTick": 16,
+          "EOF": true,
+          "undecodedBytes": 0
+        },
+        "workerEvidence": {
+          "maximumBytes": 8388608,
+          "retainedPayloadBytes": 15861,
+          "accountingReceiptReserveBytes": 4096,
+          "historyReceiptReserveBytes": 3145728,
+          "historyRowsOmittedForByteLimit": 0,
+          "accounting": "compact UTF-8 metadata plus raw worker/probe streams"
+        },
+        "supervisionTicks": 46,
+        "maximumObservedSupervisionTickGapSeconds": 0.005715745999623323,
+        "elapsedSeconds": 0.15791547100161551,
+        "errors": [],
+        "finalOwnedGroups": {
+          "output-observer": {
+            "pgid": 23,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 23,
+                "pgid": 23,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          },
+          "synthetic-target": {
+            "pgid": 24,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 24,
+                "pgid": 24,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          }
+        },
+        "target": {
+          "pid": 24,
+          "exitCode": 0,
+          "stopReason": null,
+          "signals": [],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12870483070112,
+            "wallTimeNS": 1794267871165510084,
+            "monotonicAfterNS": 12870483070842
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12870483079997,
+            "wallTimeNS": 1794267871165519539,
+            "monotonicAfterNS": 12870483080259
+          },
+          "completionObservedWithinTotalBudget": true,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12870526562778,
+            "wallTimeNS": 1794267871209002329,
+            "monotonicAfterNS": 12870526563041
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "worker": {
+          "pid": 23,
+          "exitCode": 0,
+          "stopReason": null,
+          "signals": [],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12870504553534,
+            "wallTimeNS": 1794267871186993547,
+            "monotonicAfterNS": 12870504554326
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12870504561767,
+            "wallTimeNS": 1794267871187001281,
+            "monotonicAfterNS": 12870504562023
+          },
+          "completionObservedWithinTotalBudget": true,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12870526536531,
+            "wallTimeNS": 1794267871208976046,
+            "monotonicAfterNS": 12870526536760
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": true,
+          "stopped": true,
+          "sequence": 38,
+          "generation": 2,
+          "lastCompletedScan": 2,
+          "failure": null,
+          "pendingScan": null,
+          "pendingOperation": null,
+          "highWaterObserved": {
+            "allocatedBytes": 4096,
+            "depth": 0,
+            "entries": 1,
+            "logicalBytes": 0
+          }
+        }
+      }
+    },
+    {
+      "test": "test_native_retained_atrc_isolated.IsolatedIntegrationTests.test_late_collection_does_not_restore_target_total_deadline",
+      "outcome": "passed",
+      "elapsedSeconds": 0.947523369000919,
+      "evidenceKind": "real-python-process-synthetic-fixture",
+      "groupEnumeration": "synthetic-direct-owned-child-list",
+      "result": {
+        "startupComplete": true,
+        "initialScanGeneration": 1,
+        "finalScanGeneration": null,
+        "finalFreshScanComplete": false,
+        "observationComplete": false,
+        "cleanupComplete": false,
+        "transportComplete": false,
+        "targetCleanupComplete": false,
+        "workerCleanupComplete": true,
+        "workerCleanupDeadlineExceeded": false,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.5639313200008473,
+        "workerCleanupDeadlineOvershootSeconds": 0,
+        "channel": {
+          "observedBytes": 5543,
+          "parsedMessages": 31,
+          "maximumUndecodedBytes": 3251,
+          "maximumReadBytesPerTick": 3251,
+          "maximumMessagesParsedPerTick": 16,
+          "EOF": false,
+          "undecodedBytes": 0
+        },
+        "workerEvidence": {
+          "maximumBytes": 8388608,
+          "retainedPayloadBytes": 19545,
+          "accountingReceiptReserveBytes": 4096,
+          "historyReceiptReserveBytes": 3145728,
+          "historyRowsOmittedForByteLimit": 0,
+          "accounting": "compact UTF-8 metadata plus raw worker/probe streams"
+        },
+        "supervisionTicks": 207,
+        "maximumObservedSupervisionTickGapSeconds": 0.007226096000522375,
+        "elapsedSeconds": 0.9406725370008644,
+        "errors": [
+          "Census completion not observed within parent dispatch budget",
+          "Original cleanup did not establish both owned groups",
+          "Observer did not exit successfully after acknowledged shutdown"
+        ],
+        "finalOwnedGroups": {
+          "output-observer": {
+            "pgid": 26,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 26,
+                "pgid": 26,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          },
+          "synthetic-target": {
+            "pgid": 27,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 27,
+                "pgid": 27,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          }
+        },
+        "target": {
+          "pid": 27,
+          "exitCode": -9,
+          "stopReason": "command-budget",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.12496143099997425
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.8278283800009376
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12871436928880,
+            "wallTimeNS": 1794267872119368386,
+            "monotonicAfterNS": 12871436929153
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12870789937543,
+            "wallTimeNS": 1794267871472377808,
+            "monotonicAfterNS": 12870789938567
+          },
+          "completionObservedWithinTotalBudget": false,
+          "normalDeadlineOvershootSeconds": 0.004932206000376027,
+          "totalDeadlineOvershootSeconds": 0.001767355999618303,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12871474301349,
+            "wallTimeNS": 1794267872156740858,
+            "monotonicAfterNS": 12871474301633
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "worker": {
+          "pid": 26,
+          "exitCode": -15,
+          "stopReason": "observation-failed",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.3765943580001476
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.6301565049998317
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12870915564921,
+            "wallTimeNS": 1794267871598004898,
+            "monotonicAfterNS": 12870915565639
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12871163963919,
+            "wallTimeNS": 1794267871846404089,
+            "monotonicAfterNS": 12871163964879
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12871474279353,
+            "wallTimeNS": 1794267872156719111,
+            "monotonicAfterNS": 12871474279837
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": true,
+          "stopped": false,
+          "sequence": 31,
+          "generation": 2,
+          "lastCompletedScan": 1,
+          "failure": {
+            "code": "isolated-observation-failed",
+            "error": "Census completion not observed within parent dispatch budget",
+            "parentClockNS": 12870910325466,
+            "pendingScan": {
+              "scan": 2,
+              "dispatchedNS": 12870660241785,
+              "deadlineNS": 12870910241785,
+              "started": true,
+              "lastOperation": 6,
+              "workerStartedNS": 12870660522710
+            },
+            "pendingOperation": {
+              "category": "stat",
+              "clockNS": 12870660770934,
+              "kind": "op_started",
+              "nonce": "23ed59e3d96a42f39e9b144bdc01571c",
+              "op": 6,
+              "path": "stall.bin",
+              "scan": 2,
+              "schema": 1,
+              "seq": 31
+            }
+          },
+          "pendingScan": {
+            "scan": 2,
+            "dispatchedNS": 12870660241785,
+            "deadlineNS": 12870910241785,
+            "started": true,
+            "lastOperation": 6,
+            "workerStartedNS": 12870660522710
+          },
+          "pendingOperation": {
+            "category": "stat",
+            "clockNS": 12870660770934,
+            "kind": "op_started",
+            "nonce": "23ed59e3d96a42f39e9b144bdc01571c",
+            "op": 6,
+            "path": "stall.bin",
+            "scan": 2,
+            "schema": 1,
+            "seq": 31
+          },
+          "highWaterObserved": {
+            "allocatedBytes": 4096,
+            "depth": 0,
+            "entries": 1,
+            "logicalBytes": 0
+          }
+        }
+      }
+    },
+    {
+      "test": "test_native_retained_atrc_isolated.IsolatedIntegrationTests.test_malformed_worker_report_is_retained_as_first_failure",
+      "outcome": "passed",
+      "elapsedSeconds": 0.3384985789998609,
+      "evidenceKind": "real-python-process-synthetic-fixture",
+      "groupEnumeration": "synthetic-direct-owned-child-list",
+      "result": {
+        "startupComplete": false,
+        "initialScanGeneration": 1,
+        "finalScanGeneration": null,
+        "finalFreshScanComplete": false,
+        "observationComplete": false,
+        "cleanupComplete": false,
+        "transportComplete": false,
+        "targetCleanupComplete": false,
+        "workerCleanupComplete": true,
+        "workerCleanupDeadlineExceeded": false,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.2686872100002802,
+        "workerCleanupDeadlineOvershootSeconds": 0,
+        "channel": {
+          "observedBytes": 285,
+          "parsedMessages": 2,
+          "maximumUndecodedBytes": 263,
+          "maximumReadBytesPerTick": 263,
+          "maximumMessagesParsedPerTick": 1,
+          "EOF": false,
+          "undecodedBytes": 0
+        },
+        "workerEvidence": {
+          "maximumBytes": 8388608,
+          "retainedPayloadBytes": 8997,
+          "accountingReceiptReserveBytes": 4096,
+          "historyReceiptReserveBytes": 3145728,
+          "historyRowsOmittedForByteLimit": 0,
+          "accounting": "compact UTF-8 metadata plus raw worker/probe streams"
+        },
+        "supervisionTicks": 76,
+        "maximumObservedSupervisionTickGapSeconds": 0.006303538999418379,
+        "elapsedSeconds": 0.33683599199866876,
+        "errors": [
+          "Unknown report kind",
+          "Observer startup or empty-census gate failed",
+          "Observer did not exit successfully after acknowledged shutdown"
+        ],
+        "finalOwnedGroups": {
+          "output-observer": {
+            "pgid": 31,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 31,
+                "pgid": 31,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          }
+        },
+        "target": null,
+        "worker": {
+          "pid": 31,
+          "exitCode": -15,
+          "stopReason": "observation-failed",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.06818780400135438
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.3203261899998324
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12871549794375,
+            "wallTimeNS": 1794267872232234607,
+            "monotonicAfterNS": 12871549795364
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12871796689558,
+            "wallTimeNS": 1794267872479129701,
+            "monotonicAfterNS": 12871796690475
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12871813070184,
+            "wallTimeNS": 1794267872495509675,
+            "monotonicAfterNS": 12871813070387
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": true,
+          "stopped": false,
+          "sequence": 1,
+          "generation": 1,
+          "lastCompletedScan": 0,
+          "failure": {
+            "code": "isolated-observation-failed",
+            "error": "Unknown report kind",
+            "parentClockNS": 12871544366427,
+            "pendingScan": {
+              "scan": 1,
+              "dispatchedNS": 12871539130029,
+              "deadlineNS": 12871789130029,
+              "started": false,
+              "lastOperation": 0
+            },
+            "pendingOperation": null
+          },
+          "pendingScan": {
+            "scan": 1,
+            "dispatchedNS": 12871539130029,
+            "deadlineNS": 12871789130029,
+            "started": false,
+            "lastOperation": 0
+          },
+          "pendingOperation": null,
+          "highWaterObserved": {
+            "logicalBytes": 0,
+            "depth": 0,
+            "entries": 0,
+            "allocatedBytes": 0
+          }
+        }
+      }
+    },
+    {
+      "test": "test_native_retained_atrc_isolated.IsolatedIntegrationTests.test_natural_nonzero_exit_retains_transport_outcome_without_inventing_output",
+      "outcome": "passed",
+      "elapsedSeconds": 0.14612955099983083,
+      "evidenceKind": "real-python-process-synthetic-fixture",
+      "groupEnumeration": "synthetic-direct-owned-child-list",
+      "result": {
+        "startupComplete": true,
+        "initialScanGeneration": 1,
+        "finalScanGeneration": 2,
+        "finalFreshScanComplete": true,
+        "observationComplete": true,
+        "cleanupComplete": true,
+        "transportComplete": true,
+        "targetCleanupComplete": true,
+        "workerCleanupComplete": true,
+        "workerCleanupDeadlineExceeded": false,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.04278050399989297,
+        "workerCleanupDeadlineOvershootSeconds": 0,
+        "channel": {
+          "observedBytes": 6890,
+          "parsedMessages": 38,
+          "maximumUndecodedBytes": 3259,
+          "maximumReadBytesPerTick": 3259,
+          "maximumMessagesParsedPerTick": 16,
+          "EOF": true,
+          "undecodedBytes": 0
+        },
+        "workerEvidence": {
+          "maximumBytes": 8388608,
+          "retainedPayloadBytes": 15863,
+          "accountingReceiptReserveBytes": 4096,
+          "historyReceiptReserveBytes": 3145728,
+          "historyRowsOmittedForByteLimit": 0,
+          "accounting": "compact UTF-8 metadata plus raw worker/probe streams"
+        },
+        "supervisionTicks": 45,
+        "maximumObservedSupervisionTickGapSeconds": 0.005237813000348979,
+        "elapsedSeconds": 0.14418648399987433,
+        "errors": [],
+        "finalOwnedGroups": {
+          "output-observer": {
+            "pgid": 33,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 33,
+                "pgid": 33,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          },
+          "synthetic-target": {
+            "pgid": 34,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 34,
+                "pgid": 34,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          }
+        },
+        "target": {
+          "pid": 34,
+          "exitCode": 7,
+          "stopReason": null,
+          "signals": [],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12871910350734,
+            "wallTimeNS": 1794267872592790179,
+            "monotonicAfterNS": 12871910350894
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12871910380172,
+            "wallTimeNS": 1794267872592819650,
+            "monotonicAfterNS": 12871910380363
+          },
+          "completionObservedWithinTotalBudget": true,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [
+            {
+              "clock": {
+                "monotonicBeforeNS": 12871910338817,
+                "wallTimeNS": 1794267872592778768,
+                "monotonicAfterNS": 12871910339523
+              },
+              "observedBytes": 8,
+              "stdoutBytes": 8,
+              "stderrBytes": 0
+            }
+          ],
+          "collectedClock": {
+            "monotonicBeforeNS": 12871958941213,
+            "wallTimeNS": 1794267872641380624,
+            "monotonicAfterNS": 12871958941337
+          },
+          "observedBytes": 8,
+          "retainedBytes": 8
+        },
+        "worker": {
+          "pid": 33,
+          "exitCode": 0,
+          "stopReason": null,
+          "signals": [],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12871931748677,
+            "wallTimeNS": 1794267872614188661,
+            "monotonicAfterNS": 12871931749425
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12871931757304,
+            "wallTimeNS": 1794267872614196896,
+            "monotonicAfterNS": 12871931757621
+          },
+          "completionObservedWithinTotalBudget": true,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12871958919763,
+            "wallTimeNS": 1794267872641359269,
+            "monotonicAfterNS": 12871958919993
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": true,
+          "stopped": true,
+          "sequence": 38,
+          "generation": 2,
+          "lastCompletedScan": 2,
+          "failure": null,
+          "pendingScan": null,
+          "pendingOperation": null,
+          "highWaterObserved": {
+            "allocatedBytes": 4096,
+            "depth": 0,
+            "entries": 1,
+            "logicalBytes": 0
+          }
+        }
+      }
+    },
+    {
+      "test": "test_native_retained_atrc_isolated.IsolatedIntegrationTests.test_nonempty_startup_census_prevents_target_launch",
+      "outcome": "passed",
+      "elapsedSeconds": 0.354478941000707,
+      "evidenceKind": "real-python-process-synthetic-fixture",
+      "groupEnumeration": "synthetic-direct-owned-child-list",
+      "result": {
+        "startupComplete": false,
+        "initialScanGeneration": 1,
+        "finalScanGeneration": null,
+        "finalFreshScanComplete": false,
+        "observationComplete": false,
+        "cleanupComplete": false,
+        "transportComplete": false,
+        "targetCleanupComplete": false,
+        "workerCleanupComplete": true,
+        "workerCleanupDeadlineExceeded": false,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.2705697540004621,
+        "workerCleanupDeadlineOvershootSeconds": 0,
+        "channel": {
+          "observedBytes": 4247,
+          "parsedMessages": 23,
+          "maximumUndecodedBytes": 3984,
+          "maximumReadBytesPerTick": 3984,
+          "maximumMessagesParsedPerTick": 16,
+          "EOF": false,
+          "undecodedBytes": 0
+        },
+        "workerEvidence": {
+          "maximumBytes": 8388608,
+          "retainedPayloadBytes": 13898,
+          "accountingReceiptReserveBytes": 4096,
+          "historyReceiptReserveBytes": 3145728,
+          "historyRowsOmittedForByteLimit": 0,
+          "accounting": "compact UTF-8 metadata plus raw worker/probe streams"
+        },
+        "supervisionTicks": 78,
+        "maximumObservedSupervisionTickGapSeconds": 0.007026270999631379,
+        "elapsedSeconds": 0.3511706930003129,
+        "errors": [
+          "Output parent not empty before target launch",
+          "Observer startup or empty-census gate failed",
+          "Observer did not exit successfully after acknowledged shutdown"
+        ],
+        "finalOwnedGroups": {
+          "output-observer": {
+            "pgid": 36,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 36,
+                "pgid": 36,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          }
+        },
+        "target": null,
+        "worker": {
+          "pid": 36,
+          "exitCode": -15,
+          "stopReason": "observation-failed",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.07993576199987729
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.3301927370011981
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12872047122744,
+            "wallTimeNS": 1794267872729562980,
+            "monotonicAfterNS": 12872047123731
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12872292231278,
+            "wallTimeNS": 1794267872974671443,
+            "monotonicAfterNS": 12872292232216
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12872312495343,
+            "wallTimeNS": 1794267872994934881,
+            "monotonicAfterNS": 12872312495626
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": true,
+          "stopped": false,
+          "sequence": 23,
+          "generation": 1,
+          "lastCompletedScan": 1,
+          "failure": {
+            "code": "isolated-observation-failed",
+            "error": "Output parent not empty before target launch",
+            "parentClockNS": 12872041922717,
+            "pendingScan": null,
+            "pendingOperation": null
+          },
+          "pendingScan": null,
+          "pendingOperation": null,
+          "highWaterObserved": {
+            "allocatedBytes": 8192,
+            "depth": 1,
+            "entries": 2,
+            "logicalBytes": 9
+          }
+        }
+      }
+    },
+    {
+      "test": "test_native_retained_atrc_isolated.IsolatedIntegrationTests.test_preexit_census_cannot_replace_a_pending_fresh_final_scan",
+      "outcome": "passed",
+      "elapsedSeconds": 0.6734639019996393,
+      "evidenceKind": "real-python-process-synthetic-fixture",
+      "groupEnumeration": "synthetic-direct-owned-child-list",
+      "result": {
+        "startupComplete": true,
+        "initialScanGeneration": 1,
+        "finalScanGeneration": 3,
+        "finalFreshScanComplete": false,
+        "observationComplete": false,
+        "cleanupComplete": true,
+        "transportComplete": false,
+        "targetCleanupComplete": true,
+        "workerCleanupComplete": true,
+        "workerCleanupDeadlineExceeded": false,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.28307368099922314,
+        "workerCleanupDeadlineOvershootSeconds": 0,
+        "channel": {
+          "observedBytes": 15207,
+          "parsedMessages": 83,
+          "maximumUndecodedBytes": 7408,
+          "maximumReadBytesPerTick": 7408,
+          "maximumMessagesParsedPerTick": 16,
+          "EOF": false,
+          "undecodedBytes": 0
+        },
+        "workerEvidence": {
+          "maximumBytes": 8388608,
+          "retainedPayloadBytes": 26161,
+          "accountingReceiptReserveBytes": 4096,
+          "historyReceiptReserveBytes": 3145728,
+          "historyRowsOmittedForByteLimit": 0,
+          "accounting": "compact UTF-8 metadata plus raw worker/probe streams"
+        },
+        "supervisionTicks": 143,
+        "maximumObservedSupervisionTickGapSeconds": 0.02212107999912405,
+        "elapsedSeconds": 0.6691533080011141,
+        "errors": [
+          "Census completion not observed within parent dispatch budget",
+          "Observer did not exit successfully after acknowledged shutdown"
+        ],
+        "finalOwnedGroups": {
+          "output-observer": {
+            "pgid": 38,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 38,
+                "pgid": 38,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          },
+          "synthetic-target": {
+            "pgid": 39,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 39,
+                "pgid": 39,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          }
+        },
+        "target": {
+          "pid": 39,
+          "exitCode": 0,
+          "stopReason": "isolated-observation-failed",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.3107765279983141
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12872452834483,
+            "wallTimeNS": 1794267873135274335,
+            "monotonicAfterNS": 12872452835101
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12872452841433,
+            "wallTimeNS": 1794267873135281024,
+            "monotonicAfterNS": 12872452841770
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12872986369564,
+            "wallTimeNS": 1794267873668809093,
+            "monotonicAfterNS": 12872986369809
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "worker": {
+          "pid": 38,
+          "exitCode": -15,
+          "stopReason": "observation-failed",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.38583181299873104
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.6405171899987181
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12872708510635,
+            "wallTimeNS": 1794267873390950730,
+            "monotonicAfterNS": 12872708511502
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12872957993112,
+            "wallTimeNS": 1794267873640433460,
+            "monotonicAfterNS": 12872957994262
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12872986348347,
+            "wallTimeNS": 1794267873668787868,
+            "monotonicAfterNS": 12872986348617
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": true,
+          "stopped": false,
+          "sequence": 83,
+          "generation": 3,
+          "lastCompletedScan": 2,
+          "failure": {
+            "code": "isolated-observation-failed",
+            "error": "Census completion not observed within parent dispatch budget",
+            "parentClockNS": 12872703226449,
+            "pendingScan": {
+              "scan": 3,
+              "dispatchedNS": 12872453074543,
+              "deadlineNS": 12872703074543,
+              "started": true,
+              "lastOperation": 12,
+              "workerStartedNS": 12872453584086
+            },
+            "pendingOperation": {
+              "category": "stat",
+              "clockNS": 12872454137037,
+              "kind": "op_started",
+              "nonce": "7b1951208b4b468695d88671cecc9d04",
+              "op": 12,
+              "path": "derived.trace/payload.bin",
+              "scan": 3,
+              "schema": 1,
+              "seq": 83
+            }
+          },
+          "pendingScan": {
+            "scan": 3,
+            "dispatchedNS": 12872453074543,
+            "deadlineNS": 12872703074543,
+            "started": true,
+            "lastOperation": 12,
+            "workerStartedNS": 12872453584086
+          },
+          "pendingOperation": {
+            "category": "stat",
+            "clockNS": 12872454137037,
+            "kind": "op_started",
+            "nonce": "7b1951208b4b468695d88671cecc9d04",
+            "op": 12,
+            "path": "derived.trace/payload.bin",
+            "scan": 3,
+            "schema": 1,
+            "seq": 83
+          },
+          "highWaterObserved": {
+            "allocatedBytes": 12288,
+            "depth": 2,
+            "entries": 3,
+            "logicalBytes": 7
+          }
+        }
+      }
+    },
+    {
+      "test": "test_native_retained_atrc_isolated.IsolatedIntegrationTests.test_ready_without_completed_empty_census_does_not_launch_target",
+      "outcome": "passed",
+      "elapsedSeconds": 0.5977185619994998,
+      "evidenceKind": "real-python-process-synthetic-fixture",
+      "groupEnumeration": "synthetic-direct-owned-child-list",
+      "result": {
+        "startupComplete": false,
+        "initialScanGeneration": 1,
+        "finalScanGeneration": null,
+        "finalFreshScanComplete": false,
+        "observationComplete": false,
+        "cleanupComplete": false,
+        "transportComplete": false,
+        "targetCleanupComplete": false,
+        "workerCleanupComplete": true,
+        "workerCleanupDeadlineExceeded": false,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.2772819840010925,
+        "workerCleanupDeadlineOvershootSeconds": 0,
+        "channel": {
+          "observedBytes": 383,
+          "parsedMessages": 2,
+          "maximumUndecodedBytes": 263,
+          "maximumReadBytesPerTick": 263,
+          "maximumMessagesParsedPerTick": 1,
+          "EOF": false,
+          "undecodedBytes": 0
+        },
+        "workerEvidence": {
+          "maximumBytes": 8388608,
+          "retainedPayloadBytes": 9137,
+          "accountingReceiptReserveBytes": 4096,
+          "historyReceiptReserveBytes": 3145728,
+          "historyRowsOmittedForByteLimit": 0,
+          "accounting": "compact UTF-8 metadata plus raw worker/probe streams"
+        },
+        "supervisionTicks": 126,
+        "maximumObservedSupervisionTickGapSeconds": 0.005799770000521676,
+        "elapsedSeconds": 0.5959662309996929,
+        "errors": [
+          "Census completion not observed within parent dispatch budget",
+          "Observer startup or empty-census gate failed",
+          "Observer did not exit successfully after acknowledged shutdown"
+        ],
+        "finalOwnedGroups": {
+          "output-observer": {
+            "pgid": 41,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 41,
+                "pgid": 41,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          }
+        },
+        "target": null,
+        "worker": {
+          "pid": 41,
+          "exitCode": -15,
+          "stopReason": "observation-failed",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.31860308199975407
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.5732682630005002
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12873312852270,
+            "wallTimeNS": 1794267873995292229,
+            "monotonicAfterNS": 12873312852974
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12873562322520,
+            "wallTimeNS": 1794267874244763370,
+            "monotonicAfterNS": 12873562324144
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12873584882559,
+            "wallTimeNS": 1794267874267322145,
+            "monotonicAfterNS": 12873584882860
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": true,
+          "stopped": false,
+          "sequence": 2,
+          "generation": 1,
+          "lastCompletedScan": 0,
+          "failure": {
+            "code": "isolated-observation-failed",
+            "error": "Census completion not observed within parent dispatch budget",
+            "parentClockNS": 12873307579088,
+            "pendingScan": {
+              "scan": 1,
+              "dispatchedNS": 12873057420094,
+              "deadlineNS": 12873307420094,
+              "started": true,
+              "lastOperation": 0,
+              "workerStartedNS": 12873057756292
+            },
+            "pendingOperation": null
+          },
+          "pendingScan": {
+            "scan": 1,
+            "dispatchedNS": 12873057420094,
+            "deadlineNS": 12873307420094,
+            "started": true,
+            "lastOperation": 0,
+            "workerStartedNS": 12873057756292
+          },
+          "pendingOperation": null,
+          "highWaterObserved": {
+            "logicalBytes": 0,
+            "depth": 0,
+            "entries": 0,
+            "allocatedBytes": 0
+          }
+        }
+      }
+    },
+    {
+      "test": "test_native_retained_atrc_isolated.IsolatedIntegrationTests.test_stalled_metadata_allows_target_stream_and_zero_exit_observation",
+      "outcome": "passed",
+      "elapsedSeconds": 0.7359650880007393,
+      "evidenceKind": "real-python-process-synthetic-fixture",
+      "groupEnumeration": "synthetic-direct-owned-child-list",
+      "result": {
+        "startupComplete": true,
+        "initialScanGeneration": 1,
+        "finalScanGeneration": null,
+        "finalFreshScanComplete": false,
+        "observationComplete": false,
+        "cleanupComplete": true,
+        "transportComplete": false,
+        "targetCleanupComplete": true,
+        "workerCleanupComplete": true,
+        "workerCleanupDeadlineExceeded": false,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.3281831409985898,
+        "workerCleanupDeadlineOvershootSeconds": 0,
+        "channel": {
+          "observedBytes": 5547,
+          "parsedMessages": 31,
+          "maximumUndecodedBytes": 3255,
+          "maximumReadBytesPerTick": 3255,
+          "maximumMessagesParsedPerTick": 16,
+          "EOF": false,
+          "undecodedBytes": 0
+        },
+        "workerEvidence": {
+          "maximumBytes": 8388608,
+          "retainedPayloadBytes": 15466,
+          "accountingReceiptReserveBytes": 4096,
+          "historyReceiptReserveBytes": 3145728,
+          "historyRowsOmittedForByteLimit": 0,
+          "accounting": "compact UTF-8 metadata plus raw worker/probe streams"
+        },
+        "supervisionTicks": 105,
+        "maximumObservedSupervisionTickGapSeconds": 0.049026695000065956,
+        "elapsedSeconds": 0.7324623299991799,
+        "errors": [
+          "Census completion not observed within parent dispatch budget",
+          "Observer did not exit successfully after acknowledged shutdown"
+        ],
+        "finalOwnedGroups": {
+          "output-observer": {
+            "pgid": 43,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 43,
+                "pgid": 43,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          },
+          "synthetic-target": {
+            "pgid": 44,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 44,
+                "pgid": 44,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          }
+        },
+        "target": {
+          "pid": 44,
+          "exitCode": 0,
+          "stopReason": "isolated-observation-failed",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.3038445549991593
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12873750932371,
+            "wallTimeNS": 1794267874433372461,
+            "monotonicAfterNS": 12873750933219
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12873750942493,
+            "wallTimeNS": 1794267874433382024,
+            "monotonicAfterNS": 12873750942742
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [
+            {
+              "clock": {
+                "monotonicBeforeNS": 12873745113221,
+                "wallTimeNS": 1794267874427553357,
+                "monotonicAfterNS": 12873745114167
+              },
+              "observedBytes": 12,
+              "stdoutBytes": 12,
+              "stderrBytes": 0
+            }
+          ],
+          "collectedClock": {
+            "monotonicBeforeNS": 12874319304397,
+            "wallTimeNS": 1794267875001744026,
+            "monotonicAfterNS": 12874319304773
+          },
+          "observedBytes": 12,
+          "retainedBytes": 12
+        },
+        "worker": {
+          "pid": 43,
+          "exitCode": -15,
+          "stopReason": "observation-failed",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.40390828300041903
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.6667792660009582
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12874001255263,
+            "wallTimeNS": 1794267874683696830,
+            "monotonicAfterNS": 12874001257933
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12874255550236,
+            "wallTimeNS": 1794267874937992093,
+            "monotonicAfterNS": 12874255553453
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12874319146925,
+            "wallTimeNS": 1794267875001586391,
+            "monotonicAfterNS": 12874319147121
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": true,
+          "stopped": false,
+          "sequence": 31,
+          "generation": 2,
+          "lastCompletedScan": 1,
+          "failure": {
+            "code": "isolated-observation-failed",
+            "error": "Census completion not observed within parent dispatch budget",
+            "parentClockNS": 12873990493919,
+            "pendingScan": {
+              "scan": 2,
+              "dispatchedNS": 12873739836448,
+              "deadlineNS": 12873989836448,
+              "started": true,
+              "lastOperation": 6,
+              "workerStartedNS": 12873740102160
+            },
+            "pendingOperation": {
+              "category": "stat",
+              "clockNS": 12873740381918,
+              "kind": "op_started",
+              "nonce": "433c8a625b7a4ade9890ed789763e054",
+              "op": 6,
+              "path": "stall.bin",
+              "scan": 2,
+              "schema": 1,
+              "seq": 31
+            }
+          },
+          "pendingScan": {
+            "scan": 2,
+            "dispatchedNS": 12873739836448,
+            "deadlineNS": 12873989836448,
+            "started": true,
+            "lastOperation": 6,
+            "workerStartedNS": 12873740102160
+          },
+          "pendingOperation": {
+            "category": "stat",
+            "clockNS": 12873740381918,
+            "kind": "op_started",
+            "nonce": "433c8a625b7a4ade9890ed789763e054",
+            "op": 6,
+            "path": "stall.bin",
+            "scan": 2,
+            "schema": 1,
+            "seq": 31
+          },
+          "highWaterObserved": {
+            "allocatedBytes": 4096,
+            "depth": 0,
+            "entries": 1,
+            "logicalBytes": 0
+          }
+        }
+      }
+    },
+    {
+      "test": "test_native_retained_atrc_isolated.IsolatedIntegrationTests.test_success_has_fresh_final_generation_both_leases_and_exact_archive",
+      "outcome": "passed",
+      "elapsedSeconds": 0.18404092399941874,
+      "evidenceKind": "real-python-process-synthetic-fixture",
+      "groupEnumeration": "synthetic-direct-owned-child-list",
+      "result": {
+        "startupComplete": true,
+        "initialScanGeneration": 1,
+        "finalScanGeneration": 2,
+        "finalFreshScanComplete": true,
+        "observationComplete": true,
+        "cleanupComplete": true,
+        "transportComplete": true,
+        "targetCleanupComplete": true,
+        "workerCleanupComplete": true,
+        "workerCleanupDeadlineExceeded": false,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.03727489600169065,
+        "workerCleanupDeadlineOvershootSeconds": 0,
+        "channel": {
+          "observedBytes": 11039,
+          "parsedMessages": 60,
+          "maximumUndecodedBytes": 7409,
+          "maximumReadBytesPerTick": 7409,
+          "maximumMessagesParsedPerTick": 16,
+          "EOF": true,
+          "undecodedBytes": 0
+        },
+        "workerEvidence": {
+          "maximumBytes": 8388608,
+          "retainedPayloadBytes": 20434,
+          "accountingReceiptReserveBytes": 4096,
+          "historyReceiptReserveBytes": 3145728,
+          "historyRowsOmittedForByteLimit": 0,
+          "accounting": "compact UTF-8 metadata plus raw worker/probe streams"
+        },
+        "supervisionTicks": 50,
+        "maximumObservedSupervisionTickGapSeconds": 0.015753830999528873,
+        "elapsedSeconds": 0.180315456000244,
+        "errors": [],
+        "finalOwnedGroups": {
+          "output-observer": {
+            "pgid": 46,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 46,
+                "pgid": 46,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          },
+          "synthetic-target": {
+            "pgid": 47,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 47,
+                "pgid": 47,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          }
+        },
+        "target": {
+          "pid": 47,
+          "exitCode": 0,
+          "stopReason": null,
+          "signals": [],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12874458834553,
+            "wallTimeNS": 1794267875141274709,
+            "monotonicAfterNS": 12874458835472
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12874458845657,
+            "wallTimeNS": 1794267875141285099,
+            "monotonicAfterNS": 12874458845823
+          },
+          "completionObservedWithinTotalBudget": true,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [
+            {
+              "clock": {
+                "monotonicBeforeNS": 12874447246552,
+                "wallTimeNS": 1794267875129686654,
+                "monotonicAfterNS": 12874447247410
+              },
+              "observedBytes": 9,
+              "stdoutBytes": 9,
+              "stderrBytes": 0
+            }
+          ],
+          "collectedClock": {
+            "monotonicBeforeNS": 12874502895803,
+            "wallTimeNS": 1794267875185335211,
+            "monotonicAfterNS": 12874502895926
+          },
+          "observedBytes": 9,
+          "retainedBytes": 9
+        },
+        "worker": {
+          "pid": 46,
+          "exitCode": 0,
+          "stopReason": null,
+          "signals": [],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12874481233316,
+            "wallTimeNS": 1794267875163673610,
+            "monotonicAfterNS": 12874481234757
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12874481241655,
+            "wallTimeNS": 1794267875163681091,
+            "monotonicAfterNS": 12874481241829
+          },
+          "completionObservedWithinTotalBudget": true,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12874502874335,
+            "wallTimeNS": 1794267875185314032,
+            "monotonicAfterNS": 12874502874757
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": true,
+          "stopped": true,
+          "sequence": 60,
+          "generation": 2,
+          "lastCompletedScan": 2,
+          "failure": null,
+          "pendingScan": null,
+          "pendingOperation": null,
+          "highWaterObserved": {
+            "allocatedBytes": 12288,
+            "depth": 2,
+            "entries": 3,
+            "logicalBytes": 130
+          }
+        }
+      }
+    },
+    {
+      "test": "test_native_retained_atrc_isolated.IsolatedIntegrationTests.test_target_normal_deadline_is_serviced_while_worker_metadata_is_pending",
+      "outcome": "passed",
+      "elapsedSeconds": 0.6774170289991162,
+      "evidenceKind": "real-python-process-synthetic-fixture",
+      "groupEnumeration": "synthetic-direct-owned-child-list",
+      "result": {
+        "startupComplete": true,
+        "initialScanGeneration": 1,
+        "finalScanGeneration": null,
+        "finalFreshScanComplete": false,
+        "observationComplete": false,
+        "cleanupComplete": true,
+        "transportComplete": false,
+        "targetCleanupComplete": true,
+        "workerCleanupComplete": true,
+        "workerCleanupDeadlineExceeded": false,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.2848875199997565,
+        "workerCleanupDeadlineOvershootSeconds": 0,
+        "channel": {
+          "observedBytes": 5544,
+          "parsedMessages": 31,
+          "maximumUndecodedBytes": 3251,
+          "maximumReadBytesPerTick": 3251,
+          "maximumMessagesParsedPerTick": 16,
+          "EOF": false,
+          "undecodedBytes": 0
+        },
+        "workerEvidence": {
+          "maximumBytes": 8388608,
+          "retainedPayloadBytes": 15459,
+          "accountingReceiptReserveBytes": 4096,
+          "historyReceiptReserveBytes": 3145728,
+          "historyRowsOmittedForByteLimit": 0,
+          "accounting": "compact UTF-8 metadata plus raw worker/probe streams"
+        },
+        "supervisionTicks": 144,
+        "maximumObservedSupervisionTickGapSeconds": 0.008545744000002742,
+        "elapsedSeconds": 0.6740269219990296,
+        "errors": [
+          "Census completion not observed within parent dispatch budget",
+          "Observer did not exit successfully after acknowledged shutdown"
+        ],
+        "finalOwnedGroups": {
+          "output-observer": {
+            "pgid": 49,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 49,
+                "pgid": 49,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          },
+          "synthetic-target": {
+            "pgid": 50,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 50,
+                "pgid": 50,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          }
+        },
+        "target": {
+          "pid": 50,
+          "exitCode": -15,
+          "stopReason": "command-budget",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.20317542800148658
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.45305464200100687
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12874796600644,
+            "wallTimeNS": 1794267875479040760,
+            "monotonicAfterNS": 12874796601519
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12875041065895,
+            "wallTimeNS": 1794267875723506067,
+            "monotonicAfterNS": 12875041066836
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0028800929994758917,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [
+            {
+              "clock": {
+                "monotonicBeforeNS": 12874639300748,
+                "wallTimeNS": 1794267875321741105,
+                "monotonicAfterNS": 12874639301856
+              },
+              "observedBytes": 5,
+              "stdoutBytes": 5,
+              "stderrBytes": 0
+            }
+          ],
+          "collectedClock": {
+            "monotonicBeforeNS": 12875181260229,
+            "wallTimeNS": 1794267875863699743,
+            "monotonicAfterNS": 12875181260461
+          },
+          "observedBytes": 5,
+          "retainedBytes": 5
+        },
+        "worker": {
+          "pid": 49,
+          "exitCode": -15,
+          "stopReason": "observation-failed",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.3889836939997622
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.6421089750001556
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12874901746336,
+            "wallTimeNS": 1794267875584186219,
+            "monotonicAfterNS": 12874901746994
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12875149675008,
+            "wallTimeNS": 1794267875832115180,
+            "monotonicAfterNS": 12875149675956
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12875181229789,
+            "wallTimeNS": 1794267875863669235,
+            "monotonicAfterNS": 12875181229950
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": true,
+          "stopped": false,
+          "sequence": 31,
+          "generation": 2,
+          "lastCompletedScan": 1,
+          "failure": {
+            "code": "isolated-observation-failed",
+            "error": "Census completion not observed within parent dispatch budget",
+            "parentClockNS": 12874895340497,
+            "pendingScan": {
+              "scan": 2,
+              "dispatchedNS": 12874644541131,
+              "deadlineNS": 12874894541131,
+              "started": true,
+              "lastOperation": 6,
+              "workerStartedNS": 12874644835440
+            },
+            "pendingOperation": {
+              "category": "stat",
+              "clockNS": 12874645222630,
+              "kind": "op_started",
+              "nonce": "f17c0b029b1949a789397be5cecbfcba",
+              "op": 6,
+              "path": "stall.bin",
+              "scan": 2,
+              "schema": 1,
+              "seq": 31
+            }
+          },
+          "pendingScan": {
+            "scan": 2,
+            "dispatchedNS": 12874644541131,
+            "deadlineNS": 12874894541131,
+            "started": true,
+            "lastOperation": 6,
+            "workerStartedNS": 12874644835440
+          },
+          "pendingOperation": {
+            "category": "stat",
+            "clockNS": 12874645222630,
+            "kind": "op_started",
+            "nonce": "f17c0b029b1949a789397be5cecbfcba",
+            "op": 6,
+            "path": "stall.bin",
+            "scan": 2,
+            "schema": 1,
+            "seq": 31
+          },
+          "highWaterObserved": {
+            "allocatedBytes": 4096,
+            "depth": 0,
+            "entries": 1,
+            "logicalBytes": 0
+          }
+        }
+      }
+    },
+    {
+      "test": "test_native_retained_atrc_isolated.IsolatedIntegrationTests.test_unqualified_owned_group_prevents_retention_even_after_exit_zero",
+      "outcome": "passed",
+      "elapsedSeconds": 0.5702967910001462,
+      "evidenceKind": "real-python-process-synthetic-fixture",
+      "groupEnumeration": "synthetic-direct-owned-child-list",
+      "result": {
+        "startupComplete": true,
+        "initialScanGeneration": 1,
+        "finalScanGeneration": 2,
+        "finalFreshScanComplete": true,
+        "observationComplete": false,
+        "cleanupComplete": false,
+        "transportComplete": false,
+        "targetCleanupComplete": false,
+        "workerCleanupComplete": false,
+        "workerCleanupDeadlineExceeded": true,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.4631504480003059,
+        "workerCleanupDeadlineOvershootSeconds": 0,
+        "channel": {
+          "observedBytes": 6893,
+          "parsedMessages": 38,
+          "maximumUndecodedBytes": 3262,
+          "maximumReadBytesPerTick": 3262,
+          "maximumMessagesParsedPerTick": 16,
+          "EOF": true,
+          "undecodedBytes": 0
+        },
+        "workerEvidence": {
+          "maximumBytes": 8388608,
+          "retainedPayloadBytes": 20277,
+          "accountingReceiptReserveBytes": 4096,
+          "historyReceiptReserveBytes": 3145728,
+          "historyRowsOmittedForByteLimit": 0,
+          "accounting": "compact UTF-8 metadata plus raw worker/probe streams"
+        },
+        "supervisionTicks": 119,
+        "maximumObservedSupervisionTickGapSeconds": 0.02838471799987019,
+        "elapsedSeconds": 0.5659492000013415,
+        "errors": [
+          "Owned-group evidence failed: Final owned-group snapshot is malformed",
+          "Original cleanup did not establish both owned groups",
+          "output-observer: missing terminal/stream/group collection evidence",
+          "synthetic-target: missing terminal/stream/group collection evidence",
+          "Observer not positively accounted for within cleanup budget",
+          "Observer did not exit successfully after acknowledged shutdown"
+        ],
+        "finalOwnedGroups": {},
+        "target": {
+          "pid": 53,
+          "exitCode": 0,
+          "stopReason": "unaccounted-owned-group",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.20058502900064923
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.4561427240005287
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": false,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12875281003956,
+            "wallTimeNS": 1794267875963444067,
+            "monotonicAfterNS": 12875281004839
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12875281014570,
+            "wallTimeNS": 1794267875963454062,
+            "monotonicAfterNS": 12875281014775
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": null,
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "worker": {
+          "pid": 52,
+          "exitCode": 0,
+          "stopReason": "unaccounted-owned-group",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.2744265950004774
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.5300630290003028
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": false,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12875361771345,
+            "wallTimeNS": 1794267876044211575,
+            "monotonicAfterNS": 12875361772410
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12875361799981,
+            "wallTimeNS": 1794267876044239496,
+            "monotonicAfterNS": 12875361800222
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": null,
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": true,
+          "stopped": true,
+          "sequence": 38,
+          "generation": 2,
+          "lastCompletedScan": 2,
+          "failure": {
+            "code": "isolated-observation-failed",
+            "error": "Owned-group evidence failed: Final owned-group snapshot is malformed",
+            "parentClockNS": 12875458579096,
+            "pendingScan": null,
+            "pendingOperation": null
+          },
+          "pendingScan": null,
+          "pendingOperation": null,
+          "highWaterObserved": {
+            "allocatedBytes": 4096,
+            "depth": 0,
+            "entries": 1,
+            "logicalBytes": 0
+          }
+        }
+      }
+    },
+    {
+      "test": "test_native_retained_atrc_isolated.IsolatedIntegrationTests.test_valid_stopped_then_worker_nonzero_exit_cannot_qualify",
+      "outcome": "passed",
+      "elapsedSeconds": 0.1735677359993133,
+      "evidenceKind": "real-python-process-synthetic-fixture",
+      "groupEnumeration": "synthetic-direct-owned-child-list",
+      "result": {
+        "startupComplete": true,
+        "initialScanGeneration": 1,
+        "finalScanGeneration": 2,
+        "finalFreshScanComplete": true,
+        "observationComplete": false,
+        "cleanupComplete": true,
+        "transportComplete": false,
+        "targetCleanupComplete": true,
+        "workerCleanupComplete": true,
+        "workerCleanupDeadlineExceeded": false,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.03203645600115124,
+        "workerCleanupDeadlineOvershootSeconds": 0,
+        "channel": {
+          "observedBytes": 11045,
+          "parsedMessages": 60,
+          "maximumUndecodedBytes": 7415,
+          "maximumReadBytesPerTick": 7415,
+          "maximumMessagesParsedPerTick": 16,
+          "EOF": true,
+          "undecodedBytes": 0
+        },
+        "workerEvidence": {
+          "maximumBytes": 8388608,
+          "retainedPayloadBytes": 20413,
+          "accountingReceiptReserveBytes": 4096,
+          "historyReceiptReserveBytes": 3145728,
+          "historyRowsOmittedForByteLimit": 0,
+          "accounting": "compact UTF-8 metadata plus raw worker/probe streams"
+        },
+        "supervisionTicks": 50,
+        "maximumObservedSupervisionTickGapSeconds": 0.00569673600148235,
+        "elapsedSeconds": 0.17078636699989147,
+        "errors": [
+          "Observer did not exit successfully after acknowledged shutdown"
+        ],
+        "finalOwnedGroups": {
+          "output-observer": {
+            "pgid": 57,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 57,
+                "pgid": 57,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          },
+          "synthetic-target": {
+            "pgid": 58,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 58,
+                "pgid": 58,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          }
+        },
+        "target": {
+          "pid": 58,
+          "exitCode": 0,
+          "stopReason": null,
+          "signals": [],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12875887475710,
+            "wallTimeNS": 1794267876569915819,
+            "monotonicAfterNS": 12875887476573
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12875887485313,
+            "wallTimeNS": 1794267876569924780,
+            "monotonicAfterNS": 12875887485494
+          },
+          "completionObservedWithinTotalBudget": true,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12875925880381,
+            "wallTimeNS": 1794267876608319884,
+            "monotonicAfterNS": 12875925880596
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "worker": {
+          "pid": 57,
+          "exitCode": 7,
+          "stopReason": null,
+          "signals": [],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12875904276130,
+            "wallTimeNS": 1794267876586716430,
+            "monotonicAfterNS": 12875904277195
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12875904284345,
+            "wallTimeNS": 1794267876586723789,
+            "monotonicAfterNS": 12875904284542
+          },
+          "completionObservedWithinTotalBudget": true,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12875925855742,
+            "wallTimeNS": 1794267876608295171,
+            "monotonicAfterNS": 12875925855885
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": true,
+          "stopped": true,
+          "sequence": 60,
+          "generation": 2,
+          "lastCompletedScan": 2,
+          "failure": {
+            "code": "isolated-observation-failed",
+            "error": "Observer did not exit successfully after acknowledged shutdown",
+            "parentClockNS": 12875925948656,
+            "pendingScan": null,
+            "pendingOperation": null
+          },
+          "pendingScan": null,
+          "pendingOperation": null,
+          "highWaterObserved": {
+            "allocatedBytes": 12288,
+            "depth": 2,
+            "entries": 3,
+            "logicalBytes": 22
+          }
+        }
+      }
+    },
+    {
+      "test": "test_native_retained_atrc_isolated.IsolatedIntegrationTests.test_valid_stopped_then_worker_requires_term_cannot_qualify",
+      "outcome": "passed",
+      "elapsedSeconds": 0.6609281670007476,
+      "evidenceKind": "real-python-process-synthetic-fixture",
+      "groupEnumeration": "synthetic-direct-owned-child-list",
+      "result": {
+        "startupComplete": true,
+        "initialScanGeneration": 1,
+        "finalScanGeneration": 2,
+        "finalFreshScanComplete": true,
+        "observationComplete": false,
+        "cleanupComplete": true,
+        "transportComplete": false,
+        "targetCleanupComplete": true,
+        "workerCleanupComplete": true,
+        "workerCleanupDeadlineExceeded": false,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.5277652810000291,
+        "workerCleanupDeadlineOvershootSeconds": 0,
+        "channel": {
+          "observedBytes": 11037,
+          "parsedMessages": 60,
+          "maximumUndecodedBytes": 7408,
+          "maximumReadBytesPerTick": 7408,
+          "maximumMessagesParsedPerTick": 16,
+          "EOF": true,
+          "undecodedBytes": 0
+        },
+        "workerEvidence": {
+          "maximumBytes": 8388608,
+          "retainedPayloadBytes": 21083,
+          "accountingReceiptReserveBytes": 4096,
+          "historyReceiptReserveBytes": 3145728,
+          "historyRowsOmittedForByteLimit": 0,
+          "accounting": "compact UTF-8 metadata plus raw worker/probe streams"
+        },
+        "supervisionTicks": 132,
+        "maximumObservedSupervisionTickGapSeconds": 0.06539474999954109,
+        "elapsedSeconds": 0.6522863449990837,
+        "errors": [
+          "Observer did not exit successfully after acknowledged shutdown"
+        ],
+        "finalOwnedGroups": {
+          "output-observer": {
+            "pgid": 60,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 60,
+                "pgid": 60,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          },
+          "synthetic-target": {
+            "pgid": 61,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 61,
+                "pgid": 61,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          }
+        },
+        "target": {
+          "pid": 61,
+          "exitCode": 0,
+          "stopReason": null,
+          "signals": [],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12876052650288,
+            "wallTimeNS": 1794267876735090346,
+            "monotonicAfterNS": 12876052651125
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12876052660717,
+            "wallTimeNS": 1794267876735100226,
+            "monotonicAfterNS": 12876052660937
+          },
+          "completionObservedWithinTotalBudget": true,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12876586809018,
+            "wallTimeNS": 1794267877269248538,
+            "monotonicAfterNS": 12876586809459
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "worker": {
+          "pid": 60,
+          "exitCode": -15,
+          "stopReason": "observer-shutdown",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.3757382599997072
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.6295133389994589
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12876315783933,
+            "wallTimeNS": 1794267876998223751,
+            "monotonicAfterNS": 12876315784666
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12876564200513,
+            "wallTimeNS": 1794267877246640676,
+            "monotonicAfterNS": 12876564201427
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12876586784788,
+            "wallTimeNS": 1794267877269224255,
+            "monotonicAfterNS": 12876586784979
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": true,
+          "stopped": true,
+          "sequence": 60,
+          "generation": 2,
+          "lastCompletedScan": 2,
+          "failure": {
+            "code": "isolated-observation-failed",
+            "error": "Observer did not exit successfully after acknowledged shutdown",
+            "parentClockNS": 12876586887708,
+            "pendingScan": null,
+            "pendingOperation": null
+          },
+          "pendingScan": null,
+          "pendingOperation": null,
+          "highWaterObserved": {
+            "allocatedBytes": 12288,
+            "depth": 2,
+            "entries": 3,
+            "logicalBytes": 22
+          }
+        }
+      }
+    },
+    {
+      "test": "test_native_retained_atrc_isolated.IsolatedIntegrationTests.test_worker_loss_during_pending_operation_preserves_failure_and_cleanup",
+      "outcome": "passed",
+      "elapsedSeconds": 0.466843415000767,
+      "evidenceKind": "real-python-process-synthetic-fixture",
+      "groupEnumeration": "synthetic-direct-owned-child-list",
+      "result": {
+        "startupComplete": true,
+        "initialScanGeneration": 1,
+        "finalScanGeneration": null,
+        "finalFreshScanComplete": false,
+        "observationComplete": false,
+        "cleanupComplete": true,
+        "transportComplete": false,
+        "targetCleanupComplete": true,
+        "workerCleanupComplete": true,
+        "workerCleanupDeadlineExceeded": false,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.2765638550008589,
+        "workerCleanupDeadlineOvershootSeconds": 0,
+        "channel": {
+          "observedBytes": 5544,
+          "parsedMessages": 31,
+          "maximumUndecodedBytes": 3251,
+          "maximumReadBytesPerTick": 3251,
+          "maximumMessagesParsedPerTick": 16,
+          "EOF": false,
+          "undecodedBytes": 0
+        },
+        "workerEvidence": {
+          "maximumBytes": 8388608,
+          "retainedPayloadBytes": 15272,
+          "accountingReceiptReserveBytes": 4096,
+          "historyReceiptReserveBytes": 3145728,
+          "historyRowsOmittedForByteLimit": 0,
+          "accounting": "compact UTF-8 metadata plus raw worker/probe streams"
+        },
+        "supervisionTicks": 89,
+        "maximumObservedSupervisionTickGapSeconds": 0.036115725999479764,
+        "elapsedSeconds": 0.46508726800129807,
+        "errors": [
+          "Worker exited before observation shutdown",
+          "Observer did not exit successfully after acknowledged shutdown"
+        ],
+        "finalOwnedGroups": {
+          "output-observer": {
+            "pgid": 63,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 63,
+                "pgid": 63,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          },
+          "synthetic-target": {
+            "pgid": 64,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 64,
+                "pgid": 64,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          }
+        },
+        "target": {
+          "pid": 64,
+          "exitCode": -15,
+          "stopReason": "isolated-observation-failed",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.12132789099996444
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.3756860619996587
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12876782859789,
+            "wallTimeNS": 1794267877465300062,
+            "monotonicAfterNS": 12876782860823
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12877031992302,
+            "wallTimeNS": 1794267877714432476,
+            "monotonicAfterNS": 12877031993244
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12877054212669,
+            "wallTimeNS": 1794267877736652085,
+            "monotonicAfterNS": 12877054212800
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "worker": {
+          "pid": 63,
+          "exitCode": 9,
+          "stopReason": "observation-failed",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.18836353499864344
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12876747891095,
+            "wallTimeNS": 1794267877430331314,
+            "monotonicAfterNS": 12876747892063
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12876747901139,
+            "wallTimeNS": 1794267877430340611,
+            "monotonicAfterNS": 12876747901325
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12877054192169,
+            "wallTimeNS": 1794267877736631608,
+            "monotonicAfterNS": 12877054192331
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": true,
+          "stopped": false,
+          "sequence": 31,
+          "generation": 2,
+          "lastCompletedScan": 1,
+          "failure": {
+            "code": "isolated-observation-failed",
+            "error": "Worker exited before observation shutdown",
+            "parentClockNS": 12876777567332,
+            "pendingScan": {
+              "scan": 2,
+              "dispatchedNS": 12876711620151,
+              "deadlineNS": 12876961620151,
+              "started": true,
+              "lastOperation": 6,
+              "workerStartedNS": 12876711970298
+            },
+            "pendingOperation": {
+              "category": "stat",
+              "clockNS": 12876717933265,
+              "kind": "op_started",
+              "nonce": "ae8eb26b1c5148e792d452270b1ce5cd",
+              "op": 6,
+              "path": "stall.bin",
+              "scan": 2,
+              "schema": 1,
+              "seq": 31
+            }
+          },
+          "pendingScan": {
+            "scan": 2,
+            "dispatchedNS": 12876711620151,
+            "deadlineNS": 12876961620151,
+            "started": true,
+            "lastOperation": 6,
+            "workerStartedNS": 12876711970298
+          },
+          "pendingOperation": {
+            "category": "stat",
+            "clockNS": 12876717933265,
+            "kind": "op_started",
+            "nonce": "ae8eb26b1c5148e792d452270b1ce5cd",
+            "op": 6,
+            "path": "stall.bin",
+            "scan": 2,
+            "schema": 1,
+            "seq": 31
+          },
+          "highWaterObserved": {
+            "allocatedBytes": 4096,
+            "depth": 0,
+            "entries": 1,
+            "logicalBytes": 0
+          }
+        }
+      }
+    },
+    {
+      "test": "test_native_retained_atrc_isolated.IsolatedIntegrationTests.test_wrong_ready_identity_cannot_authorize_target",
+      "outcome": "passed",
+      "elapsedSeconds": 0.3439148249999562,
+      "evidenceKind": "real-python-process-synthetic-fixture",
+      "groupEnumeration": "synthetic-direct-owned-child-list",
+      "result": {
+        "startupComplete": false,
+        "initialScanGeneration": null,
+        "finalScanGeneration": null,
+        "finalFreshScanComplete": false,
+        "observationComplete": false,
+        "cleanupComplete": false,
+        "transportComplete": false,
+        "targetCleanupComplete": false,
+        "workerCleanupComplete": true,
+        "workerCleanupDeadlineExceeded": false,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.2770558060001349,
+        "workerCleanupDeadlineOvershootSeconds": 0,
+        "channel": {
+          "observedBytes": 252,
+          "parsedMessages": 1,
+          "maximumUndecodedBytes": 252,
+          "maximumReadBytesPerTick": 252,
+          "maximumMessagesParsedPerTick": 1,
+          "EOF": false,
+          "undecodedBytes": 0
+        },
+        "workerEvidence": {
+          "maximumBytes": 8388608,
+          "retainedPayloadBytes": 8858,
+          "accountingReceiptReserveBytes": 4096,
+          "historyReceiptReserveBytes": 3145728,
+          "historyRowsOmittedForByteLimit": 0,
+          "accounting": "compact UTF-8 metadata plus raw worker/probe streams"
+        },
+        "supervisionTicks": 74,
+        "maximumObservedSupervisionTickGapSeconds": 0.0068062749996897765,
+        "elapsedSeconds": 0.34177386600094906,
+        "errors": [
+          "Ready receipt does not bind owned worker and root",
+          "Observer startup or empty-census gate failed",
+          "Observer did not exit successfully after acknowledged shutdown"
+        ],
+        "finalOwnedGroups": {
+          "output-observer": {
+            "pgid": 66,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 66,
+                "pgid": 66,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          }
+        },
+        "target": null,
+        "worker": {
+          "pid": 66,
+          "exitCode": -15,
+          "stopReason": "observation-failed",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.0646202660009294
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.3193372140012798
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 12877126876215,
+            "wallTimeNS": 1794267877809315919,
+            "monotonicAfterNS": 12877126876709
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 12877376084682,
+            "wallTimeNS": 1794267878058524849,
+            "monotonicAfterNS": 12877376085605
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 12877398250255,
+            "wallTimeNS": 1794267878080689684,
+            "monotonicAfterNS": 12877398250399
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": false,
+          "stopped": false,
+          "sequence": 0,
+          "generation": 0,
+          "lastCompletedScan": 0,
+          "failure": {
+            "code": "isolated-observation-failed",
+            "error": "Ready receipt does not bind owned worker and root",
+            "parentClockNS": 12877121167378,
+            "pendingScan": null,
+            "pendingOperation": null
+          },
+          "pendingScan": null,
+          "pendingOperation": null,
+          "highWaterObserved": {
+            "logicalBytes": 0,
+            "depth": 0,
+            "entries": 0,
+            "allocatedBytes": 0
+          }
+        }
+      }
+    }
+  ],
+  "developmentAttemptHistory": [
+    {
+      "note": "Real /bin/ps failed in this environment; production gate rejected missing group evidence.",
+      "sourceIdentityBound": false,
+      "scope": "Early development attempt; not final implementation qualification.",
+      "rawReceiptIdentity": {
+        "bytes": 63250,
+        "sha256": "c98ea985b7474fd7c6c12d264b99f6db678f5a45e5bd5985a976a718612fd85e"
+      },
+      "receipt": {
+        "startupComplete": true,
+        "initialScanGeneration": 1,
+        "finalScanGeneration": 4,
+        "finalFreshScanComplete": true,
+        "observationComplete": false,
+        "cleanupComplete": false,
+        "transportComplete": false,
+        "targetCleanupComplete": false,
+        "workerCleanupComplete": false,
+        "workerCleanupDeadlineExceeded": false,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.30331974199907563,
+        "channel": {
+          "observedBytes": 25874,
+          "parsedMessages": 140,
+          "maximumUndecodedBytes": 7440,
+          "maximumReadBytesPerTick": 7440,
+          "maximumMessagesParsedPerTick": 16,
+          "EOF": true,
+          "undecodedBytes": 0
+        },
+        "supervisionTicks": 149,
+        "maximumObservedSupervisionTickGapSeconds": 0.009104329001274891,
+        "elapsedSeconds": 0.6394198059988412,
+        "errors": [
+          "Owned-group evidence failed: Final owned-group snapshot did not complete cleanly",
+          "Original cleanup did not establish both owned groups",
+          "output-observer: missing terminal/stream/group collection evidence",
+          "synthetic-import: missing terminal/stream/group collection evidence"
+        ],
+        "finalOwnedGroups": {},
+        "target": {
+          "pid": 7,
+          "exitCode": 0,
+          "stopReason": "unaccounted-owned-group",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.19739289400058624
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.45261852700059535
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.4680704170004901
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": false,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 11634929678210,
+            "wallTimeNS": 1794266635612118436,
+            "monotonicAfterNS": 11634929679221
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 11634929691837,
+            "wallTimeNS": 1794266635612131285,
+            "monotonicAfterNS": 11634929692027
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [
+            {
+              "clock": {
+                "monotonicBeforeNS": 11634824736498,
+                "wallTimeNS": 1794266635507176736,
+                "monotonicAfterNS": 11634824737601
+              },
+              "observedBytes": 9,
+              "stdoutBytes": 9,
+              "stderrBytes": 0
+            }
+          ],
+          "collectedClock": null,
+          "observedBytes": 9,
+          "retainedBytes": 9
+        },
+        "worker": {
+          "pid": 6,
+          "exitCode": 0,
+          "stopReason": "unaccounted-owned-group",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 0.3724810730000172
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.6277088709994132
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 0.6431627080000908
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": true,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": false,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 11634952289234,
+            "wallTimeNS": 1794266635634729451,
+            "monotonicAfterNS": 11634952290231
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 11634952298945,
+            "wallTimeNS": 1794266635634738410,
+            "monotonicAfterNS": 11634952299134
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": null,
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": true,
+          "stopped": true,
+          "sequence": 140,
+          "generation": 4,
+          "lastCompletedScan": 4,
+          "failure": {
+            "code": "isolated-observation-failed",
+            "error": "Owned-group evidence failed: Final owned-group snapshot did not complete cleanly",
+            "parentClockNS": 11634968852364,
+            "pendingScan": null,
+            "pendingOperation": null
+          },
+          "pendingScan": null,
+          "pendingOperation": null,
+          "highWaterObserved": {
+            "allocatedBytes": 12288,
+            "depth": 2,
+            "entries": 3,
+            "logicalBytes": 5
+          }
+        }
+      }
+    },
+    {
+      "note": "Worker produced no ready report within startup budget; target was not launched. Cause not established.",
+      "sourceIdentityBound": false,
+      "scope": "Early development attempt; not final implementation qualification.",
+      "rawReceiptIdentity": {
+        "bytes": 6185,
+        "sha256": "75196917dfaada1204ee9676127cd970c0d85e531d20ec59436b7cc8cdc117ce"
+      },
+      "receipt": {
+        "startupComplete": false,
+        "initialScanGeneration": null,
+        "finalScanGeneration": null,
+        "finalFreshScanComplete": false,
+        "observationComplete": false,
+        "cleanupComplete": false,
+        "transportComplete": false,
+        "targetCleanupComplete": false,
+        "workerCleanupComplete": true,
+        "workerCleanupDeadlineExceeded": false,
+        "workerCleanupBudgetSeconds": 2.0,
+        "workerCleanupElapsedSeconds": 0.288980196999546,
+        "channel": {
+          "observedBytes": 0,
+          "parsedMessages": 0,
+          "maximumUndecodedBytes": 0,
+          "maximumReadBytesPerTick": 0,
+          "maximumMessagesParsedPerTick": 0,
+          "EOF": false,
+          "undecodedBytes": 0
+        },
+        "supervisionTicks": 114,
+        "maximumObservedSupervisionTickGapSeconds": 0.27006968800014874,
+        "elapsedSeconds": 2.343170234998979,
+        "errors": [
+          "Observer startup or empty-census gate failed"
+        ],
+        "finalOwnedGroups": {
+          "output-observer": {
+            "pgid": 6,
+            "pidLeaseHeldAtSnapshot": true,
+            "members": [
+              {
+                "pid": 6,
+                "pgid": 6,
+                "state": "Z"
+              }
+            ],
+            "noLiveMembersObserved": true
+          }
+        },
+        "target": null,
+        "worker": {
+          "pid": 6,
+          "exitCode": -15,
+          "stopReason": "observation-failed",
+          "signals": [
+            {
+              "signal": "SIGTERM",
+              "target": "owned-group",
+              "afterSeconds": 2.0623618330009776
+            },
+            {
+              "signal": "SIGKILL",
+              "target": "owned-group",
+              "afterSeconds": 2.314030121000542
+            }
+          ],
+          "signalErrors": [],
+          "streamErrors": [],
+          "cleanupFailed": false,
+          "pidLeaseAcquired": true,
+          "pidLeaseReleased": true,
+          "pidLeaseLost": false,
+          "exitObservedWithoutReap": true,
+          "operationTerminalClock": {
+            "monotonicBeforeNS": 11710576588625,
+            "wallTimeNS": 1794266711259030137,
+            "monotonicAfterNS": 11710576591037
+          },
+          "operationDoneClock": {
+            "monotonicBeforeNS": 11710717010306,
+            "wallTimeNS": 1794266711399453266,
+            "monotonicAfterNS": 11710717014182
+          },
+          "completionObservedWithinTotalBudget": true,
+          "normalDeadlineOvershootSeconds": 0.0,
+          "totalDeadlineOvershootSeconds": 0.0,
+          "streamProgress": [],
+          "collectedClock": {
+            "monotonicBeforeNS": 11710753040213,
+            "wallTimeNS": 1794266711435479744,
+            "monotonicAfterNS": 11710753040487
+          },
+          "observedBytes": 0,
+          "retainedBytes": 0
+        },
+        "observer": {
+          "ready": false,
+          "stopped": false,
+          "sequence": 0,
+          "generation": 0,
+          "lastCompletedScan": 0,
+          "failure": {
+            "code": "isolated-observation-failed",
+            "error": "Observer startup or empty-census gate failed",
+            "parentClockNS": 11710463531331,
+            "pendingScan": null,
+            "pendingOperation": null
+          },
+          "pendingScan": null,
+          "pendingOperation": null,
+          "highWaterObserved": {
+            "depth": 0,
+            "logicalBytes": 0,
+            "allocatedBytes": 0,
+            "entries": 0
+          }
+        }
+      }
+    }
+  ],
+  "reviewCorrections": [
+    "Completed census cannot erase a failed operation or exceed high-water output limits.",
+    "Worker stopped report also requires a successful unforced worker exit.",
+    "All channel setup resources are closed on failure; post-spawn and finalization failures preserve owned cleanup.",
+    "Transient supervision error keeps the failure but permits bounded recovery ticks on a still-held lease.",
+    "Failed report backlog cannot suppress polling and unaccounted worker cleanup emits only one KILL escalation.",
+    "Combined diagnostic accounting includes parsed groups, raw worker/probe streams and duplicated exposed worker receipt; cap failures preserve failure/pending/cleanup and deny retention."
+  ],
+  "acceptance": {
+    "PR": 45,
+    "state": "HOLD",
+    "draft": true,
+    "merged": false,
+    "C12": "d821d7343675e2850705d141ef9b3b93a6aee945",
+    "main": "ade8b1673de0c2dff930430564c17f100f5e807b",
+    "D27Outcome": "diagnostic-incomplete",
+    "task07": "HOLD",
+    "task08FinalDependency": "task07",
+    "physicalAndV4RepeatRequested": false,
+    "originalAcceptance": "Finder enter -> exit -> reenter -> Escape -> release -> distinct fresh drop; Orchard/Pistachio/Lemonade on ARM/Intel."
+  },
+  "nextWork": {
+    "phase": "D30",
+    "scope": "Separately scoped macOS isolated-observer qualification using disposable synthetic output and real process/group APIs before any native import proposal.",
+    "started": false,
+    "nativeTraceOperationAuthorizedByThisRecord": false
+  }
+}
