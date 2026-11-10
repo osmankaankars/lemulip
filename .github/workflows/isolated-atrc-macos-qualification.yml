@@ -1,0 +1,95 @@
+name: Isolated ATRC Observer macOS Qualification
+
+on:
+  push:
+    branches: ['codex/isolated-atrc-macos-07']
+    paths:
+      - '.github/workflows/isolated-atrc-macos-qualification.yml'
+      - 'script/run_isolated_atrc_macos_qualification.py'
+      - 'script/test_run_isolated_atrc_macos_qualification.py'
+      - 'script/isolated_atrc_macos_fixture.py'
+      - 'script/isolated_atrc_macos_worker_fixture.py'
+      - 'script/test_isolated_atrc_macos_fixture.py'
+      - 'script/qualify_isolated_atrc_pressure.py'
+      - 'script/test_qualify_isolated_atrc_pressure.py'
+
+permissions:
+  contents: read
+
+env:
+  PYTHONDONTWRITEBYTECODE: '1'
+  D30_BASE: 35e83645c036f90aa1678aca51ad2323d33044e4
+
+concurrency:
+  group: isolated-atrc-macos-qualification-${{ github.ref }}
+  cancel-in-progress: false
+
+# One Intel job; fixed synthetic cases, real process/group APIs, no trace input.
+jobs:
+  observer-qualification:
+    name: Intel Isolated Observer Synthetic Qualification
+    runs-on: macos-15-intel
+    timeout-minutes: 8
+    steps:
+      - name: Check Out Exact Diagnostic
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Select Python With Nonreaping Child Status
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.13'
+      - name: Bind Source And Run Portable Gates
+        run: |
+          umask 077
+          mkdir -p "$RUNNER_TEMP/isolated-atrc-macos/preflight"
+          printf '%s\n' "$GITHUB_SHA" > "$RUNNER_TEMP/isolated-atrc-macos/preflight/experiment-commit.txt"
+          git rev-parse 'HEAD^{tree}' > "$RUNNER_TEMP/isolated-atrc-macos/preflight/experiment-tree.txt"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -z "$(git status --porcelain --untracked-files=normal)"
+          test "$(uname -m)" = x86_64
+          git merge-base --is-ancestor "$D30_BASE" HEAD
+          python3 - <<'PYCODE'
+          import sys
+          assert sys.version_info >= (3, 13)
+          PYCODE
+          python3 -B -m unittest discover -s script -p 'test_*isolated_atrc*.py' -v \
+            > "$RUNNER_TEMP/isolated-atrc-macos/preflight/d30-portable.stdout.txt" \
+            2> "$RUNNER_TEMP/isolated-atrc-macos/preflight/d30-portable.stderr.txt"
+          PYTHONPATH=script python3 -B -m unittest -v \
+            test_native_retained_atrc_output test_run_native_retained_atrc_import \
+            test_native_retained_atrc_observer test_native_retained_atrc_worker \
+            test_native_retained_atrc_protocol test_native_retained_atrc_channel \
+            test_native_retained_atrc_isolated test_native_retained_atrc_lifecycle \
+            test_native_retained_atrc_cleanup_bounds \
+            > "$RUNNER_TEMP/isolated-atrc-macos/preflight/d29-portable.stdout.txt" \
+            2> "$RUNNER_TEMP/isolated-atrc-macos/preflight/d29-portable.stderr.txt"
+          python3 script/privacy_check.py --staged > "$RUNNER_TEMP/isolated-atrc-macos/preflight/privacy.txt"
+      - name: Run One Fixed macOS Qualification
+        run: |
+          umask 077
+          python3 -B script/run_isolated_atrc_macos_qualification.py \
+            --output "$RUNNER_TEMP/isolated-atrc-macos/evidence" \
+            --experiment-commit "$GITHUB_SHA"
+      - name: Verify Checkout Preservation
+        if: always()
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain --untracked-files=normal)"
+      - name: Preserve Preflight Evidence
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/isolated-atrc-macos/evidence/build"
+          if [ -d "$RUNNER_TEMP/isolated-atrc-macos/preflight" ]; then
+            cp -R "$RUNNER_TEMP/isolated-atrc-macos/preflight/." "$RUNNER_TEMP/isolated-atrc-macos/evidence/build/"
+          fi
+      - name: Upload Qualification Evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: isolated-atrc-macos-qualification-x86_64
+          path: ${{ runner.temp }}/isolated-atrc-macos/evidence
+          if-no-files-found: error
+          include-hidden-files: false
+          retention-days: 14
