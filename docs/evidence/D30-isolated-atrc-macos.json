@@ -1,0 +1,180 @@
+{
+  "schema": 1,
+  "phase": "D30",
+  "dated": "2026-11-10 Europe/Istanbul",
+  "status": "diagnostic-incomplete",
+  "platformQualificationStatus": "NOT RUN",
+  "qualificationComplete": false,
+  "reason": "GitHub account-level job-start restriction before runner allocation.",
+  "annotationDisclosure": "The annotation was retrieved from the public GitHub API. Account-specific message text is omitted here and retained in private tracking notes; this summary is not presented as the raw message.",
+  "source": {
+    "branch": "codex/isolated-atrc-macos-07",
+    "commit": "7e85c070ba21810b3a2cc8c61943e083eba1d7c2",
+    "tree": "7510e367d048bbbf0e93a52323ecbc9ea5a17e74",
+    "parentCommit": "35e83645c036f90aa1678aca51ad2323d33044e4",
+    "parentTree": "e147d3d924f644615dac7571599166746020b46d",
+    "portableFingerprintsMatchPublishedGitBlobs": true,
+    "fingerprintedFiles": 113
+  },
+  "workflowRun": {
+    "id": 42728821819,
+    "name": "Isolated ATRC Observer macOS Qualification",
+    "head_branch": "codex/isolated-atrc-macos-07",
+    "head_sha": "7e85c070ba21810b3a2cc8c61943e083eba1d7c2",
+    "path": ".github/workflows/isolated-atrc-macos-qualification.yml",
+    "run_number": 1,
+    "event": "push",
+    "status": "completed",
+    "conclusion": "failure",
+    "workflow_id": 412728044,
+    "check_suite_id": 115726713359,
+    "html_url": "https://github.com/osmankaankars/lemulip/actions/runs/42728821819",
+    "created_at": "2026-11-10T00:30:28Z",
+    "updated_at": "2026-11-10T00:30:34Z",
+    "run_attempt": 1,
+    "run_started_at": "2026-11-10T00:30:28Z"
+  },
+  "job": {
+    "id": 129541298010,
+    "run_id": 42728821819,
+    "run_attempt": 1,
+    "head_sha": "7e85c070ba21810b3a2cc8c61943e083eba1d7c2",
+    "name": "Intel Isolated Observer Synthetic Qualification",
+    "html_url": "https://github.com/osmankaankars/lemulip/actions/runs/42728821819/job/129541298010",
+    "status": "completed",
+    "conclusion": "failure",
+    "created_at": "2026-11-10T00:30:29Z",
+    "started_at": "2026-11-10T00:30:29Z",
+    "completed_at": "2026-11-10T00:30:33Z",
+    "steps": [],
+    "labels": [
+      "macos-15-intel"
+    ],
+    "runner_id": 0,
+    "runner_name": "",
+    "runner_group_id": 0,
+    "runner_group_name": ""
+  },
+  "checkAnnotation": {
+    "count": 1,
+    "level": "failure",
+    "path": ".github",
+    "line": 1,
+    "retrieval": "Unauthenticated read-only public GitHub REST API",
+    "url": "https://api.github.com/repos/osmankaankars/lemulip/check-runs/129541298010/annotations",
+    "messageIncluded": false,
+    "normalizedCause": "account-level job-start restriction"
+  },
+  "logs": {
+    "retrieved": false,
+    "httpStatus": 404,
+    "serviceCode": "BlobNotFound"
+  },
+  "artifacts": [],
+  "counts": {
+    "sourceCommitWorkflowRuns": 1,
+    "runAttempts": 1,
+    "declaredJobs": 1,
+    "recordedWorkflowSteps": 0,
+    "assignedRunners": 0,
+    "collectorInvocations": 0,
+    "macOSQualificationCasesExecuted": 0,
+    "nativeTraceImports": 0,
+    "nativeTraceExports": 0,
+    "nativeTraceRecordings": 0,
+    "nativeTraceSamples": 0
+  },
+  "cases": {
+    "success": {
+      "status": "NOT RUN",
+      "reason": "Workflow steps did not start."
+    },
+    "pending-exit": {
+      "status": "NOT RUN",
+      "reason": "Workflow steps did not start."
+    },
+    "deadline": {
+      "status": "NOT RUN",
+      "reason": "Workflow steps did not start."
+    },
+    "exit-seven": {
+      "status": "NOT RUN",
+      "reason": "Workflow steps did not start."
+    },
+    "descendant": {
+      "status": "NOT RUN",
+      "reason": "Workflow steps did not start."
+    },
+    "pressure": {
+      "status": "NOT RUN",
+      "reason": "Workflow steps did not start."
+    }
+  },
+  "notProduced": [
+    "macOS preflight",
+    "macOS interpreter identity",
+    "real macOS group/lease witnesses",
+    "case receipts",
+    "native qualification.json",
+    "qualification artifact ZIP"
+  ],
+  "portableVerification": {
+    "status": "PASS",
+    "uniqueTestMethods": 192,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "sourceFilesBoundBeforeAfter": 113,
+    "sourceUnchanged": true,
+    "evidence": "D30-verification.json",
+    "scope": "Linux portable suites; process-group output is explicitly synthetic in integration fixtures."
+  },
+  "publicationChecks": {
+    "newFilesAtSourcePublication": 9,
+    "existingTrackedFilesModified": 0,
+    "stagedDiffCheck": "PASS",
+    "privacyCheckFiles": 391,
+    "privacyCheck": "PASS",
+    "localRemoteSourceCommitTreeParentMatch": true,
+    "sourceWorktreeClean": true,
+    "workflowCount": 34,
+    "pushWorkflows": 26,
+    "matchingPushWorkflows": 1,
+    "pullRequestWorkflows": 7,
+    "workflowRunConsumers": 2,
+    "matchingWorkflowRunConsumers": 0,
+    "docsEvidenceOnlyFollowupMatches": 0,
+    "sourceDocumentRelativeLinksValid": 1
+  },
+  "independentReview": {
+    "workflowConfiguration": "No concrete startup configuration defect identified.",
+    "pinnedActionCommits": "All three pinned action commits resolve through official GitHub APIs.",
+    "outcome": "Pre-run account restriction; no platform behavior measured."
+  },
+  "continuation": {
+    "name": "D31 — resume frozen Intel macOS qualification after account restriction is resolved",
+    "precondition": "Evidence that the account-level job-start restriction is resolved.",
+    "sameSourceCommit": "7e85c070ba21810b3a2cc8c61943e083eba1d7c2",
+    "sameRunner": "macos-15-intel",
+    "samePython": "3.13",
+    "action": "Run the fixed six-case qualification once, preserve the original D30 failure, then inspect exact run/artifact evidence.",
+    "nativeATRCImport": "Not authorized by a missing qualification result."
+  },
+  "unchangedAcceptance": {
+    "C12": "HOLD",
+    "task07": "HOLD",
+    "PR45": "open/draft/unmerged",
+    "C12Commit": "d821d7343675e2850705d141ef9b3b93a6aee945",
+    "mainCommit": "ade8b1673de0c2dff930430564c17f100f5e807b",
+    "task08": "Final acceptance depends on task07",
+    "D27": "diagnostic-incomplete; slow native syscall/scheduler attribution unresolved",
+    "FinderAcceptance": "Full enter-exit-reenter-Escape-release-distinct fresh drop across Orchard/Pistachio/Lemonade and ARM/Intel remains open."
+  },
+  "limitations": [
+    "The GitHub job conclusion is failure; the six macOS cases are NOT RUN, not failed tests.",
+    "Portable PASS is not macOS qualification, successful native ATRC import, or a Finder cancellation fix.",
+    "The job metadata timestamps are scheduler bookkeeping, not workload execution timings.",
+    "No runner, timeout, action pin, product code, account setting, or qualification threshold was changed after the failure.",
+    "No retry was requested."
+  ]
+}

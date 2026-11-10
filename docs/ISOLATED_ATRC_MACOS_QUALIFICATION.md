@@ -6,9 +6,54 @@ disposable synthetic output and actual macOS child/process-group APIs.
 It supplies no existing trace and invokes no Apple import, export, recording,
 sampler or GUI-input command.
 
-At source publication, the macOS experiment has not yet run. Its eventual
-result must be based on the retained run/artifact receipts, including a
-failure or early stop; portable tests alone cannot qualify the platform.
+## Recorded D30 result — qualification NOT RUN
+
+The harness and portable verification are complete, but **the Intel macOS
+qualification did not execute**. GitHub rejected the single job before
+runner allocation because of an account-level job-start restriction.
+The complete account-specific annotation is retained in private tracking
+notes; the public evidence below records its retrieval and normalized cause.
+
+| Evidence | Result |
+| --- | --- |
+| Source commit / tree | 7e85c070ba21810b3a2cc8c61943e083eba1d7c2 / 7510e367d048bbbf0e93a52323ecbc9ea5a17e74 |
+| Workflow run / attempt | [42728821819](https://github.com/osmankaankars/lemulip/actions/runs/42728821819) / 1 |
+| Job | [129541298010](https://github.com/osmankaankars/lemulip/actions/runs/42728821819/job/129541298010) |
+| GitHub conclusion | failure; before runner allocation and before recorded steps |
+| Job created / completed | 2026-11-10 00:30:29 / 00:30:33 UTC; scheduler metadata, not workload duration |
+| Runner / recorded steps / artifact count | Unassigned / 0 / 0 |
+| Native collector / macOS cases executed | 0 / 0; all six cases **NOT RUN** |
+| Final local portable suite | **192 unique tests PASS**, zero failures/errors/skips |
+| Before/after source identity | **113 files**, unchanged and matched to the published Git blobs |
+| Overall platform result | **diagnostic-incomplete** |
+
+The job log endpoint returned 404 BlobNotFound. No macOS interpreter
+fingerprint, WNOWAIT/group preflight, case receipt, qualification report or
+artifact ZIP exists for this attempt. There is therefore no native archive
+or classification result to revalidate. A failed GitHub job and an
+unexecuted qualification case are distinct outcomes.
+
+The final 192 portable tests contain the existing 145 D29 tests and 47 D30
+tests: 11 fixture, 7 pressure and 29 classifier methods. The same final
+classifier suite rejected the retained earlier harness with 11 assertion
+failures, then passed against the frozen published harness. Those repeated
+subset executions are not added to the 192 total. One additional real
+Python capture glue check passed with explicitly synthetic direct-child
+process inventory; its archive payload/CRC/SHA and probe-construction
+checks remain portable evidence only.
+
+See [the retained CI result](evidence/D30-isolated-atrc-macos.json) and
+[portable proof, source identities and classifier regression records](evidence/D30-verification.json).
+Only this document and those two evidence files are changed by the result
+follow-up; they are excluded from the workflow push paths.
+
+**Next continuation: D31.** Resolve the evidenced account-level job-start
+restriction, then run the same frozen source commit, Intel label, Python
+selection, six cases and budgets once. Preserve this D30 failure and inspect
+the resulting exact run/artifact before deciding whether platform
+qualification is complete. This result supplies no reason to alter action
+pins, runner architecture, budgets or qualification logic. No rerun or
+account setting change was performed during D30.
 
 ## Frozen source and execution scope
 
